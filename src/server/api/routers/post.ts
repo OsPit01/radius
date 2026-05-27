@@ -1,5 +1,5 @@
 import { z } from "zod";
-
+import { desc } from "drizzle-orm"; // 👈 ДОБАВЬ ЭТОТ ИМПОРТ
 import {
   createTRPCRouter,
   protectedProcedure,
@@ -15,6 +15,16 @@ export const postRouter = createTRPCRouter({
         greeting: `Hello ${input.text}`,
       };
     }),
+  //получить все посты
+  getAll: publicProcedure.query(async ({ ctx }) => {
+    const allPosts = await ctx.db.query.posts.findMany({
+      orderBy: (posts, { desc }) => [desc(posts.createdAt)],
+      with: {
+        author: true, // подтягиваем данные автора (если есть связь)
+      },
+    });
+    return allPosts;
+  }),
 
   create: protectedProcedure
     .input(z.object({ name: z.string().min(1) }))

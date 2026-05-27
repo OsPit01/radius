@@ -106,3 +106,11 @@ export const verificationTokens = createTable(
   }),
   (t) => [primaryKey({ columns: [t.identifier, t.token] })],
 );
+
+// Добавь после определения таблиц
+export const postsRelations = relations(posts, ({ one }) => ({
+  author: one(users, {
+    fields: [posts.createdById],
+    references: [users.id],
+  }),
+}));
