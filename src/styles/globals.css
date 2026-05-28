@@ -5,20 +5,3 @@
     var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
-.my-custom-bg {
-  background-color: rgb(81, 97, 110);
-}
-
-.my-custom-button {
-  background-color: #000;
-  color: white;
-  padding: 15px 50;
-  border-radius: 15px;
-  text-decoration: none;
-  transition: all 03s ease;
-  display: inline-block;
-}
-.my-custom-button:hover {
-  background-color: #4752c4;
-  transform: scale(1.05);
-}

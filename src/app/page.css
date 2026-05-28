@@ -1,0 +1,43 @@
+/* p___A___G__E.tsx */
+
+.my-custom-bg {
+  background-color: rgb(81, 97, 110);
+
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+}
+
+.my-block {
+  background-color: #ececf0;
+  color: rgb(247, 247, 247);
+  height: 100%;
+  width: 100%;
+  border: 5px solid #000;
+  /* border-x */
+}
+@media (min-width: 768px) {
+  .my-block {
+    max-width: 672px;
+  }
+}
+
+.my-custom-button {
+  background-color: #000;
+  color: rgb(255, 255, 255);
+  padding: 15px 50;
+  border-radius: 15px;
+  text-decoration: none;
+  transition: all 03s ease;
+  display: flex;
+  justify-content: center;
+}
+.my-custom-button:hover {
+  background-color: #4752c4;
+  transform: scale(1.05);
+}
+.posts {
+  background-color: blue;
+  border: 1px solid #000;
+  padding: 32px;
+}
