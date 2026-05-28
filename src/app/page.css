@@ -1,7 +1,7 @@
 /* p___A___G__E.tsx */
 
 .my-custom-bg {
-  background-color: rgb(81, 97, 110);
+  background-color: rgb(238, 238, 238);
 
   height: 100vh;
   display: flex;
@@ -10,7 +10,7 @@
 
 .my-block {
   background-color: #ececf0;
-  color: rgb(247, 247, 247);
+  color: rgb(0, 0, 0);
   height: 100%;
   width: 100%;
   border: 5px solid #000;
