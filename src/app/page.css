@@ -1,15 +1,16 @@
 /* p___A___G__E.tsx */
 
 .my-custom-bg {
-  background-color: rgb(238, 238, 238);
-
+  background-color: rgb(255, 255, 255);
   height: 100vh;
   display: flex;
   justify-content: center;
 }
 
 .my-block {
-  background-color: #ececf0;
+  background-color: white;
+  padding: 100px 150px;
+
   color: rgb(0, 0, 0);
   height: 100%;
   width: 100%;
@@ -22,10 +23,20 @@
   }
 }
 
+.text-above-login {
+  color: black;
+  padding: 0px 0px 10px;
+  display: flex;
+  justify-content: center;
+}
+
 .my-custom-button {
-  background-color: #000;
+  background-color: #add8d8;
   color: rgb(12, 7, 7);
-  padding: 15px 50;
+  padding: 15px;
+  align-items: center;
+  gap: 100px;
+  font-size: 25px;
   border-radius: 15px;
   text-decoration: none;
   transition: all 03s ease;
@@ -38,6 +49,6 @@
 }
 .posts {
   background-color: rgb(226, 226, 235);
-  border: 1px solid #000;
+  border: 1px solid #030303;
   padding: 32px;
 }

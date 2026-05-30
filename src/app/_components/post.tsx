@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import { api } from "@/trpc/react";
-
+import "./UserProfile.css";
 export function LatestPost() {
   const [latestPost] = api.post.getLatest.useSuspenseQuery();
 
@@ -35,7 +35,7 @@ export function LatestPost() {
           placeholder="Title"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full rounded-full bg-white/10 px-4 py-2 text-white"
+          className="textfield"
         />
         <button
           type="submit"

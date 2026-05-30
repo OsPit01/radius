@@ -59,7 +59,7 @@
 .loading {
   text-align: center;
   padding: 2rem;
-  color: #666;
+  color: #797373;
 }
 
 .unauthorized {
@@ -82,4 +82,13 @@
 
 .discord-login-btn:hover {
   background-color: #596ae7;
+}
+.form-textfield {
+  color: rgb(210, 21, 248);
+  border: 1px solid rgb(210, 21, 248);
+}
+.textfield {
+  color: black;
+  border: 1px solid rgb(71, 71, 71);
+  padding: 10px;
 }

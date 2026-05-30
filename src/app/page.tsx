@@ -3,7 +3,7 @@ import Image from "next/image";
 import { LatestPost } from "@/app/_components/post";
 import { auth } from "@/server/auth";
 import { api, HydrateClient } from "@/trpc/server";
-import "./page.css";
+import "./page.css"; // ← ЭТА СТРОКА ДОЛЖНА БЫТЬ
 import { UserProfile } from "@/app/_components/UserProfile";
 
 export default async function Home() {
@@ -42,9 +42,9 @@ export default async function Home() {
           ) : (
             /* Если пользователь НЕ ВОШЕЛ */
             <div className="login-box">
-              <p className="text-center text-white">Вы не авторизованы</p>
+              <p className="text-above-login">Вы не авторизованы</p>
               <Link href="/api/auth/signin" className="my-custom-button">
-                Войти через Discord
+                Войти
               </Link>
             </div>
           )}
