@@ -24,7 +24,7 @@
 
 .my-custom-button {
   background-color: #000;
-  color: rgb(255, 255, 255);
+  color: rgb(12, 7, 7);
   padding: 15px 50;
   border-radius: 15px;
   text-decoration: none;
@@ -33,11 +33,11 @@
   justify-content: center;
 }
 .my-custom-button:hover {
-  background-color: #4752c4;
+  background-color: #7983ec;
   transform: scale(1.05);
 }
 .posts {
-  background-color: blue;
+  background-color: rgb(226, 226, 235);
   border: 1px solid #000;
   padding: 32px;
 }

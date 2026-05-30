@@ -5,25 +5,17 @@ import "./UserProfile.css";
 
 export function UserProfile() {
   // Добавь try-catch или проверку на существование хука
-  let session, status;
+  const { data: session, status } = useSession();
 
-  try {
-    const result = useSession();
-    session = result.data;
-    status = result.status;
-  } catch (error) {
-    console.error("Session error:", error);
-    return <div>Ошибка загрузки профиля</div>;
-  }
-
+  // Статус загрузки
   if (status === "loading") {
     return <div className="loading">Загрузка...</div>;
   }
-
+  // Не авторизован
   if (status === "unauthenticated" || !session) {
     return null;
   }
-
+  // Авторизован - показываем профиль
   const { user } = session;
 
   return (
