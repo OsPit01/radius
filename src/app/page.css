@@ -1,54 +1,198 @@
-/* p___A___G__E.tsx */
+/* ================= ОСНОВНЫЕ КОНТЕЙНЕРЫ ================= */
 
 .my-custom-bg {
   background-color: rgb(255, 255, 255);
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
+  align-items: flex-start;
   justify-content: center;
+  padding: 0;
 }
 
 .my-block {
   background-color: white;
-  padding: 100px 150px;
-
   color: rgb(0, 0, 0);
-  height: 100%;
-  width: 100%;
   border: 5px solid #000;
-  /* border-x */
+  width: 100%;
+  max-width: 1200px;
+  padding: 0 30px 40px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
 }
-@media (min-width: 768px) {
+
+@media (max-width: 768px) {
   .my-block {
-    max-width: 672px;
+    padding: 0 15px 15px;
   }
 }
 
-.text-above-login {
-  color: black;
-  padding: 0px 0px 10px;
+/* ================= ШАПКА (BAR) ================= */
+
+.site-header {
   display: flex;
-  justify-content: center;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 0;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #f0f0f0;
+  flex-wrap: wrap;
 }
 
-.my-custom-button {
-  background-color: #add8d8;
-  color: rgb(12, 7, 7);
-  padding: 15px;
-  align-items: center;
-  gap: 100px;
-  font-size: 25px;
-  border-radius: 15px;
+.logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.logo a {
+  color: #333;
   text-decoration: none;
-  transition: all 03s ease;
+}
+
+.logo a:hover {
+  color: #000;
+}
+
+.main-nav {
   display: flex;
-  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
 }
-.my-custom-button:hover {
-  background-color: #7983ec;
-  transform: scale(1.05);
+
+.main-nav a {
+  color: #555;
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: color 0.2s ease;
+  padding: 8px 0;
 }
+
+.main-nav a:hover {
+  color: #000;
+}
+
+.user-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.icon-btn {
+  background: transparent;
+  border: none;
+  color: #333;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.icon-btn:hover {
+  background-color: #f0f0f0;
+}
+
+.login-link {
+  background-color: #ff5a5f;
+  color: white;
+  padding: 8px 20px;
+  border-radius: 30px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.login-link:hover {
+  background-color: #e14b4f;
+  transform: scale(1.02);
+}
+
+/* ================= СЕКЦИЯ ПРИВЕТСТВИЯ (HERO) ================= */
+
+.hero-section {
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.hero-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 16px;
+}
+
+.hero-description {
+  font-size: 1.1rem;
+  color: #666;
+  margin-bottom: 32px;
+}
+
+/* ================= ДЛЯ АВТОРИЗОВАННЫХ ПОЛЬЗОВАТЕЛЕЙ ================= */
+
+.welcome-header {
+  text-align: center;
+  padding: 20px 0;
+  margin-bottom: 20px;
+}
+
+.welcome-title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.welcome-subtitle {
+  font-size: 1rem;
+  color: #666;
+}
+
+/* ================= ПОСТЫ ================= */
+
 .posts {
   background-color: rgb(226, 226, 235);
   border: 1px solid #030303;
   padding: 32px;
+  margin-top: 32px;
+  border-radius: 12px;
+}
+
+/* ================= АДАПТАВНОСТЬ ================= */
+
+@media (max-width: 768px) {
+  .site-header {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .main-nav {
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .user-actions {
+    justify-content: center;
+  }
+
+  .hero-title {
+    font-size: 1.8rem;
+  }
+
+  .hero-description {
+    font-size: 1rem;
+  }
+
+  .welcome-title {
+    font-size: 1.5rem;
+  }
+
+  .posts {
+    padding: 20px;
+  }
+
+  .login-link {
+    padding: 6px 16px;
+    font-size: 0.8rem;
+  }
 }

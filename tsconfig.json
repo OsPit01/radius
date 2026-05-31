@@ -28,7 +28,10 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+
+    /* Types - ДОБАВЛЕНО */
+    "types": ["node"]
   },
   "include": [
     "next-env.d.ts",
