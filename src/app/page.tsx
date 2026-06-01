@@ -4,7 +4,7 @@ import { api, HydrateClient } from "@/trpc/server";
 import "./page.css";
 import { UserProfile } from "@/app/_components/UserProfile";
 import { LatestPost } from "@/app/_components/post";
-
+import { SearchForm } from "@/app/_components/SearchForm";
 export default async function Home() {
   const session = await auth();
   const posts = await api.post.getAll();
@@ -47,6 +47,7 @@ export default async function Home() {
 
       {/* ОСНОВНОЙ КОНТЕНТ */}
       <main className="main-content">
+        {/* вошел */}
         {session?.user ? (
           <>
             <div className="welcome-header">
@@ -62,9 +63,11 @@ export default async function Home() {
             <LatestPost />
           </>
         ) : (
+          // не вошел
           <div className="hero-section">
             <h1 className="hero-title">Найдём, где остановиться!</h1>
             <p className="hero-description">Квартиры, отели, гостевые дома</p>
+            <SearchForm />
           </div>
         )}
       </main>

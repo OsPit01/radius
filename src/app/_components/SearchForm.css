@@ -1,0 +1,27 @@
+* {
+  box-sizing: border-box;
+}
+.search-section {
+  background-color: #a995e2;
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  width: 100%;
+}
+.search-container {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+  border-inline: border-box;
+  background-color: white;
+  border: 2px solid rgba(24, 23, 23, 0.781);
+  border-radius: 25px;
+}
+.search-input {
+  color: #4116b9;
+  width: 100%;
+  padding: 16px 10px;
+  border: none;
+}
+.guest-button {
+}
