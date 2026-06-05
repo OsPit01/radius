@@ -2,26 +2,62 @@
   box-sizing: border-box;
 }
 .search-section {
-  background-color: #a995e2;
+  background-color: white;
   display: flex;
   justify-content: center;
   padding: 20px;
   width: 100%;
+  border-radius: 25px;
 }
+/* Контейнер для поля поиска и кнопки */
 .search-container {
   display: flex;
   gap: 20px;
   width: 100%;
   border-inline: border-box;
-  background-color: white;
-  border: 2px solid rgba(24, 23, 23, 0.781);
+  background-color: rgb(252, 250, 250);
+
   border-radius: 25px;
+  overflow: visible;
 }
+/* ================= ПОЛЕ ВВОДА ПОИСКА ================= */
 .search-input {
+  flex: 3;
   color: #4116b9;
-  width: 100%;
-  padding: 16px 10px;
+  width: 50%;
+  padding: 16px 15px;
   border: none;
 }
-.guest-button {
+/* :focus - когда пользователь КЛИКНУЛ на поле (оно активно) */
+.search-input:focus {
+  /* outline: none; */
+}
+/* ================= ОБЁРТКА ДЛЯ КНОПКИ И ПОПАПА ================= */
+.guests-wrapper {
+  position: relative;
+}
+.guests-button {
+  padding: 0px 24px;
+  white-space: nowrap;
+  background-color: rgb(252, 250, 250);
+  cursor: pointer;
+  border-left: 1px solid rgb(192, 188, 188);
+  border-right: 1px solid rgb(192, 188, 188);
+  height: 100%;
+  z-index: 1000;
+}
+.guests-button:hover {
+}
+/* ================= ПОПАП (ДИАЛОГ) ================= */
+
+.guests-modal {
+  position: absolute;
+
+  top: 100%;
+  right: -90%;
+  margin-top: 8px;
+  width: 320px;
+  background-color: white;
+  border-radius: 16px;
+  z-index: 1001;
 }

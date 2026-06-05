@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import "./SearchForm.css";
-import { set } from "zod/v4";
+
 export function SearchForm() {
   // Состояние для текста поиска
   const [searchQuery, setSearchQuery] = useState("");
   // Состояние для открытия/закрытия попапа гостей
-  const [isGuestWidnowOpen, setIsGuestWindowOpen] = useState(false);
+  const [isGuestWindowOpen, setIsGuestWindowOpen] = useState(false);
   // Состояние для количества гостей
   const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
@@ -27,7 +27,7 @@ export function SearchForm() {
   };
   // общее количество гостей
   const totalGuest = adults + children;
-  const guestText = '${totalGuests}  "гостей"';
+  const guestText = "гостей";
 
   //  кнопка гостей
 
@@ -41,15 +41,64 @@ export function SearchForm() {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
-        {/* КНОПКА ДЛЯ ВЫБОРА ГОСТЕЙ - ПО НЕЙ ОТКРЫВАЕТСЯ ПОПАП */}
+        {/* КНОПКА, ПО КОТОРОЙ КЛИКАЮТ, ЧТОБЫ ОТКРЫТЬ ПОПАП */}
+        {/* Условие: если isGuestModalOpen === true, то показываем попап */}
+        <div className="guests-wrapper">
+          <button
+            className="guests-button"
+            onClick={() => setIsGuestWindowOpen(true)}
+          >
+            {totalGuest + " " + guestText}
+          </button>
 
-        <button
-          className="guests-button"
-          onClick={() => setIsGuestWindowOpen(true)}
-        >
-          {" "}
-          {totalGuest + guestText}
-        </button>
+          {/* ================= ПОПАП  ================= */}
+          {isGuestWindowOpen && (
+            <>
+              {/* ПОДЛОЖКА */}
+              <div
+                className="window-overlay"
+                onClick={() => setIsGuestWindowOpen(false)}
+              />
+              {/* САМ ПОПАП */}
+              <div className="guests-modal">
+                <h3 className="window-title">кто едет?</h3>
+                {/* ВЗРОСЛЫЕ */}
+                <div className="guests-row">
+                  <div className="guests-ingo">
+                    <span className="guests-name"> Взрослые </span>
+                    <span className="guests-info"> От 18 лет </span>
+                  </div>
+                  <div className="counter-btn">
+                    {" "}
+                    <button
+                      className="counter-btn"
+                      onClick={() => decrease("adults")}
+                      disabled={adults <= 1}
+                    >
+                      -
+                    </button>
+                    <span className="counter-value"> {adults}</span>
+                    <button
+                      className="counter-btn"
+                      onClick={() => increase("adults")}
+                      disabled={adults >= 25}
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+                {/* КНОПКА ГОТОВО */}
+                <button
+                  className="modal-done-btn"
+                  onClick={() => setIsGuestWindowOpen(false)}
+                >
+                  Готово
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+        {/* ================= КОНЕЦ ОБЁРТКИ ================= */}
       </div>
     </div>
   );
