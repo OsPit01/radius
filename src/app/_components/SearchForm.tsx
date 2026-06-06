@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import "./SearchForm.css";
+import { $ZodAny } from "zod/v4/core";
 
 export function SearchForm() {
   // Состояние для текста поиска
@@ -26,8 +27,16 @@ export function SearchForm() {
     if (type === "pets" && pets > 0) setPets(pets - 1);
   };
   // общее количество гостей
-  const totalGuest = adults + children;
-  const guestText = "гостей";
+  const adultsGuests = adults;
+  const adultsText = adults < 2 ? "Взрослый" : "Взрослых";
+  const childrenText =
+    children === 0
+      ? "без детей"
+      : children === 1
+        ? children + " " + "ребёнок"
+        : children < 5
+          ? children + " " + "ребёнка"
+          : children + " " + "детей";
 
   //  кнопка гостей
 
@@ -48,7 +57,7 @@ export function SearchForm() {
             className="guests-button"
             onClick={() => setIsGuestWindowOpen(true)}
           >
-            {totalGuest + " " + guestText}
+            {adultsGuests + " " + adultsText + ", " + childrenText}
           </button>
 
           {/* ================= ПОПАП  ================= */}
@@ -63,25 +72,45 @@ export function SearchForm() {
               <div className="guests-modal">
                 <h3 className="window-title">кто едет?</h3>
                 {/* ВЗРОСЛЫЕ */}
-                <div className="guests-row">
-                  <div className="guests-ingo">
-                    <span className="guests-name"> Взрослые </span>
-                    <span className="guests-info"> От 18 лет </span>
-                  </div>
-                  <div className="counter-btn">
+                <div className="adults-row">
+                  <span className="adults-text"> Взрослые от 18 лет </span>
+
+                  <div className="counter-btn-row-adults">
                     {" "}
                     <button
-                      className="counter-btn"
+                      className="counter-btn-adults"
                       onClick={() => decrease("adults")}
-                      disabled={adults <= 1}
+                      disabled={adults < 1}
                     >
                       -
                     </button>
-                    <span className="counter-value"> {adults}</span>
+                    <span className="counter-value-adults"> {adults}</span>
                     <button
-                      className="counter-btn"
+                      className="counter-btn-adults"
                       onClick={() => increase("adults")}
                       disabled={adults >= 25}
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+                {/* ДЕТИ */}
+                <div className="children-row">
+                  <span className="children-text"> Дети</span>
+
+                  <div className="counter-btn-row-children">
+                    <button
+                      className="counter-btn-children"
+                      onClick={() => decrease("children")}
+                      disabled={children < 0}
+                    >
+                      -
+                    </button>
+                    <span className="counter-value-children">{children}</span>
+                    <button
+                      className="counter-btn-children"
+                      onClick={() => increase("children")}
+                      disabled={children >= 20}
                     >
                       +
                     </button>
