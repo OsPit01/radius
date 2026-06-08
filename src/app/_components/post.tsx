@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import { api } from "@/trpc/react";
-import "./UserProfile.css";
+import "./auth/UserProfile.css";
 export function LatestPost() {
   const [latestPost] = api.post.getLatest.useSuspenseQuery();
 

@@ -2,9 +2,9 @@ import Link from "next/link";
 import { auth } from "@/server/auth";
 import { api, HydrateClient } from "@/trpc/server";
 import "./page.css";
-import { UserProfile } from "@/app/_components/UserProfile";
+import { UserProfile } from "@/app/_components/auth/UserProfile";
 import { LatestPost } from "@/app/_components/post";
-import { SearchForm } from "@/app/_components/SearchForm";
+import { SearchForm } from "@/app/_components/search/SearchForm";
 export default async function Home() {
   const session = await auth();
   const posts = await api.post.getAll();

@@ -14,18 +14,30 @@
   border-inline: border-box;
   background-color: white;
   border-radius: 25px;
-
+  border: 2px solid rgb(38, 44, 56);
   overflow: visible;
 }
-/* ================= ПОЛЕ ВВОДА ПОИСКА ================= */
-.search-input {
+
+.search-input-wrapper {
+  display: flex;
+  align-items: center;
   flex: 3;
+  background-color: white;
+  border-radius: 25px;
+}
+.search-input {
+  flex: 1;
   color: black;
   font-weight: 500;
-  width: 100%;
   padding: 18px 15px;
   border: none;
+  outline: none;
+  background: transparent;
+  border-right: 2px solid rgb(38, 44, 56);
 }
+
+/* ================= ПОЛЕ ВВОДА ПОИСКА ================= */
+
 /* :focus - когда пользователь КЛИКНУЛ на поле (оно активно) */
 .search-input:focus {
   outline: none;
@@ -37,13 +49,12 @@
 .guests-wrapper {
   position: relative;
 }
+/* ================= КНОПКА (Секция гостей/количество) ================= */
 .guests-button {
-  padding: 0px 30px;
+  padding: 5px 100px;
   white-space: nowrap;
-  background-color: rgb(252, 250, 250);
+  background-color: white;
   cursor: pointer;
-  border-left: 1px solid rgb(192, 188, 188);
-  border-right: 1px solid rgb(192, 188, 188);
   height: 100%;
   z-index: 1000;
 }
@@ -66,9 +77,9 @@
 .guests-modal {
   position: absolute;
   top: 100%;
-  right: -50%;
+  left: 50%;
+  transform: translateX(-50%);
   margin-top: 8px;
-
   width: 350px;
   background-color: white;
   border-radius: 16px;
@@ -116,7 +127,7 @@
 .counter-value-adults {
   padding: 15px;
 }
-/* главный див детей */
+/* Попап главный див детей */
 .children-row {
   display: flex;
   justify-content: space-between;
@@ -148,4 +159,79 @@
 
 .counter-value-children {
   padding: 15px;
+}
+
+/* Секция с возрастами детей */
+.child-ages-section {
+  margin: 10px;
+  padding: 22px;
+  background-color: #f9f9f9;
+  border-radius: 12px;
+}
+/* Заголовок секции детей */
+.child-ages-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #666;
+  margin-bottom: 10px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #eee;
+}
+/* Строка с выбором возраста одного ребёнка */
+.child-age-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 5px 0;
+}
+.child-age-label {
+}
+/* Текст "Ребёнок 1" */
+.child-age-select {
+  padding: 10px 15px;
+  border: 1px solid #ddd;
+  border-radius: 25px;
+  background-color: white;
+  font-size: 14px;
+  cursor: pointer;
+  outline: none;
+}
+.child-age-select:focus {
+  border-color: rgb(77, 77, 78);
+}
+
+/* КНОПКА ГОТОВО */
+.modal-done-btn {
+  background-color: black;
+  color: white;
+  margin: 15px;
+  border-radius: 15px;
+  width: 70%;
+  height: 50px;
+  font-size: 18px;
+}
+.modal-done-btn:hover {
+  background-color: rgb(31, 30, 30);
+}
+
+/*Лупа*/
+
+.search-input-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+  margin: 1px;
+  background-color: black;
+  color: white;
+  cursor: pointer;
+  border-radius: 50%;
+}
+.search-input-icon svg {
+  width: 19px;
+  height: 19px;
+}
+.icon-link {
 }
