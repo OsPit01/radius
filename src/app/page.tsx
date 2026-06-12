@@ -5,6 +5,8 @@ import "./page.css";
 import { UserProfile } from "@/app/_components/auth/UserProfile";
 import { LatestPost } from "@/app/_components/post";
 import { SearchForm } from "@/app/_components/search/SearchForm";
+import { ApartmentsList } from "@/app/_components/apartments/ApartmentsList";
+import { ClientSearchWrapper } from "./_components/ClientSearchWrapper";
 export default async function Home() {
   const session = await auth();
   const posts = await api.post.getAll();
@@ -67,7 +69,7 @@ export default async function Home() {
           <div className="hero-section">
             <h1 className="hero-title">Найдём, где остановиться!</h1>
             <p className="hero-description">Квартиры, отели, гостевые дома</p>
-            <SearchForm />
+            <ClientSearchWrapper />
           </div>
         )}
       </main>
