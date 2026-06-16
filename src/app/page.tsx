@@ -3,16 +3,12 @@ import { auth } from "@/server/auth";
 import { api, HydrateClient } from "@/trpc/server";
 import "./page.css";
 import { UserProfile } from "@/app/_components/auth/UserProfile";
-import { LatestPost } from "@/app/_components/post";
 import { SearchForm } from "@/app/_components/search/SearchForm";
 import { ApartmentsList } from "@/app/_components/apartments/ApartmentsList";
 import { ClientSearchWrapper } from "./_components/ClientSearchWrapper";
 import { UserDropdown } from "@/app/_components/auth/UserDropdown";
 export default async function Home() {
   const session = await auth();
-
-  if (session?.user) {
-  }
 
   return (
     <HydrateClient>
