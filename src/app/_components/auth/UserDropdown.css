@@ -1,0 +1,59 @@
+/* ===== ОСНОВНОЙ КОНТЕЙНЕР ===== */
+.user-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+/* ===== КНОПКА АВАТАРА ===== */
+.avatar-btn {
+  background: transparent;
+  padding: 8px 12px;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+.avatar-image {
+  border-radius: 50px;
+  width: 30px;
+  height: 30px;
+}
+.avatar-emoji {
+  border-radius: 50px;
+  width: 30px;
+  height: 30px;
+}
+.avatar-name {
+  font-size: 13px;
+  padding: 3px;
+  font-weight: 500;
+}
+.dropdown-menu {
+  background-color: white;
+  position: absolute;
+  top: calc(100% + 10px); /* сразу под кнопкой + 8px отступа */
+  left: 50%; /* левый край меню по центру кнопки */
+  transform: translateX(-50%); /* сдвигаем меню влево на половину его ширины */
+  min-width: 250px;
+
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e0e0e0;
+  z-index: 1000;
+  overflow: hidden;
+  padding: 5px;
+}
+.dropdown-item {
+  display: block;
+  padding: 5px;
+  transition: background-color 0.2s;
+  font-size: 15px;
+}
+.dropdown-item:hover {
+  background-color: rgb(249, 249, 253);
+  width: 100%;
+  border-radius: 5px;
+  padding: 10px;
+}

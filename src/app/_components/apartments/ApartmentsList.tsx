@@ -55,9 +55,13 @@ export function ApartmentsList({
       <h2 className="apartments-title">
         Варианты для проживания: {foundCount}
         {/* Если есть текст поиска - показываем его */}
-        {searchQuery && ` по запросу "${searchQuery}"`}
+        <p className="search-query">
+          {searchQuery && ` Город: "${searchQuery}"`}{" "}
+        </p>
         {/* Если количество гостей больше 1 - показываем */}
-        {totalGuests > 1 && `, гостей: ${totalGuests}`}
+        <p className="search-guests">
+          {totalGuests > 1 && `Количество человек: ${totalGuests}`}{" "}
+        </p>
       </h2>
       {foundCount === 0 ? (
         <div className="no-result">

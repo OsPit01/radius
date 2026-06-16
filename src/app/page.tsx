@@ -7,12 +7,11 @@ import { LatestPost } from "@/app/_components/post";
 import { SearchForm } from "@/app/_components/search/SearchForm";
 import { ApartmentsList } from "@/app/_components/apartments/ApartmentsList";
 import { ClientSearchWrapper } from "./_components/ClientSearchWrapper";
+import { UserDropdown } from "@/app/_components/auth/UserDropdown";
 export default async function Home() {
   const session = await auth();
-  const posts = await api.post.getAll();
 
   if (session?.user) {
-    void api.post.getLatest.prefetch();
   }
 
   return (
@@ -25,19 +24,20 @@ export default async function Home() {
           </div>
 
           <nav className="main-nav">
-            <a href="#">Отели</a>
+            <a href="#"></a>
             <a href="#">Коттеджи</a>
             <a href="#">Базы отдыха</a>
             <a href="#">Гостевые дома</a>
           </nav>
-
+          {/* ПРАВАЯ ЧАСТЬ ШАПКИ */}
           <div className="user-actions">
             {!session?.user ? (
               <Link href="/api/auth/signin" className="login-link">
                 Войти
               </Link>
             ) : (
-              <button className="avatar-btn">👤</button>
+              /* <button className="avatar-btn">👤</button> */
+              <UserDropdown user={session.user} />
             )}
 
             <button className="icon-btn">₽</button>
@@ -56,13 +56,7 @@ export default async function Home() {
               <h1 className="welcome-title">Добро пожаловать</h1>
               <p className="welcome-subtitle">Рады видеть вас снова</p>
             </div>
-            <UserProfile />
-            <div className="posts">
-              {posts.map((post) => (
-                <div key={post.id}>{post.name}</div>
-              ))}
-            </div>
-            <LatestPost />
+            <ClientSearchWrapper />
           </>
         ) : (
           // не вошел

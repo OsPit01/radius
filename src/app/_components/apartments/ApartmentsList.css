@@ -12,7 +12,14 @@
   margin-bottom: 40px;
   color: #333;
 }
-
+.search-query {
+  font-weight: 600;
+  font-size: 18px;
+}
+.search-guests {
+  font-weight: 400;
+  font-size: 16px;
+}
 /* Сетка карточек */
 .apartments-grid {
   display: grid;

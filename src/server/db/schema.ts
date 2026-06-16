@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import { index, pgTableCreator, primaryKey } from "drizzle-orm/pg-core";
 import { type AdapterAccount } from "next-auth/adapters";
+import { d } from "node_modules/drizzle-kit/index-BAUrj6Ib.mjs";
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -9,16 +10,22 @@ import { type AdapterAccount } from "next-auth/adapters";
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
 export const createTable = pgTableCreator((name) => `radius_${name}`);
-
-export const posts = createTable(
-  "post",
+// ===== ТАБЛИЦА КВАРТИР =====
+export const apartments = createTable(
+  "apartment",
   (d) => ({
     id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
-    name: d.varchar({ length: 256 }),
-    createdById: d
-      .varchar({ length: 255 })
-      .notNull()
-      .references(() => users.id),
+    title: d.varchar({ length: 200 }).notNull(),
+    city: d.varchar({ length: 100 }).notNull(),
+    district: d.varchar({ length: 200 }),
+    capacity: d.integer().notNull(),
+    price: d.integer().notNull(),
+    image: d.varchar({ length: 500 }).notNull(),
+    description: d.text(),
+    rooms: d.integer().notNull(),
+    metro: d.varchar({ length: 100 }),
+    createdById: d.varchar({ length: 255 }).references(() => users.id),
+
     createdAt: d
       .timestamp({ withTimezone: true })
       .$defaultFn(() => /* @__PURE__ */ new Date())
@@ -26,8 +33,8 @@ export const posts = createTable(
     updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
   }),
   (t) => [
-    index("created_by_idx").on(t.createdById),
-    index("name_idx").on(t.name),
+    index("apartment_city_idx").on(t.city),
+    index("apartment_capacity_idx").on(t.capacity),
   ],
 );
 
@@ -106,11 +113,3 @@ export const verificationTokens = createTable(
   }),
   (t) => [primaryKey({ columns: [t.identifier, t.token] })],
 );
-
-// Добавь после определения таблиц
-export const postsRelations = relations(posts, ({ one }) => ({
-  author: one(users, {
-    fields: [posts.createdById],
-    references: [users.id],
-  }),
-}));
