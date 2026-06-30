@@ -15,15 +15,18 @@ export const apartments = createTable(
   "apartment",
   (d) => ({
     id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+    type: d.varchar({ length: 100 }),
     title: d.varchar({ length: 200 }).notNull(),
     city: d.varchar({ length: 100 }).notNull(),
     district: d.varchar({ length: 200 }),
+    building: d.varchar({ length: 50 }),
     capacity: d.integer().notNull(),
     price: d.integer().notNull(),
     image: d.varchar({ length: 500 }).notNull(),
     description: d.text(),
     rooms: d.integer().notNull(),
     metro: d.varchar({ length: 100 }),
+
     createdById: d.varchar({ length: 255 }).references(() => users.id),
 
     createdAt: d

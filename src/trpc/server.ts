@@ -6,7 +6,6 @@ import { appRouter } from "@/server/api/root";
 import { createTRPCContext } from "@/server/api/trpc";
 
 // ВРЕМЕННО: отключаем server-side tRPC
-// Когда понадобится - раскомментируешь
 
 export const api = appRouter;
 

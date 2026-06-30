@@ -18,6 +18,7 @@ CREATE TABLE "radius_apartment" (
 	"title" varchar(200) NOT NULL,
 	"city" varchar(100) NOT NULL,
 	"district" varchar(200),
+	"building" varchar(10),
 	"capacity" integer NOT NULL,
 	"price" integer NOT NULL,
 	"image" varchar(500) NOT NULL,

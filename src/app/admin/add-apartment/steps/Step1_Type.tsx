@@ -1,0 +1,34 @@
+"use client";
+import type { FormData } from "../page";
+import { getTypeLabel } from "../utils";
+type Step1_TypeProps = {
+  formData: FormData;
+  updateField: (field: keyof FormData, value: string | number) => void;
+};
+
+export function Step1_Type({ formData, updateField }: Step1_TypeProps) {
+  return (
+    <div className="step">
+      <h2> Шаг: 1 что вы хотите добавить?</h2>
+      <div className="type-selector">
+        <div
+          className={`type-option ${formData.type === "apartment" ? "active" : ""}`}
+          onClick={() =>
+            updateField(
+              "type",
+              formData.type === "apartment" ? "" : "apartment",
+            )
+          }
+        >
+          <p> квартира,</p> <p> партаменты</p>
+        </div>
+        {/* Позже можно добавить: Коттедж, Отель, Гостевой дом */}
+      </div>
+      <p className="step-hint">
+        {" "}
+        Выберите тип обьекта (пока доступна только квартира)
+      </p>
+      <p className="summary-panel"> {getTypeLabel(formData.type)}</p>
+    </div>
+  );
+}

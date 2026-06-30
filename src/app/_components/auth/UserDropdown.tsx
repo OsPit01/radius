@@ -65,12 +65,13 @@ export function UserDropdown({ user }: UserDropdownProps) {
           <Link href="/bookings" className="dropdown-item">
             Мои бронирования
           </Link>
+          <Link href="/admin/add-apartment" className="dropdown-item">
+            добавить квартиру
+          </Link>
           <Link href="/settings" className="dropdown-item">
             Настройки
           </Link>
-          <Link href="/admin/add-apartment" className="dropdown-item">
-            Настройки
-          </Link>
+
           <hr />
           <button className="logout-btn" onClick={() => signOut}>
             Выйти
