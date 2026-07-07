@@ -16,11 +16,10 @@ export type FormData = {
   type: string;
   city: string;
   cityError: string;
-
   street: string;
-
+  numberHome: string;
   building: string;
-  house: string;
+  formattedAddress: string;
   district: string;
   addressError: string;
   title: string;
@@ -38,6 +37,7 @@ type StepProps = {
   updateField: (field: keyof FormData, value: string | number) => void;
   setFormData: React.Dispatch<React.SetStateAction<FormData>>;
   error?: string | null;
+  errorFields: (keyof FormData)[];
 };
 
 export default function AddApartmentPage() {
@@ -51,8 +51,9 @@ export default function AddApartmentPage() {
     city: "",
     cityError: "",
     street: "",
+    numberHome: "",
     building: "",
-    house: "",
+    formattedAddress: "",
     district: "",
     addressError: "",
     title: "",
@@ -66,13 +67,14 @@ export default function AddApartmentPage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  const [errorFields, setErrorFields] = useState<(keyof FormData)[]>([]);
   // ===== ФУНКЦИЯ ОБНОВЛЕНИЯ ДАННЫХ =====
   const updateField = (field: keyof FormData, value: string | number) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
+    setErrorFields((prev) => prev.filter((f) => f !== field));
   };
 
   // ===== MUTATION ДЛЯ СОЗДАНИЯ КВАРТИРЫ =====
@@ -83,8 +85,8 @@ export default function AddApartmentPage() {
       // Перенаправляем на главную
       router.push("/");
     },
-    onError: (err) => {
-      setError(err.message);
+    onError: (trpcErr) => {
+      setError(trpcErr.message || "Произошла ошибика при отправке");
       setIsSubmitting(false);
     },
   });
@@ -106,6 +108,7 @@ export default function AddApartmentPage() {
     const validation = validateStep(currentStep, formData);
     if (!validation.isValid) {
       setError(validation.error);
+      setErrorFields(validation.fields || []); // Сохраняем поля с ошибками
       return;
     }
     setError(null);
@@ -130,19 +133,19 @@ export default function AddApartmentPage() {
   const steps: StepConfig[] = [
     {
       component: Step1_Type as React.ComponentType<StepProps>,
-      props: { formData, updateField, setFormData },
+      props: { formData, updateField, setFormData, errorFields },
     },
     {
       component: Step2_City as React.ComponentType<StepProps>,
-      props: { formData, updateField, setFormData, error },
+      props: { formData, updateField, setFormData, errorFields },
     },
     {
       component: Step3_Address as React.ComponentType<StepProps>,
-      props: { formData, updateField, setFormData },
+      props: { formData, updateField, setFormData, errorFields },
     },
     {
       component: Step4_Details as React.ComponentType<StepProps>,
-      props: { formData, updateField, setFormData, error },
+      props: { formData, updateField, setFormData, errorFields },
     },
   ];
   const currentStepIndex = currentStep - 1;

@@ -8,8 +8,8 @@ type Step1_TypeProps = {
 
 export function Step1_Type({ formData, updateField }: Step1_TypeProps) {
   return (
-    <div className="step">
-      <h2> Шаг: 1 что вы хотите добавить?</h2>
+    <fieldset className="step">
+      <legend className="step-title"> Шаг: 1 что вы хотите добавить?</legend>
       <div className="type-selector">
         <div
           className={`type-option ${formData.type === "apartment" ? "active" : ""}`}
@@ -29,6 +29,6 @@ export function Step1_Type({ formData, updateField }: Step1_TypeProps) {
         Выберите тип обьекта (пока доступна только квартира)
       </p>
       <p className="summary-panel"> {getTypeLabel(formData.type)}</p>
-    </div>
+    </fieldset>
   );
 }

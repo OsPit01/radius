@@ -81,10 +81,10 @@
    СОДЕРЖИМОЕ ШАГА (СТЕПА)
    ================================================================ */
 .summary-panel {
-  color: white;
-  font-size: 15px;
+  color: rgba(216, 214, 214, 0.911);
+  font-size: 13px;
   padding: 5px;
-  margin-top: 5px;
+  margin-top: 20px;
 }
 
 .step {
