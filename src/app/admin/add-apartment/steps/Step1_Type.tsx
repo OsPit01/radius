@@ -4,6 +4,8 @@ import { getTypeLabel } from "../utils";
 type Step1_TypeProps = {
   formData: FormData;
   updateField: (field: keyof FormData, value: string | number) => void;
+  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
+  errorFields: (keyof FormData)[];
 };
 
 export function Step1_Type({ formData, updateField }: Step1_TypeProps) {

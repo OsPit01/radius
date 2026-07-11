@@ -8,22 +8,25 @@ import { apartments } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
-// Валидация для создания квартиры
-
+// ===== ВАЛИДАЦИЯ ДЛЯ СОЗДАНИЯ КВАРТИРЫ =====
 const createApartmentSchema = z.object({
   type: z.string(),
   title: z.string().min(3, "Название минимум 3 символа"),
   city: z.string().min(2, "Город обязателен"),
-  street: z.string().min(3, "Улица обязательна"),
+  street: z.string().min(2, "Улица обязательна"),
   numberHome: z.string().min(1, "Номер дома обязатеелен"),
   building: z.string().nullable().optional(),
-  district: z.string().min(2, "Район обязателен"),
+
+  // ЧТО И ЗАЧЕМ ТУТ МЕНЯТЬ: Убрали .min(2) и сделали поле .optional().default("").
+  // Теперь пустой инпут района на фронтенде не будет вызывать ошибку Zod "too_small" на сервере!
+  district: z.string().optional().default(""),
+
   formattedAddress: z.string().optional().default(""),
   capacity: z.number().min(1).max(20),
-  price: z.number(),
+  price: z.number().positive("Цена должна быть положительной"),
   image: z.string().url("Некорректный URL"),
   description: z.string().optional(),
-  rooms: z.number().max(10),
+  rooms: z.number().min(1).max(10),
   metro: z.string().optional(),
 });
 
@@ -32,6 +35,7 @@ export const apartmentRouter = createTRPCRouter({
   getAll: publicProcedure.query(async ({ ctx }) => {
     return await ctx.db.select().from(apartments);
   }),
+
   // 2. Получить одну квартиру по ID
   getById: protectedProcedure
     .input(z.object({ id: z.number() }))
@@ -49,6 +53,7 @@ export const apartmentRouter = createTRPCRouter({
       }
       return apartment;
     }),
+
   // 3. Создать квартиру
   create: protectedProcedure
     .input(createApartmentSchema)
@@ -60,10 +65,12 @@ export const apartmentRouter = createTRPCRouter({
           message: "Пользователь не авторизован",
         });
       }
+
       const [newApartment] = await ctx.db
         .insert(apartments)
         .values({
           title: input.title,
+          type: input.type,
           city: input.city,
           street: input.street,
           numberHome: input.numberHome,
@@ -79,8 +86,10 @@ export const apartmentRouter = createTRPCRouter({
           createdById: userId,
         })
         .returning();
+
       return newApartment;
     }),
+
   delete: protectedProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ ctx, input }) => {

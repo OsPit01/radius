@@ -14,7 +14,6 @@ export function SearchForm({
   onSearchClick,
   onTempQueryChange,
   onTempGuestsChange,
-  isLoading = false,
 }: SearchFormProps) {
   // ===== ВРЕМЕННЫЕ СОСТОЯНИЯ (живут только внутри SearchForm) =====
   const [tempSearchQuery, setTempSearchQuery] = useState("");
