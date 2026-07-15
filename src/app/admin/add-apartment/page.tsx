@@ -7,6 +7,7 @@ import { Step1_Type } from "./steps/Step1_Type";
 import { Step2_City } from "./steps/Step2_City";
 import { Step3_Address } from "./steps/Step3_Address";
 import { Step4_Details } from "./steps/Step4_Details";
+import { Step5_Images } from "./steps/Step5_Images";
 import { NavigationButtons } from "./components/NavigationButtons";
 import {
   formatApartmentData,
@@ -125,15 +126,25 @@ export default function AddApartmentPage() {
   };
 
   // ===== ПЕРЕХОД МЕЖДУ ШАГАМИ =====
-  const goToNextStep = () => {
+  const goToNextStep = async () => {
+    console.log("🔍 currentStep:", currentStep);
+    console.log("📦 formData.images:", formData.images);
+    console.log("📦 formData.image:", formData.image);
     const validation = validateStep(currentStep, formData);
+    console.log("✅ validation:", validation);
     if (!validation.isValid) {
+      console.log("❌ Ошибка валидации:", validation.error, validation.fields);
       setError(validation.error ?? null);
       setErrorFields(validation.fields ?? []);
       return;
     }
     setError(null);
     setErrorFields([]);
+    if (currentStep === 5) {
+      console.log("🟢 5 шаг, вызываем handleSubmit");
+      await handleSubmit();
+      return;
+    }
     setCurrentStep(currentStep + 1);
   };
 
@@ -186,13 +197,20 @@ export default function AddApartmentPage() {
             errorFields={errorFields}
           />
         );
+      case 5:
+        return (
+          <Step5_Images
+            formData={formData}
+            updateField={updateField}
+            setFormData={setFormData}
+            error={error}
+            errorFields={errorFields}
+          />
+        );
       default:
         return <div>Шаг не найден</div>;
     }
   };
-
-  // CHAT_HELP: Мы полностью удалили отсюда старые строчки const currentStepIndex = currentStep - 1,
-  // константы CurrentStepComponent и спред-аргумент stepProps, которые вызывали ошибку ts(2556).
 
   return (
     <div className="add-apartment-page">
@@ -203,7 +221,7 @@ export default function AddApartmentPage() {
         {/* Восстановлена ваша РОДНАЯ форма, CSS будет работать идеально */}
         <form
           className="apartment-form"
-          onSubmit={async (e) => {
+          onSubmit={(e) => {
             e.preventDefault();
           }}
         >
@@ -212,11 +230,11 @@ export default function AddApartmentPage() {
 
           <NavigationButtons
             currentStep={currentStep}
-            totalSteps={4}
+            totalSteps={5}
             onNext={goToNextStep}
             onPrev={goToPrevStep}
             isSubmitting={isSubmitting}
-            isLastStep={currentStep === 4}
+            isLastStep={currentStep === 5}
           />
         </form>
       </div>

@@ -146,7 +146,7 @@ export function validateStep(
     case 4: {
       const badFields: (keyof FormData)[] = [];
       if (!formData.title.trim()) badFields.push("title");
-      if (!formData.image.trim()) badFields.push("image");
+
       if (!formData.price) badFields.push("price");
       if (formData.capacity < 1) badFields.push("capacity");
       if (!formData.rooms || formData.rooms < 1) badFields.push("rooms");
@@ -155,6 +155,23 @@ export function validateStep(
         return {
           isValid: false,
           error: "Заполните обязательные детали объекта",
+          fields: badFields,
+        };
+      }
+      return { isValid: true, error: null, fields: [] };
+    }
+    case 5: {
+      const badFields: (keyof FormData)[] = [];
+      if (!formData.images || formData.images.length === 0) {
+        badFields.push("images");
+      }
+      if (!formData.image) {
+        badFields.push("image");
+      }
+      if (badFields.length > 0) {
+        return {
+          isValid: false,
+          error: "Добавьте хотя бы одну фотографию",
           fields: badFields,
         };
       }
@@ -212,6 +229,7 @@ export const PARKING_TYPES = [
   { id: "paid", label: "Платная" },
   { id: "underground", label: "Подземная" },
   { id: "guarded", label: "Охраняемая" },
+  { id: "absent", label: "Нету" },
 ];
 
 // ===== ФУНКЦИЯ ДЛЯ ЧЕКБОКСОВ =====

@@ -4,7 +4,7 @@ import {
   protectedProcedure,
   publicProcedure,
 } from "@/server/api/trpc";
-import { apartments } from "@/server/db/schema";
+import { apartments, users } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
@@ -28,12 +28,28 @@ const createApartmentSchema = z.object({
   description: z.string().optional(),
   rooms: z.number().min(1).max(10),
   metro: z.string().optional(),
+  //////////////////////////////
+  currency: z.string().default("BYN"),
+  amenities: z.array(z.string()).optional().default([]),
+  parking: z.string().optional().default(""),
+  images: z.array(z.string()).optional().default([]),
 });
 
 export const apartmentRouter = createTRPCRouter({
   // 1. Получить все квартиры
   getAll: publicProcedure.query(async ({ ctx }) => {
-    return await ctx.db.select().from(apartments);
+    return await ctx.db
+      .select({
+        apartment: apartments,
+        user: {
+          id: users.id,
+          name: users.name,
+          email: users.email,
+          image: users.image,
+        },
+      })
+      .from(apartments)
+      .leftJoin(users, eq(apartments.createdById, users.id));
   }),
 
   // 2. Получить одну квартиру по ID
@@ -41,8 +57,17 @@ export const apartmentRouter = createTRPCRouter({
     .input(z.object({ id: z.number() }))
     .query(async ({ ctx, input }) => {
       const [apartment] = await ctx.db
-        .select()
+        .select({
+          apartment: apartments,
+          user: {
+            id: users.id,
+            name: users.name,
+            email: users.email,
+            image: users.image,
+          },
+        })
         .from(apartments)
+        .leftJoin(users, eq(apartments.createdById, users.id))
         .where(eq(apartments.id, input.id));
 
       if (!apartment) {
@@ -84,6 +109,11 @@ export const apartmentRouter = createTRPCRouter({
           rooms: input.rooms,
           metro: input.metro ?? null,
           createdById: userId,
+          currency: input.currency ?? "BYN",
+          amenities: input.amenities ?? [],
+          parking: input.parking ?? "",
+          images: input.images ?? [],
+          statusObject: true,
         })
         .returning();
 
@@ -96,4 +126,23 @@ export const apartmentRouter = createTRPCRouter({
       await ctx.db.delete(apartments).where(eq(apartments.id, input.id));
       return { success: true };
     }),
+
+  // 4. Получить объекты текущего пользователя
+  getMyApartments: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+
+    return await ctx.db
+      .select({
+        apartment: apartments,
+        user: {
+          id: users.id,
+          name: users.name,
+          email: users.email,
+          image: users.image,
+        },
+      })
+      .from(apartments)
+      .leftJoin(users, eq(apartments.createdById, users.id))
+      .where(eq(apartments.createdById, userId));
+  }),
 });

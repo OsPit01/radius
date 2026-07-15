@@ -22,15 +22,20 @@ export const apartments = createTable(
     numberHome: d.varchar({ length: 50 }).notNull(),
     district: d.varchar({ length: 200 }),
     building: d.varchar({ length: 50 }),
-    formattedAddress: d.text("formatted_address"),
+    formattedAddress: d.text("formattedAddress"),
     capacity: d.integer().notNull(),
     price: d.integer().notNull(),
-    image: d.varchar({ length: 500 }).notNull(),
+    image: d.text().notNull(),
     description: d.text(),
     rooms: d.integer().notNull(),
     metro: d.varchar({ length: 100 }),
-
+    //////////////////////////////////////////
+    currency: d.varchar({ length: 10 }).notNull().default("BYN"),
+    amenities: d.varchar("amenities").array().default([]),
+    parking: d.varchar({ length: 50 }).default(""),
+    images: d.text("images").array().default([]),
     createdById: d.varchar({ length: 255 }).references(() => users.id),
+    statusObject: d.boolean().default(false),
 
     createdAt: d
       .timestamp({ withTimezone: true })

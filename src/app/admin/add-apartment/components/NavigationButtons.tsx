@@ -41,12 +41,16 @@ export function NavigationButtons({
           Далее →
         </button>
       ) : (
-        // Если шаг ПОСЛЕДНИЙ (4-й), рендерится кнопка отправки формы на сервер
+        // Если шаг ПОСЛЕДНИЙ (5-й), рендерится кнопка отправки формы на сервер
         <button
-          type="submit"
+          type="button"
+          onClick={() => {
+            console.log("🔴 КНОПКА НАЖАТА! onNext:", onNext);
+            onNext();
+          }} //ВЫЗЫВАЕТ goToNextStep, КОТОРЫЙ ВЫЗЫВАЕТ handleSubmit
           disabled={isSubmitting}
           className="btn-primary"
-          // ЧТО И ЗАЧЕМ ТУТ МЕНЯТЬ: Твой родной инлайновый стиль отступа для финальной кнопки
+          // родной инлайновый стиль отступа для финальной кнопки
           style={{ marginLeft: currentStep > 1 ? "auto" : "0" }}
         >
           {isSubmitting ? "Сохранение..." : "➕ Добавить квартиру"}

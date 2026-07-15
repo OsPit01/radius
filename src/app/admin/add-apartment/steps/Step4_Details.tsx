@@ -34,6 +34,9 @@ export function Step4_Details({
   error,
   errorFields, // Принимаем массив ошибок для автоматической подсветки полей
 }: Step4_DetailsProps) {
+  // ===== ФУНКЦИЯ ДЛЯ ПРОВЕРКИ ОШИБОК =====
+  const hasError = (field: keyof FormData) => errorFields.includes(field);
+
   // ===== ФУНКЦИЯ ДЛЯ ЧЕКБОКСОВ УДОБСТВ =====
   const handleAmenityToggle = (amenityId: string, checked: boolean) => {
     const current = formData.amenities || [];
@@ -67,8 +70,8 @@ export function Step4_Details({
           type="text"
           value={formData.title}
           onChange={(e) => updateField("title", e.target.value)}
+          className={hasError("title") ? "error-input" : ""}
           placeholder="Например уютная студия в центре города"
-          className={getInputClassName(formData.title, "title", errorFields)}
         />
       </div>
       {/* ===== ЦЕНА И КОМНАТЫ ===== */}
@@ -81,8 +84,7 @@ export function Step4_Details({
             value={formData.price || ""}
             onChange={(e) => updateField("price", Number(e.target.value))}
             placeholder="100"
-            className={getInputClassName(formData.price, "price", errorFields)}
-            min="0"
+            min="30"
           />
         </div>
         <div className="form-group">
@@ -104,12 +106,82 @@ export function Step4_Details({
             value={formData.rooms || ""}
             onChange={(e) => updateField("rooms", Number(e.target.value))}
             placeholder="1"
-            className={errorFields.includes("rooms") ? "error-input" : ""}
-            min="0"
+            min="1"
+            max="20"
           />
         </div>
+        <div className="form-group">
+          <label htmlFor="capacity-field">Вместимость (человек) *</label>
+          <input
+            id="capacity-field"
+            type="number"
+            value={formData.capacity || ""}
+            onChange={(e) => updateField("capacity", Number(e.target.value))}
+            placeholder="2"
+            min="1"
+            max="35"
+          ></input>
+          {/* ===== МЕТРО ===== */}
+          <div className="form-group">
+            <label htmlFor="metro-field">Метро (минут пешком)</label>
+            <input
+              id="metro-field"
+              type="text"
+              value={formData.metro || ""}
+              onChange={(e) => updateField("metro", e.target.value)}
+              placeholder="5 минут до метро"
+            />
+          </div>
+        </div>
       </div>
+      {/* ===== 5. УДОБСТВА (ЧЕКБОКСЫ) ===== */}
 
+      <div className="form-group">
+        <label>Удобства</label>
+        <div className="amenities-grid">
+          {AMENITIES.map((amenity) => (
+            <label key={amenity.id} className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={formData.amenities?.includes(amenity.id) || false}
+                onChange={(e) =>
+                  handleAmenityToggle(amenity.id, e.target.checked)
+                }
+              />
+              {amenity.label}
+            </label>
+          ))}
+        </div>
+      </div>
+      {/* ===== 6. ПАРКОВКА ===== */}
+      <div className="form-group">
+        <label>Парковка</label>
+        <div className="radoi-group">
+          {PARKING_TYPES.map((type) => (
+            <label key={type.id} className="radio-label">
+              <input
+                type="radio"
+                name="parking"
+                value={type.id}
+                checked={formData.parking === type.id}
+                onChange={() => handleParkingChange(type.id)}
+              />
+              {type.label}
+            </label>
+          ))}
+        </div>
+      </div>
+      {/* ===== 8. ОПИСАНИЕ ===== */}
+      <div className="form-group">
+        <label htmlFor="description-field">Описание</label>
+        <textarea
+          id="description-field"
+          value={formData.description || ""}
+          onChange={(e) => updateField("description", e.target.value)}
+          placeholder="Опишите квартиру, особенности, что рядом находится..."
+          rows={4}
+        />
+      </div>
       {/* Панель заполненной информации предыдущих шагов */}
       <div className="summary-panel" aria-live="polite">
         <p>{getTypeLabel(formData.type)}</p>

@@ -62,6 +62,10 @@ export function UserDropdown({ user }: UserDropdownProps) {
           <Link href="/PersonalAccount" className="dropdown-item">
             Личный кабинет
           </Link>
+          {/* !!!!! ДОБАВЛЕН ПУНКТ "МОИ ОБЪЕКТЫ" !!!!! */}
+          <Link href="/my-apartments" className="dropdown-item">
+            Мои объекты
+          </Link>
           <Link href="/bookings" className="dropdown-item">
             Мои бронирования
           </Link>
