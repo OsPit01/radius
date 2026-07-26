@@ -120,6 +120,79 @@ export const apartmentRouter = createTRPCRouter({
       return newApartment;
     }),
 
+  // 3.5. Обновить квартиру
+  update: protectedProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        title: z.string().min(3),
+        city: z.string().min(2),
+        street: z.string().min(2),
+        numberHome: z.string().min(1),
+        building: z.string().nullable().optional(),
+        district: z.string().optional(),
+        formattedAddress: z.string().optional(),
+        capacity: z.number().min(1).max(20),
+        price: z.number().positive(),
+        currency: z.string().default("BYN"),
+        image: z.string().url(),
+        description: z.string().optional(),
+        rooms: z.number().min(1).max(10),
+        metro: z.string().optional(),
+        amenities: z.array(z.string()).optional().default([]),
+        parking: z.string().optional().default(""),
+        images: z.array(z.string()).optional().default([]),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      if (!userId) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Пользователь не авторизован",
+        });
+      }
+
+      // Проверяем, что объект принадлежит пользователю
+      const [existing] = await ctx.db
+        .select()
+        .from(apartments)
+        .where(eq(apartments.id, input.id));
+
+      if (existing?.createdById !== userId) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "У вас нет прав на редактирование этого объекта",
+        });
+      }
+
+      const [updated] = await ctx.db
+        .update(apartments)
+        .set({
+          title: input.title,
+          city: input.city,
+          street: input.street,
+          numberHome: input.numberHome,
+          building: input.building,
+          district: input.district,
+          capacity: input.capacity,
+          price: input.price,
+          currency: input.currency,
+          image: input.image,
+          description: input.description,
+          rooms: input.rooms,
+          metro: input.metro,
+          amenities: input.amenities,
+          parking: input.parking,
+          images: input.images,
+          updatedAt: new Date(),
+        })
+        .where(eq(apartments.id, input.id))
+        .returning();
+
+      return updated;
+    }),
+
   delete: protectedProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ ctx, input }) => {

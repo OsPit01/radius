@@ -1,0 +1,503 @@
+/* ============================================================
+   ROOT ПЕРЕМЕННЫЕ
+   ============================================================ */
+
+:root {
+  --bg-primary: #211422;
+  --bg-card: #2a1a3a;
+  --border-color: #3a2a4a;
+  --border-hover: #b552c7;
+  --text-primary: #ffffff;
+  --text-secondary: #d0c0d0;
+  --text-section: #d0c0d0;
+  --text-muted: #b0a0b0;
+  --input-bg: #f5f0f5;
+  --input-text: #222222; /* ← ЧЁРНЫЙ ТОЛЬКО В INPUT */
+  --input-border: #3a2a4a;
+  --input-focus: #b552c7;
+  --btn-primary: #5d2d66;
+  --btn-primary-hover: #9a3fb0;
+  --gold: #fbbf24;
+  --danger: #ef4444;
+  --radius: 8px;
+  --radius-lg: 16px;
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --transition: 0.2s ease;
+}
+
+/* ============================================================
+   КОНТЕЙНЕР
+   ============================================================ */
+
+.edit-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.edit-container {
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  box-shadow: var(--shadow);
+}
+
+/* ============================================================
+   ЗАГОЛОВКИ
+   ============================================================ */
+
+.edit-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 30px;
+}
+
+.edit-section-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+}
+
+.hint-text {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-top: -8px;
+  margin-bottom: 12px;
+}
+
+/* ============================================================
+   СЕКЦИИ
+   ============================================================ */
+
+.edit-section {
+  margin-bottom: 40px;
+  color: var(--text-section);
+}
+
+/* ============================================================
+   СЕТКА ФОТОГРАФИЙ
+   ============================================================ */
+
+.edit-images-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.edit-image-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 2px solid var(--border-color);
+  background: var(--bg-card);
+  cursor: grab;
+  transition: border-color var(--transition);
+}
+
+.edit-image-item:hover {
+  border-color: var(--border-hover);
+}
+
+.edit-image-item.main {
+  border-color: var(--gold);
+}
+
+.edit-image-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.edit-image-object {
+  object-fit: cover;
+}
+
+.edit-main-badge {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  background: rgba(251, 191, 36, 0.9);
+  color: #000;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  z-index: 5;
+}
+
+/* ============================================================
+   КНОПКИ НАД ФОТО
+   ============================================================ */
+
+.edit-image-actions {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 10;
+}
+
+.edit-btn-main,
+.edit-btn-remove {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  transition: all var(--transition);
+  padding: 0;
+  line-height: 1;
+}
+
+.edit-btn-main {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.edit-btn-main:hover {
+  background: rgba(0, 0, 0, 0.8);
+  color: rgba(255, 255, 255, 0.8);
+  transform: scale(1.1);
+}
+
+.edit-image-item.main .edit-btn-main {
+  color: var(--gold);
+  background: rgba(251, 191, 36, 0.2);
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.3);
+}
+
+.edit-image-item.main .edit-btn-main:hover {
+  background: rgba(251, 191, 36, 0.3);
+  transform: scale(1.1);
+}
+
+.edit-btn-remove {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.edit-btn-remove:hover {
+  background: var(--danger);
+  color: #fff;
+  transform: scale(1.1);
+}
+
+/* ============================================================
+   ДОБАВЛЕНИЕ ФОТО
+   ============================================================ */
+
+.edit-image-add {
+  aspect-ratio: 1;
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition);
+  background: var(--bg-card);
+}
+
+.edit-image-add:hover {
+  border-color: var(--border-hover);
+  background: rgba(181, 82, 199, 0.05);
+}
+
+.edit-image-add button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.edit-image-add button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.edit-image-add .icon {
+  font-size: 28px;
+}
+
+/* ============================================================
+   ПОЛЕ ЦЕНЫ С ВАЛЮТОЙ
+   ============================================================ */
+
+.price-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.price-input-wrapper input {
+  width: 100%;
+  padding: 10px 85px 10px 14px;
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius);
+  font-size: 16px;
+  background: var(--input-bg);
+  color: var(--input-text);
+  transition: border-color var(--transition);
+}
+
+.price-input-wrapper input:focus {
+  border-color: var(--input-focus);
+  outline: none;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(181, 82, 199, 0.15);
+}
+
+.price-currency-select {
+  position: absolute;
+  right: 4px;
+  padding: 6px 10px;
+  border: none;
+  background: transparent;
+  color: var(--input-focus);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  outline: none;
+  width: 70px;
+  text-align: right;
+}
+
+.price-currency-select:hover {
+  color: var(--btn-primary-hover);
+}
+
+/* ============================================================
+   ФОРМА — ИСПРАВЛЕНО!
+   ============================================================ */
+
+.edit-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.edit-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.edit-group label {
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--text-primary); /* ← БЕЛЫЙ! */
+}
+
+.edit-group input,
+.edit-group select,
+.edit-group textarea {
+  padding: 10px 14px;
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius);
+  font-size: 16px;
+  background: var(--input-bg);
+  color: var(--input-text); /* ← ЧЁРНЫЙ ВНУТРИ ПОЛЯ */
+  transition: border-color var(--transition);
+  font-family: inherit;
+}
+
+.edit-group input::placeholder,
+.edit-group select::placeholder,
+.edit-group textarea::placeholder {
+  color: #999;
+}
+
+.edit-group input:focus,
+.edit-group select:focus,
+.edit-group textarea:focus {
+  border-color: var(--input-focus);
+  outline: none;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(181, 82, 199, 0.15);
+}
+
+.edit-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* ============================================================
+   УДОБСТВА
+   ============================================================ */
+
+.edit-checkboxes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.edit-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+/* !!!!! УНИФИЦИРУЕМ ВСЕ ЧЕКБОКСЫ !!!!! */
+.edit-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  min-width: 18px; /* ← НЕ ДАЁТ СЖАТЬСЯ */
+  min-height: 18px; /* ← НЕ ДАЁТ СЖАТЬСЯ */
+  accent-color: var(--border-hover);
+  cursor: pointer;
+  margin: 0;
+  padding: 0;
+  flex-shrink: 0;
+  -webkit-appearance: checkbox;
+  -moz-appearance: checkbox;
+  appearance: checkbox;
+}
+
+/* ============================================================
+   КНОПКИ СОХРАНЕНИЯ
+   ============================================================ */
+
+.edit-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color);
+}
+
+.edit-btn-save {
+  padding: 12px 32px;
+  background: var(--btn-primary);
+  color: #fff;
+  border: none;
+  border-radius: 30px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.edit-btn-save:hover {
+  background: var(--btn-primary-hover);
+}
+
+.edit-btn-cancel {
+  padding: 12px 32px;
+  background: var(--border-color);
+  color: #fff;
+  border: none;
+  border-radius: 30px;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--transition);
+  text-align: center;
+}
+
+.edit-btn-cancel:hover {
+  background: #4a3a5a;
+}
+
+/* ============================================================
+   АДАПТАВНОСТЬ
+   ============================================================ */
+
+@media (max-width: 1024px) {
+  .edit-images-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .edit-container {
+    padding: 20px;
+  }
+
+  .edit-row {
+    grid-template-columns: 1fr;
+  }
+
+  .edit-images-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .edit-checkboxes {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .edit-actions {
+    flex-direction: column;
+  }
+
+  .edit-btn-save,
+  .edit-btn-cancel {
+    width: 100%;
+    text-align: center;
+  }
+
+  .edit-title {
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 480px) {
+  .edit-page {
+    padding: 20px 10px;
+  }
+
+  .edit-container {
+    padding: 16px;
+  }
+
+  .edit-images-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .edit-checkboxes {
+    grid-template-columns: 1fr;
+  }
+
+  .edit-btn-main,
+  .edit-btn-remove {
+    width: 22px;
+    height: 22px;
+    font-size: 10px;
+  }
+
+  .edit-main-badge {
+    font-size: 8px;
+    padding: 1px 5px;
+  }
+
+  .price-currency-select {
+    font-size: 12px;
+    width: 55px;
+    padding: 4px 6px;
+  }
+
+  .price-input-wrapper input {
+    padding-right: 70px;
+  }
+}

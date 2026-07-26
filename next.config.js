@@ -5,6 +5,24 @@
 import "./src/env.js";
 
 /** @type {import("next").NextConfig} */
-const config = {};
+const config = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+        port: "",
+        pathname: "/**",
+      },
+      // Если будешь использовать другие хосты для картинок, добавляй сюда
+      // {
+      //   protocol: "https",
+      //   hostname: "avatars.githubusercontent.com",
+      //   port: "",
+      //   pathname: "/**",
+      // },
+    ],
+  },
+};
 
 export default config;

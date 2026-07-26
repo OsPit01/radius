@@ -22,8 +22,7 @@ export function ApartmentCard({ apartment }: { apartment: Apartment }) {
         <Image
           src={apartment.image}
           alt={apartment.title}
-          width={400}
-          height={300}
+          fill
           className="apartment-image"
         />
       </div>

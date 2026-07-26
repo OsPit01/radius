@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
 import "./UserDropdown.css";
-
+import Image from "next/image";
 // Тип для пропсов (данные пользователя)
 type UserDropdownProps = {
   user: {
@@ -50,7 +50,13 @@ export function UserDropdown({ user }: UserDropdownProps) {
       {/* иконка профиля с функцией dropdown */}
       <button className="avatar-btn" aria-label="Профиль">
         {user.image ? (
-          <img src={user.image} alt="avatar" className="avatar-image" />
+          <Image
+            src={user.image}
+            alt="avatar"
+            width={32}
+            height={32}
+            className="avatar-image"
+          />
         ) : (
           <span className="avatar-emoji">👤 </span>
         )}
