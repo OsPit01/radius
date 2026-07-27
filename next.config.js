@@ -8,6 +8,7 @@ import "./src/env.js";
 const config = {
   images: {
     remotePatterns: [
+      // 1. Google аватарки
       {
         protocol: "https",
         hostname: "lh3.googleusercontent.com",
@@ -15,14 +16,16 @@ const config = {
         pathname: "/**",
       },
       // Если будешь использовать другие хосты для картинок, добавляй сюда
-      // {
-      //   protocol: "https",
-      //   hostname: "avatars.githubusercontent.com",
-      //   port: "",
-      //   pathname: "/**",
-      // },
+      {
+        protocol: "https",
+        hostname: "feqiuipwtrbksobfbeda.supabase.co",
+        port: "",
+        pathname: "/storage/v1/object/public/**",
+      },
     ],
   },
+  // Отключи кэш в разработке (чтобы избежать проблем с кешированием)
+  generateEtags: process.env.NODE_ENV === "development" ? false : true,
 };
 
 export default config;

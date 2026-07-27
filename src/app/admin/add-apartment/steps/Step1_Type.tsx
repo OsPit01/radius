@@ -1,6 +1,6 @@
 "use client";
 import type { FormData } from "../page";
-import { getTypeLabel } from "../utils";
+import { getTypeLabel } from "@/lib/utils";
 type Step1_TypeProps = {
   formData: FormData;
   updateField: (field: keyof FormData, value: string | number) => void;
@@ -22,7 +22,7 @@ export function Step1_Type({ formData, updateField }: Step1_TypeProps) {
             )
           }
         >
-          <p> квартира,</p> <p> партаменты</p>
+          <p> квартира,</p> <p> апартаменты</p>
         </div>
         {/* Позже можно добавить: Коттедж, Отель, Гостевой дом */}
       </div>

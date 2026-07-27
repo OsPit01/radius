@@ -1,5 +1,10 @@
 import type { FormData } from "../page";
-import { getInputClassName, getTypeLabel } from "../utils";
+import {
+  getTypeLabel,
+  getInputClassName,
+  formatApartmentData,
+  validateStep,
+} from "@/lib/utils";
 
 type Step2_CityProps = {
   formData: FormData;

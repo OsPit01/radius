@@ -65,7 +65,7 @@ export function UserDropdown({ user }: UserDropdownProps) {
       {/*      */}
       {isOpen && (
         <div className="dropdown-menu">
-          <Link href="/PersonalAccount" className="dropdown-item">
+          <Link href="/profile" className="dropdown-item">
             Личный кабинет
           </Link>
           {/* !!!!! ДОБАВЛЕН ПУНКТ "МОИ ОБЪЕКТЫ" !!!!! */}

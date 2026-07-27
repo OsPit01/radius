@@ -99,7 +99,7 @@
 .btn-details {
   display: inline-block;
   padding: 10px 24px;
-  background: #b552c7;
+  background: #1a0a2a;
   color: white;
   border-radius: 30px;
   font-size: 14px;
@@ -109,7 +109,7 @@
 }
 
 .btn-details:hover {
-  background: #9a3fb0;
+  background: #4c2a6e;
 }
 
 .empty-state {

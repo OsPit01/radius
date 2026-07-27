@@ -1,7 +1,7 @@
 "use client";
 
 import type { FormData } from "../page";
-import { getFormLabel, getInputClassName, getTypeLabel } from "../utils";
+import { getInputClassName, getTypeLabel, getFormLabel } from "@/lib/utils";
 
 type Step3_AddressProps = {
   formData: FormData;

@@ -1,14 +1,14 @@
 "use client";
 
 import { CustomSelect } from "../components/CustomSelect";
-import type { FormData } from "../page";
+import type { FormData } from "@/lib/utils";
+import { getTypeLabel } from "@/lib/utils";
 import {
-  getInputClassName,
-  getTypeLabel,
   AMENITIES,
   PARKING_TYPES,
-  toggleArrayItem,
-} from "../utils";
+  DEAL_TYPES,
+  PROPERTY_TYPES,
+} from "@/lib/constants";
 
 type Step4_DetailsProps = {
   formData: FormData;
@@ -32,7 +32,7 @@ export function Step4_Details({
   formData,
   updateField,
   error,
-  errorFields, // Принимаем массив ошибок для автоматической подсветки полей
+  errorFields,
 }: Step4_DetailsProps) {
   // ===== ФУНКЦИЯ ДЛЯ ПРОВЕРКИ ОШИБОК =====
   const hasError = (field: keyof FormData) => errorFields.includes(field);
@@ -49,46 +49,56 @@ export function Step4_Details({
       );
     }
   };
+
   // ===== ФУНКЦИЯ ДЛЯ РАДИО КНОПОК ПАРКОВКИ =====
   const handleParkingChange = (value: string) => {
     updateField("parking", value);
   };
+
   return (
     <fieldset className="step">
       <legend className="step-title">Шаг 4: Детали объекта</legend>
+
       {error && (
-        <div className="error" role="alert">
-          {" "}
+        <div className="error-message" role="alert">
           {error}
         </div>
       )}
-      {/* Поле Заголовка */}
+
+      {/* ===== 1. ЗАГОЛОВОК ===== */}
       <div className="form-group">
-        <label> Напишите заголовок </label>
+        <label htmlFor="title-field">
+          Напишите заголовок <span className="required">*</span>
+        </label>
         <input
           id="title-field"
           type="text"
           value={formData.title}
           onChange={(e) => updateField("title", e.target.value)}
           className={hasError("title") ? "error-input" : ""}
-          placeholder="Например уютная студия в центре города"
+          placeholder="Например: Уютная студия в центре города"
         />
       </div>
-      {/* ===== ЦЕНА И КОМНАТЫ ===== */}
+
+      {/* ===== 2. ЦЕНА + ВАЛЮТА ===== */}
       <div className="form-row">
         <div className="form-group">
-          <label htmlFor="price-field"> Цена за сутки </label>
+          <label htmlFor="price-field">
+            Цена за сутки <span className="required">*</span>
+          </label>
           <input
             id="price-field"
             type="number"
             value={formData.price || ""}
             onChange={(e) => updateField("price", Number(e.target.value))}
+            className={hasError("price") ? "error-input" : ""}
             placeholder="100"
             min="30"
           />
         </div>
+
         <div className="form-group">
-          <label htmlFor="currency-field"> Валюта</label>
+          <label htmlFor="currency-field">Валюта</label>
           <CustomSelect
             options={CURRENCIES}
             value={formData.currency ?? "BYN"}
@@ -96,46 +106,55 @@ export function Step4_Details({
           />
         </div>
       </div>
-      {/* ===== КОМНАТЫ И ВМЕСТИМОСТЬ ===== */}
+
+      {/* ===== 3. КОМНАТЫ + ВМЕСТИМОСТЬ ===== */}
       <div className="form-row">
         <div className="form-group">
-          <label htmlFor="rooms-field">Количество комнат</label>
+          <label htmlFor="rooms-field">
+            Количество комнат <span className="required">*</span>
+          </label>
           <input
             id="rooms-field"
             type="number"
             value={formData.rooms || ""}
             onChange={(e) => updateField("rooms", Number(e.target.value))}
+            className={hasError("rooms") ? "error-input" : ""}
             placeholder="1"
             min="1"
             max="20"
           />
         </div>
+
         <div className="form-group">
-          <label htmlFor="capacity-field">Вместимость (человек) *</label>
+          <label htmlFor="capacity-field">
+            Вместимость (человек) <span className="required">*</span>
+          </label>
           <input
             id="capacity-field"
             type="number"
             value={formData.capacity || ""}
             onChange={(e) => updateField("capacity", Number(e.target.value))}
+            className={hasError("capacity") ? "error-input" : ""}
             placeholder="2"
             min="1"
             max="35"
-          ></input>
-          {/* ===== МЕТРО ===== */}
-          <div className="form-group">
-            <label htmlFor="metro-field">Метро (минут пешком)</label>
-            <input
-              id="metro-field"
-              type="text"
-              value={formData.metro || ""}
-              onChange={(e) => updateField("metro", e.target.value)}
-              placeholder="5 минут до метро"
-            />
-          </div>
+          />
         </div>
       </div>
-      {/* ===== 5. УДОБСТВА (ЧЕКБОКСЫ) ===== */}
 
+      {/* ===== 4. МЕТРО ===== */}
+      <div className="form-group">
+        <label htmlFor="metro-field">Метро (минут пешком)</label>
+        <input
+          id="metro-field"
+          type="text"
+          value={formData.metro || ""}
+          onChange={(e) => updateField("metro", e.target.value)}
+          placeholder="5 минут до метро"
+        />
+      </div>
+
+      {/* ===== 5. УДОБСТВА (ЧЕКБОКСЫ) ===== */}
       <div className="form-group">
         <label>Удобства</label>
         <div className="amenities-grid">
@@ -153,10 +172,11 @@ export function Step4_Details({
           ))}
         </div>
       </div>
+
       {/* ===== 6. ПАРКОВКА ===== */}
       <div className="form-group">
         <label>Парковка</label>
-        <div className="radoi-group">
+        <div className="radio-group">
           {PARKING_TYPES.map((type) => (
             <label key={type.id} className="radio-label">
               <input
@@ -171,7 +191,8 @@ export function Step4_Details({
           ))}
         </div>
       </div>
-      {/* ===== 8. ОПИСАНИЕ ===== */}
+
+      {/* ===== 7. ОПИСАНИЕ ===== */}
       <div className="form-group">
         <label htmlFor="description-field">Описание</label>
         <textarea
@@ -182,10 +203,12 @@ export function Step4_Details({
           rows={4}
         />
       </div>
-      {/* Панель заполненной информации предыдущих шагов */}
+
+      {/* ===== ПАНЕЛЬ С ИНФОРМАЦИЕЙ ===== */}
       <div className="summary-panel" aria-live="polite">
         <p>{getTypeLabel(formData.type)}</p>
-        <p>{getTypeLabel(formData.formattedAddress)}</p>
+        <p>Адрес: {formData.formattedAddress || "не указан"}</p>
+        {formData.metro && <p>Метро: {formData.metro}</p>}
       </div>
     </fieldset>
   );

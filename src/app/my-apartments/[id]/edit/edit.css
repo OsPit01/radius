@@ -3,7 +3,7 @@
    ============================================================ */
 
 :root {
-  --bg-primary: #211422;
+  --bg-primary: #0e081b;
   --bg-card: #2a1a3a;
   --border-color: #3a2a4a;
   --border-hover: #b552c7;
@@ -11,7 +11,7 @@
   --text-secondary: #d0c0d0;
   --text-section: #d0c0d0;
   --text-muted: #b0a0b0;
-  --input-bg: #f5f0f5;
+  --input-bg: #f4f0fc;
   --input-text: #222222; /* ← ЧЁРНЫЙ ТОЛЬКО В INPUT */
   --input-border: #3a2a4a;
   --input-focus: #b552c7;
@@ -59,7 +59,8 @@
   color: var(--text-primary);
   border-bottom: 1px solid var(--border-color);
   padding-bottom: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 15px;
+  margin-top: 35px;
 }
 
 .hint-text {

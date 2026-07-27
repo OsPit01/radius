@@ -1,233 +1,49 @@
 "use client";
-import { useParams, useRouter } from "next/navigation";
+
+import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { api } from "@/trpc/react";
-import { useState, useEffect, useRef } from "react";
+import { ClientHeader } from "@/app/_components/layout/ClientHeader";
 import Image from "next/image";
 import Link from "next/link";
-import { ClientHeader } from "@/app/_components/layout/ClientHeader";
+import { AMENITIES, PARKING_TYPES, CURRENCIES } from "@/lib/constants";
+import { useApartmentForm } from "./hooks/useApartmentForm";
+import { useImageManager } from "./hooks/useImageManager";
 import "./edit.css";
 
-type FormData = {
-  title: string;
-  city: string;
-  street: string;
-  numberHome: string;
-  building: string;
-  district: string;
-  capacity: number;
-  price: number;
-  currency: string;
-  rooms: number;
-  description: string;
-  metro: string;
-  amenities: string[];
-  parking: string;
-  image: string;
-  images: string[];
-};
 export default function EditApartmentPage() {
-  // Получаем ID из URL: /my-apartments/5/edit → id = 5
   const params = useParams();
   const id = typeof params.id === "string" ? params.id : (params.id?.[0] ?? "");
-  // Для перенаправления после сохранения
-  const router = useRouter();
-  // Проверяем авторизацию
   const { data: session } = useSession();
-  // !!!!! ИСПРАВЛЕНО: безопасное получение id !!!!!
 
-  // ----- 3.2. ЗАПРОС НА СЕРВЕР -----
-  // Получаем данные объекта по ID
-  // useQuery автоматически: кеширует, перезапрашивает при изменении, показывает статус загрузки
   const {
-    data: apartmentData,
-    isLoading,
+    formData,
+    isSubmitting,
+    isLoadingData,
     error,
-  } = api.apartment.getById.useQuery({
-    id: Number(id), // Превращаем строку "5" в число 5
-  });
-  // ----- 3.3. СОСТОЯНИЕ ФОРМЫ -----
-  // все данные формы
-  const [formData, setFormData] = useState<FormData>({
-    title: "",
-    city: "",
-    street: "",
-    numberHome: "",
-    building: "",
-    district: "",
-    capacity: 2,
-    price: 0,
-    currency: "BYN",
-    rooms: 1,
-    description: "",
-    metro: "",
-    amenities: [],
-    parking: "",
-    image: "",
-    images: [],
-  });
-  // Флаг: идет загрузка фото
-  const [isUploading, setIsUploading] = useState(false);
-  // Для drag&drop: запоминаем индекс перетаскиваемого фото
-  const [dragIndex, setDragIndex] = useState<number | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+    updateField,
+    handleSubmit,
+  } = useApartmentForm(id);
 
-  // ----- 3.5. ЗАГРУЗКА ДАННЫХ В ФОРМУ -----
-
-  useEffect(() => {
-    if (apartmentData) {
-      const apt = apartmentData.apartment;
-      setFormData({
-        title: apt.title || "",
-        city: apt.city || "",
-        street: apt.street || "",
-        numberHome: apt.numberHome || "",
-        building: apt.building ?? "",
-        district: apt.district ?? "",
-        capacity: apt.capacity || 2,
-        price: apt.price || 0,
-        currency: apt.currency || "BYN",
-        rooms: apt.rooms || 1,
-        description: apt.description ?? "",
-        metro: apt.metro ?? "",
-        amenities: apt.amenities ?? [],
-        parking: apt.parking ?? "",
-        image: apt.image || "",
-        images: apt.images ?? [],
-      });
-    }
-  }, [apartmentData]);
-  // ----- 3.6. MUTATION (ОБНОВЛЕНИЕ) -----
-  const updateApartment = api.apartment.update.useMutation({
-    onSuccess: () => {
-      router.push(`/apartments/${id}`);
-    },
-    onError: (err) => {
-      alert("Ошибка: " + err.message);
-    },
+  const {
+    images,
+    mainImage,
+    isUploading,
+    fileInputRef,
+    addImages,
+    removeImage,
+    setMainImage,
+    handleDragStart,
+    handleDragOver,
+    handleDragEnd,
+    handleDrop,
+    openFilePicker,
+  } = useImageManager({
+    initialImages: formData.images || [],
+    initialMainImage: formData.image || "",
+    onImagesChange: (newImages) => updateField("images", newImages),
+    onMainImageChange: (newMain) => updateField("image", newMain),
   });
 
-  // ----- 3.7. ФУНКЦИЯ ОБНОВЛЕНИЯ ПОЛЯ -----
-
-  const updateField = (
-    field: keyof FormData,
-    value: string | number | string[],
-  ) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  // ----- 3.8. ФУНКЦИИ ДЛЯ ФОТО -----
-  // ============================================================
-  // 3.8. ДОБАВЛЕНИЕ ФОТО
-  // ============================================================
-
-  const handleAddImages = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    setIsUploading(true);
-    const readers: Promise<string>[] = [];
-
-    for (const file of files) {
-      const reader = new FileReader();
-      const promise = new Promise<string>((resolve) => {
-        reader.onload = (event) => {
-          resolve(event.target?.result as string);
-        };
-      });
-      readers.push(promise);
-      reader.readAsDataURL(file);
-    }
-
-    // !!!!! ДОБАВЛЕН .catch ДЛЯ ОБРАБОТКИ ОШИБОК !!!!!
-    Promise.all(readers)
-      .then((results) => {
-        const currentImages = formData.images ?? [];
-        const updatedImages = [...currentImages, ...results];
-        updateField("images", updatedImages);
-
-        // !!!!!  безопасная проверка на undefined !!!!!
-        if (!formData.image && updatedImages.length > 0) {
-          const firstImage = updatedImages[0];
-          if (firstImage) {
-            updateField("image", firstImage);
-          }
-        }
-      })
-      .catch((error) => {
-        console.error("Ошибка загрузки изображений:", error);
-        alert("Не удалось загрузить изображения");
-      })
-      .finally(() => {
-        setIsUploading(false);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
-      });
-  };
-  //удаление фото
-  const handleRemoveImage = (index: number) => {
-    const currentImages = formData.images ?? [];
-    const updatedImages = currentImages.filter((_, i) => i !== index);
-    updateField("images", updatedImages);
-    if (formData.image === currentImages[index]) {
-      updateField("image", updatedImages[0] ?? "");
-    }
-  };
-
-  const handleSetMain = (index: number) => {
-    const currentImages = formData.images ?? [];
-    if (currentImages.length === 0 || index === 0) return;
-
-    const image = currentImages[index];
-    if (!image) return;
-
-    const newImages = [image, ...currentImages.filter((_, i) => i !== index)];
-    const filteredImages = newImages.filter(
-      (img): img is string => img !== undefined,
-    );
-    updateField("images", filteredImages);
-    updateField("image", image);
-  };
-  // ===== DRAG & DROP =====
-  const handleDragStart = (index: number) => {
-    setDragIndex(index);
-  };
-  const handleDragEnd = () => {
-    setDragIndex(null);
-  };
-  const handleDragOver = (
-    e: React.DragEvent<HTMLDivElement>,
-    index: number,
-  ) => {
-    e.preventDefault();
-    if (dragIndex === null || dragIndex === index) return;
-    const currentImages = formData.images ?? [];
-    const newImages = [...currentImages];
-    const [draggedItem] = newImages.splice(dragIndex, 1);
-    if (draggedItem === undefined) return;
-    newImages.splice(index, 0, draggedItem);
-    updateField("images", newImages);
-    setDragIndex(index);
-  };
-  // ===== ОТКРЫТЬ ПРОВОДНИК =====
-  const openFilePicker = () => {
-    fileInputRef.current?.click();
-  };
-
-  // ----- 3.9. ОТПРАВКА ФОРМЫ -----
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    updateApartment.mutate({
-      id: Number(id),
-      ...formData,
-      price: Number(formData.price),
-      capacity: Number(formData.capacity),
-      rooms: Number(formData.rooms),
-    });
-  };
-  // ----- 3.10. УСЛОВНЫЙ РЕНДЕРИНГ -----
   if (!session) {
     return (
       <>
@@ -237,7 +53,7 @@ export default function EditApartmentPage() {
     );
   }
 
-  if (isLoading) {
+  if (isLoadingData) {
     return (
       <>
         <ClientHeader />
@@ -250,98 +66,94 @@ export default function EditApartmentPage() {
     return (
       <>
         <ClientHeader />
-        <div className="edit-page">Ошибка: {error.message}</div>
+        <div className="edit-page">Ошибка: {error}</div>
       </>
     );
   }
-
-  // ============================================================
-  // 3.11. РЕНДЕР СТРАНИЦЫ
-  // ============================================================
 
   return (
     <>
       <ClientHeader />
       <div className="edit-page">
         <div className="edit-container">
-          <p className="edit-title"> Редактирование объекта</p>
+          <h1 className="edit-title">Редактирование объекта</h1>
+
           <form onSubmit={handleSubmit} className="edit-form">
-            {/* ====
- БЛОК 1: ФОТОГРАФИИ
-==== */}
-            <div className="edit-images-grid">
-              {formData.images.map((image, index) => {
-                const isMain = formData.image === image;
-                return (
-                  <div
-                    key={index}
-                    className={`edit-image-item ${isMain ? "main" : ""}`}
-                    draggable={!isMain}
-                    onDragStart={() => !isMain && handleDragStart(index)}
-                    onDragOver={(e) => !isMain && handleDragOver(e, index)}
-                    onDragEnd={handleDragEnd}
+            {/* ФОТО */}
+            <div
+              className="edit-drop-zone"
+              onDrop={handleDrop}
+              onDragOver={(e) => e.preventDefault()}
+            >
+              <div className="edit-images-grid">
+                {images.map((image, index) => {
+                  const isMain = mainImage === image;
+                  return (
+                    <div
+                      key={index}
+                      className={`edit-image-item ${isMain ? "main" : ""}`}
+                      draggable={!isMain}
+                      onDragStart={() => !isMain && handleDragStart(index)}
+                      onDragOver={(e) => !isMain && handleDragOver(e, index)}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <div className="edit-image-wrapper">
+                        <Image
+                          src={image}
+                          alt={`Фото ${index + 1}`}
+                          fill
+                          className="edit-image-object"
+                          unoptimized
+                        />
+                        {isMain && (
+                          <div className="edit-main-bage">⭐ Заглавная</div>
+                        )}
+                      </div>
+                      <div className="edit-image-actions">
+                        <button
+                          type="button"
+                          className="edit-btn-main"
+                          onClick={() => setMainImage(index)}
+                          title={isMain ? "Заглавная" : "Сделать заглавной"}
+                        >
+                          ⭐
+                        </button>
+                        <button
+                          type="button"
+                          className="edit-btn-remove"
+                          onClick={() => removeImage(index)}
+                          title="Удалить"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+                <div className="edit-image-add">
+                  <button
+                    type="button"
+                    onClick={openFilePicker}
+                    disabled={isUploading}
                   >
-                    <div className="edit-image-wrapper">
-                      <Image
-                        src={image}
-                        alt={`Фото ${index + 1}`}
-                        fill
-                        className="edit-image-object"
-                        unoptimized
-                      />
-                      {isMain && (
-                        <div className="edit-main-bage">⭐ Заглавная</div>
-                      )}
-                    </div>
-
-                    {/* ===== КНОПКИ ===== */}
-                    <div className="edit-image-actions">
-                      {/* !!!!! ЗВЕЗДА ПОКАЗЫВАЕТСЯ ВСЕГДА !!!!! */}
-                      <button
-                        type="button"
-                        className="edit-btn-main"
-                        onClick={() => handleSetMain(index)}
-                        title={isMain ? "Заглавная" : "Сделать заглавной"}
-                      >
-                        ⭐
-                      </button>
-
-                      <button
-                        type="button"
-                        className="edit-btn-remove"
-                        onClick={() => handleRemoveImage(index)}
-                        title="Удалить"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-
-              {/* Кнопка добавления фото */}
-              <div className="edit-image-add">
-                <button
-                  type="button"
-                  onClick={openFilePicker}
-                  disabled={isUploading}
-                >
-                  {isUploading ? "⏳" : "📸"}
-                  <span>{isUploading ? "Загрузка..." : "Добавить фото"}</span>
-                </button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleAddImages}
-                  style={{ display: "none" }}
-                />
+                    {isUploading ? "⏳" : "📸"}
+                    <span>{isUploading ? "Загрузка..." : "Добавить фото"}</span>
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={(e) => addImages(e.target.files)}
+                    style={{ display: "none" }}
+                  />
+                </div>
               </div>
             </div>
-            {/* ===== БЛОК 2: ИНФОРМАЦИЯ ===== */}
+
+            {/* ИНФОРМАЦИЯ */}
             <section className="edit-section">
-              <div>Информация</div>
+              <div className="edit-section-title">Информация</div>
               <div className="edit-row">
                 <div className="edit-group">
                   <label>Заголовок*</label>
@@ -354,7 +166,7 @@ export default function EditApartmentPage() {
                 </div>
                 <div className="edit-group">
                   <label>Цена за сутки*</label>
-                  <div>
+                  <div className="price-group">
                     <input
                       type="number"
                       value={formData.price}
@@ -368,10 +180,11 @@ export default function EditApartmentPage() {
                       value={formData.currency}
                       onChange={(e) => updateField("currency", e.target.value)}
                     >
-                      <option value="BYN">BYN</option>
-                      <option value="USD">USD</option>
-                      <option value="EUR">EUR</option>
-                      <option value="RUB">RUB</option>
+                      {CURRENCIES.map((c) => (
+                        <option key={c.value} value={c.value}>
+                          {c.label}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -422,10 +235,10 @@ export default function EditApartmentPage() {
                 </div>
               </div>
             </section>
-            {/* ===== БЛОК 3: АДРЕС ===== */}
+
+            {/* АДРЕС */}
             <section className="edit-section">
               <div className="edit-section-title">Адрес</div>
-
               <div className="edit-row">
                 <div className="edit-group">
                   <label>Город *</label>
@@ -436,7 +249,6 @@ export default function EditApartmentPage() {
                     required
                   />
                 </div>
-
                 <div className="edit-group">
                   <label>Район</label>
                   <input
@@ -446,7 +258,6 @@ export default function EditApartmentPage() {
                   />
                 </div>
               </div>
-
               <div className="edit-row">
                 <div className="edit-group">
                   <label>Улица *</label>
@@ -457,7 +268,6 @@ export default function EditApartmentPage() {
                     required
                   />
                 </div>
-
                 <div className="edit-group">
                   <label>Номер дома *</label>
                   <input
@@ -468,7 +278,6 @@ export default function EditApartmentPage() {
                   />
                 </div>
               </div>
-
               <div className="edit-group">
                 <label>Корпус</label>
                 <input
@@ -478,31 +287,12 @@ export default function EditApartmentPage() {
                 />
               </div>
             </section>
-            {/* ===== БЛОК 4: УДОБСТВА И ПАРКОВКА ===== */}
+
+            {/* УДОБСТВА */}
             <section className="edit-section">
               <div className="edit-section-title">Удобства</div>
-
               <div className="edit-checkboxes">
-                {[
-                  { id: "wifi", label: "Wi-Fi" },
-                  { id: "tv", label: "Телевизор" },
-                  { id: "cable", label: "Кабельное ТВ" },
-                  { id: "airConditioning", label: "Кондиционер" },
-                  { id: "heating", label: "Отопление" },
-                  { id: "washingMachine", label: "Стиральная машина" },
-                  { id: "dishwasher", label: "Посудомоечная машина" },
-                  { id: "fridge", label: "Холодильник" },
-                  { id: "microwave", label: "Микроволновая печь" },
-                  { id: "oven", label: "Духовка" },
-                  { id: "stove", label: "Плита" },
-                  { id: "coffeeMachine", label: "Кофемашина" },
-                  { id: "kettle", label: "Чайник" },
-                  { id: "hairDryer", label: "Фен" },
-                  { id: "iron", label: "Утюг" },
-                  { id: "ironingBoard", label: "Гладильная доска" },
-                  { id: "gameConsole", label: "Игровая консоль" },
-                  { id: "babyBed", label: "Детская кроватка" },
-                ].map((amenity) => (
+                {AMENITIES.map((amenity) => (
                   <label key={amenity.id} className="edit-checkbox">
                     <input
                       type="checkbox"
@@ -525,29 +315,29 @@ export default function EditApartmentPage() {
                   </label>
                 ))}
               </div>
-
               <div className="edit-group">
                 <label>Парковка</label>
                 <select
                   value={formData.parking}
                   onChange={(e) => updateField("parking", e.target.value)}
                 >
-                  <option value="">Нет</option>
-                  <option value="free">Бесплатная</option>
-                  <option value="paid">Платная</option>
-                  <option value="underground">Подземная</option>
-                  <option value="guarded">Охраняемая</option>
+                  {PARKING_TYPES.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.label}
+                    </option>
+                  ))}
                 </select>
               </div>
             </section>
-            {/* ===== БЛОК 5: КНОПКИ ===== */}
+
+            {/* КНОПКИ */}
             <div className="edit-actions">
               <button
                 type="submit"
                 className="edit-btn-save"
-                onClick={() => router.push("/my-apartments")}
+                disabled={isSubmitting}
               >
-                Сохранить
+                {isSubmitting ? "Сохранение..." : "Сохранить"}
               </button>
               <Link href="/my-apartments" className="edit-btn-cancel">
                 Отмена

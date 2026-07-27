@@ -9,11 +9,12 @@ import { Step3_Address } from "./steps/Step3_Address";
 import { Step4_Details } from "./steps/Step4_Details";
 import { Step5_Images } from "./steps/Step5_Images";
 import { NavigationButtons } from "./components/NavigationButtons";
+import { ClientHeader } from "@/app/_components/layout/ClientHeader";
 import {
   formatApartmentData,
   validateStep,
   updateFieldWithAddress,
-} from "./utils";
+} from "@/lib/utils";
 import "./style.css";
 // ===== ТИП ДАННЫХ ФОРМЫ =====
 export type FormData = {
@@ -213,31 +214,34 @@ export default function AddApartmentPage() {
   };
 
   return (
-    <div className="add-apartment-page">
-      <div className="add-apartment-container">
-        {/* Восстановлен ваш оригинальный h1 */}
-        <h1 onClick={() => null}> Создание обьекта </h1>
+    <>
+      <ClientHeader />
+      <div className="add-apartment-page">
+        <div className="add-apartment-container">
+          {/* Восстановлен ваш оригинальный h1 */}
+          <h1 onClick={() => null}> Создание обьекта </h1>
 
-        {/* Восстановлена ваша РОДНАЯ форма, CSS будет работать идеально */}
-        <form
-          className="apartment-form"
-          onSubmit={(e) => {
-            e.preventDefault();
-          }}
-        >
-          {/* Вызываем функцию динамического рендера вместо старого спреда компонентов */}
-          {renderCurrentStep()}
+          {/* Восстановлена ваша РОДНАЯ форма, CSS будет работать идеально */}
+          <form
+            className="apartment-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+            }}
+          >
+            {/* Вызываем функцию динамического рендера вместо старого спреда компонентов */}
+            {renderCurrentStep()}
 
-          <NavigationButtons
-            currentStep={currentStep}
-            totalSteps={5}
-            onNext={goToNextStep}
-            onPrev={goToPrevStep}
-            isSubmitting={isSubmitting}
-            isLastStep={currentStep === 5}
-          />
-        </form>
+            <NavigationButtons
+              currentStep={currentStep}
+              totalSteps={5}
+              onNext={goToNextStep}
+              onPrev={goToPrevStep}
+              isSubmitting={isSubmitting}
+              isLastStep={currentStep === 5}
+            />
+          </form>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

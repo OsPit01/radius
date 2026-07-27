@@ -221,12 +221,6 @@ body {
   margin-bottom: 32px;
 }
 
-.apartments-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 24px;
-}
-
 .apartment-card {
   background: white;
   border-radius: 16px;
