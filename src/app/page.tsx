@@ -1,7 +1,10 @@
 import { ClientHeader } from "@/app/_components/layout/ClientHeader";
 import { ClientSearchWrapper } from "./_components/ClientSearchWrapper";
-
+import { ApartmentsList } from "@/app/_components/apartments/ApartmentsList";
+import { api } from "@/trpc/server";
 export default async function Home() {
+  // ===== ПОЛУЧАЕМ КВАРТИРЫ ИЗ БД =====
+
   return (
     <>
       <ClientHeader />

@@ -48,7 +48,7 @@ export const apartments = createTable(
     index("apartment_capacity_idx").on(t.capacity),
   ],
 );
-
+// ======== User ============= //
 export const users = createTable("user", (d) => ({
   id: d
     .varchar({ length: 255 })
@@ -65,8 +65,12 @@ export const users = createTable("user", (d) => ({
     .$defaultFn(() => /* @__PURE__ */ new Date()),
   image: d.varchar({ length: 255 }),
   role: d.varchar({ length: 50 }).notNull().default("users"),
+  // ===== НОВЫЕ ПОЛЯ =====
+  totalBookings: d.integer().notNull().default(0),
+  totalFavorites: d.integer().notNull().default(0),
+  totalApartments: d.integer().notNull().default(0),
 }));
-
+// ======== User ============= //
 export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
 }));
@@ -98,7 +102,7 @@ export const accounts = createTable(
 export const accountsRelations = relations(accounts, ({ one }) => ({
   user: one(users, { fields: [accounts.userId], references: [users.id] }),
 }));
-
+// ======== sessions  ============= //
 export const sessions = createTable(
   "session",
   (d) => ({

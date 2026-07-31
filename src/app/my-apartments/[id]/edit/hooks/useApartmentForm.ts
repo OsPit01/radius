@@ -62,7 +62,7 @@ export function useApartmentForm(apartmentId: string) {
   };
 
   // ===== ЗАГРУЗКА ДАННЫХ =====
-  const { data: apartmentData, isLoading: isLoadingData } =
+  const { data: apartmentData, isPending: isLoadingData } =
     api.apartment.getById.useQuery(
       { id: Number(apartmentId) },
       {
@@ -98,8 +98,9 @@ export function useApartmentForm(apartmentId: string) {
   // ===== ОБНОВЛЕНИЕ =====
   const updateApartment = api.apartment.update.useMutation({
     onSuccess: async () => {
-      await utils.apartment.getAll.invalidate();
-      await utils.apartment.getById.invalidate({ id: Number(apartmentId) });
+      await utils.apartment.getAll.invalidate(); // ← главная страница
+      await utils.apartment.getMyApartments.invalidate(); // ← мои объекты
+      await utils.apartment.getById.invalidate({ id: Number(apartmentId) }); // ← эта квартира
       router.push("/my-apartments");
     },
     onError: (err) => {

@@ -13,17 +13,20 @@ import {
 // ============================================================
 // РАСШИРЯЕМ ТИПЫ ДЛЯ NEXT-AUTH V5
 // ============================================================
-
+type Role = "user" | "lessor" | "admin" | "superadmin" | "mainadmin";
 declare module "next-auth" {
   interface Session {
     user: {
       id: string;
-      role: string;
+      name: string;
+      email: string;
+      image: string | null;
+      role: Role;
     };
   }
 
   interface User {
-    role: string;
+    role: Role;
   }
 }
 
@@ -33,7 +36,7 @@ declare module "next-auth" {
 
 declare module "@auth/core/adapters" {
   interface AdapterUser {
-    role?: string;
+    role?: Role;
   }
 }
 

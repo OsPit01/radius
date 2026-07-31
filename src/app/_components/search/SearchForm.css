@@ -7,23 +7,13 @@
   width: 100%;
   margin-top: 25px;
 }
-/* Контейнер для поля поиска и кнопки */
 .search-container {
   display: flex;
   width: 80%;
-  border-inline: border-box;
   background-color: white;
   border-radius: 25px;
   border: 1px solid rgb(38, 44, 56);
   overflow: visible;
-}
-
-.search-input-wrapper {
-  display: flex;
-  align-items: center;
-  flex: 3;
-  background-color: white;
-  border-radius: 25px;
 }
 .search-input {
   flex: 1;
@@ -35,21 +25,12 @@
   background: transparent;
   border-right: 1px solid rgb(38, 44, 56);
 }
-
-/* ================= ПОЛЕ ВВОДА ПОИСКА ================= */
-
-/* :focus - когда пользователь КЛИКНУЛ на поле (оно активно) */
 .search-input:focus {
   outline: none;
-  background-color: rgb(252, 254, 255);
-  border-top-left-radius: 25px;
-  border-bottom-left-radius: 25px;
 }
-/* ================= ОБЁРТКА ДЛЯ КНОПКИ И ПОПАПА ================= */
 .guests-wrapper {
   position: relative;
 }
-/* ================= КНОПКА (Секция гостей/количество) ================= */
 .guests-button {
   padding: 5px 100px;
   white-space: nowrap;
@@ -57,12 +38,8 @@
   cursor: pointer;
   height: 100%;
   z-index: 1000;
-}
-.guests-button:hover {
-}
-/* ================= ПОПАП (ДИАЛОГ) ================= */
-.guests-button:focus {
-  background-color: rgb(252, 254, 255);
+  border: none;
+  font-size: 14px;
 }
 .window-overlay {
   position: fixed;
@@ -70,10 +47,9 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: transparent; /* прозрачная, чтобы не мешать обзору */
+  background-color: transparent;
   z-index: 1000;
 }
-
 .guests-modal {
   position: absolute;
   top: 100%;
@@ -86,7 +62,6 @@
   border: 1px solid rgb(192, 188, 188);
   z-index: 1001;
 }
-/* текст кто едет*/
 .window-title {
   border-bottom: 1px solid whitesmoke;
   padding-bottom: 10px;
@@ -101,33 +76,30 @@
   padding: 10px;
   align-items: center;
 }
-/* ================= Взрослые от 18 текст ================= */
 .adults-text {
   font-weight: 500;
 }
-/* ================= cчетчик ================= */
 .counter-btn-row-adults {
   display: flex;
   align-items: center;
   font-size: 22px;
 }
-/* Кнопки + и - */
 .counter-btn-adults {
   display: flex;
   align-items: center;
+  justify-content: center;
   width: 32px;
   height: 32px;
-  padding: 10px;
-  font-size: 25px;
+  padding: 0;
+  font-size: 22px;
   border-radius: 50%;
-  border: 1px soild #ccc;
+  border: 1px solid #ccc;
   background-color: whitesmoke;
+  cursor: pointer;
 }
-
 .counter-value-adults {
   padding: 15px;
 }
-/* Попап главный див детей */
 .children-row {
   display: flex;
   justify-content: space-between;
@@ -135,7 +107,6 @@
   padding: 10px;
   align-items: center;
 }
-/* текст дети*/
 .children-text {
   font-weight: 500;
 }
@@ -144,31 +115,28 @@
   align-items: center;
   font-size: 22px;
 }
-/* Кнопки + и - */
 .counter-btn-children {
   display: flex;
   align-items: center;
+  justify-content: center;
   width: 32px;
   height: 32px;
-  padding: 10px;
-  font-size: 25px;
+  padding: 0;
+  font-size: 22px;
   border-radius: 50%;
-  border: 1px soild #ccc;
+  border: 1px solid #ccc;
   background-color: whitesmoke;
+  cursor: pointer;
 }
-
 .counter-value-children {
   padding: 15px;
 }
-
-/* Секция с возрастами детей */
 .child-ages-section {
   margin: 10px;
   padding: 22px;
   background-color: #f9f9f9;
   border-radius: 12px;
 }
-/* Заголовок секции детей */
 .child-ages-title {
   font-size: 13px;
   font-weight: 500;
@@ -177,7 +145,6 @@
   padding-bottom: 5px;
   border-bottom: 1px solid #eee;
 }
-/* Строка с выбором возраста одного ребёнка */
 .child-age-row {
   display: flex;
   justify-content: space-between;
@@ -185,9 +152,6 @@
   margin-bottom: 10px;
   padding: 5px 0;
 }
-.child-age-label {
-}
-/* Текст "Ребёнок 1" */
 .child-age-select {
   padding: 10px 15px;
   border: 1px solid #ddd;
@@ -200,8 +164,6 @@
 .child-age-select:focus {
   border-color: rgb(77, 77, 78);
 }
-
-/* КНОПКА ГОТОВО */
 .modal-done-btn {
   background-color: black;
   color: white;
@@ -214,30 +176,22 @@
 .modal-done-btn:hover {
   background-color: rgb(31, 30, 30);
 }
-
-/*Лупа*/
-
 .search-input-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-
   padding: 20px;
   margin: 1px;
   background-color: black;
   color: white;
   cursor: pointer;
   border-radius: 50%;
+  border: none;
 }
 .search-input-icon svg {
   width: 19px;
   height: 19px;
 }
-.icon-link {
-}
-
-/* ===== ИНДИКАТОР ЗАГРУЗКИ ===== */
-
 .loading-indicator {
   display: flex;
   flex-direction: column;
@@ -252,8 +206,6 @@
   color: #666;
   font-size: 18px;
 }
-
-/* Анимированный спиннер */
 .spinner {
   width: 50px;
   height: 50px;
@@ -262,7 +214,6 @@
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
-
 @keyframes spin {
   0% {
     transform: rotate(0deg);
@@ -271,8 +222,6 @@
     transform: rotate(360deg);
   }
 }
-
-/* Маленький спиннер для кнопки */
 .button-spinner {
   width: 20px;
   height: 20px;
@@ -280,4 +229,132 @@
   border-top: 2px solid #ff5a5f;
   border-radius: 50%;
   animation: spin 1s linear infinite;
+}
+
+/* ===== АДАПТАВНОСТЬ ===== */
+@media (max-width: 768px) {
+  .search-section {
+    padding: 0 12px;
+    margin-top: 16px;
+  }
+  .search-container {
+    width: 100%;
+    flex-direction: column;
+    border-radius: 16px;
+  }
+  .search-input {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid rgb(38, 44, 56);
+    border-radius: 0 !important;
+    padding: 14px 16px;
+    font-size: 15px;
+  }
+  .guests-wrapper {
+    width: 100%;
+  }
+  .guests-button {
+    width: 100%;
+    padding: 14px 16px;
+    font-size: 14px;
+    text-align: center;
+    border: none;
+    border-bottom: 1px solid rgb(38, 44, 56);
+  }
+  .search-input-icon {
+    width: 100%;
+    border-radius: 0;
+    padding: 14px 16px;
+    margin: 0;
+  }
+  .search-input-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+  .guests-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90vw;
+    max-width: 380px;
+    max-height: 80vh;
+    overflow-y: auto;
+    margin-top: 0;
+  }
+  .window-overlay {
+    background-color: rgba(0, 0, 0, 0.4);
+  }
+  .counter-btn-adults,
+  .counter-btn-children {
+    width: 28px;
+    height: 28px;
+    font-size: 18px;
+  }
+  .counter-value-adults,
+  .counter-value-children {
+    padding: 8px 14px;
+    font-size: 16px;
+  }
+  .modal-done-btn {
+    width: 85%;
+    height: 44px;
+    font-size: 15px;
+    margin: 12px auto;
+    display: block;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-section {
+    padding: 0 8px;
+    margin-top: 12px;
+  }
+  .search-container {
+    border-radius: 12px;
+  }
+  .search-input {
+    padding: 12px 14px;
+    font-size: 14px;
+  }
+  .guests-button {
+    padding: 12px 14px;
+    font-size: 13px;
+  }
+  .search-input-icon {
+    padding: 12px 14px;
+  }
+  .search-input-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+  .guests-modal {
+    width: 95vw;
+    max-width: 320px;
+  }
+  .counter-btn-adults,
+  .counter-btn-children {
+    width: 24px;
+    height: 24px;
+    font-size: 16px;
+  }
+  .counter-value-adults,
+  .counter-value-children {
+    padding: 6px 10px;
+    font-size: 14px;
+  }
+  .window-title {
+    font-size: 13px;
+    margin: 8px;
+  }
+  .adults-row,
+  .children-row {
+    padding: 8px;
+  }
+  .modal-done-btn {
+    width: 92%;
+    height: 40px;
+    font-size: 14px;
+    margin: 10px auto;
+  }
 }
