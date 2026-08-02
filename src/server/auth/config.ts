@@ -9,11 +9,12 @@ import {
   users,
   verificationTokens,
 } from "@/server/db/schema";
+import type { RoleKey } from "@/lib/constants/roles";
 
 // ============================================================
 // РАСШИРЯЕМ ТИПЫ ДЛЯ NEXT-AUTH V5
 // ============================================================
-type Role = "user" | "lessor" | "admin" | "superadmin" | "mainadmin";
+type Role = RoleKey;
 declare module "next-auth" {
   interface Session {
     user: {

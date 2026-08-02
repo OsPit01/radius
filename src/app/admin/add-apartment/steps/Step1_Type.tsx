@@ -1,20 +1,21 @@
 "use client";
-import type { FormData } from "../page";
-import { getTypeLabel } from "@/lib/utils";
-type Step1_TypeProps = {
-  formData: FormData;
-  updateField: (field: keyof FormData, value: string | number) => void;
-  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
-  errorFields: (keyof FormData)[];
-};
+import type { StepProps } from "@/lib/utils";
+import { getTypeLabel } from "@/lib/constants";
 
-export function Step1_Type({ formData, updateField }: Step1_TypeProps) {
+export function Step1_Type({ formData, updateField }: StepProps) {
   return (
-    <fieldset className="step">
-      <legend className="step-title"> Шаг: 1 что вы хотите добавить?</legend>
-      <div className="type-selector">
+    <fieldset className="animate-[fadeIn_0.3s_ease] text-white">
+      <legend className="mb-2.5 text-[17px] text-white">
+        {" "}
+        Шаг: 1 что вы хотите добавить?
+      </legend>
+      <div className="flex flex-wrap gap-4">
         <div
-          className={`type-option ${formData.type === "apartment" ? "active" : ""}`}
+          className={`cursor-pointer select-none rounded-xl border-[3px] border-[#dadada] px-6 py-4 text-base text-[#dadada] transition-all duration-200 hover:border-[#b552c7] hover:text-white ${
+            formData.type === "apartment"
+              ? "border-[#b552c7] bg-[rgba(181,82,199,0.1)] text-white"
+              : ""
+          }`}
           onClick={() =>
             updateField(
               "type",
@@ -26,11 +27,14 @@ export function Step1_Type({ formData, updateField }: Step1_TypeProps) {
         </div>
         {/* Позже можно добавить: Коттедж, Отель, Гостевой дом */}
       </div>
-      <p className="step-hint">
+      <p className="mt-3 text-sm text-[#888]">
         {" "}
         Выберите тип обьекта (пока доступна только квартира)
       </p>
-      <p className="summary-panel"> {getTypeLabel(formData.type)}</p>
+      <p className="mt-5 p-[5px] text-[13px] text-[rgba(216,214,214,0.911)]">
+        {" "}
+        {getTypeLabel(formData.type)}
+      </p>
     </fieldset>
   );
 }

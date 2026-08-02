@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
-import "./UserDropdown.css";
 import Image from "next/image";
 // Тип для пропсов (данные пользователя)
 type UserDropdownProps = {
@@ -13,6 +12,14 @@ type UserDropdownProps = {
     image?: string | null;
   };
 };
+
+const menuItems = [
+  { href: "/profile", label: "Личный кабинет" },
+  { href: "/my-apartments", label: "Мои объекты" },
+  { href: "/bookings", label: "Мои бронирования" },
+  { href: "/admin/add-apartment", label: "добавить квартиру" },
+  { href: "/settings", label: "Настройки" },
+] as const;
 
 export function UserDropdown({ user }: UserDropdownProps) {
   // ===== СОСТОЯНИЯ
@@ -43,47 +50,49 @@ export function UserDropdown({ user }: UserDropdownProps) {
 
   return (
     <div
-      className="user-dropdown"
+      className="relative inline-block"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       {/* иконка профиля с функцией dropdown */}
-      <button className="avatar-btn" aria-label="Профиль">
+      <button
+        className="flex cursor-pointer items-center justify-center p-2 transition-colors duration-200"
+        aria-label="Профиль"
+      >
         {user.image ? (
           <Image
             src={user.image}
             alt="avatar"
             width={32}
             height={32}
-            className="avatar-image"
+            className="h-[30px] w-[30px] rounded-[50px]"
           />
         ) : (
-          <span className="avatar-emoji">👤 </span>
+          <span className="h-[30px] w-[30px] rounded-[50px]">👤 </span>
         )}
-        <span className="avatar-name"> {user.name}</span>
+        <span className="p-[3px] text-[13px] font-medium">
+          {" "}
+          {user.name}
+        </span>
       </button>
       {/*      */}
       {isOpen && (
-        <div className="dropdown-menu">
-          <Link href="/profile" className="dropdown-item">
-            Личный кабинет
-          </Link>
-          {/* !!!!! ДОБАВЛЕН ПУНКТ "МОИ ОБЪЕКТЫ" !!!!! */}
-          <Link href="/my-apartments" className="dropdown-item">
-            Мои объекты
-          </Link>
-          <Link href="/bookings" className="dropdown-item">
-            Мои бронирования
-          </Link>
-          <Link href="/admin/add-apartment" className="dropdown-item">
-            добавить квартиру
-          </Link>
-          <Link href="/settings" className="dropdown-item">
-            Настройки
-          </Link>
+        <div className="absolute left-1/2 top-[calc(100%+10px)] z-[1000] min-w-[250px] -translate-x-1/2 overflow-hidden rounded-xl border border-[#e0e0e0] bg-white p-[5px] shadow-[0_10px_30px_rgba(0,0,0,0.15)]">
+          {menuItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="block p-[5px] text-[15px] transition-colors duration-200 hover:w-full hover:rounded-[5px] hover:bg-[#f9f9fd] hover:p-2.5"
+            >
+              {item.label}
+            </Link>
+          ))}
 
           <hr />
-          <button className="logout-btn" onClick={() => signOut}>
+          <button
+            className="block w-full cursor-pointer p-[5px] text-left text-[15px] transition-colors duration-200 hover:w-full hover:rounded-[5px] hover:bg-[#f9f9fd] hover:p-2.5"
+            onClick={() => signOut}
+          >
             Выйти
           </button>
         </div>

@@ -1,6 +1,7 @@
 "use client";
-import "./ApartmentsList.css";
+
 import Image from "next/image";
+import Link from "next/link";
 // Тип для квартиры (чтобы TypeScript не ругался)
 type Apartment = {
   id: number;
@@ -17,33 +18,41 @@ type Apartment = {
 
 export function ApartmentCard({ apartment }: { apartment: Apartment }) {
   return (
-    <div className="apartment-card">
-      <div className="apartment-image-div">
+    <Link
+      href={`/apartments/${apartment.id}`}
+      className="overflow-hidden rounded-2xl border border-[#ada3a3] bg-white p-0.5 transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_15px_24px_rgba(0,0,0,0.1)]"
+    >
+      <div className="relative h-[350px] w-full overflow-hidden max-md:h-[250px]">
         <Image
           src={apartment.image}
           alt={apartment.title}
           fill
-          className="apartment-image"
+          className="rounded-[15px] object-cover"
         />
       </div>
-      <div className="apartmnet-section-title">
-        <span className="apartment-text-title">{apartment.title}</span>
-        <span className="apartment-text-price"> BYN {apartment.price}</span>
+      <div className="mt-2.5 flex justify-between p-2.5">
+        <span className="text-[18px] font-semibold max-md:text-base">
+          {apartment.title}
+        </span>
+        <span className="border-b border-black text-[13px] font-bold">
+          {" "}
+          BYN {apartment.price}
+        </span>
       </div>
-      <div className="apartment-section-street">
+      <div className="flex p-2.5 text-sm font-normal break-words">
         {" "}
         {apartment.city}, {apartment.district}
       </div>
-      <div className="apartment-section-capacity">
-        <span className="number-of-rooms">
+      <div className="flex flex-wrap gap-2 p-2.5 font-light">
+        <span className="rounded-[15px] border border-[#aca9a9] bg-[#efecf3] px-2.5 py-1 text-sm font-normal">
           {" "}
           количество комнат: {apartment.rooms}
         </span>
-        <span className="number-of-persons">
+        <span className="rounded-[15px] border border-[#aca9a9] bg-[#efecf3] px-2.5 py-1 text-sm font-normal">
           до {apartment.capacity} {getCapacityText(apartment.capacity)}
         </span>
       </div>
-    </div>
+    </Link>
   );
 }
 

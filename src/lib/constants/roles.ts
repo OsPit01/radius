@@ -40,6 +40,20 @@ export const ROLES = {
 // ===== ТИП ДЛЯ КЛЮЧЕЙ РОЛЕЙ =====
 export type RoleKey = keyof typeof ROLES;
 
+// ===== ВСЕ РОЛИ ДЛЯ ZOD =====
+export const ROLE_VALUES = Object.keys(ROLES) as [RoleKey, ...RoleKey[]];
+
+// ===== АДМИН-РОЛИ =====
+export const ADMIN_ROLES: readonly RoleKey[] = [
+  "admin",
+  "superadmin",
+  "mainadmin",
+];
+
+export function isAdminRole(role: string | undefined | null): boolean {
+  return !!role && (ADMIN_ROLES as readonly string[]).includes(role);
+}
+
 // ===== ПОЛУЧИТЬ ИНФОРМАЦИЮ О РОЛИ =====
 export function getRoleInfo(role: string): RoleInfo {
   // Проверяем, есть ли такая роль

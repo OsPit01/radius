@@ -5,10 +5,14 @@ import { cache } from "react";
 import { appRouter } from "@/server/api/root";
 import { createTRPCContext } from "@/server/api/trpc";
 
-// ВРЕМЕННО: отключаем server-side tRPC
+// ===== СОЗДАЁМ КЭШИРОВАННЫЙ ВЫЗЫВАТЕЛЬ =====
+export const api = cache(async () => {
+  const ctx = await createTRPCContext({ headers: new Headers() });
+  return appRouter.createCaller(ctx);
+});
 
-export const api = appRouter;
-
-export function HydrateClient({ children }: { children: React.ReactNode }) {
-  return children;
-}
+// ===== ДЛЯ ПРОСТЫХ ВЫЗОВОВ (ЕСЛИ НЕ ХОЧЕШЬ AWAIT) =====
+export const caller = cache(async () => {
+  const ctx = await createTRPCContext({ headers: new Headers() });
+  return appRouter.createCaller(ctx);
+});

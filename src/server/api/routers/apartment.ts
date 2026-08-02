@@ -7,6 +7,25 @@ import {
 import { apartments, users } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import type * as schema from "@/server/db/schema";
+
+type Database = PostgresJsDatabase<typeof schema>;
+
+// ===== ОБЩИЙ ЗАПРОС: квартира + владелец =====
+const selectApartmentWithUser = (db: Database) =>
+  db
+    .select({
+      apartment: apartments,
+      user: {
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        image: users.image,
+      },
+    })
+    .from(apartments)
+    .leftJoin(users, eq(apartments.createdById, users.id));
 
 // ===== ВАЛИДАЦИЯ ДЛЯ СОЗДАНИЯ КВАРТИРЫ =====
 const createApartmentSchema = z.object({
@@ -38,37 +57,32 @@ const createApartmentSchema = z.object({
 export const apartmentRouter = createTRPCRouter({
   // 1. Получить все квартиры
   getAll: publicProcedure.query(async ({ ctx }) => {
-    return await ctx.db
-      .select({
-        apartment: apartments,
-        user: {
-          id: users.id,
-          name: users.name,
-          email: users.email,
-          image: users.image,
-        },
-      })
-      .from(apartments)
-      .leftJoin(users, eq(apartments.createdById, users.id));
+    return await selectApartmentWithUser(ctx.db);
   }),
 
   // 2. Получить одну квартиру по ID
   getById: protectedProcedure
     .input(z.object({ id: z.number() }))
     .query(async ({ ctx, input }) => {
-      const [apartment] = await ctx.db
-        .select({
-          apartment: apartments,
-          user: {
-            id: users.id,
-            name: users.name,
-            email: users.email,
-            image: users.image,
-          },
-        })
-        .from(apartments)
-        .leftJoin(users, eq(apartments.createdById, users.id))
-        .where(eq(apartments.id, input.id));
+      const [apartment] = await selectApartmentWithUser(ctx.db).where(
+        eq(apartments.id, input.id),
+      );
+
+      if (!apartment) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Квартира не найдена",
+        });
+      }
+      return apartment;
+    }),
+  // 2.1. Получить одну квартиру по ID (публичный доступ)
+  getByIdPublic: publicProcedure
+    .input(z.object({ id: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const [apartment] = await selectApartmentWithUser(ctx.db).where(
+        eq(apartments.id, input.id),
+      );
 
       if (!apartment) {
         throw new TRPCError({
@@ -204,18 +218,8 @@ export const apartmentRouter = createTRPCRouter({
   getMyApartments: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.session.user.id;
 
-    return await ctx.db
-      .select({
-        apartment: apartments,
-        user: {
-          id: users.id,
-          name: users.name,
-          email: users.email,
-          image: users.image,
-        },
-      })
-      .from(apartments)
-      .leftJoin(users, eq(apartments.createdById, users.id))
-      .where(eq(apartments.createdById, userId));
+    return await selectApartmentWithUser(ctx.db).where(
+      eq(apartments.createdById, userId),
+    );
   }),
 });

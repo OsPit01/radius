@@ -1,114 +1,111 @@
 "use client";
-import "./page.css";
-import { useSession } from "next-auth/react";
-import { api } from "@/trpc/react";
 import Link from "next/link";
 import Image from "next/image";
-import { ClientHeader } from "@/app/_components/layout/ClientHeader";
+import { AuthGuard } from "@/app/_components/layout/AuthGuard";
+import { useMyApartments } from "./[id]/edit/hooks/useApartments";
 
 export default function MyApartmentsPage() {
-  const { data: session } = useSession();
-  const {
-    data: myApartments,
-    isLoading,
-    error,
-  } = api.apartment.getMyApartments.useQuery();
-
-  // ===== НЕТ СЕССИИ =====
-  if (!session) {
-    return (
-      <>
-        <ClientHeader /> {/* ← ДОБАВИТЬ! */}
-        <div className="my-apartments-page">
-          <div className="empty-state">
-            <p>Пожалуйста, войдите в систему</p>
-            <Link href="/api/auth/signin" className="btn-primary">
-              Войти
-            </Link>
-          </div>
-        </div>
-      </>
-    );
-  }
+  const { myApartments, isLoading, error, count, handleDelete, isDeleting } =
+    useMyApartments();
 
   // ===== ЗАГРУЗКА =====
   if (isLoading) {
     return (
-      <>
-        <ClientHeader />
-        <div className="loading">Загрузка...</div>
-      </>
+      <AuthGuard>
+        <div className="p-[60px_20px] text-center text-lg">Загрузка...</div>
+      </AuthGuard>
     );
   }
 
   // ===== ОШИБКА =====
   if (error) {
     return (
-      <>
-        <ClientHeader />
-        <div className="error">Ошибка: {error.message}</div>
-      </>
+      <AuthGuard>
+        <div className="p-[60px_20px] text-center text-lg">
+          Ошибка: {error.message}
+        </div>
+      </AuthGuard>
     );
   }
 
   // ===== ОСНОВНОЙ РЕНДЕР =====
-  const count = myApartments?.length ?? 0;
-
   return (
-    <>
-      <ClientHeader /> {/* ← ДОБАВИТЬ! */}
-      <div className="my-apartments-page">
-        <div className="page-header">
-          <span className="page-title">Мои объекты</span>
-          <span className="count-badge">{count}</span>
+    <AuthGuard>
+      <div className="mx-auto max-w-[1200px] px-5 py-10 max-md:px-4 max-md:py-5">
+        <div className="mb-2 flex flex-wrap items-center gap-4">
+          <span className="text-[28px] font-bold text-[#222] max-md:text-[22px]">
+            Мои объекты
+          </span>
+          <span className="rounded-[20px] bg-[#b552c7] px-3.5 py-0.5 text-base font-semibold text-white">
+            {count}
+          </span>
         </div>
 
-        <p className="subtitle">
+        <p className="mb-8 text-base text-[#666]">
           Всего {count} {count === 1 ? "объявление" : "объявлений"}
         </p>
 
         {myApartments && myApartments.length > 0 ? (
-          <div className="apartments-grid">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6 max-md:grid-cols-1">
             {myApartments.map((item, index) => (
-              <div key={item.apartment.id} className="apartments-card">
-                <div className="image-wrapper">
+              <div
+                key={item.apartment.id}
+                className="overflow-hidden rounded-2xl bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_12px_32px_rgba(0,0,0,0.12)]"
+              >
+                <div className="relative h-[300px] w-full overflow-hidden bg-[#f0f0f0] max-md:aspect-[16/9] max-md:h-auto max-[480px]:aspect-square">
                   <Image
                     src={item.apartment.image}
                     alt={item.apartment.title}
                     fill
-                    className="apartment-image"
+                    className="object-cover"
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     priority={index < 3}
                     unoptimized
                   />
                 </div>
-                <div className="apartment-card-content">
-                  <span className="apartment-title">
+                <div className="p-4">
+                  <span className="mb-1 block text-lg font-semibold leading-[1.3] text-[#222]">
                     {item.apartment.title}
                   </span>
-                  <p className="apartment-location">{item.apartment.city}</p>
-                  <p className="apartment-price">
+                  <p className="mb-2 text-sm text-[#666]">
+                    {item.apartment.city}
+                  </p>
+                  <p className="mb-3 text-[22px] font-bold text-[#222] max-md:text-xl">
                     {item.apartment.price} {item.apartment.currency}
                   </p>
-                  <Link
-                    href={`/my-apartments/${item.apartment.id}/edit`}
-                    className="btn-details"
-                  >
-                    Редактировать {/* ← ДОБАВИТЬ ТЕКСТ! */}
-                  </Link>
+                  <div className="flex flex-wrap gap-2">
+                    <Link
+                      href={`/my-apartments/${item.apartment.id}/edit`}
+                      className="inline-block rounded-[30px] bg-[#1a0a2a] px-6 py-2.5 text-sm font-medium text-white no-underline transition-colors duration-200 hover:bg-[#4c2a6e] max-[480px]:w-full max-[480px]:text-center"
+                    >
+                      Редактировать
+                    </Link>
+                    <button
+                      onClick={() => handleDelete(item.apartment.id)}
+                      disabled={isDeleting}
+                      className="cursor-pointer rounded-[30px] border-none bg-[#ef4444] px-6 py-2.5 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#dc2626] disabled:cursor-not-allowed disabled:opacity-50 max-[480px]:w-full max-[480px]:text-center"
+                    >
+                      Удалить
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="empty-state">
-            <p>У вас пока нет добавленных объектов</p>
-            <Link href="/admin/add-apartment" className="btn-primary">
-              ➕ Добавить квартиру {/* ← ДОБАВИТЬ ТЕКСТ! */}
+          <div className="rounded-2xl bg-[#f8f8f8] p-[80px_20px] text-center">
+            <p className="mb-5 text-lg text-[#666]">
+              У вас пока нет добавленных объектов
+            </p>
+            <Link
+              href="/admin/add-apartment"
+              className="inline-block cursor-pointer rounded-[30px] border-none bg-[#b552c7] px-8 py-3 text-base font-semibold text-white no-underline transition-colors duration-200 hover:bg-[#9a3fb0] max-[480px]:w-full max-[480px]:text-center"
+            >
+              ➕ Добавить квартиру
             </Link>
           </div>
         )}
       </div>
-    </>
+    </AuthGuard>
   );
 }

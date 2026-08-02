@@ -2,11 +2,11 @@ import { z } from "zod";
 import {
   createTRPCRouter,
   protectedProcedure,
-  publicProcedure,
 } from "@/server/api/trpc";
 import { users, apartments } from "@/server/db/schema";
 import { eq, count } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
+import { isAdminRole, ROLE_VALUES } from "@/lib/constants/roles";
 
 // =====
 // 1. ПОЛУЧИТЬ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ (ТОЛЬКО ДЛЯ АДМИНА)
@@ -17,11 +17,7 @@ export const userRouter = createTRPCRouter({
     // Проверка: только админы могут видеть всех пользователей
     const userRole = ctx.session.user?.role;
 
-    if (
-      userRole !== "admin" &&
-      userRole !== "superadmin" &&
-      userRole !== "mainadmin"
-    ) {
+    if (!isAdminRole(userRole)) {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "У вас нет прав на просмотр всех пользователей",
@@ -57,16 +53,12 @@ export const userRouter = createTRPCRouter({
     .input(
       z.object({
         userId: z.string(),
-        role: z.enum(["user", "lessor", "admin", "superadmin", "mainadmin"]),
+        role: z.enum(ROLE_VALUES),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       const userRole = ctx.session.user?.role;
-      if (
-        userRole !== "admin" &&
-        userRole !== "superadmin" &&
-        userRole !== "mainadmin"
-      ) {
+      if (!isAdminRole(userRole)) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "У вас нет прав на изменение ролей",
@@ -127,11 +119,7 @@ export const userRouter = createTRPCRouter({
       // Проверяем, что пользователь смотрит свою статистику или он админ
       if (userId !== ctx.session.user.id) {
         const userRole = ctx.session.user?.role;
-        if (
-          userRole !== "admin" &&
-          userRole !== "superadmin" &&
-          userRole !== "mainadmin"
-        ) {
+        if (!isAdminRole(userRole)) {
           throw new TRPCError({
             code: "FORBIDDEN",
             message: "У вас нет прав на просмотр чужой статистики",

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
 
 // ============================================================
 // 1. ТИПЫ
@@ -27,6 +28,30 @@ export type FormData = {
   amenities: string[];
   parking: string;
   images: string[];
+};
+
+export type StepFieldValue = string | number | string[];
+
+export type StepProps = {
+  formData: FormData;
+  updateField: (field: keyof FormData, value: StepFieldValue) => void;
+  setFormData: Dispatch<SetStateAction<FormData>>;
+  error?: string | null;
+  errorFields: (keyof FormData)[];
+};
+
+export type Apartment = {
+  id: number;
+  title: string;
+  city: string;
+  district: string;
+  capacity: number;
+  price: number;
+  image: string;
+  description: string;
+  rooms: number;
+  metro: string;
+  currency: string;
 };
 
 // ============================================================
@@ -172,14 +197,6 @@ export function validateStep(
 // 5. ЛЕЙБЛЫ
 // ============================================================
 
-export function getTypeLabel(type: string): string {
-  const types: Record<string, string> = {
-    apartment: "квартира, апартаменты",
-    cottage: "коттедж, дом",
-  };
-  return types[type] ?? type;
-}
-
 export function getFormLabel(
   formData: FormData,
   field: keyof FormData | "full_address",
@@ -205,6 +222,12 @@ export function getFormLabel(
 // 6. КЛАССЫ ДЛЯ INPUT
 // ============================================================
 
+export const INPUT_CLASS =
+  "w-full rounded-xl border-2 border-[#2a1a3a] bg-[#1a0a2a] px-4 py-3 text-base text-white outline-none transition-all duration-300 placeholder:text-[#666] focus:border-[#b552c7] focus:shadow-[0_0_0_3px_rgba(181,82,199,0.2)]";
+
+export const EDIT_INPUT_CLASS =
+  "rounded-lg border border-[#3a2a4a] bg-[#f4f0fc] px-3.5 py-2.5 text-base text-[#222] transition-colors duration-200 placeholder:text-[#999] focus:border-[#b552c7] focus:bg-white focus:shadow-[0_0_0_3px_rgba(181,82,199,0.15)] focus:outline-none";
+
 export function getInputClassName(
   value: string | number,
   field: keyof FormData,
@@ -216,18 +239,36 @@ export function getInputClassName(
   const isInvalid = errorFields.includes(field);
 
   if (baseClass === "city-input") {
-    const classes = ["city-input"];
-    if (hasText) classes.push("has-text");
-    if (hasText && !isInvalid) classes.push("valid");
-    if (isInvalid) classes.push("error");
+    const classes: string[] = [];
+    if (hasText && !isInvalid)
+      classes.push(
+        "border-[#22c55e] bg-[rgba(34,197,94,0.1)] shadow-[0_0_0_3px_rgba(34,197,94,0.15)]",
+      );
+    if (isInvalid)
+      classes.push(
+        "border-[#ee7272] bg-[rgba(239,68,68,0.1)] shadow-[0_0_0_3px_rgba(239,68,68,0.15)]",
+      );
     return classes.join(" ");
   }
-  return isInvalid ? "error-input" : "";
+  return isInvalid ? "!border-[#ef4444]" : "";
 }
 
 // ============================================================
 // 7. ФОРМА
 // ============================================================
+
+export function toggleAmenity(
+  current: string[],
+  amenityId: string,
+  checked: boolean,
+): string[] {
+  if (checked) {
+    return current.includes(amenityId)
+      ? current
+      : [...current, amenityId];
+  }
+  return current.filter((item) => item !== amenityId);
+}
 
 export function useForm<T extends Record<string, unknown>>(initialData: T) {
   const [formData, setFormData] = useState<T>(initialData);

@@ -1,7 +1,6 @@
 "use client";
 
 import { ApartmentCard } from "./ApartmentCard";
-import "./ApartmentsList.css";
 
 type Apartment = {
   id: number;
@@ -44,27 +43,37 @@ export function ApartmentsList({
 
   if (foundCount === 0) {
     return (
-      <div className="section-apartments">
-        <h2 className="apartments-title">Варианты для проживания: 0</h2>
-        <div className="no-result">
-          <p>Ничего не найдено!</p>
-          <p>Попробуйте изменить параметры поиска</p>
+      <div className="my-[50px] w-full">
+        <h2 className="mb-10 text-center text-2xl font-bold text-[#333]">
+          Варианты для проживания: 0
+        </h2>
+        <div className="p-[60px_20px] text-center">
+          <p className="text-xl font-semibold text-[#333]">
+            Ничего не найдено!
+          </p>
+          <p className="text-base text-[#666]">
+            Попробуйте изменить параметры поиска
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="section-apartments">
-      <h2 className="apartments-title">
+    <div className="my-[50px] w-full">
+      <h2 className="mb-10 text-center text-2xl font-bold text-[#333]">
         Варианты для проживания: {foundCount}
-        {searchQuery && <p className="search-query">Город: {searchQuery}</p>}
+        {searchQuery && (
+          <p className="text-lg font-semibold">Город: {searchQuery}</p>
+        )}
         {totalGuests > 1 && (
-          <p className="search-guests">Количество человек: {totalGuests}</p>
+          <p className="text-base font-normal">
+            Количество человек: {totalGuests}
+          </p>
         )}
       </h2>
 
-      <div className="apartments-grid">
+      <div className="mx-auto grid max-w-[1400px] grid-cols-2 gap-[50px] px-5 max-md:grid-cols-1 max-md:gap-5 max-md:px-4">
         {filteredApartments.map((apartment) => (
           <ApartmentCard key={apartment.id} apartment={apartment} />
         ))}

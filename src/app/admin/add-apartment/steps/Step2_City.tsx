@@ -1,33 +1,24 @@
-import type { FormData } from "../page";
-import {
-  getTypeLabel,
-  getInputClassName,
-  formatApartmentData,
-  validateStep,
-} from "@/lib/utils";
-
-type Step2_CityProps = {
-  formData: FormData;
-  updateField: (field: keyof FormData, value: string | number) => void;
-  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
-  error?: string | null;
-  errorFields: (keyof FormData)[];
-};
+"use client";
+import type { StepProps } from "@/lib/utils";
+import { getInputClassName, INPUT_CLASS } from "@/lib/utils";
+import { getTypeLabel } from "@/lib/constants";
 
 export function Step2_City({
   formData,
   updateField,
   error,
   errorFields,
-}: Step2_CityProps) {
-  const hasText = formData.city.length > 0;
-  const isInvalid = errorFields.includes("city");
-
+}: StepProps) {
   return (
-    <fieldset className="step">
-      <legend className="step-title">Шаг 2: выберите город</legend>
-      <div className="form-group">
-        <label htmlFor="city-field"> Город </label>
+    <fieldset className="animate-[fadeIn_0.3s_ease] text-white">
+      <legend className="mb-2.5 text-[17px] text-white">
+        Шаг 2: выберите город
+      </legend>
+      <div className="mt-2.5 flex flex-col gap-2">
+        <label htmlFor="city-field" className="pt-[5px] text-sm font-semibold text-white">
+          {" "}
+          Город{" "}
+        </label>
 
         {/* ===== ПОЛЕ ВВОДА ===== */}
         <input
@@ -36,17 +27,19 @@ export function Step2_City({
           value={formData.city}
           onChange={(e) => updateField("city", e.target.value)}
           placeholder="Например: Минск, Москва"
-          className={getInputClassName(
+          className={`${INPUT_CLASS} ${getInputClassName(
             formData.city,
             "city",
             errorFields,
             "city-input",
-          )}
+          )}`}
           aria-required="true"
         />
-        {error && <div className="error-text"> {error} </div>}
+        {error && <div className="mt-1 text-[13px] text-[#ee7272]"> {error} </div>}
       </div>
-      <div className="summary-panel">{getTypeLabel(formData.type)}</div>
+      <div className="mt-5 p-[5px] text-[13px] text-[rgba(216,214,214,0.911)]">
+        {getTypeLabel(formData.type)}
+      </div>
     </fieldset>
   );
 }

@@ -14,43 +14,8 @@ import {
   formatApartmentData,
   validateStep,
   updateFieldWithAddress,
+  type FormData,
 } from "@/lib/utils";
-import "./style.css";
-// ===== ТИП ДАННЫХ ФОРМЫ =====
-export type FormData = {
-  type: string;
-  city: string;
-  cityError: string;
-  street: string;
-  numberHome: string;
-  building: string;
-  formattedAddress: string;
-  district: string;
-  addressError: string;
-  title: string;
-  capacity: number;
-  price: number;
-  currency: string;
-  rooms: number;
-  image: string;
-  description: string;
-  metro: string;
-  amenities: string[];
-  parking: string;
-  images: string[];
-};
-
-// ===== ТИП ДЛЯ ПРОПСОВ КАЖДОГО ШАГА =====
-type StepProps = {
-  formData: FormData;
-  updateField: (
-    field: keyof FormData,
-    value: string | number | string[],
-  ) => void;
-  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
-  error?: string | null;
-  errorFields: (keyof FormData)[];
-};
 
 export default function AddApartmentPage() {
   const router = useRouter();
@@ -217,13 +182,19 @@ export default function AddApartmentPage() {
     <>
       <ClientHeader />
       <div className="add-apartment-page">
-        <div className="add-apartment-container">
+        <div className="mx-auto my-6 max-w-[800px] rounded-[24px] border-2 border-white bg-[#0d021d] p-10 shadow-[0_10px_30px_white] max-[640px]:p-5">
           {/* Восстановлен ваш оригинальный h1 */}
-          <h1 onClick={() => null}> Создание обьекта </h1>
+          <h1
+            className="mb-[30px] text-center text-[28px] text-[#c4deeb]"
+            onClick={() => null}
+          >
+            {" "}
+            Создание обьекта{" "}
+          </h1>
 
           {/* Восстановлена ваша РОДНАЯ форма, CSS будет работать идеально */}
           <form
-            className="apartment-form"
+            className="flex flex-col gap-5"
             onSubmit={(e) => {
               e.preventDefault();
             }}
@@ -233,7 +204,6 @@ export default function AddApartmentPage() {
 
             <NavigationButtons
               currentStep={currentStep}
-              totalSteps={5}
               onNext={goToNextStep}
               onPrev={goToPrevStep}
               isSubmitting={isSubmitting}

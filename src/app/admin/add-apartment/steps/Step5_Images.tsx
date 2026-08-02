@@ -1,162 +1,65 @@
 "use client";
 
-import type { FormData } from "../page";
-import { useState, useRef } from "react";
+import type { FormData, StepProps } from "@/lib/utils";
 import Image from "next/image";
-
-type Step5_ImagesProps = {
-  formData: FormData;
-  updateField: (
-    field: keyof FormData,
-    value: string | number | string[],
-  ) => void;
-  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
-  error?: string | null;
-  errorFields: (keyof FormData)[];
-};
+import { useImageManager } from "@/app/my-apartments/[id]/edit/hooks/useImageManager";
 
 export function Step5_Images({
   formData,
   updateField,
   error,
   errorFields,
-}: Step5_ImagesProps) {
-  const [dragIndex, setDragIndex] = useState<number | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isUploading, setIsUploading] = useState(false);
-
-  const handleAddImages = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    setIsUploading(true);
-
-    const readers: Promise<string>[] = [];
-    for (const file of files) {
-      const reader = new FileReader();
-      const promise = new Promise<string>((resolve) => {
-        reader.onload = (event) => {
-          resolve(event.target?.result as string);
-        };
-      });
-      readers.push(promise);
-      reader.readAsDataURL(file);
-    }
-
-    Promise.all(readers)
-      .then((results) => {
-        const currentImages = formData.images || [];
-        const updatedImages = [...currentImages, ...results];
-        updateField("images", updatedImages);
-        if (!formData.image && updatedImages.length > 0) {
-          updateField("image", updatedImages[0] ?? "");
-        }
-      })
-      .catch((err) => {
-        console.error("Ошибка загрузки изображений", err);
-      })
-      .finally(() => {
-        setIsUploading(false);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
-      });
-  };
-
-  const handleRemoveImage = (index: number) => {
-    const currentImages = formData.images || [];
-    const updatedImages = currentImages.filter((_, i) => i !== index);
-    updateField("images", updatedImages);
-
-    const deletedImage = currentImages[index];
-    const isMainDeleted = formData.image === deletedImage;
-
-    if (isMainDeleted) {
-      if (updatedImages.length > 0) {
-        updateField("image", updatedImages[0] ?? "");
-      } else {
-        updateField("image", "");
-      }
-    }
-  };
-
-  const handleSetMain = (index: number) => {
-    const currentImages = formData.images || [];
-    if (currentImages.length === 0 || index === 0) return;
-    const image = currentImages[index];
-    if (!image) return;
-    const newImages = [image, ...currentImages.filter((_, i) => i !== index)];
-    updateField("images", newImages);
-    updateField("image", image);
-  };
-
-  const handleDragStart = (index: number) => {
-    setDragIndex(index);
-  };
-
-  const handleDragOver = (
-    e: React.DragEvent<HTMLDivElement>,
-    index: number,
-  ) => {
-    e.preventDefault();
-    if (dragIndex === null || dragIndex === index) return;
-
-    const currentImages = formData.images || [];
-    if (currentImages.length === 0) return;
-    if (dragIndex < 0 || dragIndex >= currentImages.length) return;
-    if (index < 0 || index >= currentImages.length) return;
-
-    const newImages = [...currentImages];
-    const [draggedItem] = newImages.splice(dragIndex, 1);
-    if (!draggedItem) return;
-
-    newImages.splice(index, 0, draggedItem);
-    updateField("images", newImages);
-    setDragIndex(index);
-  };
-
-  const handleDragEnd = () => {
-    setDragIndex(null);
-  };
-
-  const openFilePicker = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const files = e.dataTransfer.files;
-    if (files && files.length > 0) {
-      const input = fileInputRef.current;
-      if (input) {
-        input.files = files;
-        input.dispatchEvent(new Event("change", { bubbles: true }));
-      }
-    }
-  };
+}: StepProps) {
+  const {
+    images,
+    mainImage,
+    isUploading,
+    fileInputRef,
+    addImages,
+    removeImage,
+    setMainImage,
+    handleDragStart,
+    handleDragOver,
+    handleDragEnd,
+    handleDrop,
+    openFilePicker,
+  } = useImageManager({
+    initialImages: formData.images || [],
+    initialMainImage: formData.image || "",
+    onImagesChange: (newImages) => updateField("images", newImages),
+    onMainImageChange: (newMain) => updateField("image", newMain),
+  });
 
   const hasError = (field: keyof FormData) => errorFields.includes(field);
-  const images = formData.images || [];
 
   return (
-    <fieldset className="step">
-      <legend className="step-title">Шаг 5: Фотографии объекта</legend>
+    <fieldset className="animate-[fadeIn_0.3s_ease] text-white">
+      <legend className="mb-2.5 text-[17px] text-white">
+        Шаг 5: Фотографии объекта
+      </legend>
 
       {error && (
-        <div className="error-message" role="alert">
+        <div
+          className="rounded-xl bg-[rgba(239,68,68,0.1)] p-3 text-center text-[#ef4444]"
+          role="alert"
+        >
           {error}
         </div>
       )}
 
-      <div className="form-group">
-        <label>
+      <div className="mt-2.5 flex flex-col gap-2">
+        <label className="pt-[5px] text-sm font-semibold text-white">
           Загрузите фотографии
           <span className="required">*</span>
-          <span className="hint-text">(минимум 1 фото)</span>
+          <span className="mt-[-8px] mb-3 block text-sm text-[#b0a0b0]">
+            (минимум 1 фото)
+          </span>
         </label>
 
         <div
-          className={`upload-zone ${isUploading ? "uploading" : ""}`}
+          className={`flex aspect-[4/1] w-full cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-[#2a1a3a] bg-[#1a0a2a] transition-all duration-200 hover:border-[#b552c7] hover:bg-[rgba(181,82,199,0.05)] max-[480px]:aspect-[2/1] ${
+            isUploading ? "opacity-60" : ""
+          }`}
           onClick={openFilePicker}
           onDragOver={(e) => e.preventDefault()}
           onDrop={handleDrop}
@@ -166,79 +69,91 @@ export function Step5_Images({
             type="file"
             accept="image/*"
             multiple
-            onChange={handleAddImages}
-            className="hidden-input"
+            onChange={(e) => addImages(e.target.files)}
+            className="hidden"
             disabled={isUploading}
           />
 
-          <div className="upload-content">
+          <div className="flex flex-col items-center">
             {isUploading ? (
               <>
-                <span className="upload-icon">⏳</span>
+                <span className="text-3xl">⏳</span>
                 <p>Загрузка...</p>
               </>
             ) : (
               <>
-                <span className="upload-icon">📸</span>
+                <span className="text-3xl">📸</span>
                 <p>Нажмите или перетащите фотографии</p>
-                <small>Можно выбрать несколько файлов</small>
+                <small className="text-xs text-[#b0a0b0]">
+                  Можно выбрать несколько файлов
+                </small>
               </>
             )}
           </div>
         </div>
 
         {hasError("images") && (
-          <div className="error-text">Добавьте хотя бы одну фотографию</div>
+          <div className="mt-1 text-[13px] text-[#ee7272]">
+            Добавьте хотя бы одну фотографию
+          </div>
         )}
       </div>
 
       {images.length > 0 && (
-        <div className="form-group">
-          <div className="images-header">
-            <label>
+        <div className="mt-2.5 flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <label className="pt-[5px] text-sm font-semibold text-white">
               Фотографии ({images.length})
-              {formData.image && (
-                <span className="main-badge">⭐ Заглавная выбрана</span>
+              {mainImage && (
+                <span className="ml-2 rounded bg-[rgba(251,191,36,0.9)] px-2 py-0.5 text-[10px] font-semibold text-black">
+                  ⭐ Заглавная выбрана
+                </span>
               )}
             </label>
-            <span className="hint-text">
+            <span className="text-sm text-[#b0a0b0]">
               Перетаскивайте для изменения порядка
             </span>
           </div>
 
-          <div className="images-grid">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-4 py-[11px]">
             {images.map((image, index) => {
-              const isMain = formData.image === image;
+              const isMain = mainImage === image;
               return (
                 <div
                   key={index}
-                  className={`image-item ${isMain ? "main" : ""}`}
+                  className={`relative aspect-square cursor-grab rounded-xl border-2 border-[#2a1a3a] bg-[#1a0a2a] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#b552c7] hover:shadow-[0_4px_12px_rgba(181,82,199,0.3)] ${
+                    isMain
+                      ? "border-[#fbbf24] shadow-[0_0_0_2px_#fbbf24,0_4px_12px_rgba(251,191,36,0.3)]"
+                      : ""
+                  }`}
                   draggable
                   onDragStart={() => handleDragStart(index)}
                   onDragOver={(e) => handleDragOver(e, index)}
                   onDragEnd={handleDragEnd}
                 >
-                  <div className="image-wrapper">
+                  <div className="relative aspect-square w-full overflow-hidden rounded-t-xl">
                     <Image
                       src={image}
                       alt={`фото ${index + 1}`}
                       width={200}
                       height={200}
-                      className="image-object"
+                      className="h-full w-full object-cover"
                       unoptimized
                       priority={index === 0}
                     />
                     {isMain && (
-                      <div className="main-badge-overlay">⭐ Заглавная</div>
+                      <div className="pointer-events-none absolute left-2 top-2 z-[5] rounded bg-[rgba(251,191,36,0.9)] px-2 py-0.5 text-[10px] font-semibold text-black">
+                        ⭐ Заглавная
+                      </div>
                     )}
                   </div>
 
-                  <div className="image-actions">
+                  <div className="absolute right-2 top-2 z-10 flex flex-col gap-1.5">
                     {/* КРЕСТИК - ПЕРВЫЙ (СВЕРХУ) */}
                     <button
                       type="button"
-                      className="btn-remove"
-                      onClick={() => handleRemoveImage(index)}
+                      className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-none bg-black/70 text-xs text-white shadow-[0_2px_8px_rgba(0,0,0,0.3)] transition-all duration-200 hover:scale-110 hover:bg-[#ef4444]"
+                      onClick={() => removeImage(index)}
                       title="Удалить"
                     >
                       ✕
@@ -248,8 +163,8 @@ export function Step5_Images({
                     {!isMain && (
                       <button
                         type="button"
-                        className="btn-main"
-                        onClick={() => handleSetMain(index)}
+                        className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-none bg-black/70 text-xs text-white shadow-[0_2px_8px_rgba(0,0,0,0.3)] transition-all duration-200 hover:scale-110 hover:bg-[#fbbf24] hover:text-black"
+                        onClick={() => setMainImage(index)}
                         title="Сделать заглавной"
                       >
                         ⭐
@@ -263,11 +178,13 @@ export function Step5_Images({
         </div>
       )}
 
-      <div className="summary-panel">
+      <div className="mt-5 p-[5px] text-[13px] text-[rgba(216,214,214,0.911)]">
         <p>📸 Загружено: {images.length} фото</p>
-        {formData.image && <p>⭐ Заглавное фото: выбрано</p>}
-        {!formData.image && images.length > 0 && (
-          <p className="warning-text">⚠️ Выберите заглавное фото (⭐)</p>
+        {mainImage && <p>⭐ Заглавное фото: выбрано</p>}
+        {!mainImage && images.length > 0 && (
+          <p className="text-[13px] text-[#ee7272]">
+            ⚠️ Выберите заглавное фото (⭐)
+          </p>
         )}
       </div>
     </fieldset>

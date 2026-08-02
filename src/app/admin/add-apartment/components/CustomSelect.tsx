@@ -8,7 +8,7 @@ type Option = {
 };
 
 type CustomSelectProps = {
-  options: Option[];
+  options: readonly Option[];
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
@@ -42,23 +42,31 @@ export function CustomSelect({
   }, []);
 
   return (
-    <div className={`custom-select-wrapper ${className}`} ref={dropdownRef}>
+    <div className={`relative w-full ${className}`} ref={dropdownRef}>
       <button
         type="button"
-        className="custom-select-trigger"
+        className="flex w-full cursor-pointer items-center justify-between rounded-xl border-2 border-[#2a1a3a] bg-[#1a0a2a] px-4 py-3 text-base text-white outline-none transition-all duration-300 hover:border-[#3a2a4a] focus:border-[#b552c7] focus:shadow-[0_0_0_3px_rgba(181,82,199,0.2)]"
         onClick={() => setIsOpen(!isOpen)}
       >
         <span>{selectedOption?.label ?? placeholder}</span>
-        <span className={`arrow ${isOpen ? "open" : ""}`}>▾</span>
+        <span
+          className={`ml-2 text-xs transition-transform duration-200 ${
+            isOpen ? "rotate-180" : ""
+          }`}
+        >
+          ▾
+        </span>
       </button>
 
       {isOpen && (
-        <div className="custom-select-dropdown">
+        <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-[100] max-h-[200px] overflow-hidden overflow-y-auto rounded-xl border-2 border-[#2a1a3a] bg-[#1a0a2a]">
           {options.map((option) => (
             <div
               key={option.value}
-              className={`custom-select-option ${
-                option.value === value ? "selected" : ""
+              className={`cursor-pointer px-4 py-3 text-base text-white transition-colors duration-200 hover:bg-[rgba(181,82,199,0.2)] ${
+                option.value === value
+                  ? "bg-[rgba(181,82,199,0.3)] text-white"
+                  : ""
               }`}
               onClick={() => {
                 onChange(option.value);
