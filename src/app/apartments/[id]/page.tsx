@@ -1,7 +1,9 @@
 import { api } from "@/trpc/server";
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import { ClientHeader } from "@/app/_components/layout/ClientHeader";
+import { PhotoGallery } from "@/app/_components/apartments/PhotoGallery";
+import { ApartmentTabs } from "@/app/_components/apartments/ApartmentTabs";
+
 export default async function ApartmentPage({
   params,
 }: {
@@ -16,31 +18,62 @@ export default async function ApartmentPage({
     notFound();
   }
 
+  const photos = apartment.apartment.images?.length
+    ? apartment.apartment.images
+    : [apartment.apartment.image];
+
   return (
     <>
       <ClientHeader />
 
-      <div className="rounded-2x1 border[#e0e0e] mx-auto mt-5.5 max-w-4xl overflow-hidden border bg-white shadow-lg">
-        <div className="mx-auto min-h-screen max-w-[1400px] px-20 pt-5 pb-[60px] max-lg:px-10 max-md:px-5">
-          <h1 className="mb-5 text-3xl font-bold text-[#222]">
-            {apartment.apartment.title}
-          </h1>
-          <p className="relative h-[700px] w-full overflow-hidden bg-[#f0f0f0] max-[100px]:aspect-square max-md:aspect-[16/9] max-md:h-auto">
-            <Image
-              src={apartment.apartment.image}
-              alt={apartment.apartment.title}
-              fill
-            ></Image>
-          </p>
-          <p className="text-[15px] font-bold">
-            цена за сутки: {apartment.apartment.price}{" "}
-            {apartment.apartment.currency ?? "BYN"}
-          </p>
-          <p>
-            {apartment.apartment.city}, ул. {apartment.apartment.street}{" "}
-            {apartment.apartment.numberHome} {apartment.apartment.building}
-          </p>
+      <div className="mx-auto mt-5.5 max-w-5xl px-4 pb-[60px]">
+        <h1 className="mb-6 text-3xl font-bold text-[#222]">
+          {apartment.apartment.title}
+        </h1>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <PhotoGallery photos={photos} />
+
+          <div className="rounded-2xl border border-[#e0e0e0] bg-white p-6 shadow-sm">
+            {/* Адрес */}
+            <p className="text-base text-[#222]">
+              г. {apartment.apartment.city}, ул. {apartment.apartment.street},{" "}
+              {apartment.apartment.numberHome}
+              {apartment.apartment.building
+                ? `, к. ${apartment.apartment.building}`
+                : ""}
+            </p>
+
+            {/* Метро */}
+            <p className="mt-3 text-sm text-[#888]">
+              {apartment.apartment.metro
+                ? `${apartment.apartment.metro} минут до метро`
+                : "метро нет"}
+            </p>
+
+            {/* Цена */}
+            <div className="mt-6 inline-block rounded-xl bg-gray-100 px-5 py-2">
+              <span className="text-2xl font-bold text-[#00000]">
+                {apartment.apartment.price}{" "}
+                {apartment.apartment.currency ?? "BYN"}
+              </span>
+              <span className="text-sm text-[#00000]"> / сутки</span>
+            </div>
+
+            {/* Арендодатель */}
+            <div className="mt-4 border-t border-[#e0e0e0] pt-4">
+              <p className="text-sm text-[#888]">Арендодатель: Игорь</p>
+              <p className="text-base font-medium text-[#222]">
+                +375 (29) 123-45-67
+              </p>
+            </div>
+          </div>
         </div>
+        <ApartmentTabs
+          description={apartment.apartment.description ?? ""}
+          amenities={apartment.apartment.amenities ?? []}
+          rooms={apartment.apartment.rooms}
+          capacity={apartment.apartment.capacity}
+        />
       </div>
     </>
   );

@@ -52,7 +52,7 @@ export default function MyApartmentsPage() {
                 key={item.apartment.id}
                 className="overflow-hidden rounded-2xl bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_12px_32px_rgba(0,0,0,0.12)]"
               >
-                <div className="relative h-[300px] w-full overflow-hidden bg-[#f0f0f0] max-md:aspect-[16/9] max-md:h-auto max-[480px]:aspect-square">
+                <div className="relative h-[300px] w-full overflow-hidden bg-[#f0f0f0] max-[480px]:aspect-square max-md:aspect-[16/9] max-md:h-auto">
                   <Image
                     src={item.apartment.image}
                     alt={item.apartment.title}
@@ -64,7 +64,7 @@ export default function MyApartmentsPage() {
                   />
                 </div>
                 <div className="p-4">
-                  <span className="mb-1 block text-lg font-semibold leading-[1.3] text-[#222]">
+                  <span className="mb-1 block text-lg leading-[1.3] font-semibold text-[#222]">
                     {item.apartment.title}
                   </span>
                   <p className="mb-2 text-sm text-[#666]">

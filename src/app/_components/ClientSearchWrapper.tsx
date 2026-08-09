@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { SearchForm } from "@/app/_components/search/SearchForm";
 import { ApartmentsList } from "@/app/_components/apartments/ApartmentsList";
 import { api } from "@/trpc/react";
-
+import { LoadingSpinner } from "@/app/_components/ui/LoadingSpinner";
 type Apartment = {
   id: number;
   title: string;
@@ -108,10 +108,7 @@ export function ClientSearchWrapper() {
         isLoading={isLoading} // ← передаём состояние загрузки
       />{" "}
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center p-[60px_20px] text-center text-[#888]">
-          <div className="h-[50px] w-[50px] animate-spin rounded-full border-4 border-[#f3f3f3] border-t-[#ff5a5f]"></div>
-          <p className="mt-5 text-lg text-[#666]">Поиск...</p>
-        </div>
+        <LoadingSpinner label="Поиск..." />
       ) : (
         <ApartmentsList
           apartments={apartments}
