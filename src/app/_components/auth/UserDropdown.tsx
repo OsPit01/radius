@@ -19,9 +19,9 @@ type UserDropdownProps = {
 const menuItems = [
   { href: "/profile", label: "Личный кабинет" },
   { href: "/my-apartments", label: "Мои объекты" },
-  { href: "/bookings", label: "Мои бронирования" },
-  { href: "/admin/add-apartment", label: "добавить квартиру" },
-  { href: "/settings", label: "Настройки" },
+  { href: "/profile/bookings", label: "Мои бронирования" },
+  { href: "/admin/add-apartment", label: "Добавить квартиру" },
+  { href: "/profile/settings", label: "Настройки" },
 ] as const;
 
 export function UserDropdown({ user }: UserDropdownProps) {
@@ -85,13 +85,11 @@ export function UserDropdown({ user }: UserDropdownProps) {
         ) : (
           <FaUserCircle className="h-[30px] w-[30px] text-[#666]" />
         )}
-        <span className="p-[3px] text-[13px] font-medium">
-          {displayName}
-        </span>
+        <span className="p-[3px] text-[13px] font-medium">{displayName}</span>
       </button>
       {/*      */}
       {isOpen && (
-        <div className="absolute left-1/2 top-[calc(100%+10px)] z-[1000] min-w-[250px] -translate-x-1/2 overflow-hidden rounded-xl border border-[#e0e0e0] bg-white p-[5px] shadow-[0_10px_30px_rgba(0,0,0,0.15)]">
+        <div className="absolute top-[calc(100%+10px)] left-1/2 z-[1000] min-w-[250px] -translate-x-1/2 overflow-hidden rounded-xl border border-[#e0e0e0] bg-white p-[5px] shadow-[0_10px_30px_rgba(0,0,0,0.15)]">
           {menuItems.map((item) => (
             <Link
               key={item.href}

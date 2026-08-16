@@ -4,6 +4,8 @@ import { type Metadata } from "next";
 import { Geist } from "next/font/google";
 import { SessionProvider } from "next-auth/react";
 import { TRPCReactProvider } from "@/trpc/react";
+import { Footer } from "@/app/_components/layout/Footer";
+import { CookieConsent } from "@/app/_components/ui/CookieConsent";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -38,10 +40,14 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="ru" className={`${geist.variable}`}>
-      <body>
+      <body className="flex min-h-screen flex-col">
         <SessionProvider>
-          <TRPCReactProvider>{children}</TRPCReactProvider>
+          <TRPCReactProvider>
+            <div className="flex-1">{children}</div>
+          </TRPCReactProvider>
         </SessionProvider>
+        <Footer />
+        <CookieConsent />
       </body>
     </html>
   );

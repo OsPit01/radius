@@ -102,12 +102,12 @@ export function SearchForm({
   };
 
   return (
-    <div className="mt-[25px] flex w-full justify-center max-md:mt-4 max-md:px-3 max-[480px]:mt-3 max-[480px]:px-2">
-      <div className="flex w-[80%] rounded-[25px] border border-[#262c38] bg-white max-md:w-full max-md:flex-col max-md:rounded-2xl max-[480px]:rounded-xl">
+    <div className="mt-[25px] flex w-full justify-center max-[480px]:mt-3 max-[480px]:px-2 max-md:mt-4 max-md:px-3">
+      <div className="flex w-[80%] rounded-[25px] border border-[#262c38] bg-white max-[480px]:rounded-xl max-md:w-full max-md:flex-col max-md:rounded-2xl">
         {/* ===== ПОЛЕ ВВОДА ===== */}
         <input
           type="text"
-          className="flex-1 border-r border-[#262c38] bg-transparent px-[15px] py-[18px] font-medium text-black outline-none max-md:w-full max-md:rounded-none max-md:border-b max-md:border-r-0 max-md:px-4 max-md:py-3.5 max-md:text-[15px] max-[480px]:px-3.5 max-[480px]:py-3 max-[480px]:text-sm"
+          className="flex-1 border-r border-[#262c38] bg-transparent px-[15px] py-[18px] font-medium text-black outline-none max-[480px]:px-3.5 max-[480px]:py-3 max-[480px]:text-sm max-md:w-full max-md:rounded-none max-md:border-r-0 max-md:border-b max-md:px-4 max-md:py-3.5 max-md:text-[15px]"
           placeholder="Поиск жилья..."
           value={tempSearchQuery}
           onChange={handleSearchChange}
@@ -116,7 +116,7 @@ export function SearchForm({
         {/* ===== КНОПКА ГОСТЕЙ ===== */}
         <div className="relative max-md:w-full">
           <button
-            className="z-[1000] h-full cursor-pointer whitespace-nowrap border-none bg-white px-[100px] py-[5px] text-sm max-md:w-full max-md:border-b max-md:px-4 max-md:py-3.5 max-md:text-center max-[480px]:px-3.5 max-[480px]:py-3 max-[480px]:text-[13px]"
+            className="z-[1000] h-full cursor-pointer border-none bg-white px-[100px] py-[5px] text-sm whitespace-nowrap max-[480px]:px-3.5 max-[480px]:py-3 max-[480px]:text-[13px] max-md:w-full max-md:border-b max-md:px-4 max-md:py-3.5 max-md:text-center"
             onClick={() => setIsGuestWindowOpen(true)}
           >
             {tempAdults} {adultsText}, {childrenText}
@@ -129,7 +129,7 @@ export function SearchForm({
                 className="fixed inset-0 z-[1000] bg-transparent max-md:bg-black/40"
                 onClick={() => setIsGuestWindowOpen(false)}
               />
-              <div className="absolute left-1/2 top-full z-[1001] mt-2 w-[350px] -translate-x-1/2 rounded-2xl border border-[#c0bcbc] bg-white max-md:fixed max-md:left-1/2 max-md:top-1/2 max-md:mt-0 max-md:max-h-[80vh] max-md:w-[90vw] max-md:max-w-[380px] max-md:overflow-y-auto max-md:-translate-x-1/2 max-md:-translate-y-1/2 max-[480px]:w-[95vw] max-[480px]:max-w-[320px]">
+              <div className="absolute top-full left-1/2 z-[1001] mt-2 w-[350px] -translate-x-1/2 rounded-2xl border border-[#c0bcbc] bg-white max-[480px]:w-[95vw] max-[480px]:max-w-[320px] max-md:fixed max-md:top-1/2 max-md:left-1/2 max-md:mt-0 max-md:max-h-[80vh] max-md:w-[90vw] max-md:max-w-[380px] max-md:-translate-x-1/2 max-md:-translate-y-1/2 max-md:overflow-y-auto">
                 <h3 className="m-2.5 border-b border-[whitesmoke] pb-2.5 text-sm font-normal max-[480px]:m-2 max-[480px]:text-[13px]">
                   кто едет?
                 </h3>
@@ -139,17 +139,17 @@ export function SearchForm({
                   <span className="font-medium">Взрослые от 18 лет</span>
                   <div className="flex items-center text-[22px]">
                     <button
-                      className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-[#ccc] bg-[whitesmoke] p-0 text-[22px] max-md:h-7 max-md:w-7 max-md:text-lg max-[480px]:h-6 max-[480px]:w-6 max-[480px]:text-base"
+                      className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-[#ccc] bg-[whitesmoke] p-0 text-[22px] max-[480px]:h-6 max-[480px]:w-6 max-[480px]:text-base max-md:h-7 max-md:w-7 max-md:text-lg"
                       onClick={() => decrease("adults")}
                       disabled={tempAdults <= 1}
                     >
                       -
                     </button>
-                    <span className="p-[15px] max-md:px-3.5 max-md:py-2 max-md:text-base max-[480px]:px-2.5 max-[480px]:py-1.5 max-[480px]:text-sm">
+                    <span className="p-[15px] max-[480px]:px-2.5 max-[480px]:py-1.5 max-[480px]:text-sm max-md:px-3.5 max-md:py-2 max-md:text-base">
                       {tempAdults}
                     </span>
                     <button
-                      className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-[#ccc] bg-[whitesmoke] p-0 text-[22px] max-md:h-7 max-md:w-7 max-md:text-lg max-[480px]:h-6 max-[480px]:w-6 max-[480px]:text-base"
+                      className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-[#ccc] bg-[whitesmoke] p-0 text-[22px] max-[480px]:h-6 max-[480px]:w-6 max-[480px]:text-base max-md:h-7 max-md:w-7 max-md:text-lg"
                       onClick={() => increase("adults")}
                       disabled={tempAdults >= 25}
                     >
@@ -163,17 +163,17 @@ export function SearchForm({
                   <span className="font-medium">Дети</span>
                   <div className="flex items-center text-[22px]">
                     <button
-                      className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-[#ccc] bg-[whitesmoke] p-0 text-[22px] max-md:h-7 max-md:w-7 max-md:text-lg max-[480px]:h-6 max-[480px]:w-6 max-[480px]:text-base"
+                      className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-[#ccc] bg-[whitesmoke] p-0 text-[22px] max-[480px]:h-6 max-[480px]:w-6 max-[480px]:text-base max-md:h-7 max-md:w-7 max-md:text-lg"
                       onClick={() => decrease("children")}
                       disabled={tempChildren <= 0}
                     >
                       -
                     </button>
-                    <span className="p-[15px] max-md:px-3.5 max-md:py-2 max-md:text-base max-[480px]:px-2.5 max-[480px]:py-1.5 max-[480px]:text-sm">
+                    <span className="p-[15px] max-[480px]:px-2.5 max-[480px]:py-1.5 max-[480px]:text-sm max-md:px-3.5 max-md:py-2 max-md:text-base">
                       {tempChildren}
                     </span>
                     <button
-                      className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-[#ccc] bg-[whitesmoke] p-0 text-[22px] max-md:h-7 max-md:w-7 max-md:text-lg max-[480px]:h-6 max-[480px]:w-6 max-[480px]:text-base"
+                      className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-[#ccc] bg-[whitesmoke] p-0 text-[22px] max-[480px]:h-6 max-[480px]:w-6 max-[480px]:text-base max-md:h-7 max-md:w-7 max-md:text-lg"
                       onClick={() => increase("children")}
                       disabled={tempChildren >= 20}
                     >
@@ -214,7 +214,7 @@ export function SearchForm({
 
                 {/* КНОПКА ГОТОВО */}
                 <button
-                  className="m-[15px] h-[50px] w-[70%] rounded-[15px] bg-black text-lg text-white hover:bg-[#1f1e1e] max-md:mx-auto max-md:my-3 max-md:block max-md:h-11 max-md:w-[85%] max-md:text-[15px] max-[480px]:mx-auto max-[480px]:my-2.5 max-[480px]:h-10 max-[480px]:w-[92%] max-[480px]:text-sm"
+                  className="m-[15px] h-[50px] w-[70%] rounded-[15px] bg-black text-lg text-white hover:bg-[#1f1e1e] max-[480px]:mx-auto max-[480px]:my-2.5 max-[480px]:h-10 max-[480px]:w-[92%] max-[480px]:text-sm max-md:mx-auto max-md:my-3 max-md:block max-md:h-11 max-md:w-[85%] max-md:text-[15px]"
                   onClick={handleGuestWindowClose}
                 >
                   Готово
@@ -226,7 +226,7 @@ export function SearchForm({
 
         {/* ===== КНОПКА ЛУПЫ - ЗАПУСКАЕТ ПОИСК ===== */}
         <button
-          className="m-[1px] flex cursor-pointer items-center justify-center rounded-full border-none bg-black p-5 text-white max-md:m-0 max-md:w-full max-md:rounded-none max-md:px-4 max-md:py-3.5 max-[480px]:px-3.5 max-[480px]:py-3"
+          className="m-[1px] flex cursor-pointer items-center justify-center rounded-full border-none bg-black p-5 text-white max-[480px]:rounded-b-xl max-[480px]:px-3.5 max-[480px]:py-3 max-md:m-0 max-md:w-full max-md:rounded-t-none max-md:rounded-b-2xl max-md:px-4 max-md:py-3.5"
           onClick={onSearchClick}
         >
           <svg
@@ -238,7 +238,7 @@ export function SearchForm({
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="h-[19px] w-[19px] max-md:h-5 max-md:w-5 max-[480px]:h-[18px] max-[480px]:w-[18px]"
+            className="h-[19px] w-[19px] max-[480px]:h-[18px] max-[480px]:w-[18px] max-md:h-5 max-md:w-5"
           >
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>

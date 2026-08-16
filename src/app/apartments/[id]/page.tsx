@@ -91,12 +91,13 @@ export default async function ApartmentPage({
             {/* Арендодатель */}
             {apartment.user && (
               <div className="mt-4 border-t border-[#e0e0e0] pt-4">
-                <p className="text-sm text-[#888]">Арендодатель</p>
+                <p className="text-sm text-[#888]">Арендодатель:</p>
                 <p className="text-base font-medium text-[#222]">
                   {apartment.user.firstName
                     ? `${apartment.user.firstName} `
                     : (apartment.user.name ?? "Владелец")}
                 </p>
+                <p className="text-sm text-[#888]">Номер телефона:</p>
                 {apartment.user.phone && (
                   <p className="text-base text-[#222]">
                     {formatPhoneForDisplay(apartment.user.phone)}

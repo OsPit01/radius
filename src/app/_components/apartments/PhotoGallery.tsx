@@ -13,6 +13,7 @@ function GalleryImage({ src, alt }: { src: string; alt: string }) {
         alt={alt}
         fill
         draggable={false}
+        unoptimized
         className="object-cover"
       />
     </div>
@@ -73,7 +74,13 @@ export function PhotoGallery({ photos }: { photos: string[] }) {
                   : "border-transparent opacity-60 hover:opacity-100"
               }`}
             >
-              <Image src={src} alt="" fill className="object-cover" />
+              <Image
+                src={src}
+                alt=""
+                fill
+                unoptimized
+                className="object-cover"
+              />
             </button>
           ))}
         </div>

@@ -21,8 +21,8 @@ export function ApartmentTabs({
           onClick={() => setActiveTab(0)}
           className={
             activeTab === 0
-              ? "w-56 border-b-2 border-[#222] px-8 py-5 text-center text-base font-medium text-[#222]"
-              : "w-56 px-8 py-5 text-center text-base text-[#999] hover:text-[#555]"
+              ? "flex-1 border-b-2 border-[#222] px-2 py-4 text-center text-base font-medium whitespace-nowrap text-[#222] max-md:text-sm"
+              : "flex-1 px-2 py-4 text-center text-base whitespace-nowrap text-[#999] hover:text-[#555] max-md:text-sm"
           }
         >
           Описание
@@ -31,8 +31,8 @@ export function ApartmentTabs({
           onClick={() => setActiveTab(1)}
           className={
             activeTab === 1
-              ? "w-56 border-b-2 border-[#222] px-8 py-5 text-center text-base font-medium text-[#222]"
-              : "w-56 px-8 py-5 text-center text-base text-[#999] hover:text-[#555]"
+              ? "flex-1 border-b-2 border-[#222] px-2 py-4 text-center text-base font-medium whitespace-nowrap text-[#222] max-md:text-sm"
+              : "flex-1 px-2 py-4 text-center text-base whitespace-nowrap text-[#999] hover:text-[#555] max-md:text-sm"
           }
         >
           Удобства
@@ -41,8 +41,8 @@ export function ApartmentTabs({
           onClick={() => setActiveTab(2)}
           className={
             activeTab === 2
-              ? "w-56 border-b-2 border-[#222] px-8 py-5 text-center text-base font-medium text-[#222]"
-              : "w-56 px-8 py-5 text-center text-base text-[#999] hover:text-[#555]"
+              ? "flex-1 border-b-2 border-[#222] px-2 py-4 text-center text-base font-medium whitespace-nowrap text-[#222] max-md:text-sm"
+              : "flex-1 px-2 py-4 text-center text-base whitespace-nowrap text-[#999] hover:text-[#555] max-md:text-sm"
           }
         >
           Правила
@@ -51,8 +51,8 @@ export function ApartmentTabs({
           onClick={() => setActiveTab(3)}
           className={
             activeTab === 3
-              ? "w-56 border-b-2 border-[#222] px-8 py-5 text-center text-base font-medium text-[#222]"
-              : "w-56 px-8 py-5 text-center text-base text-[#999] hover:text-[#555]"
+              ? "flex-1 border-b-2 border-[#222] px-2 py-4 text-center text-base font-medium whitespace-nowrap text-[#222] max-md:text-sm"
+              : "flex-1 px-2 py-4 text-center text-base whitespace-nowrap text-[#999] hover:text-[#555] max-md:text-sm"
           }
         >
           Карта

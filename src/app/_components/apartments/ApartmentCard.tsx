@@ -27,6 +27,7 @@ export function ApartmentCard({ apartment }: { apartment: Apartment }) {
           src={apartment.image}
           alt={apartment.title}
           fill
+          unoptimized
           className="rounded-[15px] object-cover"
         />
       </div>
@@ -51,6 +52,13 @@ export function ApartmentCard({ apartment }: { apartment: Apartment }) {
         <span className="rounded-[15px] border border-[#aca9a9] bg-[#efecf3] px-2.5 py-1 text-sm font-normal">
           до {apartment.capacity} {getCapacityText(apartment.capacity)}
         </span>
+      </div>
+      <div className="flex flex-wrap gap-2 p-2.5 font-light">
+        {apartment.metro && (
+          <p className="rounded-[15px] border border-[#aca9a9] bg-[#efecf3] px-2.5 py-1 text-sm font-normal">
+            метро: в {apartment.metro} минутах
+          </p>
+        )}
       </div>
     </Link>
   );
