@@ -22,6 +22,10 @@ const selectApartmentWithUser = (db: Database) =>
         name: users.name,
         email: users.email,
         image: users.image,
+        phone: users.phone,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        patronymic: users.patronymic,
       },
     })
     .from(apartments)
@@ -43,7 +47,7 @@ const createApartmentSchema = z.object({
   formattedAddress: z.string().optional().default(""),
   capacity: z.number().min(1).max(20),
   price: z.number().positive("Цена должна быть положительной"),
-  image: z.string().url("Некорректный URL"),
+  image: z.string(),
   description: z.string().optional(),
   rooms: z.number().min(1).max(10),
   metro: z.string().optional(),
@@ -149,7 +153,7 @@ export const apartmentRouter = createTRPCRouter({
         capacity: z.number().min(1).max(20),
         price: z.number().positive(),
         currency: z.string().default("BYN"),
-        image: z.string().url(),
+        image: z.string(),
         description: z.string().optional(),
         rooms: z.number().min(1).max(10),
         metro: z.string().optional(),

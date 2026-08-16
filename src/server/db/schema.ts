@@ -56,13 +56,17 @@ export const users = createTable("user", (d) => ({
     .$defaultFn(() => crypto.randomUUID()),
   name: d.varchar({ length: 255 }),
   email: d.varchar({ length: 255 }).notNull(),
+  phone: d.varchar({ length: 50 }),
+  firstName: d.varchar({ length: 100 }),
+  lastName: d.varchar({ length: 100 }),
+  patronymic: d.varchar({ length: 100 }),
   emailVerified: d
     .timestamp({
       mode: "date",
       withTimezone: true,
     })
     .$defaultFn(() => /* @__PURE__ */ new Date()),
-  image: d.varchar({ length: 255 }),
+  image: d.text(),
   role: d.varchar({ length: 50 }).notNull().default("users"),
   // ===== НОВЫЕ ПОЛЯ =====
   totalBookings: d.integer().notNull().default(0),

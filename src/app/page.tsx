@@ -1,5 +1,13 @@
+import { type Metadata } from "next";
 import { ClientHeader } from "@/app/_components/layout/ClientHeader";
 import { ClientSearchWrapper } from "./_components/ClientSearchWrapper";
+import { SITE_DESCRIPTION } from "@/lib/seo";
+
+export const metadata: Metadata = {
+  title: "Аренда квартир посуточно",
+  description: SITE_DESCRIPTION,
+};
+
 export default async function Home() {
   // ===== ПОЛУЧАЕМ КВАРТИРЫ ИЗ БД =====
 

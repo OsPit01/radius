@@ -24,8 +24,8 @@ export function Step5_Images({
     handleDrop,
     openFilePicker,
   } = useImageManager({
-    initialImages: formData.images || [],
-    initialMainImage: formData.image || "",
+    images: formData.images || [],
+    mainImage: formData.image || "",
     onImagesChange: (newImages) => updateField("images", newImages),
     onMainImageChange: (newMain) => updateField("image", newMain),
   });

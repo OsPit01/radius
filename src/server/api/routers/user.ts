@@ -1,8 +1,5 @@
 import { z } from "zod";
-import {
-  createTRPCRouter,
-  protectedProcedure,
-} from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { users, apartments } from "@/server/db/schema";
 import { eq, count } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
@@ -33,10 +30,16 @@ export const userRouter = createTRPCRouter({
         .select({
           id: users.id,
           name: users.name,
+          phone: users.phone,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          patronymic: users.patronymic,
           email: users.email,
           image: users.image,
           role: users.role,
           emailVerified: users.emailVerified,
+          totalBookings: users?.totalBookings,
+          totalFavorites: users?.totalFavorites,
         })
         .from(users)
         .where(eq(users.id, input.id));
@@ -153,7 +156,13 @@ export const userRouter = createTRPCRouter({
     .input(
       z.object({
         name: z.string().optional(),
-        image: z.string().url().optional(),
+        image: z.string().optional(),
+        phone: z.string().optional(),
+        firstName: z.string().optional(),
+        lastName: z.string().optional(),
+        patronymic: z.string().optional(),
+        totalBookings: z.number().optional(),
+        totalFavorites: z.number().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -164,6 +173,12 @@ export const userRouter = createTRPCRouter({
         .set({
           name: input.name,
           image: input.image,
+          phone: input.phone,
+          firstName: input.firstName,
+          lastName: input.lastName,
+          patronymic: input.patronymic,
+          totalBookings: input.totalBookings,
+          totalFavorites: input.totalFavorites,
         })
         .where(eq(users.id, userId))
         .returning();

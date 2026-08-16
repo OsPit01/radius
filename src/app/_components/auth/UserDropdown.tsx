@@ -4,9 +4,12 @@ import { useState, useRef, useEffect } from "react";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
+import { api } from "@/trpc/react";
+import { FaUserCircle } from "react-icons/fa";
 // Тип для пропсов (данные пользователя)
 type UserDropdownProps = {
   user: {
+    id?: string | null;
     name?: string | null;
     email?: string | null;
     image?: string | null;
@@ -48,6 +51,17 @@ export function UserDropdown({ user }: UserDropdownProps) {
     };
   }, []);
 
+  // Актуальное фото из БД (источник правды) + приоритет показа
+  const { data: dbUser } = api.user.getById.useQuery(
+    { id: user.id ?? "" },
+    { enabled: !!user.id },
+  );
+  const avatar = dbUser?.image ?? user.image ?? null;
+  const displayName =
+    dbUser?.firstName || dbUser?.lastName
+      ? [dbUser.firstName, dbUser.lastName].filter(Boolean).join(" ")
+      : (dbUser?.name ?? user.name);
+
   return (
     <div
       className="relative inline-block"
@@ -59,20 +73,20 @@ export function UserDropdown({ user }: UserDropdownProps) {
         className="flex cursor-pointer items-center justify-center p-2 transition-colors duration-200"
         aria-label="Профиль"
       >
-        {user.image ? (
+        {avatar ? (
           <Image
-            src={user.image}
+            src={avatar}
             alt="avatar"
             width={32}
             height={32}
-            className="h-[30px] w-[30px] rounded-[50px]"
+            unoptimized
+            className="h-[30px] w-[30px] rounded-[50px] object-cover"
           />
         ) : (
-          <span className="h-[30px] w-[30px] rounded-[50px]">👤 </span>
+          <FaUserCircle className="h-[30px] w-[30px] text-[#666]" />
         )}
         <span className="p-[3px] text-[13px] font-medium">
-          {" "}
-          {user.name}
+          {displayName}
         </span>
       </button>
       {/*      */}
@@ -91,7 +105,7 @@ export function UserDropdown({ user }: UserDropdownProps) {
           <hr />
           <button
             className="block w-full cursor-pointer p-[5px] text-left text-[15px] transition-colors duration-200 hover:w-full hover:rounded-[5px] hover:bg-[#f9f9fd] hover:p-2.5"
-            onClick={() => signOut}
+            onClick={() => signOut()}
           >
             Выйти
           </button>

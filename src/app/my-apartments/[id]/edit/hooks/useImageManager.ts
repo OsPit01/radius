@@ -5,21 +5,18 @@
 import { useState, useRef } from "react";
 
 type ImageManagerProps = {
-  initialImages?: string[];
-  initialMainImage?: string;
+  images?: string[];
+  mainImage?: string;
   onImagesChange?: (images: string[]) => void;
   onMainImageChange?: (image: string) => void;
 };
 
 type ImageManagerReturn = {
-  // Состояния
   images: string[];
   mainImage: string;
   isUploading: boolean;
   dragIndex: number | null;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
-
-  // Действия
   addImages: (files: FileList | null) => void;
   removeImage: (index: number) => void;
   setMainImage: (index: number) => void;
@@ -28,31 +25,17 @@ type ImageManagerReturn = {
   handleDragEnd: () => void;
   handleDrop: (e: React.DragEvent<HTMLDivElement>) => void;
   openFilePicker: () => void;
-  resetImages: (newImages: string[], newMain?: string) => void;
 };
 
 export function useImageManager({
-  initialImages = [],
-  initialMainImage = "",
+  images = [],
+  mainImage = "",
   onImagesChange,
   onMainImageChange,
 }: ImageManagerProps = {}): ImageManagerReturn {
-  const [images, setImages] = useState<string[]>(initialImages);
-  const [mainImage, setMainImageState] = useState<string>(initialMainImage);
   const [isUploading, setIsUploading] = useState(false);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // ===== ОБНОВЛЕНИЕ С ДЕЙСТВИЯМИ =====
-  const updateImages = (newImages: string[]) => {
-    setImages(newImages);
-    onImagesChange?.(newImages);
-  };
-
-  const updateMainImage = (newMain: string) => {
-    setMainImageState(newMain);
-    onMainImageChange?.(newMain);
-  };
 
   // ===== ДОБАВЛЕНИЕ ФОТО =====
   const addImages = (files: FileList | null) => {
@@ -75,11 +58,10 @@ export function useImageManager({
     Promise.all(readers)
       .then((results) => {
         const newImages = [...images, ...results];
-        updateImages(newImages);
+        onImagesChange?.(newImages);
 
-        // Если нет заглавной — делаем первую заглавной
         if (!mainImage && newImages.length > 0) {
-          updateMainImage(newImages[0] ?? "");
+          onMainImageChange?.(newImages[0] ?? "");
         }
       })
       .catch((error) => {
@@ -96,15 +78,12 @@ export function useImageManager({
 
   // ===== УДАЛЕНИЕ ФОТО =====
   const removeImage = (index: number) => {
-    const currentImages = [...images];
-    const deletedImage = currentImages[index];
-    const newImages = currentImages.filter((_, i) => i !== index);
+    const deletedImage = images[index];
+    const newImages = images.filter((_, i) => i !== index);
+    onImagesChange?.(newImages);
 
-    updateImages(newImages);
-
-    // Если удалили заглавную — ставим первую как заглавную
     if (mainImage === deletedImage) {
-      updateMainImage(newImages[0] ?? "");
+      onMainImageChange?.(newImages[0] ?? "");
     }
   };
 
@@ -115,8 +94,8 @@ export function useImageManager({
     if (!image) return;
 
     const newImages = [image, ...images.filter((_, i) => i !== index)];
-    updateImages(newImages);
-    updateMainImage(image);
+    onImagesChange?.(newImages);
+    onMainImageChange?.(image);
   };
 
   // ===== DRAG & DROP =====
@@ -139,7 +118,7 @@ export function useImageManager({
     if (!draggedItem) return;
 
     newImages.splice(index, 0, draggedItem);
-    updateImages(newImages);
+    onImagesChange?.(newImages);
     setDragIndex(index);
   };
 
@@ -164,12 +143,6 @@ export function useImageManager({
     fileInputRef.current?.click();
   };
 
-  // ===== СБРОС/ЗАГРУЗКА =====
-  const resetImages = (newImages: string[], newMain?: string) => {
-    setImages(newImages);
-    setMainImageState(newMain ?? newImages[0] ?? "");
-  };
-
   return {
     images,
     mainImage,
@@ -184,6 +157,5 @@ export function useImageManager({
     handleDragEnd,
     handleDrop,
     openFilePicker,
-    resetImages,
   };
 }

@@ -12,6 +12,40 @@
   }
 }
 
+.PhoneInputInput {
+  outline: none;
+  border: none;
+  background: transparent;
+  color: white;
+}
+
+.PhoneInputCountrySelect {
+  color: black;
+  background-color: white;
+}
+
+.PhoneInputCountrySelect option {
+  color: black;
+  background-color: white;
+}
+
+.PhoneInputInput:focus {
+  outline: none;
+  border: none;
+  box-shadow: none;
+}
+
+.autofill-dark input:-webkit-autofill,
+.autofill-dark input:-webkit-autofill:hover,
+.autofill-dark input:-webkit-autofill:focus,
+.autofill-dark input:-webkit-autofill:active {
+  -webkit-text-fill-color: white;
+  -webkit-box-shadow: 0 0 0 1000px #0e081b inset;
+  box-shadow: 0 0 0 1000px #0e081b inset;
+  caret-color: white;
+  transition: background-color 999999s ease-in-out 0s;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
