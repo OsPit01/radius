@@ -27,7 +27,6 @@ export const metadata: Metadata = {
     title: `${SITE_NAME} — аренда жилья посуточно`,
     description: SITE_DESCRIPTION,
   },
-  icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
 const geist = Geist({
