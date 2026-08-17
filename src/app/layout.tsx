@@ -27,6 +27,9 @@ export const metadata: Metadata = {
     title: `${SITE_NAME} — аренда жилья посуточно`,
     description: SITE_DESCRIPTION,
   },
+  verification: {
+    google: "w6kQbPKfMNh_S0ipt0xk7TRfCczM7rvMH0uuDrkAAJw",
+  },
 };
 
 const geist = Geist({

@@ -52,7 +52,7 @@ export function Header() {
         <div className="hidden shrink-0 items-center gap-4 md:flex">
           {!session?.user ? (
             <Link
-              href="/api/auth/signin"
+              href="/auth/signin"
               className="rounded-[30px] bg-white px-5 py-2 text-[0.85rem] font-medium text-black no-underline transition-colors duration-200 hover:bg-[#f5f5f5]"
             >
               Войти
@@ -103,7 +103,7 @@ export function Header() {
           <div className="flex items-center justify-between px-5 py-4">
             {!session?.user ? (
               <Link
-                href="/api/auth/signin"
+                href="/auth/signin"
                 onClick={() => setMenuOpen(false)}
                 className="rounded-[30px] bg-[#222] px-6 py-2.5 text-sm font-medium text-white no-underline"
               >
