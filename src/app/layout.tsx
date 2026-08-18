@@ -21,6 +21,7 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     title: `${SITE_NAME} — аренда жилья посуточно`,
     description: SITE_DESCRIPTION,
+    images: [{ url: "/icon.png", width: 512, height: 512 }],
   },
   twitter: {
     card: "summary_large_image",
