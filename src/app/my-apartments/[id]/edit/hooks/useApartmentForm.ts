@@ -19,6 +19,7 @@ export type ApartmentFormData = {
   currency: string;
   rooms: number;
   description: string;
+  rules: string;
   metro: string;
   amenities: string[];
   parking: string;
@@ -39,6 +40,7 @@ const defaultFormData: ApartmentFormData = {
   currency: "BYN",
   rooms: 1,
   description: "",
+  rules: "",
   metro: "",
   amenities: [],
   parking: "",
@@ -86,6 +88,7 @@ export function useApartmentForm(apartmentId: string) {
         currency: apt.currency ?? "BYN",
         rooms: apt.rooms ?? 1,
         description: apt.description ?? "",
+        rules: apt.rules ?? "",
         metro: apt.metro ?? "",
         amenities: apt.amenities ?? [],
         parking: apt.parking ?? "",

@@ -110,8 +110,7 @@ export default async function ApartmentPage({
         <ApartmentTabs
           description={apartment.apartment.description ?? ""}
           amenities={apartment.apartment.amenities ?? []}
-          rooms={apartment.apartment.rooms}
-          capacity={apartment.apartment.capacity}
+          rules={apartment.apartment.rules ?? ""}
         />
       </div>
     </>

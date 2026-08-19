@@ -14,6 +14,7 @@ export const apartments = createTable(
   "apartment",
   (d) => ({
     id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+    //  userId: d.varchar({ length: 200 }),
     type: d.varchar({ length: 100 }),
     title: d.varchar({ length: 200 }).notNull(),
     city: d.varchar({ length: 100 }).notNull(),
@@ -26,6 +27,7 @@ export const apartments = createTable(
     price: d.integer().notNull(),
     image: d.text().notNull(),
     description: d.text(),
+    rules: d.text(),
     rooms: d.integer().notNull(),
     metro: d.varchar({ length: 100 }),
     //////////////////////////////////////////
@@ -72,6 +74,7 @@ export const users = createTable("user", (d) => ({
   totalBookings: d.integer().notNull().default(0),
   totalFavorites: d.integer().notNull().default(0),
   totalApartments: d.integer().notNull().default(0),
+  // apartmentId: d.varchar({ length: 255 }),
 }));
 // ======== User ============= //
 export const usersRelations = relations(users, ({ many }) => ({
@@ -132,3 +135,10 @@ export const verificationTokens = createTable(
   }),
   (t) => [primaryKey({ columns: [t.identifier, t.token] })],
 );
+
+// export const favorites = createTable("favorite", (d) => ({
+//   userId: d
+//     .varchar({ length: 255 })
+//     .notNull()
+//     .references(() => users.id),
+// }));

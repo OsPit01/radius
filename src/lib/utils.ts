@@ -24,6 +24,7 @@ export type FormData = {
   rooms: number;
   image: string;
   description: string;
+  rules: string;
   metro: string;
   amenities: string[];
   parking: string;
@@ -105,6 +106,7 @@ export function formatApartmentData(formData: FormData) {
     currency: formData.currency ?? "BYN",
     image: formData.image,
     description: formData.description ?? undefined,
+    rules: formData.rules ?? undefined,
     rooms: Number(formData.rooms ?? 0),
     metro: formData.metro ?? undefined,
     amenities: formData.amenities ?? [],

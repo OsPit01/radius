@@ -310,6 +310,19 @@ export default function EditApartmentPage() {
                       className={`${EDIT_INPUT_CLASS} min-h-[100px] resize-y`}
                     />
                   </div>
+                  <div className="mb-4 flex flex-col gap-1.5">
+                    <label className="text-sm font-medium text-white">
+                      Правила проживания{" "}
+                      <span className="text-[#888]">(необязательно)</span>
+                    </label>
+                    <textarea
+                      value={formData.rules}
+                      onChange={(e) => updateField("rules", e.target.value)}
+                      rows={4}
+                      className={`${EDIT_INPUT_CLASS} min-h-[100px] resize-y`}
+                      placeholder="Например: без вечеринок, без животных, заезд после 14:00..."
+                    />
+                  </div>
                 </div>
               </section>
 

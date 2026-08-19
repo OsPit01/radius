@@ -42,6 +42,7 @@ export default function AddApartmentPage() {
     rooms: 1,
     image: "",
     description: "",
+    rules: "",
     metro: "",
     amenities: [],
     parking: "",

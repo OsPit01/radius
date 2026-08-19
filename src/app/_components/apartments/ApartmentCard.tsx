@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import Lightbox from "yet-another-react-lightbox";
+
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
 import "yet-another-react-lightbox/styles.css";
 
@@ -30,14 +30,7 @@ export function ApartmentCard({ apartment }: { apartment: Apartment }) {
         href={`/apartments/${apartment.id}`}
         className="overflow-hidden rounded-2xl border border-[#ada3a3] bg-white p-0.5 transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_15px_24px_rgba(0,0,0,0.1)]"
       >
-        <div
-          className="relative h-[350px] w-full cursor-zoom-in overflow-hidden max-md:h-[250px]"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setOpen(true);
-          }}
-        >
+        <div className="relative h-[350px] w-full overflow-hidden max-md:h-[250px]">
           <Image
             src={apartment.image}
             alt={apartment.title}
@@ -76,14 +69,6 @@ export function ApartmentCard({ apartment }: { apartment: Apartment }) {
           )}
         </div>
       </Link>
-
-      <Lightbox
-        open={open}
-        close={() => setOpen(false)}
-        slides={[{ src: apartment.image }]}
-        plugins={[Zoom]}
-        zoom={{ maxZoomPixelRatio: 4 }}
-      />
     </>
   );
 }

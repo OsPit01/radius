@@ -222,6 +222,24 @@ export function Step4_Details({
         />
       </div>
 
+      {/* ===== 8. ПРАВИЛА ПРОЖИВАНИЯ ===== */}
+      <div className="mt-2.5 flex flex-col gap-2">
+        <label
+          htmlFor="rules-field"
+          className="pt-[5px] text-sm font-semibold text-white"
+        >
+          Правила проживания <span className="text-[#666]">(необязательно)</span>
+        </label>
+        <textarea
+          id="rules-field"
+          value={formData.rules || ""}
+          onChange={(e) => updateField("rules", e.target.value)}
+          className={`${INPUT_CLASS} min-h-[100px] resize-y`}
+          placeholder="Например: без вечеринок, без животных, курение запрещено, заезд после 14:00..."
+          rows={4}
+        />
+      </div>
+
       {/* ===== ПАНЕЛЬ С ИНФОРМАЦИЕЙ ===== */}
       <div
         className="mt-5 p-[5px] text-[13px] text-[rgba(216,214,214,0.911)]"

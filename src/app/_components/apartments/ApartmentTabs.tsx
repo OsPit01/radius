@@ -1,75 +1,81 @@
 "use client";
 import { useState } from "react";
 import { AMENITIES } from "@/lib/constants/amenities";
+
+const TABS = ["Описание", "Удобства", "Правила", "Карта"] as const;
+
 export function ApartmentTabs({
   description,
   amenities,
-  rooms,
-  capacity,
+  rules,
 }: {
   description: string;
   amenities: string[];
-  rooms: number;
-  capacity: number;
+  rules: string;
 }) {
   const [activeTab, setActiveTab] = useState(0);
 
   return (
-    <div className="flex flex-col items-center pt-5">
-      <div className="flex border-b border-[#e0e0e0]">
-        <button
-          onClick={() => setActiveTab(0)}
-          className={
-            activeTab === 0
-              ? "flex-1 border-b-2 border-[#222] px-2 py-4 text-center text-base font-medium whitespace-nowrap text-[#222] max-md:text-sm"
-              : "flex-1 px-2 py-4 text-center text-base whitespace-nowrap text-[#999] hover:text-[#555] max-md:text-sm"
-          }
-        >
-          Описание
-        </button>
-        <button
-          onClick={() => setActiveTab(1)}
-          className={
-            activeTab === 1
-              ? "flex-1 border-b-2 border-[#222] px-2 py-4 text-center text-base font-medium whitespace-nowrap text-[#222] max-md:text-sm"
-              : "flex-1 px-2 py-4 text-center text-base whitespace-nowrap text-[#999] hover:text-[#555] max-md:text-sm"
-          }
-        >
-          Удобства
-        </button>
-        <button
-          onClick={() => setActiveTab(2)}
-          className={
-            activeTab === 2
-              ? "flex-1 border-b-2 border-[#222] px-2 py-4 text-center text-base font-medium whitespace-nowrap text-[#222] max-md:text-sm"
-              : "flex-1 px-2 py-4 text-center text-base whitespace-nowrap text-[#999] hover:text-[#555] max-md:text-sm"
-          }
-        >
-          Правила
-        </button>
-        <button
-          onClick={() => setActiveTab(3)}
-          className={
-            activeTab === 3
-              ? "flex-1 border-b-2 border-[#222] px-2 py-4 text-center text-base font-medium whitespace-nowrap text-[#222] max-md:text-sm"
-              : "flex-1 px-2 py-4 text-center text-base whitespace-nowrap text-[#999] hover:text-[#555] max-md:text-sm"
-          }
-        >
-          Карта
-        </button>
+    <div className="mt-10">
+      <div className="flex flex-wrap justify-center gap-2 border-b border-[#e0e0e0] pb-4">
+        {TABS.map((tab, i) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(i)}
+            className={`rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-200 ${
+              activeTab === i
+                ? "bg-[#b552c7] text-white shadow-[0_4px_12px_rgba(181,82,199,0.3)]"
+                : "text-[#666] hover:bg-[#f0f0f0] hover:text-[#222]"
+            }`}
+          >
+            {tab}
+          </button>
+        ))}
       </div>
-      <div className="py-4">
-        {activeTab === 0 && <>{description}</>}
+
+      <div className="py-8">
+        {activeTab === 0 && (
+          <p className="mx-auto max-w-2xl text-center text-base leading-relaxed whitespace-pre-line text-[#555]">
+            {description || "Описание пока не добавлено"}
+          </p>
+        )}
+
         {activeTab === 1 && (
-          <ul>
+          <div className="mx-auto grid max-w-2xl grid-cols-2 gap-3 max-md:grid-cols-1">
             {amenities.map((id) => {
               const found = AMENITIES.find((a) => a.id === id);
-              return <li key={id}>• {found?.label ?? id}</li>;
+              return (
+                <div
+                  key={id}
+                  className="flex items-center gap-2.5 rounded-xl bg-[#f7f7f7] px-4 py-3 text-sm text-[#444]"
+                >
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#b552c7] text-xs text-white">
+                    ✓
+                  </span>
+                  {found?.label ?? id}
+                </div>
+              );
             })}
-          </ul>
+          </div>
         )}
-        {activeTab === 2 && <p>Правила проживания...</p>}
-        {activeTab === 3 && <p>Карта</p>}
+
+        {activeTab === 2 && (
+          <div className="mx-auto max-w-2xl rounded-2xl border border-[#eee5f4] bg-[#faf7fc] p-6">
+            {rules ? (
+              <p className="text-base leading-relaxed whitespace-pre-line text-[#555]">
+                {rules}
+              </p>
+            ) : (
+              <p className="text-base text-[#999]">
+                Правила проживания не указаны
+              </p>
+            )}
+          </div>
+        )}
+
+        {activeTab === 3 && (
+          <p className="text-center text-[#999]">Карта</p>
+        )}
       </div>
     </div>
   );
