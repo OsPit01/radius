@@ -15,13 +15,22 @@ export const metadata: Metadata = {
     template: `%s | ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
+  icons: {
+    icon: [{ url: "/favicon-96x96.png", sizes: "96x96", type: "image/png" }],
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
+  manifest: "/site.webmanifest",
+  appleWebApp: {
+    title: "Radius",
+  },
   openGraph: {
     type: "website",
     locale: "ru_RU",
     siteName: SITE_NAME,
     title: `${SITE_NAME} — аренда жилья посуточно`,
     description: SITE_DESCRIPTION,
-    images: [{ url: "/icon.png", width: 512, height: 512 }],
+    images: [{ url: "/apple-touch-icon.png", width: 180, height: 180 }],
   },
   twitter: {
     card: "summary_large_image",

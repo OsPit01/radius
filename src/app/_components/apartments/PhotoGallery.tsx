@@ -3,7 +3,12 @@ import { useState, useRef } from "react";
 import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
 import type { Swiper as SwiperType } from "swiper";
+import Lightbox from "yet-another-react-lightbox";
+import Zoom from "yet-another-react-lightbox/plugins/zoom";
+import Counter from "yet-another-react-lightbox/plugins/counter";
+import { FiMaximize2 } from "react-icons/fi";
 import "swiper/css";
+import "yet-another-react-lightbox/styles.css";
 
 function GalleryImage({ src, alt }: { src: string; alt: string }) {
   return (
@@ -22,7 +27,15 @@ function GalleryImage({ src, alt }: { src: string; alt: string }) {
 
 export function PhotoGallery({ photos }: { photos: string[] }) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const swiperRef = useRef<SwiperType | null>(null);
+
+  const slides = photos.map((src) => ({ src }));
+
+  const openLightbox = (index: number) => {
+    setActiveIndex(index);
+    setLightboxOpen(true);
+  };
 
   return (
     <div>
@@ -36,7 +49,15 @@ export function PhotoGallery({ photos }: { photos: string[] }) {
         >
           {photos.map((src, i) => (
             <SwiperSlide key={i}>
-              <GalleryImage src={src} alt={`фото ${i + 1}`} />
+              <div
+                className="group relative h-full w-full cursor-zoom-in"
+                onClick={() => openLightbox(i)}
+              >
+                <GalleryImage src={src} alt={`фото ${i + 1}`} />
+                <div className="pointer-events-none absolute right-3 bottom-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100">
+                  <FiMaximize2 size={18} />
+                </div>
+              </div>
             </SwiperSlide>
           ))}
         </Swiper>
@@ -85,6 +106,15 @@ export function PhotoGallery({ photos }: { photos: string[] }) {
           ))}
         </div>
       )}
+
+      <Lightbox
+        open={lightboxOpen}
+        close={() => setLightboxOpen(false)}
+        index={activeIndex}
+        slides={slides}
+        plugins={[Zoom, Counter]}
+        zoom={{ maxZoomPixelRatio: 4 }}
+      />
     </div>
   );
 }
