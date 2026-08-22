@@ -31,6 +31,8 @@ export default function SettingsPage() {
     },
   });
 
+  const uploadImage = api.upload.image.useMutation();
+
   // Состояние модалки
   const [modalOpen, setModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -70,11 +72,12 @@ export default function SettingsPage() {
     if (!file) return;
     try {
       const dataUrl = await readFileAsDataURL(file);
-      setForm((prev) => ({ ...prev, image: dataUrl }));
+      const res = await uploadImage.mutateAsync({ dataUrl });
+      setForm((prev) => ({ ...prev, image: res.url }));
       setModalOpen(false);
     } catch (error) {
       console.error(error);
-      alert("Не удалось прочитать файл");
+      alert("Не удалось загрузить фото");
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = "";
     }

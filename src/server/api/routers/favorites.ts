@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { favorites } from "@/server/db/schema";
+import { favorites, apartments } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
 
 export const favoritesRouter = createTRPCRouter({
@@ -61,4 +61,12 @@ export const favoritesRouter = createTRPCRouter({
         );
       return { isFavorite: !!existing };
     }),
+  list: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+    return await ctx.db
+      .select({ apartment: apartments })
+      .from(favorites)
+      .innerJoin(apartments, eq(favorites.apartmentId, apartments.id))
+      .where(eq(favorites.userId, userId));
+  }),
 });

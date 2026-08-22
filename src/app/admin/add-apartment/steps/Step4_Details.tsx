@@ -184,7 +184,7 @@ export function Step4_Details({
         <label className="pt-[5px] text-sm font-semibold text-white">
           Парковка
         </label>
-        <div className="radio-group flex flex-wrap">
+        <div className="radio-group flex flex-wrap gap-x-6 gap-y-2">
           {PARKING_TYPES.map((type) => (
             <label
               key={type.id}

@@ -9,6 +9,7 @@ import { AMENITIES, PARKING_TYPES, CURRENCIES } from "@/lib/constants";
 import { EDIT_INPUT_CLASS, toggleAmenity } from "@/lib/utils";
 import { useApartmentForm } from "./hooks/useApartmentForm";
 import { ClientHeader } from "@/app/_components/layout/ClientHeader";
+import { api } from "@/trpc/react";
 
 function readFilesAsDataURL(files: FileList): Promise<string[]> {
   return Promise.all(
@@ -38,6 +39,8 @@ export default function EditApartmentPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
 
+  const uploadImage = api.upload.image.useMutation();
+
   const images = formData.images ?? [];
   const mainImage = formData.image ?? "";
 
@@ -46,17 +49,22 @@ export default function EditApartmentPage() {
       if (!files || files.length === 0) return;
       setIsUploading(true);
       try {
-        const results = await readFilesAsDataURL(files);
-        const merged = [...images, ...results];
+        const dataUrls = await readFilesAsDataURL(files);
+        const urls: string[] = [];
+        for (const dataUrl of dataUrls) {
+          const res = await uploadImage.mutateAsync({ dataUrl });
+          urls.push(res.url);
+        }
+        const merged = [...images, ...urls];
         updateField("images", merged);
-        if (!mainImage) updateField("image", results[0] ?? "");
+        if (!mainImage) updateField("image", urls[0] ?? "");
       } catch {
         alert("Ошибка загрузки");
       } finally {
         setIsUploading(false);
       }
     },
-    [images, mainImage, updateField],
+    [images, mainImage, updateField, uploadImage],
   );
 
   const removeImage = useCallback(

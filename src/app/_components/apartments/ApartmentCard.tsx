@@ -6,18 +6,18 @@ import { useSession } from "next-auth/react";
 import { api } from "@/trpc/react";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 
-// Тип для квартиры (чтобы TypeScript не ругался)
+// Тип для квартиры (поля из базы могут быть null)
 type Apartment = {
   id: number;
   title: string;
   city: string;
-  district: string;
+  district: string | null;
   capacity: number;
   price: number;
   image: string;
-  description: string;
+  description: string | null;
   rooms: number;
-  metro: string;
+  metro: string | null;
 };
 
 export function ApartmentCard({
@@ -31,10 +31,30 @@ export function ApartmentCard({
   const { data: session } = useSession();
   // вызов хука api.useUtils()
   const utils = api.useUtils();
-  // Мутация «переключить
+  // Мутация «переключить» с оптимистичным обновлением
   const toggleFavorite = api.favorites.toggle.useMutation({
-    onSuccess: async () => {
-      await utils.favorites.listIds.invalidate();
+    onMutate: async ({ apartmentId }) => {
+      // Отменяем входящие запросы, чтобы они не перезаписали наш оптимизм
+      await utils.favorites.listIds.cancel();
+      // Сохраняем текущее значение (для отката в случае ошибки)
+      const prev = utils.favorites.listIds.getData();
+      // Оптимистично меняем список прямо сейчас, не дожидаясь сервера
+      utils.favorites.listIds.setData(undefined, (old = []) =>
+        old.includes(apartmentId)
+          ? old.filter((id) => id !== apartmentId)
+          : [...old, apartmentId],
+      );
+      return { prev };
+    },
+    onError: (_err, _vars, context) => {
+      // Если сервер ответил ошибкой — откатываемся к сохранённому значению
+      if (context?.prev !== undefined) {
+        utils.favorites.listIds.setData(undefined, context.prev);
+      }
+    },
+    onSettled: () => {
+      // В фоне пересинхронизируем с сервером (чтобы данные не разошлись)
+      void utils.favorites.listIds.invalidate();
     },
   });
   //Обработчик клика
@@ -65,27 +85,35 @@ export function ApartmentCard({
           <button
             type="button"
             onClick={handleToggle}
-            className="absolute top-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/80"
+            className="group absolute top-3 right-3 z-10 flex h-10 w-10 items-center justify-center"
           >
-            {isFavorite ? (
-              <FaHeart className="text-[25px] text-red-500" />
-            ) : (
-              <FaRegHeart className="w-full text-[20px] text-gray-700" />
-            )}
+            <div className="relative h-7 w-7 transition-transform duration-200 group-hover:scale-125">
+              {/* контурное — видно когда НЕ в избранном */}
+              <FaRegHeart
+                className={`absolute top-0 left-0 h-7 w-7 text-gray-100 transition-all duration-300 group-hover:text-red-500 ${
+                  isFavorite ? "scale-0 opacity-0" : "scale-100 opacity-100"
+                }`}
+              />
+              {/* залитое — видно когда В избранном */}
+              <FaHeart
+                className={`absolute top-0 left-0 h-7 w-7 text-red-500 transition-all duration-300 ${
+                  isFavorite ? "scale-100 opacity-100" : "scale-0 opacity-0"
+                }`}
+              />
+            </div>
           </button>
-        </div>
-        <div className="mt-2.5 flex justify-between p-2.5">
-          <span className="text-[18px] font-semibold max-md:text-base">
-            {apartment.title}
-          </span>
-          <span className="border-b border-black text-[13px] font-bold">
-            {" "}
+          <span className="absolute right-3 bottom-3 z-10 rounded-lg bg-white px-2.5 py-1 text-sm font-bold text-[#222] shadow-sm">
             BYN {apartment.price}
           </span>
         </div>
+        <div className="mt-2.5 p-2.5">
+          <span className="text-[18px] font-semibold break-words max-md:text-base">
+            {apartment.title}
+          </span>
+        </div>
         <div className="flex p-2.5 text-sm font-normal break-words">
-          {" "}
-          {apartment.city}, {apartment.district}
+          {apartment.city}
+          {apartment.district ? `, ${apartment.district}` : ""}
         </div>
         <div className="flex flex-wrap gap-2 p-2.5 font-light">
           <span className="rounded-[15px] border border-[#aca9a9] bg-[#efecf3] px-2.5 py-1 text-sm font-normal">

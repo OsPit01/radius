@@ -31,6 +31,41 @@ const selectApartmentWithUser = (db: Database) =>
     .from(apartments)
     .leftJoin(users, eq(apartments.createdById, users.id));
 
+// ===== ЛЁГКИЙ ЗАПРОС для списка (без тяжёлого массива images и лишних полей) =====
+const selectApartmentLight = (db: Database) =>
+  db
+    .select({
+      apartment: {
+        id: apartments.id,
+        type: apartments.type,
+        title: apartments.title,
+        city: apartments.city,
+        district: apartments.district,
+        capacity: apartments.capacity,
+        price: apartments.price,
+        image: apartments.image,
+        description: apartments.description,
+        rooms: apartments.rooms,
+        metro: apartments.metro,
+        currency: apartments.currency,
+        statusObject: apartments.statusObject,
+        createdAt: apartments.createdAt,
+        updatedAt: apartments.updatedAt,
+      },
+      user: {
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        image: users.image,
+        phone: users.phone,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        patronymic: users.patronymic,
+      },
+    })
+    .from(apartments)
+    .leftJoin(users, eq(apartments.createdById, users.id));
+
 // ===== ВАЛИДАЦИЯ ДЛЯ СОЗДАНИЯ КВАРТИРЫ =====
 const createApartmentSchema = z.object({
   type: z.string(),
@@ -62,7 +97,7 @@ const createApartmentSchema = z.object({
 export const apartmentRouter = createTRPCRouter({
   // 1. Получить все квартиры
   getAll: publicProcedure.query(async ({ ctx }) => {
-    return await selectApartmentWithUser(ctx.db);
+    return await selectApartmentLight(ctx.db);
   }),
 
   // 2. Получить одну квартиру по ID
@@ -226,7 +261,7 @@ export const apartmentRouter = createTRPCRouter({
   getMyApartments: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.session.user.id;
 
-    return await selectApartmentWithUser(ctx.db).where(
+    return await selectApartmentLight(ctx.db).where(
       eq(apartments.createdById, userId),
     );
   }),

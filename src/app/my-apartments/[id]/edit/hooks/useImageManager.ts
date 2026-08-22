@@ -3,6 +3,8 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { api } from "@/trpc/react";
+import { readFileAsDataURL } from "@/lib/file";
 
 type ImageManagerProps = {
   images?: string[];
@@ -37,27 +39,26 @@ export function useImageManager({
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const uploadImage = api.upload.image.useMutation();
+
   // ===== ДОБАВЛЕНИЕ ФОТО =====
   const addImages = (files: FileList | null) => {
     if (!files || files.length === 0) return;
 
     setIsUploading(true);
-    const readers: Promise<string>[] = [];
+    const dataUrlPromises = Array.from(files).map((file) =>
+      readFileAsDataURL(file),
+    );
 
-    for (const file of files) {
-      const reader = new FileReader();
-      const promise = new Promise<string>((resolve) => {
-        reader.onload = (event) => {
-          resolve(event.target?.result as string);
-        };
-      });
-      readers.push(promise);
-      reader.readAsDataURL(file);
-    }
+    Promise.all(dataUrlPromises)
+      .then(async (dataUrls) => {
+        const urls: string[] = [];
+        for (const dataUrl of dataUrls) {
+          const res = await uploadImage.mutateAsync({ dataUrl });
+          urls.push(res.url);
+        }
 
-    Promise.all(readers)
-      .then((results) => {
-        const newImages = [...images, ...results];
+        const newImages = [...images, ...urls];
         onImagesChange?.(newImages);
 
         if (!mainImage && newImages.length > 0) {
