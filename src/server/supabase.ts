@@ -15,9 +15,17 @@ export function getSupabaseAdmin(): SupabaseClient {
   const url = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!url || !key) {
+  if (!url && !key) {
     throw new Error(
-      "Supabase не настроен: проверь SUPABASE_URL и SUPABASE_SERVICE_ROLE_KEY в .env",
+      "Supabase не настроен: в Vercel нет ни SUPABASE_URL, ни SUPABASE_SERVICE_ROLE_KEY",
+    );
+  }
+  if (!url) {
+    throw new Error("Supabase не настроен: в Vercel нет переменной SUPABASE_URL");
+  }
+  if (!key) {
+    throw new Error(
+      "Supabase не настроен: в Vercel нет переменной SUPABASE_SERVICE_ROLE_KEY",
     );
   }
 

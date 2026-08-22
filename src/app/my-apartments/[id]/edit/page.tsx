@@ -129,8 +129,8 @@ export default function EditApartmentPage() {
 
   return (
     <>
-      <ClientHeader />
       <AuthGuard>
+        <ClientHeader />
         <div className="mx-auto max-w-[900px] px-5 py-10 max-[480px]:px-2.5 max-[480px]:py-5">
           <div className="rounded-2xl bg-[#0e081b] p-10 shadow-[0_2px_8px_rgba(0,0,0,0.08)] max-[480px]:p-4 max-md:p-5">
             <h1 className="mb-[30px] text-[28px] font-bold text-white max-md:text-[22px]">
