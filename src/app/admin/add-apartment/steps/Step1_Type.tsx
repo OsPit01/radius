@@ -11,10 +11,10 @@ export function Step1_Type({ formData, updateField }: StepProps) {
       </legend>
       <div className="flex flex-wrap gap-4">
         <div
-          className={`cursor-pointer select-none rounded-xl border-[3px] border-[#dadada] px-6 py-4 text-base text-[#dadada] transition-all duration-200 hover:border-[#b552c7] hover:text-white ${
+          className={`cursor-pointer select-none rounded-xl border-[3px] px-6 py-4 text-base transition-all duration-200 ${
             formData.type === "apartment"
               ? "border-[#b552c7] bg-[rgba(181,82,199,0.1)] text-white"
-              : ""
+              : "border-[#dadada] text-[#dadada] hover:border-[#b552c7] hover:text-white"
           }`}
           onClick={() =>
             updateField(
