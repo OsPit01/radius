@@ -108,7 +108,7 @@ export function SearchForm({
         <input
           type="text"
           className="flex-1 border-r border-[#262c38] bg-transparent px-[15px] py-[18px] font-medium text-black outline-none max-[480px]:px-3.5 max-[480px]:py-3 max-[480px]:text-sm max-md:w-full max-md:rounded-none max-md:border-r-0 max-md:border-b max-md:px-4 max-md:py-3.5 max-md:text-[15px]"
-          placeholder="Поиск жилья..."
+          placeholder="Поиск по городу..."
           value={tempSearchQuery}
           onChange={handleSearchChange}
         />

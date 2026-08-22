@@ -55,6 +55,7 @@ export function ApartmentCard({
     onSettled: () => {
       // В фоне пересинхронизируем с сервером (чтобы данные не разошлись)
       void utils.favorites.listIds.invalidate();
+      void utils.favorites.list.invalidate();
     },
   });
   //Обработчик клика

@@ -36,8 +36,7 @@ export function ApartmentsList({
   const filteredApartments = apartments.filter((apartment) => {
     const matchesSearch =
       searchQuery === "" ||
-      apartment.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      apartment.title.toLowerCase().includes(searchQuery.toLowerCase());
+      apartment.city.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesCapacity = apartment.capacity >= totalGuests;
 
