@@ -1,6 +1,7 @@
 "use client";
-
+import { useSession } from "next-auth/react";
 import { ApartmentCard } from "./ApartmentCard";
+import { api } from "@/trpc/react";
 
 type Apartment = {
   id: number;
@@ -27,6 +28,10 @@ export function ApartmentsList({
   searchQuery = "",
   totalGuests = 1,
 }: ApartmentsListProps) {
+  const { data: session } = useSession();
+  const { data: favIds } = api.favorites.listIds.useQuery(undefined, {
+    enabled: !!session?.user,
+  });
   // ===== ФИЛЬТРАЦИЯ =====
   const filteredApartments = apartments.filter((apartment) => {
     const matchesSearch =
@@ -75,7 +80,11 @@ export function ApartmentsList({
 
       <div className="mx-auto grid max-w-[1400px] grid-cols-2 gap-[50px] px-5 max-md:grid-cols-1 max-md:gap-5 max-md:px-4">
         {filteredApartments.map((apartment) => (
-          <ApartmentCard key={apartment.id} apartment={apartment} />
+          <ApartmentCard
+            key={apartment.id}
+            apartment={apartment}
+            isFavorite={favIds?.includes(apartment.id) ?? false}
+          />
         ))}
       </div>
     </div>

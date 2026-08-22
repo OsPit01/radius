@@ -22,7 +22,7 @@ export function ApartmentTabs({
           <button
             key={tab}
             onClick={() => setActiveTab(i)}
-            className={`rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-200 ${
+            className={`rounded-full px-5 py-2.5 text-sm text-[18px] font-medium text-black transition-all duration-200 ${
               activeTab === i
                 ? "bg-[#b552c7] text-white shadow-[0_4px_12px_rgba(181,82,199,0.3)]"
                 : "text-[#666] hover:bg-[#f0f0f0] hover:text-[#222]"
@@ -35,7 +35,7 @@ export function ApartmentTabs({
 
       <div className="py-8">
         {activeTab === 0 && (
-          <p className="mx-auto max-w-2xl text-center text-base leading-relaxed whitespace-pre-line text-[#555]">
+          <p className="mx-auto max-w-2xl text-center text-base leading-relaxed whitespace-pre-line text-black">
             {description || "Описание пока не добавлено"}
           </p>
         )}
@@ -47,7 +47,7 @@ export function ApartmentTabs({
               return (
                 <div
                   key={id}
-                  className="flex items-center gap-2.5 rounded-xl bg-[#f7f7f7] px-4 py-3 text-sm text-[#444]"
+                  className="flex items-center gap-2.5 rounded-xl bg-[#f7f7f7] px-4 py-3 text-sm text-black"
                 >
                   <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#b552c7] text-xs text-white">
                     ✓
@@ -62,20 +62,18 @@ export function ApartmentTabs({
         {activeTab === 2 && (
           <div className="mx-auto max-w-2xl rounded-2xl border border-[#eee5f4] bg-[#faf7fc] p-6">
             {rules ? (
-              <p className="text-base leading-relaxed whitespace-pre-line text-[#555]">
+              <p className="text-base leading-relaxed whitespace-pre-line text-black">
                 {rules}
               </p>
             ) : (
-              <p className="text-base text-[#999]">
+              <p className="text-base text-black">
                 Правила проживания не указаны
               </p>
             )}
           </div>
         )}
 
-        {activeTab === 3 && (
-          <p className="text-center text-[#999]">Карта</p>
-        )}
+        {activeTab === 3 && <p className="text-center text-black">Карта</p>}
       </div>
     </div>
   );

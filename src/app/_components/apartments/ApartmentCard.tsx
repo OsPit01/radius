@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-
-import Zoom from "yet-another-react-lightbox/plugins/zoom";
-import "yet-another-react-lightbox/styles.css";
+import { useSession } from "next-auth/react";
+import { api } from "@/trpc/react";
+import { FaHeart, FaRegHeart } from "react-icons/fa";
 
 // Тип для квартиры (чтобы TypeScript не ругался)
 type Apartment = {
@@ -21,8 +20,33 @@ type Apartment = {
   metro: string;
 };
 
-export function ApartmentCard({ apartment }: { apartment: Apartment }) {
-  const [open, setOpen] = useState(false);
+export function ApartmentCard({
+  apartment,
+  isFavorite,
+}: {
+  apartment: Apartment;
+  isFavorite: boolean;
+}) {
+  //Сессия
+  const { data: session } = useSession();
+  // вызов хука api.useUtils()
+  const utils = api.useUtils();
+  // Мутация «переключить
+  const toggleFavorite = api.favorites.toggle.useMutation({
+    onSuccess: async () => {
+      await utils.favorites.listIds.invalidate();
+    },
+  });
+  //Обработчик клика
+  const handleToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!session?.user) {
+      window.location.href = "/auth/signin";
+      return;
+    }
+    toggleFavorite.mutate({ apartmentId: apartment.id });
+  };
 
   return (
     <>
@@ -38,6 +62,17 @@ export function ApartmentCard({ apartment }: { apartment: Apartment }) {
             unoptimized
             className="rounded-[15px] object-cover"
           />
+          <button
+            type="button"
+            onClick={handleToggle}
+            className="absolute top-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/80"
+          >
+            {isFavorite ? (
+              <FaHeart className="text-[25px] text-red-500" />
+            ) : (
+              <FaRegHeart className="w-full text-[20px] text-gray-700" />
+            )}
+          </button>
         </div>
         <div className="mt-2.5 flex justify-between p-2.5">
           <span className="text-[18px] font-semibold max-md:text-base">
