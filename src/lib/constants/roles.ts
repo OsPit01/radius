@@ -45,6 +45,8 @@ export const ROLE_VALUES = Object.keys(ROLES) as [RoleKey, ...RoleKey[]];
 
 // ===== АДМИН-РОЛИ =====
 export const ADMIN_ROLES: readonly RoleKey[] = [
+  "user",
+  "lessor",
   "admin",
   "superadmin",
   "mainadmin",

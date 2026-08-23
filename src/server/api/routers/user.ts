@@ -1,9 +1,9 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { users, apartments } from "@/server/db/schema";
+import { users, apartments, favorites } from "@/server/db/schema";
 import { eq, count } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
-import { isAdminRole, ROLE_VALUES } from "@/lib/constants/roles";
+import { getRoleInfo, isAdminRole, ROLE_VALUES } from "@/lib/constants/roles";
 
 // =====
 // 1. ПОЛУЧИТЬ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ (ТОЛЬКО ДЛЯ АДМИНА)
@@ -52,6 +52,7 @@ export const userRouter = createTRPCRouter({
       return user;
     }),
   // 3. Обновить роль пользователя (только для админа)
+
   updateRole: protectedProcedure
     .input(
       z.object({
@@ -60,18 +61,29 @@ export const userRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const userRole = ctx.session.user?.role;
-      if (!isAdminRole(userRole)) {
+      const myRole = ctx.session.user.role;
+      const myId = ctx.session.user.id;
+
+      if (!isAdminRole(myRole)) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "У вас нет прав на изменение ролей",
         });
       }
-      // ===== ЗАЩИТА ОТ ИЗМЕНЕНИЯ ГЛАВНОГО АДМИНА =====
+
+      //  изменить свою роль
+      if (input.userId === myId) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Нельзя изменить свою роль",
+        });
+      }
+      //Найти целевого пользователя
       const [targetUser] = await ctx.db
         .select()
         .from(users)
         .where(eq(users.id, input.userId));
+
       if (!targetUser) {
         throw new TRPCError({
           code: "NOT_FOUND",
@@ -79,40 +91,31 @@ export const userRouter = createTRPCRouter({
         });
       }
 
-      if (targetUser.role === "mainadmin") {
+      //СРАВНЕНИЕ РОЛИ
+      const myLevel = getRoleInfo(myRole).level;
+      const targetLevel = getRoleInfo(targetUser.role).level;
+      if (myLevel <= targetLevel) {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Нельзя изменить роль этого пользователя",
+          message:
+            "Нельзя изменить роль пользователя с таким же или более высоким уровнем",
         });
       }
-      // ===== СУПЕР АДМИН =====
-      if (userRole === "superadmin") {
-        // Супер админ может менять любую роль, кроме mainadmin
-        const [updated] = await ctx.db
-          .update(users)
-          .set({ role: input.role })
-          .where(eq(users.id, input.userId))
-          .returning();
-        return updated;
-      }
-      const targetRole = targetUser.role;
-      const currentRole = String(userRole);
-      // ===== ОБЫЧНЫЙ АДМИН НЕ МОЖЕТ МЕНЯТЬ СУПЕР АДМИНА =====
-      if (targetRole === "superadmin" && currentRole !== "superadmin") {
+      const newLevel = getRoleInfo(input.role).level;
+      if (newLevel >= myLevel) {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Вы не можете изменять роль супер администратора",
+          message: "Нельзя назначить роль выше вашей",
         });
       }
-      // ===== ОБНОВЛЯЕМ РОЛЬ (ДЛЯ ОБЫЧНЫХ АДМИНОВ) =====
-      const [updated] = await ctx.db
+      const [updatedUser] = await ctx.db
         .update(users)
         .set({ role: input.role })
         .where(eq(users.id, input.userId))
         .returning();
-
-      return updated;
+      return updatedUser;
     }),
+
   // 4. Получить статистику пользователя (кол-во объектов, бронирований и т.д.)
   getStats: protectedProcedure
     .input(z.object({ userId: z.string() }).optional())
@@ -141,12 +144,17 @@ export const userRouter = createTRPCRouter({
         .from(apartments)
         .where(eq(apartments.createdById, userId));
 
+      const [favoritesCount] = await ctx.db
+        .select({ count: count() })
+        .from(favorites)
+        .where(eq(favorites.userId, userId));
+
       return {
         user,
         stats: {
           totalApartments: apartmentsCount?.count ?? 0, // TODO: подсчёт из apartments
           totalBookings: 0, // TODO: подсчёт из bookings
-          totalFavorites: 0, // TODO: подсчёт из favorites
+          totalFavorites: favoritesCount?.count ?? 0, // TODO: подсчёт из favorites
         },
       };
     }),
