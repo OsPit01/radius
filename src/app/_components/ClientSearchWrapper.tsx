@@ -54,13 +54,13 @@ export function ClientSearchWrapper() {
       setApartments(shuffleApartments(formatted));
     }
   }, [apartmentsData]);
-  // ===== ПЕРЕМЕШИВАНИЕ КАЖДЫЕ 5 МИНУТ =====
+  // ===== ПЕРЕМЕШИВАНИЕ КАЖДЫЕ 15 МИНУТ =====
   useEffect(() => {
     if (apartments.length === 0) return;
     // Таймер обновления
     const interval = setInterval(() => {
       setApartments((prev) => shuffleApartments(prev));
-    }, 300000);
+    }, 900000);
     // Очистка при размонтировании
     return () => clearInterval(interval);
   }, [apartments.length]);

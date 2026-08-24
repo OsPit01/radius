@@ -38,6 +38,7 @@ export default function SettingsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   // Состояние формы
   const [form, setForm] = useState({
+    name: "",
     firstName: "",
     lastName: "",
     patronymic: "",
@@ -47,6 +48,7 @@ export default function SettingsPage() {
   useEffect(() => {
     if (user) {
       setForm({
+        name: user.name ?? "",
         firstName: user.firstName ?? "",
         lastName: user.lastName ?? "",
         patronymic: user.patronymic ?? "",
@@ -58,6 +60,8 @@ export default function SettingsPage() {
   const handleSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
     updateMutation.mutate({
+      name:
+        [form.firstName, form.lastName].filter(Boolean).join(" ") || undefined,
       firstName: form.firstName || undefined,
       lastName: form.lastName || undefined,
       patronymic: form.patronymic || undefined,
