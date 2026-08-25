@@ -4,6 +4,48 @@ import { users, apartments, favorites } from "@/server/db/schema";
 import { eq, count } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { getRoleInfo, isAdminRole, ROLE_VALUES } from "@/lib/constants/roles";
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import type * as schema from "@/server/db/schema";
+
+type Database = PostgresJsDatabase<typeof schema>;
+
+// Общая проверка прав для админ-действий над чужим пользователем:
+// 1) только админ, 2) не себя, 3) юзер существует, 4) уровень цели строго ниже моего.
+// Возвращает целевого пользователя.
+async function requireTargetUser(
+  db: Database,
+  myRole: string,
+  myId: string,
+  targetId: string,
+) {
+  if (!isAdminRole(myRole)) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "У вас нет прав на это действие",
+    });
+  }
+  if (targetId === myId) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Нельзя изменить самого себя",
+    });
+  }
+  const [target] = await db.select().from(users).where(eq(users.id, targetId));
+  if (!target) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Пользователь не найден",
+    });
+  }
+  if (getRoleInfo(myRole).level <= getRoleInfo(target.role).level) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message:
+        "Нельзя изменить пользователя с таким же или более высоким уровнем",
+    });
+  }
+  return target;
+}
 
 // =====
 // 1. ПОЛУЧИТЬ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ (ТОЛЬКО ДЛЯ АДМИНА)
@@ -61,53 +103,21 @@ export const userRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const myRole = ctx.session.user.role;
-      const myId = ctx.session.user.id;
+      await requireTargetUser(
+        ctx.db,
+        ctx.session.user.role,
+        ctx.session.user.id,
+        input.userId,
+      );
 
-      if (!isAdminRole(myRole)) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "У вас нет прав на изменение ролей",
-        });
-      }
-
-      //  изменить свою роль
-      if (input.userId === myId) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Нельзя изменить свою роль",
-        });
-      }
-      //Найти целевого пользователя
-      const [targetUser] = await ctx.db
-        .select()
-        .from(users)
-        .where(eq(users.id, input.userId));
-
-      if (!targetUser) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Пользователь не найден",
-        });
-      }
-
-      //СРАВНЕНИЕ РОЛИ
-      const myLevel = getRoleInfo(myRole).level;
-      const targetLevel = getRoleInfo(targetUser.role).level;
-      if (myLevel <= targetLevel) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message:
-            "Нельзя изменить роль пользователя с таким же или более высоким уровнем",
-        });
-      }
       const newLevel = getRoleInfo(input.role).level;
-      if (newLevel >= myLevel) {
+      if (newLevel >= getRoleInfo(ctx.session.user.role).level) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Нельзя назначить роль выше вашей",
         });
       }
+
       const [updatedUser] = await ctx.db
         .update(users)
         .set({ role: input.role })
@@ -206,47 +216,14 @@ export const userRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const myRole = ctx.session.user.role;
-      const myId = ctx.session.user.id;
-      //СРАВНЕНИЕ РОЛИ
-      if (!isAdminRole(myRole)) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "У вас нет прав - изменить данные пользователя!",
-        });
-      }
+      await requireTargetUser(
+        ctx.db,
+        ctx.session.user.role,
+        ctx.session.user.id,
+        input.userId,
+      );
 
-      if (input.userId === myId) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Вы не можете изменять свои данные",
-        });
-      }
-      //Сравнение пользователя
-
-      const [targetUser] = await ctx.db
-        .select()
-        .from(users)
-        .where(eq(users.id, input.userId));
-
-      if (!targetUser) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Пользователь не найден",
-        });
-      }
-      const myLevel = getRoleInfo(myRole).level;
-      const targetLevel = getRoleInfo(targetUser.role).level;
-      //сравнение ролей
-      if (myLevel <= targetLevel) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message:
-            "Нельзя изменить роль пользователя с таким же или более высоким уровнем",
-        });
-      }
-      //Обновление полей
-      const [updateUser] = await ctx.db
+      const [updatedUser] = await ctx.db
         .update(users)
         .set({
           firstName: input.firstName ?? undefined,
@@ -257,6 +234,49 @@ export const userRouter = createTRPCRouter({
         })
         .where(eq(users.id, input.userId))
         .returning();
-      return updateUser;
+      return updatedUser;
+    }),
+
+  // 6. Забанить пользователя на N дней
+  banUser: protectedProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        days: z.number().int().min(1).max(3650),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await requireTargetUser(
+        ctx.db,
+        ctx.session.user.role,
+        ctx.session.user.id,
+        input.userId,
+      );
+
+      const [updated] = await ctx.db
+        .update(users)
+        .set({ bannedUntil: new Date(Date.now() + input.days * 86_400_000) })
+        .where(eq(users.id, input.userId))
+        .returning();
+      return updated;
+    }),
+
+  // 7. Разбанить пользователя
+  unbanUser: protectedProcedure
+    .input(z.object({ userId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      await requireTargetUser(
+        ctx.db,
+        ctx.session.user.role,
+        ctx.session.user.id,
+        input.userId,
+      );
+
+      const [updated] = await ctx.db
+        .update(users)
+        .set({ bannedUntil: null })
+        .where(eq(users.id, input.userId))
+        .returning();
+      return updated;
     }),
 });

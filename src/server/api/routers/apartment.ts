@@ -48,7 +48,7 @@ const selectApartmentLight = (db: Database) =>
         rooms: apartments.rooms,
         metro: apartments.metro,
         currency: apartments.currency,
-        statusObject: apartments.statusObject,
+        status: apartments.status,
         createdAt: apartments.createdAt,
         updatedAt: apartments.updatedAt,
       },
@@ -168,7 +168,7 @@ export const apartmentRouter = createTRPCRouter({
           amenities: input.amenities ?? [],
           parking: input.parking ?? "",
           images: input.images ?? [],
-          statusObject: true,
+          status: "active",
         })
         .returning();
 

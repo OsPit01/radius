@@ -40,12 +40,18 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
     onSuccess: () => {
       void utils.user.getAll.invalidate();
     },
+    onError: (error) => {
+      alert(error.message);
+    },
   });
 
   const updateUser = api.user.adminUpdateUser.useMutation({
     onSuccess: () => {
       void utils.user.getAll.invalidate();
       setEditOpen(false);
+    },
+    onError: (error) => {
+      alert(error.message);
     },
   });
 
@@ -113,16 +119,18 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
           </button>
         </div>
 
-        {/* Кнопки: Забанить + Редактировать */}
-        <button className="mt-2 cursor-pointer rounded-[30px] border border-[#e5e5e5] px-5 py-2 text-sm font-medium text-[#666] transition-colors hover:border-red-400 hover:text-red-500">
-          Забанить
-        </button>
-        <button
-          onClick={() => setEditOpen(true)}
-          className="mt-2 cursor-pointer rounded-[30px] border border-[#e5e5e5] px-5 py-2 text-sm font-medium text-[#666] transition-colors hover:border-red-400 hover:text-red-500"
-        >
-          Редактировать
-        </button>
+        {/* Кнопки: Редактировать + Забанить */}
+        <div className="mt-2 flex gap-2">
+          <button
+            onClick={() => setEditOpen(true)}
+            className="flex-1 cursor-pointer rounded-[30px] border border-[#e5e5e5] px-5 py-2 text-sm font-medium text-[#666] transition-colors hover:border-[#b552c7] hover:text-[#b552c7]"
+          >
+            Редактировать
+          </button>
+          <button className="flex-1 cursor-pointer rounded-[30px] border border-[#e5e5e5] px-5 py-2 text-sm font-medium text-[#666] transition-colors hover:border-red-400 hover:text-red-500">
+            Забанить
+          </button>
+        </div>
       </div>
 
       {/* Модалка редактирования */}

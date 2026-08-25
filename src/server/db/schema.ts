@@ -35,7 +35,7 @@ export const apartments = createTable(
     parking: d.varchar({ length: 50 }).default(""),
     images: d.text("images").array().default([]),
     createdById: d.varchar({ length: 255 }).references(() => users.id),
-    statusObject: d.boolean().default(false),
+    status: d.varchar({ length: 20 }).notNull().default("active"),
 
     createdAt: d
       .timestamp({ withTimezone: true })
@@ -68,11 +68,13 @@ export const users = createTable("user", (d) => ({
     })
     .$defaultFn(() => /* @__PURE__ */ new Date()),
   image: d.text(),
-  role: d.varchar({ length: 50 }).notNull().default("users"),
+  role: d.varchar({ length: 50 }).notNull().default("user"),
   // ===== НОВЫЕ ПОЛЯ =====
   totalBookings: d.integer().notNull().default(0),
   totalFavorites: d.integer().notNull().default(0),
   totalApartments: d.integer().notNull().default(0),
+  // null = не забанен, дата = забанен до этого момента
+  bannedUntil: d.timestamp({ withTimezone: true }),
 }));
 // ======== User ============= //
 export const usersRelations = relations(users, ({ many }) => ({

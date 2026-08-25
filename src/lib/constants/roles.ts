@@ -43,10 +43,8 @@ export type RoleKey = keyof typeof ROLES;
 // ===== ВСЕ РОЛИ ДЛЯ ZOD =====
 export const ROLE_VALUES = Object.keys(ROLES) as [RoleKey, ...RoleKey[]];
 
-// ===== АДМИН-РОЛИ =====
+// ===== АДМИН-РОЛИ (только те, у кого есть доступ в админку) =====
 export const ADMIN_ROLES: readonly RoleKey[] = [
-  "user",
-  "lessor",
   "admin",
   "superadmin",
   "mainadmin",

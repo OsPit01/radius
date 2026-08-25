@@ -37,9 +37,15 @@ export default function Users() {
             Управление пользователями
           </h1>
           <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-md:grid-cols-1">
-            {users?.map((user) => (
-              <UserCard key={user.id} user={user} allowedRoles={allowedRoles} />
-            ))}
+            {users
+              ?.filter((u) => u.id !== session?.user?.id)
+              .map((user) => (
+                <UserCard
+                  key={user.id}
+                  user={user}
+                  allowedRoles={allowedRoles}
+                />
+              ))}
           </div>
         </div>
       </AuthGuard>
