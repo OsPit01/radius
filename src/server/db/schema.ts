@@ -35,8 +35,8 @@ export const apartments = createTable(
     parking: d.varchar({ length: 50 }).default(""),
     images: d.text("images").array().default([]),
     createdById: d.varchar({ length: 255 }).references(() => users.id),
-    status: d.varchar({ length: 20 }).notNull().default("active"),
-
+    status: d.varchar({ length: 20 }).notNull().default("moderation"),
+    rejectionReason: d.text(),
     createdAt: d
       .timestamp({ withTimezone: true })
       .$defaultFn(() => /* @__PURE__ */ new Date())

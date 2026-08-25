@@ -9,6 +9,8 @@ import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import type * as schema from "@/server/db/schema";
+import { APARTMENT_STATUS_VALUES } from "@/lib/constants/apartment-status";
+import { isAdminRole } from "@/lib/constants/roles";
 
 type Database = PostgresJsDatabase<typeof schema>;
 
@@ -49,6 +51,7 @@ const selectApartmentLight = (db: Database) =>
         metro: apartments.metro,
         currency: apartments.currency,
         status: apartments.status,
+        rejectionReason: apartments.rejectionReason,
         createdAt: apartments.createdAt,
         updatedAt: apartments.updatedAt,
       },
@@ -97,7 +100,9 @@ const createApartmentSchema = z.object({
 export const apartmentRouter = createTRPCRouter({
   // 1. Получить все квартиры
   getAll: publicProcedure.query(async ({ ctx }) => {
-    return await selectApartmentLight(ctx.db);
+    return await selectApartmentLight(ctx.db).where(
+      eq(apartments.status, "active"),
+    );
   }),
 
   // 2. Получить одну квартиру по ID
@@ -168,7 +173,7 @@ export const apartmentRouter = createTRPCRouter({
           amenities: input.amenities ?? [],
           parking: input.parking ?? "",
           images: input.images ?? [],
-          status: "active",
+          status: "moderation",
         })
         .returning();
 
@@ -265,4 +270,30 @@ export const apartmentRouter = createTRPCRouter({
       eq(apartments.createdById, userId),
     );
   }),
+  updateStatus: protectedProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        status: z.enum(APARTMENT_STATUS_VALUES),
+        rejectionReason: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!isAdminRole(ctx.session.user.role)) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "У вас нет прав на модерацию",
+        });
+      }
+      const [update] = await ctx.db
+        .update(apartments)
+        .set({
+          status: input.status,
+          rejectionReason: input.rejectionReason ?? null,
+        })
+        .where(eq(apartments.id, input.id))
+        .returning();
+
+      return update;
+    }),
 });
