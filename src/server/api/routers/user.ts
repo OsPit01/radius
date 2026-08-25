@@ -193,4 +193,70 @@ export const userRouter = createTRPCRouter({
 
       return updated;
     }),
+  //ЛОГИКА ДЛЯ ОБНОВЛЕНИЕ ДАННЫХ ПОЛЬЗОВАТЕЛЕЙ СО СТОРОНЫ АДМИНА
+  adminUpdateUser: protectedProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        firstName: z.string().optional(),
+        lastName: z.string().optional(),
+        patronymic: z.string().optional(),
+        email: z.string().email().optional(),
+        phone: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const myRole = ctx.session.user.role;
+      const myId = ctx.session.user.id;
+      //СРАВНЕНИЕ РОЛИ
+      if (!isAdminRole(myRole)) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "У вас нет прав - изменить данные пользователя!",
+        });
+      }
+
+      if (input.userId === myId) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Вы не можете изменять свои данные",
+        });
+      }
+      //Сравнение пользователя
+
+      const [targetUser] = await ctx.db
+        .select()
+        .from(users)
+        .where(eq(users.id, input.userId));
+
+      if (!targetUser) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Пользователь не найден",
+        });
+      }
+      const myLevel = getRoleInfo(myRole).level;
+      const targetLevel = getRoleInfo(targetUser.role).level;
+      //сравнение ролей
+      if (myLevel <= targetLevel) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message:
+            "Нельзя изменить роль пользователя с таким же или более высоким уровнем",
+        });
+      }
+      //Обновление полей
+      const [updateUser] = await ctx.db
+        .update(users)
+        .set({
+          firstName: input.firstName ?? undefined,
+          lastName: input.lastName ?? undefined,
+          patronymic: input.patronymic ?? undefined,
+          email: input.email ?? undefined,
+          phone: input.phone ?? undefined,
+        })
+        .where(eq(users.id, input.userId))
+        .returning();
+      return updateUser;
+    }),
 });
