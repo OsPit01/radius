@@ -5,7 +5,6 @@ import { api } from "@/trpc/react";
 import Image from "next/image";
 import { getRoleInfo, isAdminRole } from "@/lib/constants/roles";
 import Link from "next/link";
-import { ClientSearchWrapper } from "@/app/_components/ClientSearchWrapper";
 import { ClientHeader } from "../_components/layout/ClientHeader";
 type UserStats = {
   totalApartments: number;

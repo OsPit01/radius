@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { ClientHeader } from "./ClientHeader";
+import { LoadingSpinner } from "@/app/_components/ui/LoadingSpinner";
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { status } = useSession();
@@ -11,7 +12,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     return (
       <>
         <ClientHeader />
-        <div className="p-[60px_20px] text-center text-lg">Загрузка...</div>
+        <LoadingSpinner label="Загрузка..." />
       </>
     );
   }

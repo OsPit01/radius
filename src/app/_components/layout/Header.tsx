@@ -62,15 +62,15 @@ export function Header() {
           )}
 
           <button className="cursor-pointer rounded-lg p-2 text-[1.1rem] text-[#666] transition-all duration-200 hover:bg-[#f5f5f5] hover:text-[#222]">
-            ₽
-          </button>
-          <button className="cursor-pointer rounded-lg p-2 text-[1.1rem] text-[#666] transition-all duration-200 hover:bg-[#f5f5f5] hover:text-[#222]">
             РУ
           </button>
           {session?.user && (
-            <button className="cursor-pointer rounded-lg p-2 text-[1.1rem] text-[#666] transition-all duration-200 hover:bg-[#f5f5f5] hover:text-[#222]">
+            <Link
+              href="/profile/favorites"
+              className="cursor-pointer rounded-lg p-2 text-[1.1rem] no-underline transition-all duration-200 hover:bg-[#f5f5f5]"
+            >
               ❤️
-            </button>
+            </Link>
           )}
         </div>
 
@@ -118,7 +118,7 @@ export function Header() {
                 Выйти
               </button>
             )}
-            <span className="text-sm text-[#666]">₽ · РУ</span>
+            <span className="text-sm text-[#666]">РУ</span>
           </div>
         </div>
       )}

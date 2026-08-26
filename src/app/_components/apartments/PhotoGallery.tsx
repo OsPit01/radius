@@ -25,7 +25,13 @@ function GalleryImage({ src, alt }: { src: string; alt: string }) {
   );
 }
 
-export function PhotoGallery({ photos }: { photos: string[] }) {
+export function PhotoGallery({
+  photos,
+  title,
+}: {
+  photos: string[];
+  title: string;
+}) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const swiperRef = useRef<SwiperType | null>(null);
@@ -53,7 +59,7 @@ export function PhotoGallery({ photos }: { photos: string[] }) {
                 className="group relative h-full w-full cursor-zoom-in"
                 onClick={() => openLightbox(i)}
               >
-                <GalleryImage src={src} alt={`фото ${i + 1}`} />
+                <GalleryImage src={src} alt={`${title} — фото ${i + 1}`} />
                 <div className="pointer-events-none absolute right-3 bottom-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100">
                   <FiMaximize2 size={18} />
                 </div>

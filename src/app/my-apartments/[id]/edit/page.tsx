@@ -10,6 +10,7 @@ import { EDIT_INPUT_CLASS, toggleAmenity } from "@/lib/utils";
 import { useApartmentForm } from "./hooks/useApartmentForm";
 import { ClientHeader } from "@/app/_components/layout/ClientHeader";
 import { api } from "@/trpc/react";
+import { LoadingSpinner } from "@/app/_components/ui/LoadingSpinner";
 
 function readFilesAsDataURL(files: FileList): Promise<string[]> {
   return Promise.all(
@@ -114,7 +115,7 @@ export default function EditApartmentPage() {
   if (isLoadingData) {
     return (
       <AuthGuard>
-        <div className="mx-auto max-w-[900px] px-5 py-10">Загрузка...</div>
+        <LoadingSpinner label="Загрузка..." />
       </AuthGuard>
     );
   }

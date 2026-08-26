@@ -28,9 +28,7 @@ export function useMyApartments() {
   });
 
   const handleDelete = (id: number) => {
-    if (window.confirm("Удалить объявление?")) {
-      deleteApartment.mutate({ id });
-    }
+    deleteApartment.mutate({ id });
   };
 
   return {

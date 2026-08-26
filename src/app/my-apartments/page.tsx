@@ -1,19 +1,28 @@
 "use client";
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { AuthGuard } from "@/app/_components/layout/AuthGuard";
 import { useMyApartments } from "./[id]/edit/hooks/useApartments";
 import { ClientHeader } from "@/app/_components/layout/ClientHeader";
+import { LoadingSpinner } from "@/app/_components/ui/LoadingSpinner";
+import { Modal } from "@/app/_components/ui/Modal";
 export default function MyApartmentsPage() {
   const { myApartments, isLoading, error, count, handleDelete, isDeleting } =
     useMyApartments();
 
+  const [deleteTarget, setDeleteTarget] = useState<{
+    id: number;
+    title: string;
+  } | null>(null);
+
   // ===== ЗАГРУЗКА =====
   if (isLoading) {
     return (
-      <AuthGuard>
-        <div className="p-[60px_20px] text-center text-lg">Загрузка...</div>
-      </AuthGuard>
+      <>
+        <ClientHeader />
+        <LoadingSpinner label="Загрузка..." />
+      </>
     );
   }
 
@@ -83,7 +92,12 @@ export default function MyApartmentsPage() {
                         Редактировать
                       </Link>
                       <button
-                        onClick={() => handleDelete(item.apartment.id)}
+                        onClick={() =>
+                          setDeleteTarget({
+                            id: item.apartment.id,
+                            title: item.apartment.title,
+                          })
+                        }
                         disabled={isDeleting}
                         className="cursor-pointer rounded-[30px] border-none bg-[#ef4444] px-6 py-2.5 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#dc2626] disabled:cursor-not-allowed disabled:opacity-50 max-[480px]:w-full max-[480px]:text-center"
                       >
@@ -109,6 +123,36 @@ export default function MyApartmentsPage() {
           )}
         </div>
       </AuthGuard>
+
+      <Modal
+        open={deleteTarget !== null}
+        onClose={() => setDeleteTarget(null)}
+        title="Удалить объект"
+      >
+        <p className="text-base text-[#1a1a2e]">
+          Вы уверены, что хотите удалить «{deleteTarget?.title}»?
+        </p>
+        <div className="mt-6 flex justify-center gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              if (deleteTarget) handleDelete(deleteTarget.id);
+              setDeleteTarget(null);
+            }}
+            disabled={isDeleting}
+            className="cursor-pointer rounded-[30px] bg-[#ef4444] px-6 py-2.5 text-base font-semibold text-white transition-colors hover:bg-[#dc2626] disabled:opacity-50"
+          >
+            {isDeleting ? "Удаление..." : "Да, удалить"}
+          </button>
+          <button
+            type="button"
+            onClick={() => setDeleteTarget(null)}
+            className="cursor-pointer rounded-[30px] border border-[#ddd] px-6 py-2.5 text-base font-semibold text-[#1a1a2e] transition-colors hover:bg-gray-100"
+          >
+            Отмена
+          </button>
+        </div>
+      </Modal>
     </>
   );
 }

@@ -9,6 +9,9 @@
 @layer base {
   body {
     background-color: whitesmoke;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
 }
 

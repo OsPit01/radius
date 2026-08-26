@@ -1,7 +1,7 @@
 import "@/styles/globals.css";
 
 import { type Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Inter } from "next/font/google";
 import { SessionProvider } from "next-auth/react";
 import { TRPCReactProvider } from "@/trpc/react";
 import { Footer } from "@/app/_components/layout/Footer";
@@ -42,8 +42,8 @@ export const metadata: Metadata = {
   },
 };
 
-const geist = Geist({
-  subsets: ["latin"],
+const inter = Inter({
+  subsets: ["latin", "cyrillic"],
   variable: "--font-geist-sans",
 });
 
@@ -51,7 +51,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="ru" className={`${geist.variable}`}>
+    <html lang="ru" className={`${inter.variable}`}>
       <body className="flex min-h-screen flex-col">
         <SessionProvider>
           <TRPCReactProvider>

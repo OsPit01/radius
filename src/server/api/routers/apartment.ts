@@ -270,6 +270,17 @@ export const apartmentRouter = createTRPCRouter({
       eq(apartments.createdById, userId),
     );
   }),
+  //вернуть все объекты
+  getForModeration: protectedProcedure.query(async ({ ctx }) => {
+    if (!isAdminRole(ctx.session.user.role)) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "У вас нет прав на модерацию",
+      });
+    }
+    return await selectApartmentWithUser(ctx.db);
+  }),
+  //Обновить статус
   updateStatus: protectedProcedure
     .input(
       z.object({

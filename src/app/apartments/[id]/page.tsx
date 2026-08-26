@@ -60,7 +60,7 @@ export default async function ApartmentPage({
           {apartment.apartment.title}
         </h1>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <PhotoGallery photos={photos} />
+          <PhotoGallery photos={photos} title={apartment.apartment.title} />
 
           <div className="rounded-2xl border border-[#e0e0e0] bg-white p-6 shadow-sm">
             {/* Адрес */}
