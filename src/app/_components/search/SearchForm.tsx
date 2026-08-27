@@ -6,6 +6,7 @@ type SearchFormProps = {
   onSearchClick: () => void; // вызывается при нажатии на лупу
   onTempQueryChange: (query: string) => void; // вызывается при изменении текста
   onTempGuestsChange: (guests: number) => void;
+  onFilterClick: () => void; // открывает попап фильтров (мобилка)
   isLoading?: boolean;
 };
 
@@ -13,6 +14,7 @@ export function SearchForm({
   onSearchClick,
   onTempQueryChange,
   onTempGuestsChange,
+  onFilterClick,
 }: SearchFormProps) {
   // ===== ВРЕМЕННЫЕ СОСТОЯНИЯ (живут только внутри SearchForm) =====
   const [tempSearchQuery, setTempSearchQuery] = useState("");
@@ -23,8 +25,6 @@ export function SearchForm({
   const [childAges, setChildAges] = useState<number[]>([]);
 
   // ===== ОБНОВЛЕНИЕ ВРЕМЕННЫХ ЗНАЧЕНИЙ =====
-  // Каждый раз, когда пользователь меняет текст или гостей,
-  // мы сообщаем родительскому компоненту новые временные значения
   const updateTempQuery = (query: string) => {
     setTempSearchQuery(query);
     onTempQueryChange(query);
@@ -80,7 +80,6 @@ export function SearchForm({
   // ===== ОБРАБОТЧИК ЗАКРЫТИЯ ПОПАПА (кнопка "Готово") =====
   const handleGuestWindowClose = () => {
     setIsGuestWindowOpen(false);
-    // Когда пользователь нажал "Готово", обновляем временное количество гостей
     updateTempGuests(tempAdults, tempChildren);
   };
 
@@ -102,24 +101,64 @@ export function SearchForm({
   };
 
   return (
-    <div className="mt-[25px] flex w-full justify-center max-[480px]:mt-3 max-[480px]:px-2 max-md:mt-4 max-md:px-3">
-      <div className="flex w-[80%] rounded-[25px] border border-[#262c38] bg-white max-[480px]:rounded-xl max-md:w-full max-md:flex-col max-md:rounded-2xl">
-        {/* ===== ПОЛЕ ВВОДА ===== */}
-        <input
-          type="text"
-          className="flex-1 border-r border-[#262c38] bg-transparent px-[15px] py-[18px] font-medium text-black outline-none max-[480px]:px-3.5 max-[480px]:py-3 max-[480px]:text-sm max-md:w-full max-md:rounded-none max-md:border-r-0 max-md:border-b max-md:px-4 max-md:py-3.5 max-md:text-[15px]"
-          placeholder="Поиск по городу..."
-          value={tempSearchQuery}
-          onChange={handleSearchChange}
-        />
-
-        {/* ===== КНОПКА ГОСТЕЙ ===== */}
-        <div className="relative max-md:w-full">
+    <div className="mt-[25px] flex w-full justify-center px-3 max-md:mt-4">
+      <div className="flex w-full max-w-[900px] items-stretch overflow-hidden rounded-2xl border border-[#262c38] bg-white shadow-[0_4px_16px_rgba(0,0,0,0.06)] max-md:flex-col">
+        {/* ===== 1. ПОЛЕ ПОИСКА + ЛУПА ВНУТРИ ===== */}
+        <div className="relative flex flex-1 items-center max-md:border-b max-md:border-[#262c38]">
+          <input
+            type="text"
+            className="w-full bg-transparent py-4 pr-12 pl-5 text-[15px] font-medium text-black outline-none placeholder:text-[#999] max-md:py-3"
+            placeholder="Поиск по городу..."
+            value={tempSearchQuery}
+            onChange={handleSearchChange}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") onSearchClick();
+            }}
+          />
           <button
-            className="z-[1000] h-full cursor-pointer border-none bg-white px-[100px] py-[5px] text-sm whitespace-nowrap max-[480px]:px-3.5 max-[480px]:py-3 max-[480px]:text-[13px] max-md:w-full max-md:border-b max-md:px-4 max-md:py-3.5 max-md:text-center"
-            onClick={() => setIsGuestWindowOpen(true)}
+            type="button"
+            onClick={onSearchClick}
+            aria-label="Поиск"
+            className="absolute right-2.5 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-black text-white transition-transform duration-200 hover:scale-105 max-md:h-8 max-md:w-8 max-md:right-2"
           >
-            {tempAdults} {adultsText}, {childrenText}
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </button>
+        </div>
+
+        {/* ===== 2. КНОПКА ГОСТЕЙ (отдельная секция) ===== */}
+        <div className="relative flex items-stretch border-l border-[#262c38] max-md:border-l-0 max-md:border-b max-md:border-[#262c38]">
+          <button
+            type="button"
+            onClick={() => setIsGuestWindowOpen(true)}
+            className="flex cursor-pointer items-center gap-2 border-none bg-white px-5 py-4 text-sm font-medium whitespace-nowrap text-black transition-colors duration-200 hover:bg-[#f5f5f5] max-md:w-full max-md:justify-between max-md:py-3.5"
+          >
+            <span>
+              {tempAdults} {adultsText}, {childrenText}
+            </span>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
           </button>
 
           {/* ПОПАП */}
@@ -224,25 +263,28 @@ export function SearchForm({
           )}
         </div>
 
-        {/* ===== КНОПКА ЛУПЫ - ЗАПУСКАЕТ ПОИСК ===== */}
+        {/* ===== 3. КНОПКА ФИЛЬТРА (отдельная секция) ===== */}
         <button
-          className="m-[1px] flex cursor-pointer items-center justify-center rounded-full border-none bg-black p-5 text-white max-[480px]:rounded-b-xl max-[480px]:px-3.5 max-[480px]:py-3 max-md:m-0 max-md:w-full max-md:rounded-t-none max-md:rounded-b-2xl max-md:px-4 max-md:py-3.5"
-          onClick={onSearchClick}
+          type="button"
+          onClick={onFilterClick}
+          className="flex cursor-pointer items-center gap-2 border-l border-[#262c38] bg-white px-5 py-4 text-sm font-medium whitespace-nowrap text-black transition-colors duration-200 hover:bg-[#f5f5f5] max-md:w-full max-md:justify-center max-md:border-l-0 max-md:py-3.5"
         >
           <svg
-            width="20"
-            height="20"
+            width="16"
+            height="16"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2"
+            strokeWidth="2.5"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="h-[19px] w-[19px] max-[480px]:h-[18px] max-[480px]:w-[18px] max-md:h-5 max-md:w-5"
+            className="shrink-0"
           >
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            <line x1="4" y1="6" x2="20" y2="6" />
+            <line x1="7" y1="12" x2="17" y2="12" />
+            <line x1="10" y1="18" x2="14" y2="18" />
           </svg>
+          <span>Фильтр</span>
         </button>
       </div>
     </div>

@@ -2,6 +2,7 @@
 import { useSession } from "next-auth/react";
 import { ApartmentCard } from "./ApartmentCard";
 import { api } from "@/trpc/react";
+import type { Filters } from "../search/FilterPanel";
 
 type Apartment = {
   id: number;
@@ -21,12 +22,14 @@ type ApartmentsListProps = {
   apartments: Apartment[]; // ← ЭТО ДОЛЖНО БЫТЬ!
   searchQuery?: string;
   totalGuests?: number;
+  filters?: Filters;
 };
 
 export function ApartmentsList({
   apartments,
   searchQuery = "",
   totalGuests = 1,
+  filters,
 }: ApartmentsListProps) {
   const { data: session } = useSession();
   const { data: favIds } = api.favorites.listIds.useQuery(undefined, {
@@ -40,7 +43,23 @@ export function ApartmentsList({
 
     const matchesCapacity = apartment.capacity >= totalGuests;
 
-    return matchesSearch && matchesCapacity;
+    const matchesPriceMin =
+      !filters?.priceMin || apartment.price >= Number(filters.priceMin);
+    const matchesPriceMax =
+      !filters?.priceMax || apartment.price <= Number(filters.priceMax);
+    const matchesRooms =
+      filters?.rooms == null ||
+      (filters.rooms === 4
+        ? apartment.rooms >= 4
+        : apartment.rooms === filters.rooms);
+
+    return (
+      matchesSearch &&
+      matchesCapacity &&
+      matchesPriceMin &&
+      matchesPriceMax &&
+      matchesRooms
+    );
   });
 
   const foundCount = filteredApartments.length;

@@ -74,11 +74,12 @@ export function ModerationCard({ item }: { item: ModerationItem }) {
               Одобрить
             </button>
             <button
-              onClick={() =>
-                updateStatus.mutate({
-                  id: item.apartment.id,
-                  status: "inactive",
-                })
+              onClick={
+                () => setRejectOpen(true)
+                // updateStatus.mutate({
+                //   id: item.apartment.id,
+                //   status: "inactive",
+                // })
               }
               className="flex-1 cursor-pointer rounded-[30px] border border-orange-300 px-5 py-2 text-sm font-medium text-[#666] transition-colors hover:border-orange-600 hover:text-red-900"
             >
@@ -119,6 +120,20 @@ export function ModerationCard({ item }: { item: ModerationItem }) {
               >
                 Отмена
               </button>
+            </div>
+          </Modal>
+          <Modal
+            open={rejectOpen}
+            onClose={() => setRejectOpen(false)}
+            title="Удалить объект"
+          >
+            <p className="text-black">Укажите причину</p>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <textarea
+                rows={6}
+                placeholder="Напишите причину..."
+                className="border-black-300 w-full rounded-[15px] border p-3 text-sm"
+              ></textarea>
             </div>
           </Modal>
         </div>
