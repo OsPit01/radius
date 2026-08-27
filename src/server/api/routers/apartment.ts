@@ -254,10 +254,26 @@ export const apartmentRouter = createTRPCRouter({
 
       return updated;
     }),
-
+  //удалить обьект админ/собственник
   delete: protectedProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ ctx, input }) => {
+      const [existing] = await ctx.db
+        .select()
+        .from(apartments)
+        .where(eq(apartments.id, input.id));
+      if (!existing) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Объект не найден" });
+      }
+      //юзер либо владелец, либо админ
+      const isOwner = existing.createdById === ctx.session.user.id;
+      const isAdmin = isAdminRole(ctx.session.user.role);
+      if (!isOwner && !isAdmin) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "У вас нет прав на удаление этого объекта",
+        });
+      }
       await ctx.db.delete(apartments).where(eq(apartments.id, input.id));
       return { success: true };
     }),
@@ -280,6 +296,7 @@ export const apartmentRouter = createTRPCRouter({
     }
     return await selectApartmentWithUser(ctx.db);
   }),
+
   //Обновить статус
   updateStatus: protectedProcedure
     .input(
