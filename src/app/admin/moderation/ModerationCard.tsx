@@ -40,8 +40,8 @@ export function ModerationCard({ item }: { item: ModerationItem }) {
           ></Image>
         </div>
         {/* ТЕКСТ. flex flex-col gap-2 — всё столбиком с промежутком 0.5rem.
-          p-5 — внутренний отступ со всех сторон. */}
-        <div className="flex flex-col gap-2 p-5">
+          flex-1 — растягивает блок, чтобы кнопки прижимались к низу карточки. */}
+        <div className="flex flex-1 flex-col gap-2 p-5">
           {/* заголовок */}
           <p className="text-lg font-semibold text-[#222]">
             {item.apartment.title}
@@ -60,27 +60,21 @@ export function ModerationCard({ item }: { item: ModerationItem }) {
             {statusInfo.label}
           </span>
           {/* ВЛАДЕЛЕЦ. item.user может быть null (leftJoin), поэтому "?" */}
-          <p className="text-sm text-[#666]">
+          <p className="text-sm break-words text-[#666]">
             Владелец: {item.user?.email ?? "нет данных"}
           </p>
-          {/* //две кнопки */}
-          <div className="mt-5 flex gap-2">
+          {/* //кнопки: mt-auto прижимает к низу карточки */}
+          <div className="mt-auto flex gap-2 pt-4 max-[480px]:flex-col">
             <button
               onClick={() =>
                 updateStatus.mutate({ id: item.apartment.id, status: "active" })
               }
-              className="cursor-pointer rounded-[30px] bg-green-900 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-800"
+              className="flex-1 cursor-pointer rounded-[30px] bg-green-900 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-800"
             >
               Одобрить
             </button>
             <button
-              onClick={
-                () => setRejectOpen(true)
-                // updateStatus.mutate({
-                //   id: item.apartment.id,
-                //   status: "inactive",
-                // })
-              }
+              onClick={() => setRejectOpen(true)}
               className="flex-1 cursor-pointer rounded-[30px] border border-orange-300 px-5 py-2 text-sm font-medium text-[#666] transition-colors hover:border-orange-600 hover:text-red-900"
             >
               Отклонить
@@ -125,15 +119,41 @@ export function ModerationCard({ item }: { item: ModerationItem }) {
           <Modal
             open={rejectOpen}
             onClose={() => setRejectOpen(false)}
-            title="Удалить объект"
+            title="Отклонить объект"
           >
-            <p className="text-black">Укажите причину</p>
-            <div className="flex flex-col gap-3 sm:flex-row">
+            <p className="p-2 text-black">Укажите причину</p>
+            {/* текс филд для отправки причины */}
+            <div className="flex flex-col gap-3 p-2 sm:flex-row">
               <textarea
-                rows={6}
+                rows={4}
                 placeholder="Напишите причину..."
-                className="border-black-300 w-full rounded-[15px] border p-3 text-sm"
+                className="w-full rounded-[15px] border border-gray-300 p-3 text-sm"
+                onChange={(e) => setReason(e.target.value)}
               ></textarea>
+            </div>
+            {/* кнопки отправить/отменить */}
+            <div className="ustify-center ml-2 flex gap-3 text-sm">
+              {/* кнопка отправить */}
+              <button
+                onClick={() => {
+                  updateStatus.mutate({
+                    id: item.apartment.id,
+                    status: "inactive",
+                    rejectionReason: reason,
+                  });
+                  setRejectOpen(false);
+                }}
+                className="cursor-pointer rounded-[30px] border border-gray-500 px-10 py-2.5 transition-colors hover:border-green-900"
+              >
+                Отправить
+              </button>
+              {/* кнопка Отменить */}
+              <button
+                onClick={() => setRejectOpen(false)}
+                className="cursor-pointer rounded-[30px] border border-gray-500 px-10 py-2.5 transition-colors hover:border-red-800"
+              >
+                Отмена
+              </button>
             </div>
           </Modal>
         </div>

@@ -207,6 +207,7 @@ export const apartmentRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
+
       if (!userId) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
@@ -219,8 +220,13 @@ export const apartmentRouter = createTRPCRouter({
         .select()
         .from(apartments)
         .where(eq(apartments.id, input.id));
+      if (!existing) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Объект не найден" });
+      }
+      const isOwner = existing.createdById === ctx.session.user.id;
+      const isAdmin = isAdminRole(ctx.session.user.role);
 
-      if (existing?.createdById !== userId) {
+      if (!isOwner && !isAdmin) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "У вас нет прав на редактирование этого объекта",
