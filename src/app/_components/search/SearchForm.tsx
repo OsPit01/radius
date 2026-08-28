@@ -102,9 +102,9 @@ export function SearchForm({
 
   return (
     <div className="mt-[25px] flex w-full justify-center px-3 max-md:mt-4">
-      <div className="flex w-full max-w-[900px] items-stretch overflow-hidden rounded-2xl border border-[#262c38] bg-white shadow-[0_4px_16px_rgba(0,0,0,0.06)] max-md:flex-col">
+      <div className="flex w-full max-w-[900px] items-stretch rounded-2xl border border-[#262c38] bg-white shadow-[0_4px_16px_rgba(0,0,0,0.06)] max-md:flex-col">
         {/* ===== 1. ПОЛЕ ПОИСКА + ЛУПА ВНУТРИ ===== */}
-        <div className="relative flex flex-1 items-center max-md:border-b max-md:border-[#262c38]">
+        <div className="relative flex flex-1 items-center rounded-l-2xl max-md:rounded-l-none max-md:rounded-t-2xl max-md:border-b max-md:border-[#262c38]">
           <input
             type="text"
             className="w-full bg-transparent py-4 pr-12 pl-5 text-[15px] font-medium text-black outline-none placeholder:text-[#999] max-md:py-3"
@@ -142,7 +142,7 @@ export function SearchForm({
           <button
             type="button"
             onClick={() => setIsGuestWindowOpen(true)}
-            className="flex cursor-pointer items-center gap-2 border-none bg-white px-5 py-4 text-sm font-medium whitespace-nowrap text-black transition-colors duration-200 hover:bg-[#f5f5f5] max-md:w-full max-md:justify-between max-md:py-3.5"
+            className="flex cursor-pointer items-center gap-2 border-none bg-transparent px-5 py-4 text-sm font-medium whitespace-nowrap text-black transition-colors duration-200 hover:bg-[#f5f5f5] max-md:w-full max-md:justify-between max-md:py-3.5"
           >
             <span>
               {tempAdults} {adultsText}, {childrenText}
@@ -267,7 +267,7 @@ export function SearchForm({
         <button
           type="button"
           onClick={onFilterClick}
-          className="flex cursor-pointer items-center gap-2 border-l border-[#262c38] bg-white px-5 py-4 text-sm font-medium whitespace-nowrap text-black transition-colors duration-200 hover:bg-[#f5f5f5] max-md:w-full max-md:justify-center max-md:border-l-0 max-md:py-3.5"
+          className="flex cursor-pointer items-center gap-2 rounded-r-2xl border-l border-[#262c38] bg-transparent px-5 py-4 text-sm font-medium whitespace-nowrap text-black transition-colors duration-200 hover:bg-[#f5f5f5] max-md:w-full max-md:justify-center max-md:rounded-r-none max-md:rounded-b-2xl max-md:border-l-0 max-md:py-3.5"
         >
           <svg
             width="16"
