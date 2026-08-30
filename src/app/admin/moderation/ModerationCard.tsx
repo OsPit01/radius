@@ -5,7 +5,7 @@ import { api, type RouterOutputs } from "@/trpc/react";
 import { getStatusInfo } from "@/lib/constants/apartment-status";
 import { Modal } from "@/app/_components/ui/Modal";
 import { useState } from "react";
-
+import Link from "next/link";
 type ModerationItem = RouterOutputs["apartment"]["getForModeration"][number];
 
 export function ModerationCard({ item }: { item: ModerationItem }) {
@@ -63,7 +63,7 @@ export function ModerationCard({ item }: { item: ModerationItem }) {
           <p className="text-sm break-words text-[#666]">
             Владелец: {item.user?.email ?? "нет данных"}
           </p>
-          {/* //кнопки: mt-auto прижимает к низу карточки */}
+          {/* //кнопки: ОДОБРОИТЬ/ОТКЛОНИТь  mt-auto прижимает к низу карточки  */}
           <div className="mt-auto flex gap-2 pt-4 max-[480px]:flex-col">
             <button
               onClick={() =>
@@ -79,14 +79,27 @@ export function ModerationCard({ item }: { item: ModerationItem }) {
             >
               Отклонить
             </button>
-
+          </div>
+          {/* Кнопки: УДАЛИТЬ/РЕДАКТИРОВАТЬ*/}
+          <div className="mt-auto flex gap-2 pt-4 max-[480px]:flex-col">
             <button
               onClick={() => setDeleteOpen(true)}
               className="flex-1 cursor-pointer rounded-[30px] border border-red-200 px-5 py-2 text-sm font-medium text-[#666] transition-colors hover:border-red-900 hover:text-red-900"
             >
               Удалить
             </button>
+
+            <Link
+              href={`/my-apartments/${item.apartment.id}/edit`}
+              className="flex-1 max-[480px]:w-full"
+            >
+              <button className="w-full cursor-pointer rounded-[30px] border border-blue-200 px-5 py-2 text-sm font-medium text-[#666] transition-colors hover:border-blue-900 hover:text-blue-900">
+                Редактировать
+              </button>
+            </Link>
           </div>
+
+          {/*////////////////// Часть Modal //////////////////////*/}
           <Modal
             open={deleteOpen}
             onClose={() => setDeleteOpen(false)}

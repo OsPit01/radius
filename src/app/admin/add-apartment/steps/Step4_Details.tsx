@@ -147,8 +147,11 @@ export function Step4_Details({
         <input
           id="metro-field"
           type="text"
+          inputMode="numeric"
           value={formData.metro || ""}
-          onChange={(e) => updateField("metro", e.target.value)}
+          onChange={(e) =>
+            updateField("metro", e.target.value.replace(/\D/g, ""))
+          }
           className={INPUT_CLASS}
           placeholder="5 минут до метро"
         />
