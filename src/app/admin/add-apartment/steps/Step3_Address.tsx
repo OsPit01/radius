@@ -1,7 +1,12 @@
 "use client";
 
 import type { StepProps } from "@/lib/utils";
-import { getInputClassName, getFormLabel, INPUT_CLASS } from "@/lib/utils";
+import {
+  getInputClassName,
+  getFormLabel,
+  INPUT_CLASS,
+  sanitizeStreet,
+} from "@/lib/utils";
 import { getTypeLabel } from "@/lib/constants";
 
 export function Step3_Address({
@@ -55,7 +60,9 @@ export function Step3_Address({
           id="street-field"
           type="text"
           value={formData.street}
-          onChange={(e) => updateField("street", e.target.value)}
+          onChange={(e) =>
+            updateField("street", sanitizeStreet(e.target.value))
+          }
           placeholder="улица"
           className={`${INPUT_CLASS} ${getInputClassName(
             formData.street,

@@ -22,7 +22,7 @@ export default function ModerationPage() {
     ? [...data].sort((a, b) => {
         const priorityA = priority[a.apartment.status] ?? 999;
         const priorityB = priority[b.apartment.status] ?? 999;
-        return priorityB - priorityA;
+        return priorityA - priorityB;
       })
     : [];
 

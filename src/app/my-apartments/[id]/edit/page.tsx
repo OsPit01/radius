@@ -6,7 +6,7 @@ import { AuthGuard } from "@/app/_components/layout/AuthGuard";
 import Image from "next/image";
 import Link from "next/link";
 import { AMENITIES, PARKING_TYPES, CURRENCIES } from "@/lib/constants";
-import { EDIT_INPUT_CLASS, toggleAmenity } from "@/lib/utils";
+import { EDIT_INPUT_CLASS, toggleAmenity, sanitizeStreet } from "@/lib/utils";
 import { useApartmentForm } from "./hooks/useApartmentForm";
 import { ClientHeader } from "@/app/_components/layout/ClientHeader";
 import { api } from "@/trpc/react";
@@ -376,7 +376,9 @@ export default function EditApartmentPage() {
                     <input
                       type="text"
                       value={formData.street}
-                      onChange={(e) => updateField("street", e.target.value)}
+                      onChange={(e) =>
+                        updateField("street", sanitizeStreet(e.target.value))
+                      }
                       required
                       className={EDIT_INPUT_CLASS}
                     />

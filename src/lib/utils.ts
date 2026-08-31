@@ -74,6 +74,13 @@ export function generateFormattedAddress(formData: FormData): string {
 }
 
 // !!!!! ДОБАВЬ ЭТУ ФУНКЦИЮ !!!!!
+// Очищает поле "Улица": оставляет только текст (буквы, пробелы, тире,
+// точки, скобки), убирая цифры и лишние символы, чтобы нельзя было
+// случайно вписать номер дома в улицу.
+export function sanitizeStreet(value: string): string {
+  return value.replace(/[^A-Za-zА-Яа-яЁё\s.\-()]/g, "");
+}
+
 export function updateFieldWithAddress(
   field: keyof FormData,
   value: string | number | string[],

@@ -74,7 +74,10 @@ const createApartmentSchema = z.object({
   type: z.string(),
   title: z.string().min(3, "Название минимум 3 символа"),
   city: z.string().min(2, "Город обязателен"),
-  street: z.string().min(2, "Улица обязательна"),
+  street: z
+    .string()
+    .min(2, "Улица обязательна")
+    .regex(/^[A-Za-zА-Яа-яЁё\s.\-()]+$/, "В названии улицы не должно быть цифр"),
   numberHome: z.string().min(1, "Номер дома обязатеелен"),
   building: z.string().nullable().optional(),
 
@@ -187,7 +190,13 @@ export const apartmentRouter = createTRPCRouter({
         id: z.number(),
         title: z.string().min(3),
         city: z.string().min(2),
-        street: z.string().min(2),
+        street: z
+          .string()
+          .min(2)
+          .regex(
+            /^[A-Za-zА-Яа-яЁё\s.\-()]+$/,
+            "В названии улицы не должно быть цифр",
+          ),
         numberHome: z.string().min(1),
         building: z.string().nullable().optional(),
         district: z.string().optional(),
