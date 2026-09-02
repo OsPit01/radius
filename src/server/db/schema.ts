@@ -27,8 +27,13 @@ export const apartments = createTable(
     image: d.text().notNull(),
     description: d.text(),
     rules: d.text(),
+    checkInTime: d.varchar({ length: 50 }),
+    checkOutTime: d.varchar({ length: 50 }),
+    reviewsCount: d.integer(),
+    rating: d.doublePrecision().default(0),
     rooms: d.integer().notNull(),
     metro: d.varchar({ length: 100 }),
+    isAvailable: d.boolean().default(true),
     //////////////////////////////////////////
     currency: d.varchar({ length: 10 }).notNull().default("BYN"),
     amenities: d.varchar("amenities").array().default([]),
@@ -157,3 +162,22 @@ export const favorites = createTable(
     index("favorite_user_id_idx").on(t.userId),
   ],
 );
+export const notification = createTable("notification", (d) => ({
+  id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+  userId: d
+    .varchar({ length: 255 })
+    .notNull()
+    .references(() => users.id),
+  type: d.varchar({ length: 50 }).notNull(),
+  title: d.varchar({ length: 255 }).notNull(),
+  text: d.text().notNull(),
+  apartmentId: d
+    .integer()
+    .notNull()
+    .references(() => apartments.id),
+  isRead: d.boolean().notNull().default(false),
+  createdAt: d
+    .timestamp({ withTimezone: true })
+    .$defaultFn(() => new Date())
+    .notNull(),
+}));

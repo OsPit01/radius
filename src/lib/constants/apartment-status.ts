@@ -7,10 +7,27 @@ export const APARTMENT_STATUS = {
 
 export type ApartmentStatus = keyof typeof APARTMENT_STATUS;
 
-export const APARTMENT_STATUS_VALUES = Object.keys(
-  APARTMENT_STATUS,
-) as [ApartmentStatus, ...ApartmentStatus[]];
+export const APARTMENT_STATUS_VALUES = Object.keys(APARTMENT_STATUS) as [
+  ApartmentStatus,
+  ...ApartmentStatus[],
+];
 
 export function getStatusInfo(status: string) {
   return APARTMENT_STATUS[status as ApartmentStatus] ?? APARTMENT_STATUS.active;
+}
+
+export function buildStatusNotificationText(
+  status: ApartmentStatus,
+  title: string,
+  reason?: string,
+): string {
+  if (status === "active") {
+    return `Ваш объект ${title} Прошел модерацию - Поздравляем!`;
+  }
+  if (status === "inactive") {
+    return reason
+      ? `Ваш объект ${title} отклонён. Причина: ${reason}  `
+      : `Ваш объект «${title}» отклонён`;
+  }
+  return "Ваш Объект на модерации";
 }

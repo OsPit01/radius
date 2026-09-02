@@ -4,12 +4,15 @@ import {
   protectedProcedure,
   publicProcedure,
 } from "@/server/api/trpc";
-import { apartments, users } from "@/server/db/schema";
+import { apartments, users, notification } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import type * as schema from "@/server/db/schema";
-import { APARTMENT_STATUS_VALUES } from "@/lib/constants/apartment-status";
+import {
+  APARTMENT_STATUS_VALUES,
+  buildStatusNotificationText,
+} from "@/lib/constants/apartment-status";
 import { isAdminRole } from "@/lib/constants/roles";
 
 type Database = PostgresJsDatabase<typeof schema>;
@@ -77,7 +80,10 @@ const createApartmentSchema = z.object({
   street: z
     .string()
     .min(2, "Улица обязательна")
-    .regex(/^[A-Za-zА-Яа-яЁё\s.\-()]+$/, "В названии улицы не должно быть цифр"),
+    .regex(
+      /^[A-Za-zА-Яа-яЁё\s.\-()]+$/,
+      "В названии улицы не должно быть цифр",
+    ),
   numberHome: z.string().min(1, "Номер дома обязатеелен"),
   building: z.string().nullable().optional(),
 
@@ -91,6 +97,10 @@ const createApartmentSchema = z.object({
   image: z.string(),
   description: z.string().optional(),
   rules: z.string().optional(),
+  checkInTime: z.string().optional(),
+  checkOutTime: z.string().optional(),
+  reviewsCount: z.number().optional(),
+  rating: z.number().optional(),
   rooms: z.number().min(1).max(10),
   metro: z.string().optional(),
   //////////////////////////////
@@ -169,6 +179,11 @@ export const apartmentRouter = createTRPCRouter({
           image: input.image,
           description: input.description ?? null,
           rules: input.rules ?? null,
+          checkInTime: input.checkInTime ?? null,
+          checkOutTime: input.checkOutTime ?? null,
+          reviewsCount: input.reviewsCount ?? 0,
+          rating: input.rating ?? 0,
+
           rooms: input.rooms,
           metro: input.metro ?? null,
           createdById: userId,
@@ -312,7 +327,7 @@ export const apartmentRouter = createTRPCRouter({
     return await selectApartmentWithUser(ctx.db);
   }),
 
-  //Обновить статус
+  //Админ панель* Обновить статус
   updateStatus: protectedProcedure
     .input(
       z.object({
@@ -328,6 +343,7 @@ export const apartmentRouter = createTRPCRouter({
           message: "У вас нет прав на модерацию",
         });
       }
+
       const [update] = await ctx.db
         .update(apartments)
         .set({
@@ -336,7 +352,26 @@ export const apartmentRouter = createTRPCRouter({
         })
         .where(eq(apartments.id, input.id))
         .returning();
-
+      if (!update) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Объект не найден!",
+        });
+      }
+      if (update.createdById) {
+        await ctx.db.insert(notification).values({
+          userId: update.createdById, // кому - владелец
+          type: `status_${input.status}`, // тип — что случилось
+          title: "Статус объекта изменён",
+          // заголовок для глаз
+          text: buildStatusNotificationText(
+            input.status,
+            update.title,
+            input.rejectionReason,
+          ),
+          apartmentId: input.id, // о каком объекте
+        });
+      }
       return update;
     }),
 });

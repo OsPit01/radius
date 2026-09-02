@@ -110,10 +110,10 @@ export default function MyApartmentsPage() {
                         </div>
                         {/* ИНДИКАТОР СТАТУСА + тултип при наведении */}
                         <span
-                          className="group relative ml-auto hidden h-5 w-5 cursor-help sm:inline-block"
+                          className="group relative ml-auto hidden h-4 w-4 cursor-help rounded-[35px] sm:inline-block"
                           style={{ background: s.color }}
                         >
-                          <span className="pointer-events-none absolute right-full top-1/2 mr-2 -translate-y-1/2 rounded-lg bg-[#222] px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+                          <span className="pointer-events-none absolute top-1/2 right-full mr-2 -translate-y-1/2 rounded-lg bg-[#222] px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100">
                             Статус: {s.label}
                           </span>
                         </span>
