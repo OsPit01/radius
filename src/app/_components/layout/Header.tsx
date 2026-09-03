@@ -5,13 +5,6 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { UserDropdown } from "@/app/_components/auth/UserDropdown";
 
-const navLinks = [
-  // { href: "/apartments", label: "Квартиры" },
-  //  { href: "/cottages", label: "Коттеджи" },
-  //  { href: "/bases", label: "Базы отдыха" },
-  //  { href: "/guest-houses", label: "Гостевые дома" },
-] as const;
-
 const mobileLinks = [
   { href: "/profile", label: "Личный кабинет" },
   { href: "/my-apartments", label: "Мои объекты" },

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useParams } from "next/navigation";
 import { AuthGuard } from "@/app/_components/layout/AuthGuard";
 import Image from "next/image";
@@ -46,8 +46,8 @@ export default function EditApartmentPage() {
 
   const uploadImage = api.upload.image.useMutation();
 
-  const images = formData.images ?? [];
-  const mainImage = formData.image ?? "";
+  const images = useMemo(() => formData.images ?? [], [formData.images]);
+  const mainImage = useMemo(() => formData.image ?? "", [formData.image]);
 
   const addImages = useCallback(
     async (files: FileList | null) => {

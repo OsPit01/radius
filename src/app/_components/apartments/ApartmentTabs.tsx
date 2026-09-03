@@ -88,7 +88,7 @@ export function ApartmentTabs({
 
         {activeTab === 2 && (
           <div className="mx-auto max-w-2xl rounded-2xl border border-[#eee5f4] bg-[#faf7fc] p-6">
-            {(checkInTime || checkOutTime) && (
+            {(checkInTime ?? checkOutTime) && (
               <div className="mb-6 rounded-2xl border border-[#eee5f4] bg-white p-4 shadow-sm">
                 <p className="mb-4 flex items-center gap-2 text-sm font-semibold text-[#6b21a8]">
                   <span className="text-base">⏰</span>
@@ -99,14 +99,14 @@ export function ApartmentTabs({
                     <span className="text-base">🕒</span>
                     <span>Заселение после</span>
                     <span className="ml-auto rounded-lg bg-[#6b21a8] px-2.5 py-1 text-sm font-semibold text-white">
-                      {checkInTime || "14:00"}
+                      {checkInTime ?? "14:00"}
                     </span>
                   </div>
                   <div className="flex items-center gap-2.5 rounded-xl bg-[#faf7fc] px-3.5 py-3 text-sm text-[#333]">
                     <span className="text-base">🕒</span>
                     <span>Выезд до</span>
                     <span className="ml-auto rounded-lg bg-[#6b21a8] px-2.5 py-1 text-sm font-semibold text-white">
-                      {checkOutTime || "12:00"}
+                      {checkOutTime ?? "12:00"}
                     </span>
                   </div>
                 </div>

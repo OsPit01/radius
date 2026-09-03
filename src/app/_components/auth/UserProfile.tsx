@@ -1,6 +1,7 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
+import Image from "next/image";
 
 export function UserProfile() {
   // Добавь try-catch или проверку на существование хука
@@ -21,9 +22,11 @@ export function UserProfile() {
     <div className="rounded-lg border border-[#e0e0e0] bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.1)]">
       <div className="flex flex-wrap items-center gap-4">
         {user.image && (
-          <img
+          <Image
             src={user.image}
             alt={user.name ?? "Аватар"}
+            width={80}
+            height={80}
             className="h-20 w-20 rounded-full object-cover"
           />
         )}
