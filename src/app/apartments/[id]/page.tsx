@@ -51,6 +51,15 @@ export default async function ApartmentPage({
     ? apartment.apartment.images
     : [apartment.apartment.image];
 
+  const a = apartment.apartment;
+  const sleepParts = [
+    a.beds ? `${a.beds} двусп. кровать` : "",
+    a.singleBeds ? `${a.singleBeds} односп. кровать` : "",
+    a.doubleSofas ? `${a.doubleSofas} двусп. диван` : "",
+    a.singleSofas ? `${a.singleSofas} односп. диван` : "",
+  ].filter(Boolean);
+  const sleepText = sleepParts.join(", ");
+
   return (
     <>
       <ClientHeader />
@@ -62,46 +71,71 @@ export default async function ApartmentPage({
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <PhotoGallery photos={photos} title={apartment.apartment.title} />
 
-          <div className="rounded-2xl border border-[#e0e0e0] bg-white p-6 shadow-sm">
-            {/* Адрес */}
-            <p className="text-base text-[#222]">
-              г. {apartment.apartment.city}, ул. {apartment.apartment.street},{" "}
-              {apartment.apartment.numberHome}
-              {apartment.apartment.building
-                ? `, к. ${apartment.apartment.building}`
-                : ""}
-            </p>
+          <div className="flex flex-col rounded-2xl border border-[#e0e0e0] bg-white p-6 shadow-sm">
+            {/* Адрес + метро (одной строкой с иконками) */}
+            <div className="flex flex-wrap items-start gap-x-2 gap-y-1">
+              <span className="text-gray-400">📍</span>
+              <p className="flex-1 text-base text-[#222]">
+                г. {apartment.apartment.city}, ул. {apartment.apartment.street},{" "}
+                {apartment.apartment.numberHome}
+                {apartment.apartment.building
+                  ? `, к. ${apartment.apartment.building}`
+                  : ""}
+              </p>
+            </div>
 
-            {/* Метро */}
-            <p className="mt-3 text-sm text-[#888]">
-              {apartment.apartment.metro
-                ? `${apartment.apartment.metro} минут до метро`
-                : "метро нет"}
-            </p>
+            <div className="mt-2 flex flex-wrap items-center gap-x-2">
+              <span className="text-gray-400">🚇</span>
+              <p className="text-sm text-[#888]">
+                {apartment.apartment.metro
+                  ? `${apartment.apartment.metro} минут до метро`
+                  : "Метро нет в шаговой доступности"}
+              </p>
+            </div>
+            {sleepText && (
+              <div className="mt-2 flex flex-wrap items-center gap-x-2">
+                <span className="text-gray-400">🛏️</span>
+                <p className="text-sm text-[#888]">{sleepText}</p>
+              </div>
+            )}
 
             {/* Цена */}
-            <div className="mt-6 inline-block rounded-xl bg-gray-100 px-5 py-2">
-              <span className="text-2xl font-bold text-[#00000]">
-                {apartment.apartment.price}{" "}
+            <div className="mt-6 flex items-baseline gap-1 rounded-xl bg-gradient-to-r from-[#f6eefe] to-[#fdf6ff] px-5 py-3">
+              <span className="text-3xl font-bold text-[#7e22ce]">
+                {apartment.apartment.price}
+              </span>
+              <span className="text-lg font-medium text-[#7e22ce]">
                 {apartment.apartment.currency ?? "BYN"}
               </span>
-              <span className="text-sm text-[#00000]"> / сутки</span>
+              <span className="text-sm text-[#888]">/ сутки</span>
             </div>
 
             {/* Арендодатель */}
             {apartment.user && (
-              <div className="mt-4 border-t border-[#e0e0e0] pt-4">
-                <p className="text-sm text-[#888]">Арендодатель:</p>
-                <p className="text-base font-medium text-[#222]">
-                  {apartment.user.firstName
-                    ? `${apartment.user.firstName} `
-                    : (apartment.user.name ?? "Владелец")}
-                </p>
-                <p className="text-sm text-[#888]">Номер телефона:</p>
+              <div className="mt-auto border-t border-[#eee5f4] pt-4">
+                <div className="mt-5 flex items-center gap-3">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#7e22ce] text-lg text-white">
+                    {(apartment.user.firstName?.[0] ??
+                      apartment.user.name?.[0] ??
+                      "В").toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-base font-medium text-[#222]">
+                      {apartment.user.firstName
+                        ? `${apartment.user.firstName} `
+                        : (apartment.user.name ?? "Владелец")}
+                    </p>
+                    <p className="text-sm text-[#7e22ce]">Арендодатель</p>
+                  </div>
+                </div>
                 {apartment.user.phone && (
-                  <p className="text-base text-[#222]">
+                  <a
+                    href={`tel:${apartment.user.phone}`}
+                    className="mt-3 flex items-center gap-2 rounded-xl bg-[#7e22ce] px-4 py-3 text-center text-sm font-medium text-white transition-colors hover:bg-[#6b21a8]"
+                  >
+                    <span>📞</span>
                     {formatPhoneForDisplay(apartment.user.phone)}
-                  </p>
+                  </a>
                 )}
               </div>
             )}

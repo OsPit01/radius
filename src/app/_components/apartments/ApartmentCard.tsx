@@ -17,6 +17,10 @@ type Apartment = {
   image: string;
   description: string | null;
   rooms: number;
+  beds: number;
+  singleBeds: number;
+  doubleSofas: number;
+  singleSofas: number;
   metro: string | null;
 };
 
@@ -124,6 +128,28 @@ export function ApartmentCard({
           <span className="rounded-[15px] border border-[#aca9a9] bg-[#efecf3] px-2.5 py-1 text-sm font-normal">
             до {apartment.capacity} {getCapacityText(apartment.capacity)}
           </span>
+        </div>
+        <div className="flex flex-wrap gap-2 p-2.5 font-light">
+          {apartment.beds > 0 && (
+            <span className="rounded-[15px] border border-[#aca9a9] bg-[#efecf3] px-2.5 py-1 text-sm font-normal">
+              Кровать: {apartment.beds}
+            </span>
+          )}
+          {apartment.singleBeds > 0 && (
+            <span className="rounded-[15px] border border-[#aca9a9] bg-[#efecf3] px-2.5 py-1 text-sm font-normal">
+              Односпальная: {apartment.singleBeds}
+            </span>
+          )}
+          {apartment.doubleSofas > 0 && (
+            <span className="rounded-[15px] border border-[#aca9a9] bg-[#efecf3] px-2.5 py-1 text-sm font-normal">
+              Дв. диван: {apartment.doubleSofas}
+            </span>
+          )}
+          {apartment.singleSofas > 0 && (
+            <span className="rounded-[15px] border border-[#aca9a9] bg-[#efecf3] px-2.5 py-1 text-sm font-normal">
+              Одн. диван: {apartment.singleSofas}
+            </span>
+          )}
         </div>
         <div className="flex flex-wrap gap-2 p-2.5 font-light">
           {apartment.metro && (

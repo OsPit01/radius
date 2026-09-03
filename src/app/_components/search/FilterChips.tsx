@@ -32,13 +32,13 @@ export function FilterChips({
       {chips.map((chip) => (
         <span
           key={chip.key}
-          className="flex shrink-0 items-center gap-2 rounded-full border border-[#b552c7] bg-[rgba(181,82,199,0.06)] px-4 py-1.5 text-sm font-medium text-[#222]"
+          className="flex shrink-0 items-center gap-2 rounded-full border border-[#7e22ce] bg-[rgba(126,34,206,0.06)] px-4 py-1.5 text-sm font-medium text-[#222]"
         >
           {chip.label}
           <button
             type="button"
             onClick={() => onRemove(chip.key)}
-            className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-full text-[#b552c7] transition-colors hover:bg-[#b552c7] hover:text-white"
+            className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-full text-[#7e22ce] transition-colors hover:bg-[#7e22ce] hover:text-white"
             aria-label={`Убрать фильтр ${chip.label}`}
           >
             ×
@@ -48,7 +48,7 @@ export function FilterChips({
       <button
         type="button"
         onClick={onClear}
-        className="shrink-0 cursor-pointer text-sm font-medium text-[#b552c7] underline-offset-2 hover:underline"
+        className="shrink-0 cursor-pointer text-sm font-medium text-[#7e22ce] underline-offset-2 hover:underline"
       >
         Сбросить
       </button>

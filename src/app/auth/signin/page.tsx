@@ -20,7 +20,7 @@ export default function SignInPage() {
   };
   return (
     <div className="mx-auto mt-20 max-w-[500px] rounded-[20px] border-2 border-black bg-white px-5 py-5 max-md:mx-4 max-md:px-4">
-      <span className="bg-gradient-to-r from-[#b552c7] to-[#1a0a2a] bg-clip-text text-[12px] font-normal tracking-[0.2em] text-transparent">
+      <span className="bg-gradient-to-r from-[#7e22ce] to-[#1a0a2a] bg-clip-text text-[12px] font-normal tracking-[0.2em] text-transparent">
         {" "}
         Radius stay
       </span>

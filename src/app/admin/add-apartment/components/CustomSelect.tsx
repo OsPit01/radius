@@ -45,7 +45,7 @@ export function CustomSelect({
     <div className={`relative w-full ${className}`} ref={dropdownRef}>
       <button
         type="button"
-        className="flex w-full cursor-pointer items-center justify-between rounded-xl border-2 border-[#2a1a3a] bg-[#1a0a2a] px-4 py-3 text-base text-white outline-none transition-all duration-300 hover:border-[#3a2a4a] focus:border-[#b552c7] focus:shadow-[0_0_0_3px_rgba(181,82,199,0.2)]"
+        className="flex w-full cursor-pointer items-center justify-between rounded-xl border-2 border-[#2a1a3a] bg-[#1a0a2a] px-4 py-3 text-base text-white outline-none transition-all duration-300 hover:border-[#3a2a4a] focus:border-[#7e22ce] focus:shadow-[0_0_0_3px_rgba(126,34,206,0.2)]"
         onClick={() => setIsOpen(!isOpen)}
       >
         <span>{selectedOption?.label ?? placeholder}</span>
@@ -63,9 +63,9 @@ export function CustomSelect({
           {options.map((option) => (
             <div
               key={option.value}
-              className={`cursor-pointer px-4 py-3 text-base text-white transition-colors duration-200 hover:bg-[rgba(181,82,199,0.2)] ${
+              className={`cursor-pointer px-4 py-3 text-base text-white transition-colors duration-200 hover:bg-[rgba(126,34,206,0.2)] ${
                 option.value === value
-                  ? "bg-[rgba(181,82,199,0.3)] text-white"
+                  ? "bg-[rgba(126,34,206,0.3)] text-white"
                   : ""
               }`}
               onClick={() => {

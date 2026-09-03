@@ -14,6 +14,12 @@ export function Step4_Details({
   // ===== ФУНКЦИЯ ДЛЯ ПРОВЕРКИ ОШИБОК =====
   const hasError = (field: keyof FormData) => errorFields.includes(field);
 
+  // ===== ОПЦИИ ДЛЯ ВЫБОРА КОЛИЧЕСТВА МЕСТ ДЛЯ СНА =====
+  const SLEEP_OPTIONS = Array.from({ length: 11 }, (_, i) => ({
+    value: String(i),
+    label: i === 0 ? "Нет" : String(i),
+  }));
+
   // ===== ФУНКЦИЯ ДЛЯ ЧЕКБОКСОВ УДОБСТВ =====
   const handleAmenityToggle = (amenityId: string, checked: boolean) => {
     updateField(
@@ -43,7 +49,7 @@ export function Step4_Details({
       )}
 
       {/* ===== 1. ЗАГОЛОВОК ===== */}
-      <div className="mt-2.5 flex flex-col gap-2">
+      <div className="flex flex-col gap-2">
         <label
           htmlFor="title-field"
           className="pt-[5px] text-sm font-semibold text-white"
@@ -60,9 +66,18 @@ export function Step4_Details({
         />
       </div>
 
-      {/* ===== 2. ЦЕНА + ВАЛЮТА ===== */}
-      <div className="grid grid-cols-2 gap-5 text-white max-[640px]:grid-cols-1">
-        <div className="mt-2.5 flex flex-col gap-2">
+      {/* ========== РАЗДЕЛИТЕЛЬ ========== */}
+      <div className="mt-7 mb-5 border-t border-[rgba(255,255,255,0.12)]" />
+
+      {/* ===== СЕКЦИЯ: ЦЕНА ===== */}
+      <div className="mb-5 flex items-center gap-2">
+        <span className="text-base">💰</span>
+        <h3 className="text-base font-semibold uppercase tracking-wide text-[#7e22ce]">
+          Цена и валюта
+        </h3>
+      </div>
+      <div className="grid grid-cols-2 gap-5 max-[640px]:grid-cols-1">
+        <div className="flex flex-col gap-2">
           <label
             htmlFor="price-field"
             className="pt-[5px] text-sm font-semibold text-white"
@@ -79,8 +94,7 @@ export function Step4_Details({
             min="30"
           />
         </div>
-
-        <div className="mt-2.5 flex flex-col gap-2">
+        <div className="flex flex-col gap-2">
           <label
             htmlFor="currency-field"
             className="pt-[5px] text-sm font-semibold text-white"
@@ -95,9 +109,18 @@ export function Step4_Details({
         </div>
       </div>
 
-      {/* ===== 3. КОМНАТЫ + ВМЕСТИМОСТЬ ===== */}
-      <div className="grid grid-cols-2 gap-5 text-white max-[640px]:grid-cols-1">
-        <div className="mt-2.5 flex flex-col gap-2">
+      {/* ========== РАЗДЕЛИТЕЛЬ ========== */}
+      <div className="mt-7 mb-5 border-t border-[rgba(255,255,255,0.12)]" />
+
+      {/* ===== СЕКЦИЯ: ВМЕСТИМОСТЬ ===== */}
+      <div className="mb-5 flex items-center gap-2">
+        <span className="text-base">🛋️</span>
+        <h3 className="text-base font-semibold uppercase tracking-wide text-[#7e22ce]">
+          Вместимость
+        </h3>
+      </div>
+      <div className="grid grid-cols-2 gap-5 max-[640px]:grid-cols-1">
+        <div className="flex flex-col gap-2">
           <label
             htmlFor="rooms-field"
             className="pt-[5px] text-sm font-semibold text-white"
@@ -115,8 +138,7 @@ export function Step4_Details({
             max="20"
           />
         </div>
-
-        <div className="mt-2.5 flex flex-col gap-2">
+        <div className="flex flex-col gap-2">
           <label
             htmlFor="capacity-field"
             className="pt-[5px] text-sm font-semibold text-white"
@@ -136,8 +158,82 @@ export function Step4_Details({
         </div>
       </div>
 
-      {/* ===== 4. МЕТРО ===== */}
-      <div className="mt-2.5 flex flex-col gap-2">
+      {/* ===== Подблок: МЕСТА ДЛЯ СНА ===== */}
+      <div className="mt-4">
+        <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-white/70">
+          Места для сна
+        </p>
+        {/* 2 селекта сверху горизонтально */}
+        <div className="grid grid-cols-2 gap-5 max-[640px]:grid-cols-1">
+          <div className="flex flex-col gap-2">
+            <label
+              htmlFor="beds-field"
+              className="text-sm font-medium text-white/80"
+            >
+              Двуспальные кровати
+            </label>
+            <CustomSelect
+              options={SLEEP_OPTIONS}
+              value={String(formData.beds ?? 0)}
+              onChange={(value) => updateField("beds", Number(value))}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <label
+              htmlFor="singlebeds-field"
+              className="text-sm font-medium text-white/80"
+            >
+              Односпальные кровати
+            </label>
+            <CustomSelect
+              options={SLEEP_OPTIONS}
+              value={String(formData.singleBeds ?? 0)}
+              onChange={(value) => updateField("singleBeds", Number(value))}
+            />
+          </div>
+        </div>
+        {/* 2 селекта снизу горизонтально */}
+        <div className="mt-5 grid grid-cols-2 gap-5 max-[640px]:grid-cols-1">
+          <div className="flex flex-col gap-2">
+            <label
+              htmlFor="doublesofas-field"
+              className="text-sm font-medium text-white/80"
+            >
+              Двуспальные диваны
+            </label>
+            <CustomSelect
+              options={SLEEP_OPTIONS}
+              value={String(formData.doubleSofas ?? 0)}
+              onChange={(value) => updateField("doubleSofas", Number(value))}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <label
+              htmlFor="singlesofas-field"
+              className="text-sm font-medium text-white/80"
+            >
+              Односпальные диваны
+            </label>
+            <CustomSelect
+              options={SLEEP_OPTIONS}
+              value={String(formData.singleSofas ?? 0)}
+              onChange={(value) => updateField("singleSofas", Number(value))}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* ========== РАЗДЕЛИТЕЛЬ ========== */}
+      <div className="mt-7 mb-5 border-t border-[rgba(255,255,255,0.12)]" />
+
+      {/* ===== СЕКЦИЯ: РАСПОЛОЖЕНИЕ ===== */}
+      <div className="mb-5 flex items-center gap-2">
+        <span className="text-base">🚇</span>
+        <h3 className="text-base font-semibold uppercase tracking-wide text-[#7e22ce]">
+          Расположение
+        </h3>
+      </div>
+      <div className="flex flex-col gap-2">
         <label
           htmlFor="metro-field"
           className="pt-[5px] text-sm font-semibold text-white"
@@ -157,16 +253,22 @@ export function Step4_Details({
         />
       </div>
 
-      {/* ===== 5. УДОБСТВА (ЧЕКБОКСЫ) ===== */}
-      <div className="mt-2.5 flex flex-col gap-2">
-        <label className="pt-[5px] text-sm font-semibold text-white">
+      {/* ========== РАЗДЕЛИТЕЛЬ ========== */}
+      <div className="mt-7 mb-5 border-t border-[rgba(255,255,255,0.12)]" />
+
+      {/* ===== СЕКЦИЯ: УДОБСТВА ===== */}
+      <div className="mb-5 flex items-center gap-2">
+        <span className="text-base">✨</span>
+        <h3 className="text-base font-semibold uppercase tracking-wide text-[#7e22ce]">
           Удобства
-        </label>
+        </h3>
+      </div>
+      <div className="flex flex-col gap-2">
         <div className="grid grid-cols-3 gap-[8px_16px] py-2 max-md:grid-cols-2 max-[480px]:grid-cols-1">
           {AMENITIES.map((amenity) => (
             <label
               key={amenity.id}
-              className="flex cursor-pointer items-center gap-2.5 py-1.5 text-sm text-white transition-colors duration-200 hover:text-[#b552c7]"
+              className="flex cursor-pointer items-center gap-2.5 py-1.5 text-sm text-white transition-colors duration-200 hover:text-[#7e22ce]"
             >
               <input
                 type="checkbox"
@@ -174,7 +276,7 @@ export function Step4_Details({
                 onChange={(e) =>
                   handleAmenityToggle(amenity.id, e.target.checked)
                 }
-                className="h-[18px] w-[18px] min-h-[18px] min-w-[18px] shrink-0 cursor-pointer accent-[#b552c7]"
+                className="h-[18px] w-[18px] min-h-[18px] min-w-[18px] shrink-0 cursor-pointer accent-[#7e22ce]"
               />
               {amenity.label}
             </label>
@@ -182,39 +284,46 @@ export function Step4_Details({
         </div>
       </div>
 
-      {/* ===== 6. ПАРКОВКА ===== */}
-      <div className="mt-2.5 flex flex-col gap-2">
-        <label className="pt-[5px] text-sm font-semibold text-white">
+      {/* ========== РАЗДЕЛИТЕЛЬ ========== */}
+      <div className="mt-7 mb-5 border-t border-[rgba(255,255,255,0.12)]" />
+
+      {/* ===== СЕКЦИЯ: ПАРКОВКА ===== */}
+      <div className="mb-5 flex items-center gap-2">
+        <span className="text-base">🚗</span>
+        <h3 className="text-base font-semibold uppercase tracking-wide text-[#7e22ce]">
           Парковка
-        </label>
-        <div className="radio-group flex flex-wrap gap-x-6 gap-y-2">
-          {PARKING_TYPES.map((type) => (
-            <label
-              key={type.id}
-              className="flex cursor-pointer items-center gap-2 py-2.5 text-sm text-white transition-colors duration-200 hover:text-[#b552c7]"
-            >
-              <input
-                type="radio"
-                name="parking"
-                value={type.id}
-                checked={formData.parking === type.id}
-                onChange={() => handleParkingChange(type.id)}
-                className="h-[18px] w-[18px] min-h-[18px] min-w-[18px] shrink-0 cursor-pointer accent-[#b552c7]"
-              />
-              {type.label}
-            </label>
-          ))}
-        </div>
+        </h3>
+      </div>
+      <div className="radio-group flex flex-wrap gap-x-6 gap-y-2">
+        {PARKING_TYPES.map((type) => (
+          <label
+            key={type.id}
+            className="flex cursor-pointer items-center gap-2 py-2.5 text-sm text-white transition-colors duration-200 hover:text-[#7e22ce]"
+          >
+            <input
+              type="radio"
+              name="parking"
+              value={type.id}
+              checked={formData.parking === type.id}
+              onChange={() => handleParkingChange(type.id)}
+              className="h-[18px] w-[18px] min-h-[18px] min-w-[18px] shrink-0 cursor-pointer accent-[#7e22ce]"
+            />
+            {type.label}
+          </label>
+        ))}
       </div>
 
-      {/* ===== 7. ОПИСАНИЕ ===== */}
-      <div className="mt-2.5 flex flex-col gap-2">
-        <label
-          htmlFor="description-field"
-          className="pt-[5px] text-sm font-semibold text-white"
-        >
+      {/* ========== РАЗДЕЛИТЕЛЬ ========== */}
+      <div className="mt-7 mb-5 border-t border-[rgba(255,255,255,0.12)]" />
+
+      {/* ===== СЕКЦИЯ: ОПИСАНИЕ ===== */}
+      <div className="mb-5 flex items-center gap-2">
+        <span className="text-base">📝</span>
+        <h3 className="text-base font-semibold uppercase tracking-wide text-[#7e22ce]">
           Описание
-        </label>
+        </h3>
+      </div>
+      <div className="flex flex-col gap-2">
         <textarea
           id="description-field"
           value={formData.description || ""}
@@ -225,14 +334,17 @@ export function Step4_Details({
         />
       </div>
 
-      {/* ===== 8. ПРАВИЛА ПРОЖИВАНИЯ ===== */}
-      <div className="mt-2.5 flex flex-col gap-2">
-        <label
-          htmlFor="rules-field"
-          className="pt-[5px] text-sm font-semibold text-white"
-        >
-          Правила проживания <span className="text-[#666]">(необязательно)</span>
-        </label>
+      {/* ========== РАЗДЕЛИТЕЛЬ ========== */}
+      <div className="mt-7 mb-5 border-t border-[rgba(255,255,255,0.12)]" />
+
+      {/* ===== СЕКЦИЯ: ПРАВИЛА ===== */}
+      <div className="mb-5 flex items-center gap-2">
+        <span className="text-base">📋</span>
+        <h3 className="text-base font-semibold uppercase tracking-wide text-[#7e22ce]">
+          Правила проживания
+        </h3>
+      </div>
+      <div className="flex flex-col gap-2">
         <textarea
           id="rules-field"
           value={formData.rules || ""}
@@ -245,7 +357,7 @@ export function Step4_Details({
 
       {/* ===== ПАНЕЛЬ С ИНФОРМАЦИЕЙ ===== */}
       <div
-        className="mt-5 p-[5px] text-[13px] text-[rgba(216,214,214,0.911)]"
+        className="mt-5 border-t border-[rgba(255,255,255,0.12)] p-[5px] pt-3 text-[13px] text-[rgba(216,214,214,0.911)]"
         aria-live="polite"
       >
         <p>{getTypeLabel(formData.type)}</p>

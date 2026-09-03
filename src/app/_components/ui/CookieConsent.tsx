@@ -28,7 +28,7 @@ export function CookieConsent() {
           пользоваться сайтом, вы соглашаетесь с{" "}
           <Link
             href="/privacy"
-            className="text-[#b552c7] underline hover:text-[#a244b2]"
+            className="text-[#7e22ce] underline hover:text-[#a244b2]"
           >
             Политикой конфиденциальности
           </Link>
@@ -37,7 +37,7 @@ export function CookieConsent() {
         <button
           type="button"
           onClick={accept}
-          className="shrink-0 cursor-pointer rounded-[30px] bg-[#b552c7] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#a244b2]"
+          className="shrink-0 cursor-pointer rounded-[30px] bg-[#7e22ce] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#a244b2]"
         >
           Принять
         </button>

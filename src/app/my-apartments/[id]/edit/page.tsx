@@ -147,7 +147,7 @@ export default function EditApartmentPage() {
                     return (
                       <div
                         key={index}
-                        className={`relative aspect-square cursor-grab overflow-hidden rounded-lg border-2 border-[#3a2a4a] bg-[#2a1a3a] transition-colors duration-200 hover:border-[#b552c7] ${
+                        className={`relative aspect-square cursor-grab overflow-hidden rounded-lg border-2 border-[#3a2a4a] bg-[#2a1a3a] transition-colors duration-200 hover:border-[#7e22ce] ${
                           isMain ? "border-[#fbbf24]" : ""
                         }`}
                         draggable={!isMain}
@@ -194,7 +194,7 @@ export default function EditApartmentPage() {
                       </div>
                     );
                   })}
-                  <label className="flex aspect-square cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-[#3a2a4a] bg-[#2a1a3a] transition-all duration-200 hover:border-[#b552c7] hover:bg-[rgba(181,82,199,0.05)]">
+                  <label className="flex aspect-square cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-[#3a2a4a] bg-[#2a1a3a] transition-all duration-200 hover:border-[#7e22ce] hover:bg-[rgba(126,34,206,0.05)]">
                     <span className="flex cursor-pointer flex-col items-center gap-1 border-none bg-transparent text-[13px] text-[#b0a0b0]">
                       {isUploading ? "⏳" : "📸"}
                       <span className="text-[28px]">
@@ -215,7 +215,12 @@ export default function EditApartmentPage() {
               {/* ИНФОРМАЦИЯ */}
               <section className="mb-10 text-[#d0c0d0]">
                 <div className="mt-[35px] mb-[15px] border-b border-[#3a2a4a] pb-2 text-xl font-semibold text-white">
-                  Информация
+                  🏠 Информация
+                </div>
+
+                {/* Подраздел: Название и цена */}
+                <div className="mb-7 mt-[30px] border-b border-[#3a2a4a] pb-2 text-lg font-semibold text-[#7e22ce]">
+                  💰 Название и цена
                 </div>
                 <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
                   <div className="mb-4 flex flex-col gap-1.5">
@@ -261,6 +266,11 @@ export default function EditApartmentPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Подраздел: Вместимость */}
+                <div className="mb-7 mt-[30px] border-b border-[#3a2a4a] pb-2 text-lg font-semibold text-[#7e22ce]">
+                  🛋️ Вместимость
+                </div>
                 <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
                   <div className="mb-4 flex flex-col gap-1.5">
                     <label className="text-sm font-medium text-white">
@@ -293,6 +303,80 @@ export default function EditApartmentPage() {
                       className={EDIT_INPUT_CLASS}
                     />
                   </div>
+                </div>
+
+                {/* Подраздел: Места для сна (2 сверху, 2 снизу) */}
+                <div className="mb-7 mt-[30px] border-b border-[#3a2a4a] pb-2 text-lg font-semibold text-[#7e22ce]">
+                  🛏️ Места для сна
+                </div>
+                <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
+                  <div className="mb-4 flex flex-col gap-1.5">
+                    <label className="text-sm font-medium text-white">
+                      Двуспальные кровати
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.beds}
+                      onChange={(e) =>
+                        updateField("beds", Number(e.target.value))
+                      }
+                      min="0"
+                      max="20"
+                      className={EDIT_INPUT_CLASS}
+                    />
+                  </div>
+                  <div className="mb-4 flex flex-col gap-1.5">
+                    <label className="text-sm font-medium text-white">
+                      Односпальные кровати
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.singleBeds}
+                      onChange={(e) =>
+                        updateField("singleBeds", Number(e.target.value))
+                      }
+                      min="0"
+                      max="20"
+                      className={EDIT_INPUT_CLASS}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
+                  <div className="mb-4 flex flex-col gap-1.5">
+                    <label className="text-sm font-medium text-white">
+                      Двуспальные диваны
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.doubleSofas}
+                      onChange={(e) =>
+                        updateField("doubleSofas", Number(e.target.value))
+                      }
+                      min="0"
+                      max="20"
+                      className={EDIT_INPUT_CLASS}
+                    />
+                  </div>
+                  <div className="mb-4 flex flex-col gap-1.5">
+                    <label className="text-sm font-medium text-white">
+                      Односпальные диваны
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.singleSofas}
+                      onChange={(e) =>
+                        updateField("singleSofas", Number(e.target.value))
+                      }
+                      min="0"
+                      max="20"
+                      className={EDIT_INPUT_CLASS}
+                    />
+                  </div>
+                </div>
+
+                {/* Подраздел: Расположение, описание, правила */}
+                <div className="mb-7 mt-[30px] border-b border-[#3a2a4a] pb-2 text-lg font-semibold text-[#7e22ce]">
+                  📍 Расположение и описание
                 </div>
                 <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
                   <div className="mb-4 flex flex-col gap-1.5">
@@ -435,7 +519,7 @@ export default function EditApartmentPage() {
                             ),
                           )
                         }
-                        className="h-[18px] min-h-[18px] w-[18px] min-w-[18px] shrink-0 cursor-pointer accent-[#b552c7]"
+                        className="h-[18px] min-h-[18px] w-[18px] min-w-[18px] shrink-0 cursor-pointer accent-[#7e22ce]"
                       />
                       {amenity.label}
                     </label>

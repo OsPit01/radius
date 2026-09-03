@@ -57,7 +57,7 @@ export function Step5_Images({
         </label>
 
         <div
-          className={`flex aspect-[4/1] w-full cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-[#2a1a3a] bg-[#1a0a2a] transition-all duration-200 hover:border-[#b552c7] hover:bg-[rgba(181,82,199,0.05)] max-[480px]:aspect-[2/1] ${
+          className={`flex aspect-[4/1] w-full cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-[#2a1a3a] bg-[#1a0a2a] transition-all duration-200 hover:border-[#7e22ce] hover:bg-[rgba(126,34,206,0.05)] max-[480px]:aspect-[2/1] ${
             isUploading ? "opacity-60" : ""
           }`}
           onClick={openFilePicker}
@@ -121,7 +121,7 @@ export function Step5_Images({
               return (
                 <div
                   key={index}
-                  className={`relative aspect-square cursor-grab rounded-xl border-2 border-[#2a1a3a] bg-[#1a0a2a] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#b552c7] hover:shadow-[0_4px_12px_rgba(181,82,199,0.3)] ${
+                  className={`relative aspect-square cursor-grab rounded-xl border-2 border-[#2a1a3a] bg-[#1a0a2a] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#7e22ce] hover:shadow-[0_4px_12px_rgba(126,34,206,0.3)] ${
                     isMain
                       ? "border-[#fbbf24] shadow-[0_0_0_2px_#fbbf24,0_4px_12px_rgba(251,191,36,0.3)]"
                       : ""

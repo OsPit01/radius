@@ -18,6 +18,10 @@ export type ApartmentFormData = {
   price: number;
   currency: string;
   rooms: number;
+  beds: number;
+  singleBeds: number;
+  doubleSofas: number;
+  singleSofas: number;
   description: string;
   rules: string;
   metro: string;
@@ -39,6 +43,10 @@ const defaultFormData: ApartmentFormData = {
   price: 0,
   currency: "BYN",
   rooms: 1,
+  beds: 0,
+  singleBeds: 0,
+  doubleSofas: 0,
+  singleSofas: 0,
   description: "",
   rules: "",
   metro: "",
@@ -87,6 +95,10 @@ export function useApartmentForm(apartmentId: string) {
         price: apt.price ?? 0,
         currency: apt.currency ?? "BYN",
         rooms: apt.rooms ?? 1,
+        beds: apt.beds ?? 0,
+        singleBeds: apt.singleBeds ?? 0,
+        doubleSofas: apt.doubleSofas ?? 0,
+        singleSofas: apt.singleSofas ?? 0,
         description: apt.description ?? "",
         rules: apt.rules ?? "",
         metro: apt.metro ?? "",
@@ -124,6 +136,10 @@ export function useApartmentForm(apartmentId: string) {
         price: Number(formData.price),
         capacity: Number(formData.capacity),
         rooms: Number(formData.rooms),
+        beds: Number(formData.beds),
+        singleBeds: Number(formData.singleBeds),
+        doubleSofas: Number(formData.doubleSofas),
+        singleSofas: Number(formData.singleSofas),
       };
 
       await updateApartment.mutateAsync({ id: Number(apartmentId), ...data });

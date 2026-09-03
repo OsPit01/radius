@@ -13,8 +13,8 @@ export function Step1_Type({ formData, updateField }: StepProps) {
         <div
           className={`cursor-pointer select-none rounded-xl border-[3px] px-6 py-4 text-base transition-all duration-200 ${
             formData.type === "apartment"
-              ? "border-[#b552c7] bg-[rgba(181,82,199,0.1)] text-white"
-              : "border-[#dadada] text-[#dadada] hover:border-[#b552c7] hover:text-white"
+              ? "border-[#7e22ce] bg-[rgba(126,34,206,0.1)] text-white"
+              : "border-[#dadada] text-[#dadada] hover:border-[#7e22ce] hover:text-white"
           }`}
           onClick={() =>
             updateField(

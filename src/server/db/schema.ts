@@ -32,6 +32,10 @@ export const apartments = createTable(
     reviewsCount: d.integer(),
     rating: d.doublePrecision().default(0),
     rooms: d.integer().notNull(),
+    beds: d.integer().notNull().default(0),
+    singleBeds: d.integer().notNull().default(0),
+    doubleSofas: d.integer().notNull().default(0),
+    singleSofas: d.integer().notNull().default(0),
     metro: d.varchar({ length: 100 }),
     isAvailable: d.boolean().default(true),
     //////////////////////////////////////////

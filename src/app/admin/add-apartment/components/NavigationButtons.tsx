@@ -18,7 +18,7 @@ export function NavigationButtons({
   isSubmitting,
   isLastStep,
 }: NavigationButtonsProps) {
-  const btnPrimary = `flex-1 cursor-pointer rounded-[30px] bg-[#b552c7] px-8 py-3 text-base font-semibold text-white transition-all duration-200 hover:bg-[#9a3fb0] disabled:cursor-not-allowed disabled:bg-[#3a2a4a] disabled:text-[#666] max-[640px]:w-full max-[640px]:text-center`;
+  const btnPrimary = `flex-1 cursor-pointer rounded-[30px] bg-[#7e22ce] px-8 py-3 text-base font-semibold text-white transition-all duration-200 hover:bg-[#9a3fb0] disabled:cursor-not-allowed disabled:bg-[#3a2a4a] disabled:text-[#666] max-[640px]:w-full max-[640px]:text-center`;
 
   return (
     <div className="mt-[30px] flex justify-between gap-4 max-[640px]:flex-col">

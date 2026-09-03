@@ -22,6 +22,10 @@ type Apartment = {
   image: string;
   description: string;
   rooms: number;
+  beds: number;
+  singleBeds: number;
+  doubleSofas: number;
+  singleSofas: number;
   metro: string;
   currency: string;
 };
@@ -59,6 +63,10 @@ export function ClientSearchWrapper() {
         image: item.apartment.image,
         description: item.apartment.description ?? "",
         rooms: item.apartment.rooms,
+        beds: item.apartment.beds ?? 0,
+        singleBeds: item.apartment.singleBeds ?? 0,
+        doubleSofas: item.apartment.doubleSofas ?? 0,
+        singleSofas: item.apartment.singleSofas ?? 0,
         metro: item.apartment.metro ?? "",
         currency: item.apartment.currency ?? "BYN",
       }));
@@ -143,7 +151,7 @@ export function ClientSearchWrapper() {
               <button
                 type="button"
                 onClick={() => setTempFilters(EMPTY_FILTERS)}
-                className="cursor-pointer text-sm font-medium text-[#b552c7]"
+                className="cursor-pointer text-sm font-medium text-[#7e22ce]"
               >
                 Сбросить
               </button>
@@ -152,7 +160,7 @@ export function ClientSearchWrapper() {
             <button
               type="button"
               onClick={handleSearch}
-              className="mt-5 w-full cursor-pointer rounded-[30px] bg-[#b552c7] px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[#9a3fb0]"
+              className="mt-5 w-full cursor-pointer rounded-[30px] bg-[#7e22ce] px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[#9a3fb0]"
             >
               Показать объекты
             </button>
@@ -187,7 +195,7 @@ export function ClientSearchWrapper() {
             handleSearch();
             setMobileFiltersOpen(false);
           }}
-          className="mt-6 w-full cursor-pointer rounded-[30px] bg-[#b552c7] px-6 py-3 text-base font-semibold text-white transition-colors duration-200 hover:bg-[#9a3fb0]"
+          className="mt-6 w-full cursor-pointer rounded-[30px] bg-[#7e22ce] px-6 py-3 text-base font-semibold text-white transition-colors duration-200 hover:bg-[#9a3fb0]"
         >
           Показать результаты
         </button>

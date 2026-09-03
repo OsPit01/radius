@@ -36,7 +36,7 @@ export function FilterPanel({
             placeholder="от"
             value={filters.priceMin}
             onChange={(e) => onChange({ ...filters, priceMin: e.target.value })}
-            className="w-full rounded-xl border border-[#e0e0e0] bg-white px-3.5 py-2.5 text-sm text-[#222] outline-none transition-colors focus:border-[#b552c7]"
+            className="w-full rounded-xl border border-[#e0e0e0] bg-white px-3.5 py-2.5 text-sm text-[#222] outline-none transition-colors focus:border-[#7e22ce]"
           />
           <span className="shrink-0 text-[#999]">—</span>
           <input
@@ -46,7 +46,7 @@ export function FilterPanel({
             placeholder="до"
             value={filters.priceMax}
             onChange={(e) => onChange({ ...filters, priceMax: e.target.value })}
-            className="w-full rounded-xl border border-[#e0e0e0] bg-white px-3.5 py-2.5 text-sm text-[#222] outline-none transition-colors focus:border-[#b552c7]"
+            className="w-full rounded-xl border border-[#e0e0e0] bg-white px-3.5 py-2.5 text-sm text-[#222] outline-none transition-colors focus:border-[#7e22ce]"
           />
         </div>
       </div>
@@ -66,8 +66,8 @@ export function FilterPanel({
                 onClick={() => onChange({ ...filters, rooms: active ? null : r })}
                 className={`min-w-[44px] cursor-pointer rounded-full border px-4 py-2 text-sm font-medium transition-all duration-200 ${
                   active
-                    ? "border-[#b552c7] bg-[#b552c7] text-white shadow-[0_4px_12px_rgba(181,82,199,0.3)]"
-                    : "border-[#e0e0e0] bg-white text-[#222] hover:border-[#b552c7]"
+                    ? "border-[#7e22ce] bg-[#7e22ce] text-white shadow-[0_4px_12px_rgba(126,34,206,0.3)]"
+                    : "border-[#e0e0e0] bg-white text-[#222] hover:border-[#7e22ce]"
                 }`}
               >
                 {r === 4 ? "4+" : r}

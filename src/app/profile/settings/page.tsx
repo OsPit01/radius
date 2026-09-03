@@ -131,7 +131,7 @@ export default function SettingsPage() {
               <div className="mb-5">
                 <label className="pr-5 text-[17px]">Имя:</label>
                 <input
-                  className="cursor-pointer border-b border-white/30 bg-transparent p-1 pl-2 text-[15px] text-white outline-none focus:border-[#b552c7]"
+                  className="cursor-pointer border-b border-white/30 bg-transparent p-1 pl-2 text-[15px] text-white outline-none focus:border-[#7e22ce]"
                   type="text"
                   value={form.firstName}
                   onChange={(e) =>
@@ -146,7 +146,7 @@ export default function SettingsPage() {
               <div className="mb-5">
                 <label className="pr-5 text-[17px]">Фамилия:</label>
                 <input
-                  className="cursor-pointer border-b border-white/30 bg-transparent p-1 pl-2 text-[15px] text-white outline-none focus:border-[#b552c7]"
+                  className="cursor-pointer border-b border-white/30 bg-transparent p-1 pl-2 text-[15px] text-white outline-none focus:border-[#7e22ce]"
                   type="text"
                   value={form.lastName}
                   onChange={(e) =>
@@ -161,7 +161,7 @@ export default function SettingsPage() {
               <div className="mb-5 text-[17px]">
                 <label className="pr-5">Отчество:</label>
                 <input
-                  className="cursor-pointer border-b border-white/30 bg-transparent p-1 pl-2 text-[15px] text-white outline-none focus:border-[#b552c7]"
+                  className="cursor-pointer border-b border-white/30 bg-transparent p-1 pl-2 text-[15px] text-white outline-none focus:border-[#7e22ce]"
                   type="text"
                   value={form.patronymic}
                   onChange={(e) =>
@@ -213,7 +213,7 @@ export default function SettingsPage() {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="cursor-pointer rounded-[30px] bg-[#b552c7] px-6 py-2.5 text-base font-semibold text-white hover:bg-[#a244b2]"
+                className="cursor-pointer rounded-[30px] bg-[#7e22ce] px-6 py-2.5 text-base font-semibold text-white hover:bg-[#a244b2]"
               >
                 Выбрать фото
               </button>

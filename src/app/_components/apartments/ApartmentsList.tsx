@@ -14,6 +14,10 @@ type Apartment = {
   image: string;
   description: string;
   rooms: number;
+  beds: number;
+  singleBeds: number;
+  doubleSofas: number;
+  singleSofas: number;
   metro: string;
   currency: string;
 };
