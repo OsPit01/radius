@@ -99,12 +99,27 @@ export default async function ApartmentPage({
               </div>
             )}
 
+            {/* Время заезда/выезда */}
+            <div className="mt-2 flex flex-wrap items-center gap-x-2">
+              <span className="text-gray-400">🕒</span>
+              <p className="text-sm text-[#888]">
+                Заселение после{" "}
+                <span className="font-medium text-[#6b21a8]">
+                  {apartment.apartment.checkInTime ?? "14:00"}
+                </span>
+                , выезд до{" "}
+                <span className="font-medium text-[#6b21a8]">
+                  {apartment.apartment.checkOutTime ?? "12:00"}
+                </span>
+              </p>
+            </div>
+
             {/* Цена */}
             <div className="mt-6 flex items-baseline gap-1 rounded-xl bg-gradient-to-r from-[#f6eefe] to-[#fdf6ff] px-5 py-3">
-              <span className="text-3xl font-bold text-[#7e22ce]">
+              <span className="text-3xl font-bold text-[#6b21a8]">
                 {apartment.apartment.price}
               </span>
-              <span className="text-lg font-medium text-[#7e22ce]">
+              <span className="text-lg font-medium text-[#6b21a8]">
                 {apartment.apartment.currency ?? "BYN"}
               </span>
               <span className="text-sm text-[#888]">/ сутки</span>
@@ -114,10 +129,12 @@ export default async function ApartmentPage({
             {apartment.user && (
               <div className="mt-auto border-t border-[#eee5f4] pt-4">
                 <div className="mt-5 flex items-center gap-3">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#7e22ce] text-lg text-white">
-                    {(apartment.user.firstName?.[0] ??
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#6b21a8] text-lg text-white">
+                    {(
+                      apartment.user.firstName?.[0] ??
                       apartment.user.name?.[0] ??
-                      "В").toUpperCase()}
+                      "В"
+                    ).toUpperCase()}
                   </div>
                   <div className="min-w-0">
                     <p className="truncate text-base font-medium text-[#222]">
@@ -125,13 +142,13 @@ export default async function ApartmentPage({
                         ? `${apartment.user.firstName} `
                         : (apartment.user.name ?? "Владелец")}
                     </p>
-                    <p className="text-sm text-[#7e22ce]">Арендодатель</p>
+                    <p className="text-sm text-[#6b21a8]">Арендодатель</p>
                   </div>
                 </div>
                 {apartment.user.phone && (
                   <a
                     href={`tel:${apartment.user.phone}`}
-                    className="mt-3 flex items-center gap-2 rounded-xl bg-[#7e22ce] px-4 py-3 text-center text-sm font-medium text-white transition-colors hover:bg-[#6b21a8]"
+                    className="mt-3 flex items-center gap-2 rounded-xl bg-[#6b21a8] px-4 py-3 text-center text-sm font-medium text-white transition-colors hover:bg-[#581c87]"
                   >
                     <span>📞</span>
                     {formatPhoneForDisplay(apartment.user.phone)}
@@ -145,6 +162,8 @@ export default async function ApartmentPage({
           description={apartment.apartment.description ?? ""}
           amenities={apartment.apartment.amenities ?? []}
           rules={apartment.apartment.rules ?? ""}
+          checkInTime={apartment.apartment.checkInTime ?? null}
+          checkOutTime={apartment.apartment.checkOutTime ?? null}
         />
       </div>
     </>

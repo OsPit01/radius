@@ -33,6 +33,8 @@ export type FormData = {
   amenities: string[];
   parking: string;
   images: string[];
+  checkInTime: string;
+  checkOutTime: string;
 };
 
 export type StepFieldValue = string | number | string[];
@@ -127,6 +129,8 @@ export function formatApartmentData(formData: FormData) {
     amenities: formData.amenities ?? [],
     parking: formData.parking ?? "",
     images: formData.images ?? [],
+    checkInTime: formData.checkInTime ?? undefined,
+    checkOutTime: formData.checkOutTime ?? undefined,
   };
 }
 
@@ -240,10 +244,10 @@ export function getFormLabel(
 // ============================================================
 
 export const INPUT_CLASS =
-  "w-full rounded-xl border-2 border-[#2a1a3a] bg-[#1a0a2a] px-4 py-3 text-base text-white outline-none transition-all duration-300 placeholder:text-[#666] focus:border-[#7e22ce] focus:shadow-[0_0_0_3px_rgba(181,82,199,0.2)]";
+  "w-full rounded-xl border-2 border-[#2a1a3a] bg-[#1a0a2a] px-4 py-3 text-base text-white outline-none transition-all duration-300 placeholder:text-[#666] focus:border-[#b552c7] focus:shadow-[0_0_0_3px_rgba(181,82,199,0.2)]";
 
 export const EDIT_INPUT_CLASS =
-  "rounded-lg border border-[#3a2a4a] bg-[#f4f0fc] px-3.5 py-2.5 text-base text-[#222] transition-colors duration-200 placeholder:text-[#999] focus:border-[#7e22ce] focus:bg-white focus:shadow-[0_0_0_3px_rgba(181,82,199,0.15)] focus:outline-none";
+  "rounded-lg border border-[#3a2a4a] bg-[#f4f0fc] px-3.5 py-2.5 text-base text-[#222] transition-colors duration-200 placeholder:text-[#999] focus:border-[#b552c7] focus:bg-white focus:shadow-[0_0_0_3px_rgba(181,82,199,0.15)] focus:outline-none";
 
 export function getInputClassName(
   value: string | number,

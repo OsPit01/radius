@@ -20,6 +20,12 @@ export function Step4_Details({
     label: i === 0 ? "Нет" : String(i),
   }));
 
+  // ===== ОПЦИИ ДЛЯ ВЫБОРА ВРЕМЕНИ ЗАЕЗДА/ВЫЕЗДА (каждый час) =====
+  const TIME_OPTIONS = Array.from({ length: 24 }, (_, i) => ({
+    value: `${String(i).padStart(2, "0")}:00`,
+    label: `${String(i).padStart(2, "0")}:00`,
+  }));
+
   // ===== ФУНКЦИЯ ДЛЯ ЧЕКБОКСОВ УДОБСТВ =====
   const handleAmenityToggle = (amenityId: string, checked: boolean) => {
     updateField(
@@ -72,7 +78,7 @@ export function Step4_Details({
       {/* ===== СЕКЦИЯ: ЦЕНА ===== */}
       <div className="mb-5 flex items-center gap-2">
         <span className="text-base">💰</span>
-        <h3 className="text-base font-semibold uppercase tracking-wide text-[#7e22ce]">
+        <h3 className="text-base font-semibold uppercase tracking-wide text-[#c4deeb]">
           Цена и валюта
         </h3>
       </div>
@@ -115,7 +121,7 @@ export function Step4_Details({
       {/* ===== СЕКЦИЯ: ВМЕСТИМОСТЬ ===== */}
       <div className="mb-5 flex items-center gap-2">
         <span className="text-base">🛋️</span>
-        <h3 className="text-base font-semibold uppercase tracking-wide text-[#7e22ce]">
+        <h3 className="text-base font-semibold uppercase tracking-wide text-[#c4deeb]">
           Вместимость
         </h3>
       </div>
@@ -229,7 +235,7 @@ export function Step4_Details({
       {/* ===== СЕКЦИЯ: РАСПОЛОЖЕНИЕ ===== */}
       <div className="mb-5 flex items-center gap-2">
         <span className="text-base">🚇</span>
-        <h3 className="text-base font-semibold uppercase tracking-wide text-[#7e22ce]">
+        <h3 className="text-base font-semibold uppercase tracking-wide text-[#c4deeb]">
           Расположение
         </h3>
       </div>
@@ -259,7 +265,7 @@ export function Step4_Details({
       {/* ===== СЕКЦИЯ: УДОБСТВА ===== */}
       <div className="mb-5 flex items-center gap-2">
         <span className="text-base">✨</span>
-        <h3 className="text-base font-semibold uppercase tracking-wide text-[#7e22ce]">
+        <h3 className="text-base font-semibold uppercase tracking-wide text-[#c4deeb]">
           Удобства
         </h3>
       </div>
@@ -268,7 +274,7 @@ export function Step4_Details({
           {AMENITIES.map((amenity) => (
             <label
               key={amenity.id}
-              className="flex cursor-pointer items-center gap-2.5 py-1.5 text-sm text-white transition-colors duration-200 hover:text-[#7e22ce]"
+              className="flex cursor-pointer items-center gap-2.5 py-1.5 text-sm text-white transition-colors duration-200 hover:text-[#6b21a8]"
             >
               <input
                 type="checkbox"
@@ -276,7 +282,7 @@ export function Step4_Details({
                 onChange={(e) =>
                   handleAmenityToggle(amenity.id, e.target.checked)
                 }
-                className="h-[18px] w-[18px] min-h-[18px] min-w-[18px] shrink-0 cursor-pointer accent-[#7e22ce]"
+                className="h-[18px] w-[18px] min-h-[18px] min-w-[18px] shrink-0 cursor-pointer accent-[#6b21a8]"
               />
               {amenity.label}
             </label>
@@ -290,7 +296,7 @@ export function Step4_Details({
       {/* ===== СЕКЦИЯ: ПАРКОВКА ===== */}
       <div className="mb-5 flex items-center gap-2">
         <span className="text-base">🚗</span>
-        <h3 className="text-base font-semibold uppercase tracking-wide text-[#7e22ce]">
+        <h3 className="text-base font-semibold uppercase tracking-wide text-[#c4deeb]">
           Парковка
         </h3>
       </div>
@@ -298,7 +304,7 @@ export function Step4_Details({
         {PARKING_TYPES.map((type) => (
           <label
             key={type.id}
-            className="flex cursor-pointer items-center gap-2 py-2.5 text-sm text-white transition-colors duration-200 hover:text-[#7e22ce]"
+            className="flex cursor-pointer items-center gap-2 py-2.5 text-sm text-white transition-colors duration-200 hover:text-[#6b21a8]"
           >
             <input
               type="radio"
@@ -306,7 +312,7 @@ export function Step4_Details({
               value={type.id}
               checked={formData.parking === type.id}
               onChange={() => handleParkingChange(type.id)}
-              className="h-[18px] w-[18px] min-h-[18px] min-w-[18px] shrink-0 cursor-pointer accent-[#7e22ce]"
+              className="h-[18px] w-[18px] min-h-[18px] min-w-[18px] shrink-0 cursor-pointer accent-[#6b21a8]"
             />
             {type.label}
           </label>
@@ -319,7 +325,7 @@ export function Step4_Details({
       {/* ===== СЕКЦИЯ: ОПИСАНИЕ ===== */}
       <div className="mb-5 flex items-center gap-2">
         <span className="text-base">📝</span>
-        <h3 className="text-base font-semibold uppercase tracking-wide text-[#7e22ce]">
+        <h3 className="text-base font-semibold uppercase tracking-wide text-[#c4deeb]">
           Описание
         </h3>
       </div>
@@ -340,7 +346,7 @@ export function Step4_Details({
       {/* ===== СЕКЦИЯ: ПРАВИЛА ===== */}
       <div className="mb-5 flex items-center gap-2">
         <span className="text-base">📋</span>
-        <h3 className="text-base font-semibold uppercase tracking-wide text-[#7e22ce]">
+        <h3 className="text-base font-semibold uppercase tracking-wide text-[#c4deeb]">
           Правила проживания
         </h3>
       </div>
@@ -353,6 +359,45 @@ export function Step4_Details({
           placeholder="Например: без вечеринок, без животных, курение запрещено, заезд после 14:00..."
           rows={4}
         />
+      </div>
+
+      {/* ========== РАЗДЕЛИТЕЛЬ ========== */}
+      <div className="mt-7 mb-5 border-t border-[rgba(255,255,255,0.12)]" />
+
+      {/* ===== СЕКЦИЯ: ВРЕМЯ ЗАЕЗДА/ВЫЕЗДА ===== */}
+      <div className="mb-5 flex items-center gap-2">
+        <span className="text-base">🕒</span>
+        <h3 className="text-base font-semibold uppercase tracking-wide text-[#c4deeb]">
+          Время заезда и выезда
+        </h3>
+      </div>
+      <div className="grid grid-cols-2 gap-5 max-[640px]:grid-cols-1">
+        <div className="flex flex-col gap-2">
+          <label
+            htmlFor="checkin-field"
+            className="text-sm font-medium text-white/80"
+          >
+            Заселение
+          </label>
+          <CustomSelect
+            options={TIME_OPTIONS}
+            value={formData.checkInTime || "14:00"}
+            onChange={(value) => updateField("checkInTime", value)}
+          />
+        </div>
+        <div className="flex flex-col gap-2">
+          <label
+            htmlFor="checkout-field"
+            className="text-sm font-medium text-white/80"
+          >
+            Выезд
+          </label>
+          <CustomSelect
+            options={TIME_OPTIONS}
+            value={formData.checkOutTime || "12:00"}
+            onChange={(value) => updateField("checkOutTime", value)}
+          />
+        </div>
       </div>
 
       {/* ===== ПАНЕЛЬ С ИНФОРМАЦИЕЙ ===== */}

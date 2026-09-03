@@ -67,14 +67,14 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
   };
 
   const inputClass =
-    "w-full rounded-lg border border-[#ddd] px-3 py-2 text-sm text-[#222] outline-none focus:border-[#7e22ce]";
+    "w-full rounded-lg border border-[#ddd] px-3 py-2 text-sm text-[#222] outline-none focus:border-[#b552c7]";
 
   return (
     <>
       <div className="flex flex-col rounded-2xl border border-[#e5e5e5] bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
         {/* Шапка: аватар + имя + email */}
         <div className="flex items-center gap-3">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#7e22ce] text-xl font-bold text-white">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#b552c7] text-xl font-bold text-white">
             {initial}
           </div>
           <div className="min-w-0">
@@ -98,7 +98,7 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
           <select
             value={selectedRole}
             onChange={(e) => setSelectedRole(e.target.value as RoleKey)}
-            className="flex-1 cursor-pointer rounded-lg border border-[#ddd] bg-white px-3 py-2 text-sm text-[#222] outline-none focus:border-[#7e22ce]"
+            className="flex-1 cursor-pointer rounded-lg border border-[#ddd] bg-white px-3 py-2 text-sm text-[#222] outline-none focus:border-[#b552c7]"
           >
             <option value="">Выбрать роль...</option>
             {allowedRoles.map((r) => (
@@ -108,7 +108,7 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
             ))}
           </select>
           <button
-            className="cursor-pointer rounded-[30px] bg-[#7e22ce] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#9a3fb0]"
+            className="cursor-pointer rounded-[30px] bg-[#b552c7] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#9a3fb0]"
             onClick={() => {
               if (!selectedRole) return;
               updateRole.mutate({ userId: user.id, role: selectedRole });
@@ -123,7 +123,7 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
         <div className="mt-2 flex gap-2">
           <button
             onClick={() => setEditOpen(true)}
-            className="flex-1 cursor-pointer rounded-[30px] border border-[#e5e5e5] px-5 py-2 text-sm font-medium text-[#666] transition-colors hover:border-[#7e22ce] hover:text-[#7e22ce]"
+            className="flex-1 cursor-pointer rounded-[30px] border border-[#e5e5e5] px-5 py-2 text-sm font-medium text-[#666] transition-colors hover:border-[#b552c7] hover:text-[#b552c7]"
           >
             Редактировать
           </button>
@@ -185,7 +185,7 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
           <button
             onClick={handleSave}
             disabled={updateUser.isPending}
-            className="mt-2 cursor-pointer rounded-[30px] bg-[#7e22ce] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#9a3fb0]"
+            className="mt-2 cursor-pointer rounded-[30px] bg-[#b552c7] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#9a3fb0]"
           >
             {updateUser.isPending ? "Сохранение..." : "Сохранить"}
           </button>

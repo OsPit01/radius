@@ -48,7 +48,7 @@ export default function MyApartmentsPage() {
             <span className="text-[28px] font-bold text-[#222] max-md:text-[22px]">
               Мои объекты
             </span>
-            <span className="rounded-[20px] bg-[#7e22ce] px-3.5 py-0.5 text-base font-semibold text-white">
+            <span className="rounded-[20px] bg-[#6b21a8] px-3.5 py-0.5 text-base font-semibold text-white">
               {count}
             </span>
           </div>
@@ -130,7 +130,7 @@ export default function MyApartmentsPage() {
               </p>
               <Link
                 href="/admin/add-apartment"
-                className="inline-block cursor-pointer rounded-[30px] border-none bg-[#7e22ce] px-8 py-3 text-base font-semibold text-white no-underline transition-colors duration-200 hover:bg-[#9a3fb0] max-[480px]:w-full max-[480px]:text-center"
+                className="inline-block cursor-pointer rounded-[30px] border-none bg-[#6b21a8] px-8 py-3 text-base font-semibold text-white no-underline transition-colors duration-200 hover:bg-[#581c87] max-[480px]:w-full max-[480px]:text-center"
               >
                 ➕ Добавить квартиру
               </Link>

@@ -51,6 +51,8 @@ export default function AddApartmentPage() {
     amenities: [],
     parking: "",
     images: [],
+    checkInTime: "14:00",
+    checkOutTime: "12:00",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);

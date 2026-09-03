@@ -12,6 +12,10 @@ import { ClientHeader } from "@/app/_components/layout/ClientHeader";
 import { api } from "@/trpc/react";
 import { LoadingSpinner } from "@/app/_components/ui/LoadingSpinner";
 
+const TIME_OPTIONS = Array.from({ length: 24 }, (_, i) =>
+  `${String(i).padStart(2, "0")}:00`,
+);
+
 function readFilesAsDataURL(files: FileList): Promise<string[]> {
   return Promise.all(
     Array.from(files).map((file) => {
@@ -147,7 +151,7 @@ export default function EditApartmentPage() {
                     return (
                       <div
                         key={index}
-                        className={`relative aspect-square cursor-grab overflow-hidden rounded-lg border-2 border-[#3a2a4a] bg-[#2a1a3a] transition-colors duration-200 hover:border-[#7e22ce] ${
+                        className={`relative aspect-square cursor-grab overflow-hidden rounded-lg border-2 border-[#3a2a4a] bg-[#2a1a3a] transition-colors duration-200 hover:border-[#6b21a8] ${
                           isMain ? "border-[#fbbf24]" : ""
                         }`}
                         draggable={!isMain}
@@ -194,7 +198,7 @@ export default function EditApartmentPage() {
                       </div>
                     );
                   })}
-                  <label className="flex aspect-square cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-[#3a2a4a] bg-[#2a1a3a] transition-all duration-200 hover:border-[#7e22ce] hover:bg-[rgba(126,34,206,0.05)]">
+                  <label className="flex aspect-square cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-[#3a2a4a] bg-[#2a1a3a] transition-all duration-200 hover:border-[#6b21a8] hover:bg-[rgba(181,82,199,0.05)]">
                     <span className="flex cursor-pointer flex-col items-center gap-1 border-none bg-transparent text-[13px] text-[#b0a0b0]">
                       {isUploading ? "⏳" : "📸"}
                       <span className="text-[28px]">
@@ -219,7 +223,7 @@ export default function EditApartmentPage() {
                 </div>
 
                 {/* Подраздел: Название и цена */}
-                <div className="mb-7 mt-[30px] border-b border-[#3a2a4a] pb-2 text-lg font-semibold text-[#7e22ce]">
+                <div className="mt-[30px] mb-7 border-b border-[#3a2a4a] pb-2 text-lg font-semibold text-[#c4deeb]">
                   💰 Название и цена
                 </div>
                 <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
@@ -268,7 +272,7 @@ export default function EditApartmentPage() {
                 </div>
 
                 {/* Подраздел: Вместимость */}
-                <div className="mb-7 mt-[30px] border-b border-[#3a2a4a] pb-2 text-lg font-semibold text-[#7e22ce]">
+                <div className="mt-[30px] mb-7 border-b border-[#3a2a4a] pb-2 text-lg font-semibold text-[#c4deeb]">
                   🛋️ Вместимость
                 </div>
                 <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
@@ -306,7 +310,7 @@ export default function EditApartmentPage() {
                 </div>
 
                 {/* Подраздел: Места для сна (2 сверху, 2 снизу) */}
-                <div className="mb-7 mt-[30px] border-b border-[#3a2a4a] pb-2 text-lg font-semibold text-[#7e22ce]">
+                <div className="mt-[30px] mb-7 border-b border-[#3a2a4a] pb-2 text-lg font-semibold text-[#c4deeb]">
                   🛏️ Места для сна
                 </div>
                 <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
@@ -374,8 +378,51 @@ export default function EditApartmentPage() {
                   </div>
                 </div>
 
+                {/* Подраздел: Время заезда и выезда */}
+                <div className="mt-[30px] mb-7 border-b border-[#3a2a4a] pb-2 text-lg font-semibold text-[#c4deeb]">
+                  🕒 Время заезда и выезда
+                </div>
+                <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
+                  <div className="mb-4 flex flex-col gap-1.5">
+                    <label className="text-sm font-medium text-white">
+                      Заселение
+                    </label>
+                    <select
+                      value={formData.checkInTime}
+                      onChange={(e) =>
+                        updateField("checkInTime", e.target.value)
+                      }
+                      className="h-[42px] cursor-pointer rounded-lg border border-[#3a2a4a] bg-[#2a1a3a] px-3 text-sm text-white outline-none"
+                    >
+                      {TIME_OPTIONS.map((t) => (
+                        <option key={t} value={t}>
+                          {t}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="mb-4 flex flex-col gap-1.5">
+                    <label className="text-sm font-medium text-white">
+                      Выезд
+                    </label>
+                    <select
+                      value={formData.checkOutTime}
+                      onChange={(e) =>
+                        updateField("checkOutTime", e.target.value)
+                      }
+                      className="h-[42px] cursor-pointer rounded-lg border border-[#3a2a4a] bg-[#2a1a3a] px-3 text-sm text-white outline-none"
+                    >
+                      {TIME_OPTIONS.map((t) => (
+                        <option key={t} value={t}>
+                          {t}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
                 {/* Подраздел: Расположение, описание, правила */}
-                <div className="mb-7 mt-[30px] border-b border-[#3a2a4a] pb-2 text-lg font-semibold text-[#7e22ce]">
+                <div className="mt-[30px] mb-7 border-b border-[#3a2a4a] pb-2 text-lg font-semibold text-[#c4deeb]">
                   📍 Расположение и описание
                 </div>
                 <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
@@ -519,7 +566,7 @@ export default function EditApartmentPage() {
                             ),
                           )
                         }
-                        className="h-[18px] min-h-[18px] w-[18px] min-w-[18px] shrink-0 cursor-pointer accent-[#7e22ce]"
+                        className="h-[18px] min-h-[18px] w-[18px] min-w-[18px] shrink-0 cursor-pointer accent-[#6b21a8]"
                       />
                       {amenity.label}
                     </label>

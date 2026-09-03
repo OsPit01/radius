@@ -2,7 +2,7 @@
 
 import type { Filters } from "./FilterPanel";
 
-export type ChipKey = "priceMin" | "priceMax" | "rooms";
+export type ChipKey = "priceMin" | "priceMax" | "rooms" | "beds" | "sofas";
 
 export function FilterChips({
   filters,
@@ -24,6 +24,20 @@ export function FilterChips({
     const label = filters.rooms === 4 ? "4+" : String(filters.rooms);
     chips.push({ key: "rooms", label: `${label} ${roomWord(filters.rooms)}` });
   }
+  if (filters.beds !== null) {
+    const label = filters.beds === 4 ? "4+" : String(filters.beds);
+    chips.push({
+      key: "beds",
+      label: `кроватей: от ${label}`,
+    });
+  }
+  if (filters.sofas !== null) {
+    const label = filters.sofas === 4 ? "4+" : String(filters.sofas);
+    chips.push({
+      key: "sofas",
+      label: `диванов: от ${label}`,
+    });
+  }
 
   if (chips.length === 0) return null;
 
@@ -32,13 +46,13 @@ export function FilterChips({
       {chips.map((chip) => (
         <span
           key={chip.key}
-          className="flex shrink-0 items-center gap-2 rounded-full border border-[#7e22ce] bg-[rgba(126,34,206,0.06)] px-4 py-1.5 text-sm font-medium text-[#222]"
+          className="flex shrink-0 items-center gap-2 rounded-full border border-[#6b21a8] bg-[rgba(107,33,168,0.06)] px-4 py-1.5 text-sm font-medium text-[#222]"
         >
           {chip.label}
           <button
             type="button"
             onClick={() => onRemove(chip.key)}
-            className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-full text-[#7e22ce] transition-colors hover:bg-[#7e22ce] hover:text-white"
+            className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-full text-[#6b21a8] transition-colors hover:bg-[#6b21a8] hover:text-white"
             aria-label={`Убрать фильтр ${chip.label}`}
           >
             ×
@@ -48,7 +62,7 @@ export function FilterChips({
       <button
         type="button"
         onClick={onClear}
-        className="shrink-0 cursor-pointer text-sm font-medium text-[#7e22ce] underline-offset-2 hover:underline"
+        className="shrink-0 cursor-pointer text-sm font-medium text-[#6b21a8] underline-offset-2 hover:underline"
       >
         Сбросить
       </button>

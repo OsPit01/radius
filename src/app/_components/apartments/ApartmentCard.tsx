@@ -111,16 +111,16 @@ export function ApartmentCard({
             BYN {apartment.price}
           </span>
         </div>
-        <div className="mt-2.5 p-2.5">
+        <div className="px-2.5 pt-3 pb-1">
           <span className="text-[18px] font-semibold break-words max-md:text-base">
             {apartment.title}
           </span>
         </div>
-        <div className="flex p-2.5 text-sm font-normal break-words">
+        <div className="flex px-2.5 pt-1 text-sm font-normal break-words">
           {apartment.city}
           {apartment.district ? `, ${apartment.district}` : ""}
         </div>
-        <div className="flex flex-wrap gap-2 p-2.5 font-light">
+        <div className="flex flex-wrap gap-1.5 px-2.5 pt-2">
           <span className="rounded-[15px] border border-[#aca9a9] bg-[#efecf3] px-2.5 py-1 text-sm font-normal">
             {" "}
             количество комнат: {apartment.rooms}
@@ -129,7 +129,7 @@ export function ApartmentCard({
             до {apartment.capacity} {getCapacityText(apartment.capacity)}
           </span>
         </div>
-        <div className="flex flex-wrap gap-2 p-2.5 font-light">
+        <div className="flex flex-wrap gap-1.5 px-2.5 pt-1.5">
           {apartment.beds > 0 && (
             <span className="rounded-[15px] border border-[#aca9a9] bg-[#efecf3] px-2.5 py-1 text-sm font-normal">
               Кровать: {apartment.beds}
@@ -151,13 +151,13 @@ export function ApartmentCard({
             </span>
           )}
         </div>
-        <div className="flex flex-wrap gap-2 p-2.5 font-light">
-          {apartment.metro && (
+        {apartment.metro && (
+          <div className="flex flex-wrap gap-1.5 px-2.5 pt-1.5 pb-2">
             <p className="rounded-[15px] border border-[#aca9a9] bg-[#efecf3] px-2.5 py-1 text-sm font-normal">
               метро: в {apartment.metro} минутах
             </p>
-          )}
-        </div>
+          </div>
+        )}
       </Link>
     </>
   );

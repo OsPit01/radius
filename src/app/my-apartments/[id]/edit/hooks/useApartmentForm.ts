@@ -29,6 +29,8 @@ export type ApartmentFormData = {
   parking: string;
   image: string;
   images: string[];
+  checkInTime: string;
+  checkOutTime: string;
 };
 
 const defaultFormData: ApartmentFormData = {
@@ -54,6 +56,8 @@ const defaultFormData: ApartmentFormData = {
   parking: "",
   image: "",
   images: [],
+  checkInTime: "14:00",
+  checkOutTime: "12:00",
 };
 
 export function useApartmentForm(apartmentId: string) {
@@ -106,6 +110,8 @@ export function useApartmentForm(apartmentId: string) {
         parking: apt.parking ?? "",
         image: apt.image ?? "",
         images: apt.images ?? [],
+        checkInTime: apt.checkInTime ?? "14:00",
+        checkOutTime: apt.checkOutTime ?? "12:00",
       });
     }
   }, [apartmentData]);

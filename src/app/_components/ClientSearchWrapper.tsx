@@ -112,9 +112,10 @@ export function ClientSearchWrapper() {
 
   // ===== УБРАТЬ ОДИН ФИЛЬТР (чип) =====
   const removeFilter = (key: ChipKey) => {
+    const isCountFilter = key === "rooms" || key === "beds" || key === "sofas";
     const next: Filters = {
       ...activeFilters,
-      [key]: key === "rooms" ? null : "",
+      [key]: isCountFilter ? null : "",
     };
     setActiveFilters(next);
     setTempFilters(next);
@@ -151,7 +152,7 @@ export function ClientSearchWrapper() {
               <button
                 type="button"
                 onClick={() => setTempFilters(EMPTY_FILTERS)}
-                className="cursor-pointer text-sm font-medium text-[#7e22ce]"
+                className="cursor-pointer text-sm font-medium text-[#6b21a8]"
               >
                 Сбросить
               </button>
@@ -160,7 +161,7 @@ export function ClientSearchWrapper() {
             <button
               type="button"
               onClick={handleSearch}
-              className="mt-5 w-full cursor-pointer rounded-[30px] bg-[#7e22ce] px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[#9a3fb0]"
+              className="mt-5 w-full cursor-pointer rounded-[30px] bg-[#6b21a8] px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[#581c87]"
             >
               Показать объекты
             </button>
@@ -195,7 +196,7 @@ export function ClientSearchWrapper() {
             handleSearch();
             setMobileFiltersOpen(false);
           }}
-          className="mt-6 w-full cursor-pointer rounded-[30px] bg-[#7e22ce] px-6 py-3 text-base font-semibold text-white transition-colors duration-200 hover:bg-[#9a3fb0]"
+          className="mt-6 w-full cursor-pointer rounded-[30px] bg-[#6b21a8] px-6 py-3 text-base font-semibold text-white transition-colors duration-200 hover:bg-[#581c87]"
         >
           Показать результаты
         </button>

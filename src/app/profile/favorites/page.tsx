@@ -21,7 +21,7 @@ export default function FavoritesPage() {
             <LoadingSpinner label="Загрузка..." />
           ) : !favorites || favorites.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
-              <FaRegHeart className="text-[64px] text-[#7e22ce]" />
+              <FaRegHeart className="text-[64px] text-[#6b21a8]" />
               <p className="mt-6 text-xl font-semibold text-[#333]">
                 У вас пока нет избранных квартир
               </p>
@@ -30,7 +30,7 @@ export default function FavoritesPage() {
               </p>
               <Link
                 href="/"
-                className="mt-6 inline-block rounded-[30px] bg-[#7e22ce] px-8 py-3 text-base font-semibold text-white no-underline transition-colors duration-200 hover:bg-[#9a3fb0]"
+                className="mt-6 inline-block rounded-[30px] bg-[#6b21a8] px-8 py-3 text-base font-semibold text-white no-underline transition-colors duration-200 hover:bg-[#581c87]"
               >
                 Смотреть квартиры
               </Link>

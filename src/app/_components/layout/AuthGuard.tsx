@@ -28,7 +28,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
             </p>
             <Link
               href="/api/auth/signin"
-              className="inline-block cursor-pointer rounded-[30px] border-none bg-[#7e22ce] px-8 py-3 text-base font-semibold text-white no-underline transition-colors duration-200 hover:bg-[#9a3fb0]"
+              className="inline-block cursor-pointer rounded-[30px] border-none bg-[#b552c7] px-8 py-3 text-base font-semibold text-white no-underline transition-colors duration-200 hover:bg-[#9a3fb0]"
             >
               Войти
             </Link>

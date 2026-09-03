@@ -89,10 +89,10 @@ export default function ProfilePage() {
                     width={50}
                     height={50}
                     unoptimized
-                    className="h-20 w-20 rounded-full object-cover shadow-[0_4px_20px_rgba(126,34,206,0.2)] max-[480px]:h-20 max-[480px]:w-20 max-md:h-[75px] max-md:w-[75px]"
+                    className="h-20 w-20 rounded-full object-cover shadow-[0_4px_20px_rgba(181,82,199,0.2)] max-[480px]:h-20 max-[480px]:w-20 max-md:h-[75px] max-md:w-[75px]"
                   />
                 ) : (
-                  <div className="flex h-20 w-20 items-center justify-center rounded-full border-[3px] border-black bg-black text-[48px] font-bold text-white shadow-[0_4px_20px_rgba(126,34,206,0.2)] max-[480px]:h-20 max-[480px]:w-20 max-[480px]:text-[32px] max-md:h-[75px] max-md:w-[75px] max-md:text-[40px]">
+                  <div className="flex h-20 w-20 items-center justify-center rounded-full border-[3px] border-black bg-black text-[48px] font-bold text-white shadow-[0_4px_20px_rgba(181,82,199,0.2)] max-[480px]:h-20 max-[480px]:w-20 max-[480px]:text-[32px] max-md:h-[75px] max-md:w-[75px] max-md:text-[40px]">
                     {displayName.charAt(0)}
                   </div>
                 )}
@@ -120,7 +120,7 @@ export default function ProfilePage() {
               ].map((stat) => (
                 <div
                   key={stat.label}
-                  className="mt-[5px] rounded-2xl bg-white p-5 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_25px_rgba(126,34,206,0.1)]"
+                  className="mt-[5px] rounded-2xl bg-white p-5 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_25px_rgba(181,82,199,0.1)]"
                 >
                   <div className="bg-[linear-gradient(135deg,black,#8b3fa0)] bg-clip-text text-xl leading-[1.2] font-extrabold text-transparent max-md:text-[28px]">
                     {stat.value}

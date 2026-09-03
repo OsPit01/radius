@@ -57,12 +57,23 @@ export function ApartmentsList({
         ? apartment.rooms >= 4
         : apartment.rooms === filters.rooms);
 
+    const totalBeds = (apartment.beds ?? 0) + (apartment.singleBeds ?? 0);
+    const matchesBeds =
+      filters?.beds == null || totalBeds >= filters.beds;
+
+    const totalSofas =
+      (apartment.doubleSofas ?? 0) + (apartment.singleSofas ?? 0);
+    const matchesSofas =
+      filters?.sofas == null || totalSofas >= filters.sofas;
+
     return (
       matchesSearch &&
       matchesCapacity &&
       matchesPriceMin &&
       matchesPriceMax &&
-      matchesRooms
+      matchesRooms &&
+      matchesBeds &&
+      matchesSofas
     );
   });
 
