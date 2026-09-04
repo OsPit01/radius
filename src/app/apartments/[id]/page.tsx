@@ -17,16 +17,17 @@ export async function generateMetadata({
 
   if (!apartment) return {};
 
-  const { title, description, city, image } = apartment.apartment;
+  const { title, description, city, image, district } = apartment.apartment;
   const metaDescription =
-    description?.slice(0, 160) ?? `${title} — посуточная аренда в г. ${city}`;
+    description?.slice(0, 160) ??
+    `${title} — посуточная аренда${district ? ` в р-не ${district}` : ""} в г. ${city}. Снять квартиру на сутки недорого.`;
 
   return {
-    title,
+    title: `${title} — снять на сутки в ${city ?? "Минске"}`,
     description: metaDescription,
     alternates: { canonical: `/apartments/${id}` },
     openGraph: {
-      title,
+      title: `${title} — снять на сутки в ${city ?? "Минске"}`,
       description: metaDescription,
       images: image?.startsWith("http") ? [image] : undefined,
     },

@@ -11,8 +11,8 @@ import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/seo";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${SITE_NAME} — аренда жилья посуточно`,
-    template: `%s | ${SITE_NAME}`,
+    default: "Посуточная аренда квартир — снять на сутки | Radius",
+    template: `%s | Radius`,
   },
   description: SITE_DESCRIPTION,
   icons: {
@@ -28,13 +28,13 @@ export const metadata: Metadata = {
     type: "website",
     locale: "ru_RU",
     siteName: SITE_NAME,
-    title: `${SITE_NAME} — аренда жилья посуточно`,
+    title: "Посуточная аренда квартир — снять на сутки | Radius",
     description: SITE_DESCRIPTION,
     images: [{ url: "/apple-touch-icon.png", width: 180, height: 180 }],
   },
   twitter: {
     card: "summary_large_image",
-    title: `${SITE_NAME} — аренда жилья посуточно`,
+    title: "Посуточная аренда квартир — снять на сутки | Radius",
     description: SITE_DESCRIPTION,
   },
   verification: {
