@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { UserDropdown } from "@/app/_components/auth/UserDropdown";
+import { NotificationBell } from "@/app/_components/notifications/NotificationBell";
 
 const mobileLinks = [
   { href: "/profile", label: "Личный кабинет" },
@@ -54,16 +55,21 @@ export function Header() {
             <UserDropdown user={session.user} />
           )}
 
-          <button className="cursor-pointer rounded-lg p-2 text-[1.1rem] text-[#666] transition-all duration-200 hover:bg-[#f5f5f5] hover:text-[#222]">
-            РУ
-          </button>
           {session?.user && (
-            <Link
-              href="/profile/favorites"
-              className="cursor-pointer rounded-lg p-2 text-[1.1rem] no-underline transition-all duration-200 hover:bg-[#f5f5f5]"
-            >
-              ❤️
-            </Link>
+            <div className="relative flex flex-1">
+              <Link
+                href="/profile/favorites"
+                className="cursor-pointer rounded-lg p-2 text-[1.1rem] no-underline transition-all duration-200 hover:bg-[#f5f5f5]"
+              >
+                ❤️
+              </Link>
+              <Link
+                href="/myNotification"
+                className="cursor-pointer rounded-lg p-2 text-[1.1rem] no-underline transition-all duration-200 hover:bg-[#f5f5f5]"
+              >
+                <NotificationBell />
+              </Link>
+            </div>
           )}
         </div>
 
