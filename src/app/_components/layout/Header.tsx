@@ -29,19 +29,6 @@ export function Header() {
           Radius
         </Link>
 
-        {/* НАВИГАЦИЯ (десктоп)
-        <nav className="hidden gap-8 md:flex">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="text-[0.95rem] font-medium text-[#666] no-underline transition-colors duration-200 hover:text-[#222]"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav> */}
-
         {/* УПРАВЛЕНИЕ (десктоп) */}
         <div className="hidden shrink-0 items-center gap-4 md:flex">
           {!session?.user ? (
@@ -54,7 +41,7 @@ export function Header() {
           ) : (
             <UserDropdown user={session.user} />
           )}
-
+          {/* иконка сердца */}
           {session?.user && (
             <div className="relative flex flex-1">
               <Link
@@ -63,8 +50,9 @@ export function Header() {
               >
                 ❤️
               </Link>
+              {/* иконка колокольчик */}
               <Link
-                href="/myNotification"
+                href="/my-notifications"
                 className="cursor-pointer rounded-lg p-2 text-[1.1rem] no-underline transition-all duration-200 hover:bg-[#f5f5f5]"
               >
                 <NotificationBell />
