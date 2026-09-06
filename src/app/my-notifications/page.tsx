@@ -12,6 +12,13 @@ export default function MyNotifications() {
   const [selected, setSelected] = useState<
     NonNullable<typeof notifications>[number] | null
   >(null);
+  const utils = api.useUtils();
+  const markAsRead = api.notification.markAsRead.useMutation({
+    onSuccess: () => {
+      void utils.notification.getMyNotifications.invalidate();
+      void utils.notification.getUnreadCount.invalidate();
+    },
+  });
   return (
     <>
       <AuthGuard>
@@ -26,7 +33,10 @@ export default function MyNotifications() {
               title={item.title}
               text={item.text ?? ""}
               createdAt={new Date(item.createdAt)}
-              onClick={() => setSelected(item)}
+              onClick={() => {
+                setSelected(item);
+                markAsRead.mutate({ id: item.id });
+              }}
             />
           ))}
         </div>
