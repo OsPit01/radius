@@ -180,6 +180,9 @@ export const notification = createTable("notification", (d) => ({
     .notNull()
     .references(() => apartments.id),
   isRead: d.boolean().notNull().default(false),
+  readAt: d.timestamp({ withTimezone: true }),
+  link: d.varchar({ length: 255 }),
+  priority: d.varchar({ length: 20 }).default("normal"),
   createdAt: d
     .timestamp({ withTimezone: true })
     .$defaultFn(() => new Date())

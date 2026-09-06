@@ -390,6 +390,7 @@ export const apartmentRouter = createTRPCRouter({
             input.rejectionReason,
           ),
           apartmentId: input.id, // о каком объекте
+          link: `/apartments/${input.id}`, // куда ведёт уведомление
         });
       }
       return update;
