@@ -22,6 +22,13 @@ const config = {
         port: "",
         pathname: "/storage/v1/object/public/**",
       },
+      // Логотип платёжного сервиса «Экспресс Платежи»
+      {
+        protocol: "https",
+        hostname: "express-pay.by",
+        port: "",
+        pathname: "/brandbook/**",
+      },
     ],
   },
   // Отключи кэш в разработке (чтобы избежать проблем с кешированием)

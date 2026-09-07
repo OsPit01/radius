@@ -15,6 +15,12 @@ export default function MyNotifications() {
     NonNullable<typeof notifications>[number] | null
   >(null);
   const utils = api.useUtils();
+  const markAllAsRead = api.notification.markAllAsRead.useMutation({
+    onSuccess: () => {
+      void utils.notification.getMyNotifications.invalidate();
+      void utils.notification.getUnreadCount.invalidate();
+    },
+  });
   const markAsRead = api.notification.markAsRead.useMutation({
     onSuccess: () => {
       void utils.notification.getMyNotifications.invalidate();
@@ -25,8 +31,17 @@ export default function MyNotifications() {
     <>
       <AuthGuard>
         <ClientHeader />
-        <div className="mt-auto w-full px-5 py-10">
+        <div className="mt-auto flex w-full items-center justify-between px-5 py-10">
           <span className="text-[30px]">Мои уведомления</span>
+          {notifications?.some((n) => !n.isRead) ? (
+            <button
+              type="button"
+              onClick={() => markAllAsRead.mutate()}
+              className="rounded-xl bg-[#6b21a8] px-4 py-2 text-sm font-medium whitespace-nowrap text-white transition-colors hover:bg-[#4a1478]"
+            >
+              Отметить все
+            </button>
+          ) : null}
         </div>
         <div className="grid grid-cols-1 gap-3 px-5 pb-10 md:grid-cols-2 lg:grid-cols-4">
           {notifications?.map((item) => (
@@ -64,7 +79,7 @@ export default function MyNotifications() {
                 </div>
               )}
               <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-[#6b21a8]">
+                <p className="text-xs font-medium tracking-wide text-[#6b21a8] uppercase">
                   {selected.type}
                 </p>
                 <h3 className="mt-1 text-lg font-bold text-[#2d2137]">
