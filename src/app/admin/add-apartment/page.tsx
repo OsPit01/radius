@@ -53,6 +53,9 @@ export default function AddApartmentPage() {
     images: [],
     checkInTime: "14:00",
     checkOutTime: "12:00",
+    payerType: "individual",
+    unp: "",
+    payerName: "",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);

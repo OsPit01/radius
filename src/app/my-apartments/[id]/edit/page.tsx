@@ -6,14 +6,16 @@ import { AuthGuard } from "@/app/_components/layout/AuthGuard";
 import Image from "next/image";
 import Link from "next/link";
 import { AMENITIES, PARKING_TYPES, CURRENCIES } from "@/lib/constants";
+import { PAYERTYPE } from "@/lib/constants/info-company";
 import { EDIT_INPUT_CLASS, toggleAmenity, sanitizeStreet } from "@/lib/utils";
 import { useApartmentForm } from "./hooks/useApartmentForm";
 import { ClientHeader } from "@/app/_components/layout/ClientHeader";
 import { api } from "@/trpc/react";
 import { LoadingSpinner } from "@/app/_components/ui/LoadingSpinner";
 
-const TIME_OPTIONS = Array.from({ length: 24 }, (_, i) =>
-  `${String(i).padStart(2, "0")}:00`,
+const TIME_OPTIONS = Array.from(
+  { length: 24 },
+  (_, i) => `${String(i).padStart(2, "0")}:00`,
 );
 
 function readFilesAsDataURL(files: FileList): Promise<string[]> {
@@ -537,6 +539,55 @@ export default function EditApartmentPage() {
                     type="text"
                     value={formData.building}
                     onChange={(e) => updateField("building", e.target.value)}
+                    className={EDIT_INPUT_CLASS}
+                  />
+                </div>
+              </section>
+              {/*ЮРИДИЧЕСКАЯ ИНФОРМАЦИЯ/РЕКВИЗИТЫ ПЛАТЕЛЬЩИКА*/}
+              <section className="mb-10 text-[#d0c0d0]">
+                <div className="mt-[35px] mb-[15px] border-b border-[#3a2a4a] pb-2 text-xl font-semibold text-white">
+                  Реквизиты плательщика
+                </div>
+                <div className="flex flex-col gap-4">
+                  <label className="text-medium text-sm text-white">
+                    Плательщик
+                  </label>
+                  <select
+                    value={formData.payerType}
+                    onChange={(e) => updateField("payerType", e.target.value)}
+                    className={EDIT_INPUT_CLASS}
+                  >
+                    {PAYERTYPE.map((i) => (
+                      <option key={i.value} value={i.value}>
+                        {i.label}
+                      </option>
+                    ))}
+                  </select>
+                  <label className="text-medium text-sm text-white">
+                    Учетный номер плательщика
+                  </label>
+
+                  <input
+                    type="text"
+                    value={formData.unp ?? ""}
+                    onChange={(e) =>
+                      updateField(
+                        "unp",
+                        e.target.value.replace(/\D/g, "").slice(0, 9),
+                      )
+                    }
+                    placeholder="Введите УНП"
+                    className={`${EDIT_INPUT_CLASS} w-[300px]`}
+                    maxLength={9}
+                  />
+                  <label className="text-medium text-sm text-white">
+                    Наименование организации
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.payerName ?? ""}
+                    onChange={(e) => updateField("payerName", e.target.value)}
+                    placeholder="Название вашей организации"
                     className={EDIT_INPUT_CLASS}
                   />
                 </div>

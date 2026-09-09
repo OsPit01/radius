@@ -31,6 +31,9 @@ export type ApartmentFormData = {
   images: string[];
   checkInTime: string;
   checkOutTime: string;
+  payerType: string;
+  payerName: string;
+  unp: string;
 };
 
 const defaultFormData: ApartmentFormData = {
@@ -58,6 +61,9 @@ const defaultFormData: ApartmentFormData = {
   images: [],
   checkInTime: "14:00",
   checkOutTime: "12:00",
+  payerType: "individual",
+  payerName: "",
+  unp: "",
 };
 
 export function useApartmentForm(apartmentId: string) {
@@ -112,6 +118,9 @@ export function useApartmentForm(apartmentId: string) {
         images: apt.images ?? [],
         checkInTime: apt.checkInTime ?? "14:00",
         checkOutTime: apt.checkOutTime ?? "12:00",
+        payerType: apt.payerType ?? "individual",
+        payerName: apt.payerName ?? "",
+        unp: apt.unp ?? "",
       });
     }
   }, [apartmentData]);

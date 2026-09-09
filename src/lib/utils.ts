@@ -35,6 +35,9 @@ export type FormData = {
   images: string[];
   checkInTime: string;
   checkOutTime: string;
+  payerType: string;
+  unp: string;
+  payerName: string;
 };
 
 export type StepFieldValue = string | number | string[];
@@ -131,6 +134,9 @@ export function formatApartmentData(formData: FormData) {
     images: formData.images ?? [],
     checkInTime: formData.checkInTime ?? undefined,
     checkOutTime: formData.checkOutTime ?? undefined,
+    payerType: formData.payerType ?? "individual",
+    unp: formData.unp ?? "",
+    payerName: formData.payerName ?? "",
   };
 }
 
@@ -184,6 +190,7 @@ export function validateStep(
       if (formData.capacity < 1) badFields.push("capacity");
       if (!formData.rooms || formData.rooms < 1) badFields.push("rooms");
       if (formData.rooms > 10) badFields.push("rooms");
+      if (formData.unp.length < 9) badFields.push("unp");
       if (badFields.length > 0) {
         return {
           isValid: false,
@@ -284,9 +291,7 @@ export function toggleAmenity(
   checked: boolean,
 ): string[] {
   if (checked) {
-    return current.includes(amenityId)
-      ? current
-      : [...current, amenityId];
+    return current.includes(amenityId) ? current : [...current, amenityId];
   }
   return current.filter((item) => item !== amenityId);
 }

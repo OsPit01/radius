@@ -2,8 +2,14 @@
 
 import { CustomSelect } from "../components/CustomSelect";
 import type { FormData, StepProps } from "@/lib/utils";
-import { INPUT_CLASS, toggleAmenity } from "@/lib/utils";
-import { AMENITIES, PARKING_TYPES, CURRENCIES, getTypeLabel } from "@/lib/constants";
+import { EDIT_INPUT_CLASS, INPUT_CLASS, toggleAmenity } from "@/lib/utils";
+import {
+  AMENITIES,
+  PARKING_TYPES,
+  CURRENCIES,
+  getTypeLabel,
+} from "@/lib/constants";
+import { PAYERTYPE } from "@/lib/constants/info-company";
 
 export function Step4_Details({
   formData,
@@ -78,7 +84,7 @@ export function Step4_Details({
       {/* ===== СЕКЦИЯ: ЦЕНА ===== */}
       <div className="mb-5 flex items-center gap-2">
         <span className="text-base">💰</span>
-        <h3 className="text-base font-semibold uppercase tracking-wide text-[#c4deeb]">
+        <h3 className="text-base font-semibold tracking-wide text-[#c4deeb] uppercase">
           Цена и валюта
         </h3>
       </div>
@@ -121,7 +127,7 @@ export function Step4_Details({
       {/* ===== СЕКЦИЯ: ВМЕСТИМОСТЬ ===== */}
       <div className="mb-5 flex items-center gap-2">
         <span className="text-base">🛋️</span>
-        <h3 className="text-base font-semibold uppercase tracking-wide text-[#c4deeb]">
+        <h3 className="text-base font-semibold tracking-wide text-[#c4deeb] uppercase">
           Вместимость
         </h3>
       </div>
@@ -166,7 +172,7 @@ export function Step4_Details({
 
       {/* ===== Подблок: МЕСТА ДЛЯ СНА ===== */}
       <div className="mt-4">
-        <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-white/70">
+        <p className="mb-3 text-sm font-semibold tracking-wide text-white/70 uppercase">
           Места для сна
         </p>
         {/* 2 селекта сверху горизонтально */}
@@ -235,7 +241,7 @@ export function Step4_Details({
       {/* ===== СЕКЦИЯ: РАСПОЛОЖЕНИЕ ===== */}
       <div className="mb-5 flex items-center gap-2">
         <span className="text-base">🚇</span>
-        <h3 className="text-base font-semibold uppercase tracking-wide text-[#c4deeb]">
+        <h3 className="text-base font-semibold tracking-wide text-[#c4deeb] uppercase">
           Расположение
         </h3>
       </div>
@@ -265,12 +271,12 @@ export function Step4_Details({
       {/* ===== СЕКЦИЯ: УДОБСТВА ===== */}
       <div className="mb-5 flex items-center gap-2">
         <span className="text-base">✨</span>
-        <h3 className="text-base font-semibold uppercase tracking-wide text-[#c4deeb]">
+        <h3 className="text-base font-semibold tracking-wide text-[#c4deeb] uppercase">
           Удобства
         </h3>
       </div>
       <div className="flex flex-col gap-2">
-        <div className="grid grid-cols-3 gap-[8px_16px] py-2 max-md:grid-cols-2 max-[480px]:grid-cols-1">
+        <div className="grid grid-cols-3 gap-[8px_16px] py-2 max-[480px]:grid-cols-1 max-md:grid-cols-2">
           {AMENITIES.map((amenity) => (
             <label
               key={amenity.id}
@@ -282,7 +288,7 @@ export function Step4_Details({
                 onChange={(e) =>
                   handleAmenityToggle(amenity.id, e.target.checked)
                 }
-                className="h-[18px] w-[18px] min-h-[18px] min-w-[18px] shrink-0 cursor-pointer accent-[#6b21a8]"
+                className="h-[18px] min-h-[18px] w-[18px] min-w-[18px] shrink-0 cursor-pointer accent-[#6b21a8]"
               />
               {amenity.label}
             </label>
@@ -296,7 +302,7 @@ export function Step4_Details({
       {/* ===== СЕКЦИЯ: ПАРКОВКА ===== */}
       <div className="mb-5 flex items-center gap-2">
         <span className="text-base">🚗</span>
-        <h3 className="text-base font-semibold uppercase tracking-wide text-[#c4deeb]">
+        <h3 className="text-base font-semibold tracking-wide text-[#c4deeb] uppercase">
           Парковка
         </h3>
       </div>
@@ -312,7 +318,7 @@ export function Step4_Details({
               value={type.id}
               checked={formData.parking === type.id}
               onChange={() => handleParkingChange(type.id)}
-              className="h-[18px] w-[18px] min-h-[18px] min-w-[18px] shrink-0 cursor-pointer accent-[#6b21a8]"
+              className="h-[18px] min-h-[18px] w-[18px] min-w-[18px] shrink-0 cursor-pointer accent-[#6b21a8]"
             />
             {type.label}
           </label>
@@ -325,7 +331,7 @@ export function Step4_Details({
       {/* ===== СЕКЦИЯ: ОПИСАНИЕ ===== */}
       <div className="mb-5 flex items-center gap-2">
         <span className="text-base">📝</span>
-        <h3 className="text-base font-semibold uppercase tracking-wide text-[#c4deeb]">
+        <h3 className="text-base font-semibold tracking-wide text-[#c4deeb] uppercase">
           Описание
         </h3>
       </div>
@@ -346,7 +352,7 @@ export function Step4_Details({
       {/* ===== СЕКЦИЯ: ПРАВИЛА ===== */}
       <div className="mb-5 flex items-center gap-2">
         <span className="text-base">📋</span>
-        <h3 className="text-base font-semibold uppercase tracking-wide text-[#c4deeb]">
+        <h3 className="text-base font-semibold tracking-wide text-[#c4deeb] uppercase">
           Правила проживания
         </h3>
       </div>
@@ -367,7 +373,7 @@ export function Step4_Details({
       {/* ===== СЕКЦИЯ: ВРЕМЯ ЗАЕЗДА/ВЫЕЗДА ===== */}
       <div className="mb-5 flex items-center gap-2">
         <span className="text-base">🕒</span>
-        <h3 className="text-base font-semibold uppercase tracking-wide text-[#c4deeb]">
+        <h3 className="text-base font-semibold tracking-wide text-[#c4deeb] uppercase">
           Время заезда и выезда
         </h3>
       </div>
@@ -399,6 +405,50 @@ export function Step4_Details({
           />
         </div>
       </div>
+      {/*ЮРИДИЧЕСКАЯ ИНФОРМАЦИЯ/РЕКВИЗИТЫ ПЛАТЕЛЬЩИКА*/}
+      <section className="mb-10 text-[#d0c0d0]">
+        <div className="mt-[35px] mb-[15px] border-b border-[#3a2a4a] pb-2 text-xl font-semibold text-white">
+          Реквизиты плательщика
+        </div>
+        <div className="flex flex-col gap-4">
+          <label className="text-medium text-sm text-white">Плательщик</label>
+          <select
+            value={formData.payerType}
+            onChange={(e) => updateField("payerType", e.target.value)}
+            className={EDIT_INPUT_CLASS}
+          >
+            {PAYERTYPE.map((i) => (
+              <option key={i.value} value={i.value}>
+                {i.label}
+              </option>
+            ))}
+          </select>
+          <label className="text-medium text-sm text-white">
+            Учетный номер плательщика
+          </label>
+
+          <input
+            type="text"
+            value={formData.unp ?? ""}
+            onChange={(e) =>
+              updateField("unp", e.target.value.replace(/\D/g, "").slice(0, 9))
+            }
+            placeholder="Введите УНП"
+            className={`${INPUT_CLASS} w-[300px] ${hasError("unp") ? "!border-[#ef4444]" : ""}`}
+            maxLength={9}
+          />
+          <label className="text-medium text-sm text-white">
+            Наименование организации
+          </label>
+          <input
+            type="text"
+            value={formData.payerName ?? ""}
+            onChange={(e) => updateField("payerName", e.target.value)}
+            placeholder="Название вашей организации"
+            className={EDIT_INPUT_CLASS}
+          />
+        </div>
+      </section>
 
       {/* ===== ПАНЕЛЬ С ИНФОРМАЦИЕЙ ===== */}
       <div

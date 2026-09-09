@@ -46,6 +46,13 @@ export const apartments = createTable(
     createdById: d.varchar({ length: 255 }).references(() => users.id),
     status: d.varchar({ length: 20 }).notNull().default("moderation"),
     rejectionReason: d.text(),
+    // ===== Юридические данные для официальной сдачи (РБ) =====
+    // Кто сдаёт: individual | ip | company — выбор владельца
+    payerType: d.varchar({ length: 20 }).default("individual"),
+    // УНП — 9 цифр, у физлица может отсутствовать
+    unp: d.varchar({ length: 9 }),
+    // Наименование организации или ФИО для ИП
+    payerName: d.varchar({ length: 255 }),
     createdAt: d
       .timestamp({ withTimezone: true })
       .$defaultFn(() => /* @__PURE__ */ new Date())
