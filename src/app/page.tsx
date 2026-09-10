@@ -1,25 +1,60 @@
-import { type Metadata } from "next";
+import { Suspense } from "react";
+import type { Metadata } from "next";
 import { ClientHeader } from "@/app/_components/layout/ClientHeader";
 import { ClientSearchWrapper } from "./_components/ClientSearchWrapper";
-import { HOME_TITLE, HOME_DESCRIPTION, SITE_URL } from "@/lib/seo";
+import { caller } from "@/trpc/server";
+import { getApartmentCardData } from "@/lib/apartment-format";
+import { SITE_URL } from "@/lib/seo";
+import {
+  parseSearchParams,
+  buildQueryString,
+  buildSearchTitle,
+  buildSearchDescription,
+} from "@/lib/search-params";
 
-export const metadata: Metadata = {
-  title: HOME_TITLE,
-  description: HOME_DESCRIPTION,
-  alternates: {
-    canonical: SITE_URL,
-  },
-  openGraph: {
-    title: HOME_TITLE,
-    description: HOME_DESCRIPTION,
-    url: SITE_URL,
-    siteName: "Radius",
-    type: "website",
-    locale: "ru_RU",
-  },
+type HomePageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export default async function Home() {
+export async function generateMetadata({
+  searchParams,
+}: HomePageProps): Promise<Metadata> {
+  const sp = await searchParams;
+  const filters = parseSearchParams(sp);
+  const qs = buildQueryString(filters);
+  const canonicalUrl = qs ? `${SITE_URL}/?${qs}` : SITE_URL;
+
+  return {
+    title: buildSearchTitle(filters),
+    description: buildSearchDescription(filters),
+    alternates: { canonical: canonicalUrl },
+    openGraph: {
+      title: buildSearchTitle(filters),
+      description: buildSearchDescription(filters),
+      url: canonicalUrl,
+      siteName: "Radius",
+      type: "website",
+      locale: "ru_RU",
+    },
+  };
+}
+
+export default async function Home({ searchParams }: HomePageProps) {
+  const sp = await searchParams;
+  const filters = parseSearchParams(sp);
+  const api = await caller();
+  const data = await api.apartment.getAll({
+    city: filters.city,
+    guests: filters.guests,
+    priceMin: filters.priceMin,
+    priceMax: filters.priceMax,
+    rooms: filters.rooms,
+    beds: filters.beds,
+    sofas: filters.sofas,
+  });
+  const apartments = data.map((item) => getApartmentCardData(item.apartment));
+  const queryString = buildQueryString(filters);
+
   return (
     <>
       <ClientHeader />
@@ -34,7 +69,13 @@ export default async function Home() {
             квартиры на сутки напрямую от собственников
           </h2>
 
-          <ClientSearchWrapper />
+          <Suspense fallback={null}>
+            <ClientSearchWrapper
+              key={queryString}
+              initialFilters={filters}
+              initialApartments={apartments}
+            />
+          </Suspense>
         </div>
 
         <section className="mx-auto mt-12 max-w-3xl text-center text-[0.95rem] leading-relaxed text-[#555] max-md:mt-8 max-md:text-sm">

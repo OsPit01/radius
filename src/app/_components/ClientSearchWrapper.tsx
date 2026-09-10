@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { SearchForm } from "@/app/_components/search/SearchForm";
 import { ApartmentsList } from "@/app/_components/apartments/ApartmentsList";
-import { api } from "@/trpc/react";
 import { LoadingSpinner } from "@/app/_components/ui/LoadingSpinner";
 import { Modal } from "@/app/_components/ui/Modal";
 import {
@@ -11,68 +11,60 @@ import {
   type Filters,
 } from "@/app/_components/search/FilterPanel";
 import { FilterChips, type ChipKey } from "@/app/_components/search/FilterChips";
+import type { ApartmentCardData } from "@/lib/apartment-format";
+import { buildSearchUrl, type SearchFilters } from "@/lib/search-params";
 
-type Apartment = {
-  id: number;
-  title: string;
-  city: string;
-  district: string;
-  capacity: number;
-  price: number;
-  image: string;
-  description: string;
-  rooms: number;
-  beds: number;
-  singleBeds: number;
-  doubleSofas: number;
-  singleSofas: number;
-  metro: string;
-  currency: string;
+type ClientSearchWrapperProps = {
+  initialFilters: SearchFilters;
+  initialApartments: ApartmentCardData[];
 };
 
-export function ClientSearchWrapper() {
-  // ===== АКТИВНЫЕ ЗНАЧЕНИЯ (применённые, по ним фильтруется список) =====
-  const [activeSearchQuery, setActiveSearchQuery] = useState("");
-  const [activeTotalGuests, setActiveTotalGuests] = useState(1);
-  const [activeFilters, setActiveFilters] = useState<Filters>(EMPTY_FILTERS);
+// Преобразование SearchFilters (из URL) → Filters (для UI-панели)
+function toUiFilters(initial: SearchFilters): Filters {
+  return {
+    priceMin: initial.priceMin != null ? String(initial.priceMin) : "",
+    priceMax: initial.priceMax != null ? String(initial.priceMax) : "",
+    rooms: initial.rooms ?? null,
+    beds: initial.beds ?? null,
+    sofas: initial.sofas ?? null,
+  };
+}
+
+export function ClientSearchWrapper({
+  initialFilters,
+  initialApartments,
+}: ClientSearchWrapperProps) {
+  const router = useRouter();
+
+  // ===== АКТИВНЫЕ ЗНАЧЕНИЯ (пришли с сервера через URL) =====
+  const [activeSearchQuery, setActiveSearchQuery] = useState(
+    initialFilters.city ?? "",
+  );
+  const [activeTotalGuests, setActiveTotalGuests] = useState(
+    initialFilters.guests ?? 1,
+  );
+  const [activeFilters, setActiveFilters] = useState<Filters>(
+    toUiFilters(initialFilters),
+  );
 
   // ===== ВРЕМЕННЫЕ ЗНАЧЕНИЯ (пока пользователь не нажал «поиск») =====
-  const [tempSearchQuery, setTempSearchQuery] = useState("");
-  const [tempTotalGuests, setTempTotalGuests] = useState(1);
-  const [tempFilters, setTempFilters] = useState<Filters>(EMPTY_FILTERS);
+  const [tempFilters, setTempFilters] = useState<Filters>(
+    toUiFilters(initialFilters),
+  );
 
   const [isLoading, setIsLoading] = useState(false);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const [apartments, setApartments] = useState<Apartment[]>([]);
+  const [apartments, setApartments] = useState<ApartmentCardData[]>(
+    initialApartments,
+  );
 
-  const { data: apartmentsData } = api.apartment.getAll.useQuery();
-
-  const shuffleApartments = (list: Apartment[]) => {
+  const shuffleApartments = (list: ApartmentCardData[]) => {
     return [...list].sort(() => Math.random() - 0.5);
   };
 
   useEffect(() => {
-    if (apartmentsData) {
-      const formatted: Apartment[] = apartmentsData.map((item) => ({
-        id: item.apartment.id,
-        title: item.apartment.title,
-        city: item.apartment.city,
-        district: item.apartment.district ?? "",
-        capacity: item.apartment.capacity,
-        price: item.apartment.price,
-        image: item.apartment.image,
-        description: item.apartment.description ?? "",
-        rooms: item.apartment.rooms,
-        beds: item.apartment.beds ?? 0,
-        singleBeds: item.apartment.singleBeds ?? 0,
-        doubleSofas: item.apartment.doubleSofas ?? 0,
-        singleSofas: item.apartment.singleSofas ?? 0,
-        metro: item.apartment.metro ?? "",
-        currency: item.apartment.currency ?? "BYN",
-      }));
-      setApartments(shuffleApartments(formatted));
-    }
-  }, [apartmentsData]);
+    setApartments(shuffleApartments(initialApartments));
+  }, [initialApartments]);
 
   useEffect(() => {
     if (apartments.length === 0) return;
@@ -94,20 +86,28 @@ export function ClientSearchWrapper() {
   }, [apartments.length]);
 
   // ===== ПРИМЕНИТЬ ВСЕ ФИЛЬТРЫ (поиск + гости + цена/комнаты) =====
-  const handleSearch = () => {
+  const handleSearch = (query: string, guests: number) => {
     setIsLoading(true);
-    setActiveSearchQuery(tempSearchQuery);
-    setActiveTotalGuests(tempTotalGuests);
+    setActiveSearchQuery(query);
+    setActiveTotalGuests(guests);
     setActiveFilters(tempFilters);
-    setTimeout(() => setIsLoading(false), 500);
+    const urlFilters: SearchFilters = {
+      city: query.trim() || undefined,
+      guests: guests > 1 ? guests : undefined,
+      priceMin: tempFilters.priceMin ? Number(tempFilters.priceMin) : undefined,
+      priceMax: tempFilters.priceMax ? Number(tempFilters.priceMax) : undefined,
+      rooms: tempFilters.rooms ?? undefined,
+      beds: tempFilters.beds ?? undefined,
+      sofas: tempFilters.sofas ?? undefined,
+    };
+    router.replace(buildSearchUrl(urlFilters), { scroll: false });
+    setTimeout(() => setIsLoading(false), 300);
   };
 
   const updateTempQuery = (query: string) => {
-    setTempSearchQuery(query);
-  };
-
-  const updateTempGuests = (guests: number) => {
-    setTempTotalGuests(guests);
+    // текст поиска хранится в SearchForm'е; синхронизируем при поиске
+    setActiveSearchQuery(query);
+    setTempFilters(tempFilters);
   };
 
   // ===== УБРАТЬ ОДИН ФИЛЬТР (чип) =====
@@ -125,15 +125,19 @@ export function ClientSearchWrapper() {
   const clearFilters = () => {
     setActiveFilters(EMPTY_FILTERS);
     setTempFilters(EMPTY_FILTERS);
+    setActiveSearchQuery("");
+    router.replace(buildSearchUrl({}), { scroll: false });
   };
 
   return (
     <>
       <SearchForm
-        onSearchClick={handleSearch}
+        onSearchClick={(query) => handleSearch(query, activeTotalGuests)}
         onTempQueryChange={updateTempQuery}
-        onTempGuestsChange={updateTempGuests}
+        onTempGuestsChange={(guests) => setActiveTotalGuests(guests)}
         onFilterClick={() => setMobileFiltersOpen(true)}
+        initialQuery={activeSearchQuery}
+        initialGuests={activeTotalGuests}
         isLoading={isLoading}
       />
 
@@ -160,7 +164,7 @@ export function ClientSearchWrapper() {
             <FilterPanel filters={tempFilters} onChange={setTempFilters} />
             <button
               type="button"
-              onClick={handleSearch}
+              onClick={() => handleSearch(activeSearchQuery, activeTotalGuests)}
               className="mt-5 w-full cursor-pointer rounded-[30px] bg-[#6b21a8] px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[#581c87]"
             >
               Показать объекты
@@ -193,7 +197,7 @@ export function ClientSearchWrapper() {
         <button
           type="button"
           onClick={() => {
-            handleSearch();
+            handleSearch(activeSearchQuery, activeTotalGuests);
             setMobileFiltersOpen(false);
           }}
           className="mt-6 w-full cursor-pointer rounded-[30px] bg-[#6b21a8] px-6 py-3 text-base font-semibold text-white transition-colors duration-200 hover:bg-[#581c87]"

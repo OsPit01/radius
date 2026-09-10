@@ -5,7 +5,7 @@ import {
   publicProcedure,
 } from "@/server/api/trpc";
 import { apartments, users, notification } from "@/server/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and, gte, lte, ilike, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import type * as schema from "@/server/db/schema";
@@ -122,12 +122,63 @@ const createApartmentSchema = z.object({
 });
 
 export const apartmentRouter = createTRPCRouter({
-  // 1. Получить все квартиры
-  getAll: publicProcedure.query(async ({ ctx }) => {
-    return await selectApartmentLight(ctx.db).where(
-      eq(apartments.status, "active"),
-    );
-  }),
+  // 1. Получить все квартиры (с фильтрами для SEO-страниц каталога)
+  getAll: publicProcedure
+    .input(
+      z
+        .object({
+          city: z.string().trim().min(1).optional(),
+          guests: z.number().int().min(1).optional(),
+          priceMin: z.number().int().min(0).optional(),
+          priceMax: z.number().int().min(0).optional(),
+          rooms: z.number().int().min(1).optional(),
+          beds: z.number().int().min(1).optional(),
+          sofas: z.number().int().min(1).optional(),
+        })
+        .optional(),
+    )
+    .query(async ({ ctx, input }) => {
+      const conditions = [eq(apartments.status, "active")];
+
+      if (input?.city) {
+        conditions.push(ilike(apartments.city, `%${input.city}%`));
+      }
+      if (input?.guests && input.guests > 1) {
+        conditions.push(gte(apartments.capacity, input.guests));
+      }
+      if (input?.priceMin) {
+        conditions.push(gte(apartments.price, input.priceMin));
+      }
+      if (input?.priceMax) {
+        conditions.push(lte(apartments.price, input.priceMax));
+      }
+      if (input?.rooms) {
+        // 4 = "4+", всё что от 4 и больше
+        if (input.rooms >= 4) {
+          conditions.push(gte(apartments.rooms, input.rooms));
+        } else {
+          conditions.push(eq(apartments.rooms, input.rooms));
+        }
+      }
+      if (input?.beds) {
+        conditions.push(
+          gte(
+            sql`${apartments.beds} + ${apartments.singleBeds}`,
+            input.beds,
+          ),
+        );
+      }
+      if (input?.sofas) {
+        conditions.push(
+          gte(
+            sql`${apartments.doubleSofas} + ${apartments.singleSofas}`,
+            input.sofas,
+          ),
+        );
+      }
+
+      return await selectApartmentLight(ctx.db).where(and(...conditions));
+    }),
 
   // 2. Получить одну квартиру по ID
   getById: protectedProcedure

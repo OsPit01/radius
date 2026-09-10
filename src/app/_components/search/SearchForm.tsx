@@ -3,10 +3,12 @@
 import { useState } from "react";
 
 type SearchFormProps = {
-  onSearchClick: () => void; // вызывается при нажатии на лупу
-  onTempQueryChange: (query: string) => void; // вызывается при изменении текста
+  onSearchClick: (query: string, guests: number) => void; // при нажатии на лупу
+  onTempQueryChange: (query: string) => void; // при изменении текста
   onTempGuestsChange: (guests: number) => void;
   onFilterClick: () => void; // открывает попап фильтров (мобилка)
+  initialQuery?: string;
+  initialGuests?: number;
   isLoading?: boolean;
 };
 
@@ -15,11 +17,15 @@ export function SearchForm({
   onTempQueryChange,
   onTempGuestsChange,
   onFilterClick,
+  initialQuery = "",
+  initialGuests = 1,
 }: SearchFormProps) {
   // ===== ВРЕМЕННЫЕ СОСТОЯНИЯ (живут только внутри SearchForm) =====
-  const [tempSearchQuery, setTempSearchQuery] = useState("");
+  const [tempSearchQuery, setTempSearchQuery] = useState(initialQuery);
   const [isGuestWindowOpen, setIsGuestWindowOpen] = useState(false);
-  const [tempAdults, setTempAdults] = useState(1);
+  const [tempAdults, setTempAdults] = useState(
+    initialGuests > 1 ? initialGuests : 1,
+  );
   const [tempChildren, setTempChildren] = useState(0);
   const [pets, setPets] = useState(0);
   const [childAges, setChildAges] = useState<number[]>([]);
@@ -112,12 +118,13 @@ export function SearchForm({
             value={tempSearchQuery}
             onChange={handleSearchChange}
             onKeyDown={(e) => {
-              if (e.key === "Enter") onSearchClick();
+              if (e.key === "Enter")
+                onSearchClick(tempSearchQuery, tempAdults + tempChildren);
             }}
           />
           <button
             type="button"
-            onClick={onSearchClick}
+            onClick={() => onSearchClick(tempSearchQuery, tempAdults + tempChildren)}
             aria-label="Поиск"
             className="absolute right-2.5 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-black text-white transition-transform duration-200 hover:scale-105 max-md:h-8 max-md:w-8 max-md:right-2"
           >
