@@ -107,7 +107,6 @@ export function ClientSearchWrapper({
   const updateTempQuery = (query: string) => {
     // текст поиска хранится в SearchForm'е; синхронизируем при поиске
     setActiveSearchQuery(query);
-    setTempFilters(tempFilters);
   };
 
   // ===== УБРАТЬ ОДИН ФИЛЬТР (чип) =====
@@ -119,6 +118,16 @@ export function ClientSearchWrapper({
     };
     setActiveFilters(next);
     setTempFilters(next);
+    const urlFilters: SearchFilters = {
+      city: activeSearchQuery.trim() || undefined,
+      guests: activeTotalGuests > 1 ? activeTotalGuests : undefined,
+      priceMin: next.priceMin ? Number(next.priceMin) : undefined,
+      priceMax: next.priceMax ? Number(next.priceMax) : undefined,
+      rooms: next.rooms ?? undefined,
+      beds: next.beds ?? undefined,
+      sofas: next.sofas ?? undefined,
+    };
+    router.replace(buildSearchUrl(urlFilters), { scroll: false });
   };
 
   // ===== СБРОСИТЬ ВСЕ ФИЛЬТРЫ =====
@@ -132,7 +141,7 @@ export function ClientSearchWrapper({
   return (
     <>
       <SearchForm
-        onSearchClick={(query) => handleSearch(query, activeTotalGuests)}
+        onSearchClick={(query, guests) => handleSearch(query, guests)}
         onTempQueryChange={updateTempQuery}
         onTempGuestsChange={(guests) => setActiveTotalGuests(guests)}
         onFilterClick={() => setMobileFiltersOpen(true)}

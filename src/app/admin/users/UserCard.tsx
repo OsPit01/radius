@@ -34,6 +34,9 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
     phone: user.phone ?? "",
   });
 
+  const [banOpen, setBanOpen] = useState(false);
+  const [banDays, setBanDays] = useState(7);
+
   const utils = api.useUtils();
 
   const updateRole = api.user.updateRole.useMutation({
@@ -49,6 +52,16 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
     onSuccess: () => {
       void utils.user.getAll.invalidate();
       setEditOpen(false);
+    },
+    onError: (error) => {
+      alert(error.message);
+    },
+  });
+
+  const banUser = api.user.banUser.useMutation({
+    onSuccess: () => {
+      void utils.user.getAll.invalidate();
+      setBanOpen(false);
     },
     onError: (error) => {
       alert(error.message);
@@ -127,7 +140,10 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
           >
             Редактировать
           </button>
-          <button className="flex-1 cursor-pointer rounded-[30px] border border-[#e5e5e5] px-5 py-2 text-sm font-medium text-[#666] transition-colors hover:border-red-400 hover:text-red-500">
+          <button
+            onClick={() => setBanOpen(true)}
+            className="flex-1 cursor-pointer rounded-[30px] border border-[#e5e5e5] px-5 py-2 text-sm font-medium text-[#666] transition-colors hover:border-red-400 hover:text-red-500"
+          >
             Забанить
           </button>
         </div>
@@ -188,6 +204,41 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
             className="mt-2 cursor-pointer rounded-[30px] bg-[#b552c7] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#9a3fb0]"
           >
             {updateUser.isPending ? "Сохранение..." : "Сохранить"}
+          </button>
+        </div>
+      </Modal>
+
+      {/* Модалка бана */}
+      <Modal
+        open={banOpen}
+        onClose={() => setBanOpen(false)}
+        title="Забанить пользователя"
+      >
+        <div className="flex flex-col gap-3">
+          <p className="text-sm text-[#666]">
+            {user.firstName ?? user.email}
+          </p>
+          <label className="flex flex-col gap-1.5 text-sm font-medium text-[#333]">
+            На сколько дней?
+            <input
+              type="number"
+              min={1}
+              max={3650}
+              value={banDays}
+              onChange={(e) =>
+                setBanDays(Math.max(1, Math.min(3650, Number(e.target.value))))
+              }
+              className={inputClass}
+            />
+          </label>
+          <button
+            onClick={() =>
+              banUser.mutate({ userId: user.id, days: banDays })
+            }
+            disabled={banUser.isPending}
+            className="mt-2 cursor-pointer rounded-[30px] bg-red-500 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-600"
+          >
+            {banUser.isPending ? "Баним..." : "Забанить"}
           </button>
         </div>
       </Modal>

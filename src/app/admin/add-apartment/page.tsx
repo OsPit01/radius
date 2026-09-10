@@ -103,13 +103,8 @@ export default function AddApartmentPage() {
 
   // ===== ПЕРЕХОД МЕЖДУ ШАГАМИ =====
   const goToNextStep = async () => {
-    console.log("🔍 currentStep:", currentStep);
-    console.log("📦 formData.images:", formData.images);
-    console.log("📦 formData.image:", formData.image);
     const validation = validateStep(currentStep, formData);
-    console.log("✅ validation:", validation);
     if (!validation.isValid) {
-      console.log("❌ Ошибка валидации:", validation.error, validation.fields);
       setError(validation.error ?? null);
       setErrorFields(validation.fields ?? []);
       return;
@@ -117,7 +112,6 @@ export default function AddApartmentPage() {
     setError(null);
     setErrorFields([]);
     if (currentStep === 5) {
-      console.log("🟢 5 шаг, вызываем handleSubmit");
       await handleSubmit();
       return;
     }
