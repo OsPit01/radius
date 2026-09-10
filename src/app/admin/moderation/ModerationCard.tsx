@@ -6,6 +6,7 @@ import { getStatusInfo } from "@/lib/constants/apartment-status";
 import { Modal } from "@/app/_components/ui/Modal";
 import { useState } from "react";
 import Link from "next/link";
+import { PAYERTYPE } from "@/lib/constants/info-company";
 type ModerationItem = RouterOutputs["apartment"]["getForModeration"][number];
 
 export function ModerationCard({ item }: { item: ModerationItem }) {
@@ -24,6 +25,7 @@ export function ModerationCard({ item }: { item: ModerationItem }) {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [rejectOpen, setRejectOpen] = useState(false);
   const [reason, setReason] = useState("");
+
   return (
     // Внешняя "коробка" карточки: белый фон, рамка, скругление, тень.
     // overflow-hidden — чтобы фото не вылезало за скруглённые углы
@@ -61,7 +63,17 @@ export function ModerationCard({ item }: { item: ModerationItem }) {
           </span>
           {/* ВЛАДЕЛЕЦ. item.user может быть null (leftJoin), поэтому "?" */}
           <p className="text-sm break-words text-[#666]">
-            Владелец: {item.user?.email ?? "нет данных"}
+            Email: {item.user?.email ?? "нет данных"}
+          </p>
+          <p className="break-word text-sm text-[#666]">
+            ФИО: {item.user?.name}
+          </p>
+          {/* Юр данные */}
+          <p className="text-sm text-[#666]">
+            {PAYERTYPE.find((p) => p.value === item.apartment.payerType)?.label}
+          </p>
+          <p className="text-[12px] break-words text-[#666]">
+            УНП: {item.apartment.unp ?? "не указан"}
           </p>
           {/* //кнопки: ОДОБРОИТЬ/ОТКЛОНИТь  mt-auto прижимает к низу карточки  */}
           <div className="mt-auto flex gap-2 pt-4 max-[480px]:flex-col">
@@ -98,7 +110,8 @@ export function ModerationCard({ item }: { item: ModerationItem }) {
               </button>
             </Link>
           </div>
-
+          {/* ID ОБЪЕКТА */}
+          <p className="text-sm text-[#999]">ID: {item.apartment.id}</p>
           {/*////////////////// Часть Modal //////////////////////*/}
           <Modal
             open={deleteOpen}
