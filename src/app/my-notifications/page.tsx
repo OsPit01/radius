@@ -37,7 +37,7 @@ export default function MyNotifications() {
             <button
               type="button"
               onClick={() => markAllAsRead.mutate()}
-              className="rounded-xl bg-[#6b21a8] px-4 py-2 text-sm font-medium whitespace-nowrap text-white transition-colors hover:bg-[#4a1478]"
+              className="rounded-xl bg-gray-800 px-4 py-2 text-sm font-medium whitespace-nowrap text-white transition-colors hover:bg-gray-700"
             >
               Отметить все
             </button>
@@ -105,7 +105,7 @@ export default function MyNotifications() {
                 <Link
                   href={selected.link}
                   onClick={() => setSelected(null)}
-                  className="flex items-center justify-center gap-2 rounded-xl bg-[#6b21a8] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#4a1478]"
+                  className="flex items-center justify-center gap-2 rounded-xl bg-gray-800 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-gray-700"
                 >
                   Открыть объект
                   <ArrowRight className="h-4 w-4" />

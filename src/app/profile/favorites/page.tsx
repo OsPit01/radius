@@ -30,7 +30,7 @@ export default function FavoritesPage() {
               </p>
               <Link
                 href="/"
-                className="mt-6 inline-block rounded-[30px] bg-[#6b21a8] px-8 py-3 text-base font-semibold text-white no-underline transition-colors duration-200 hover:bg-[#581c87]"
+                className="mt-6 inline-block rounded-[30px] bg-gray-800 px-8 py-3 text-base font-medium text-white no-underline transition-colors duration-200 hover:bg-gray-700"
               >
                 Смотреть квартиры
               </Link>

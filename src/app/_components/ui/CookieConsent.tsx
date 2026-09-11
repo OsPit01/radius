@@ -37,7 +37,7 @@ export function CookieConsent() {
         <button
           type="button"
           onClick={accept}
-          className="shrink-0 cursor-pointer rounded-[30px] bg-[#b552c7] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#a244b2]"
+          className="shrink-0 cursor-pointer rounded-[30px] bg-gray-800 px-6 py-2.5 text-sm font-medium text-white hover:bg-gray-700"
         >
           Принять
         </button>

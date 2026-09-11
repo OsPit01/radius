@@ -174,7 +174,7 @@ export function ClientSearchWrapper({
             <button
               type="button"
               onClick={() => handleSearch(activeSearchQuery, activeTotalGuests)}
-              className="mt-5 w-full cursor-pointer rounded-[30px] bg-[#6b21a8] px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[#581c87]"
+              className="mt-5 w-full cursor-pointer rounded-[30px] bg-gray-800 px-4 py-2.5 text-sm font-medium text-white transition-colors duration-200 hover:bg-gray-700"
             >
               Показать объекты
             </button>
@@ -209,7 +209,7 @@ export function ClientSearchWrapper({
             handleSearch(activeSearchQuery, activeTotalGuests);
             setMobileFiltersOpen(false);
           }}
-          className="mt-6 w-full cursor-pointer rounded-[30px] bg-[#6b21a8] px-6 py-3 text-base font-semibold text-white transition-colors duration-200 hover:bg-[#581c87]"
+          className="mt-6 w-full cursor-pointer rounded-[30px] bg-gray-800 px-6 py-3 text-base font-medium text-white transition-colors duration-200 hover:bg-gray-700"
         >
           Показать результаты
         </button>

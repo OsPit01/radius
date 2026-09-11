@@ -1,10 +1,12 @@
 import { type Metadata } from "next";
+import Image from "next/image";
 import { api } from "@/trpc/server";
 import { notFound } from "next/navigation";
 import { ClientHeader } from "@/app/_components/layout/ClientHeader";
 import { PhotoGallery } from "@/app/_components/apartments/PhotoGallery";
 import { ApartmentTabs } from "@/app/_components/apartments/ApartmentTabs";
 import { formatPhoneForDisplay } from "@/lib/phone";
+import { BookingButton } from "@/app/_components/apartments/BookingButton";
 
 export async function generateMetadata({
   params,
@@ -105,56 +107,73 @@ export default async function ApartmentPage({
               <span className="text-gray-400">🕒</span>
               <p className="text-sm text-[#888]">
                 Заселение после{" "}
-                <span className="font-medium text-[#6b21a8]">
+                <span className="rounded-lg bg-gray-100 px-2 py-0.5 text-sm font-medium text-gray-800">
                   {apartment.apartment.checkInTime ?? "14:00"}
                 </span>
                 , выезд до{" "}
-                <span className="font-medium text-[#6b21a8]">
+                <span className="rounded-lg bg-gray-100 px-2 py-0.5 text-sm font-medium text-gray-800">
                   {apartment.apartment.checkOutTime ?? "12:00"}
                 </span>
               </p>
             </div>
 
             {/* Цена */}
-            <div className="mt-6 flex items-baseline gap-1 rounded-xl bg-gradient-to-r from-[#f6eefe] to-[#fdf6ff] px-5 py-3">
-              <span className="text-3xl font-bold text-[#6b21a8]">
+            <div className="mt-6 flex flex-wrap items-baseline gap-x-1.5">
+              <span className="text-3xl font-bold text-gray-800">
                 {apartment.apartment.price}
               </span>
-              <span className="text-lg font-medium text-[#6b21a8]">
+              <span className="text-lg font-medium text-gray-600">
                 {apartment.apartment.currency ?? "BYN"}
               </span>
-              <span className="text-sm text-[#888]">/ сутки</span>
+              <span className="text-sm text-gray-600">/ сутки</span>
             </div>
 
             {/* Арендодатель */}
             {apartment.user && (
               <div className="mt-auto border-t border-[#eee5f4] pt-4">
                 <div className="mt-5 flex items-center gap-3">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#6b21a8] text-lg text-white">
-                    {(
-                      apartment.user.firstName?.[0] ??
-                      apartment.user.name?.[0] ??
-                      "В"
-                    ).toUpperCase()}
-                  </div>
+                  {apartment.user.image ? (
+                    // Фото арендодателя, если оно есть
+                    <Image
+                      src={apartment.user.image}
+                      alt={apartment.user.name ?? "Арендодатель"}
+                      width={44}
+                      height={44}
+                      unoptimized
+                      className="h-11 w-11 shrink-0 rounded-full object-cover"
+                    />
+                  ) : (
+                    // Нет фото → кружок с первой буквой имени
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gray-100 text-lg text-gray-800">
+                      {(
+                        apartment.user.firstName?.[0] ??
+                        apartment.user.name?.[0] ??
+                        "В"
+                      ).toUpperCase()}
+                    </div>
+                  )}
                   <div className="min-w-0">
                     <p className="truncate text-base font-medium text-[#222]">
                       {apartment.user.firstName
                         ? `${apartment.user.firstName} `
                         : (apartment.user.name ?? "Владелец")}
                     </p>
-                    <p className="text-sm text-[#6b21a8]">Арендодатель</p>
+                    <p className="text-sm text-gray-500">Арендодатель</p>
                   </div>
                 </div>
                 {apartment.user.phone && (
                   <a
                     href={`tel:${apartment.user.phone}`}
-                    className="mt-3 flex items-center gap-2 rounded-xl bg-[#6b21a8] px-4 py-3 text-center text-sm font-medium text-white transition-colors hover:bg-[#581c87]"
+                    className="mt-3 flex items-center gap-2 rounded-xl bg-gray-800 px-4 py-3 text-center text-sm font-medium text-white transition-colors hover:bg-gray-700"
                   >
                     <span>📞</span>
                     {formatPhoneForDisplay(apartment.user.phone)}
                   </a>
                 )}
+                <BookingButton
+                  apartmentId={apartment.apartment.id}
+                  apartmentTitle={apartment.apartment.title}
+                />
               </div>
             )}
           </div>

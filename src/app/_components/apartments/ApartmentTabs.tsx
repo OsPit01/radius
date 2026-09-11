@@ -34,7 +34,7 @@ export function ApartmentTabs({
             onClick={() => setActiveTab(tab.id)}
             className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-3 text-[15px] font-medium transition-all duration-200 max-sm:min-w-[45%] ${
               activeTab === tab.id
-                ? "bg-[#6b21a8] text-white shadow-[0_4px_12px_rgba(107,33,168,0.3)]"
+                ? "bg-gray-800 text-white shadow-[0_4px_12px_rgba(0,0,0,0.2)]"
                 : "text-[#666] hover:bg-white hover:text-[#222]"
             }`}
           >

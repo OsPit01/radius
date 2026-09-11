@@ -33,8 +33,23 @@ export default function SettingsPage() {
 
   const uploadImage = api.upload.image.useMutation();
 
+  // Telegram: привязка через одноразовый код
+  const startTelegramLink = api.user.startTelegramLink.useMutation({
+    onSuccess: (data) => setLinkCode(data.code),
+  });
+  const confirmTelegramLink = api.user.confirmTelegramLink.useMutation({
+    onSuccess: () => {
+      void apiUtils.user.getById.invalidate();
+      setLinkCode("");
+    },
+  });
+  const clearTelegramLink = api.user.clearTelegramLink.useMutation({
+    onSuccess: () => void apiUtils.user.getById.invalidate(),
+  });
+
   // Состояние модалки
   const [modalOpen, setModalOpen] = useState(false);
+  const [linkCode, setLinkCode] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   // Состояние формы
   const [form, setForm] = useState({
@@ -172,7 +187,7 @@ export default function SettingsPage() {
                   <span className="ml-2 inline-block h-2.5 w-2.5 rounded-full bg-green-500"></span>
                 )}
               </div>
-              <div className="mb-5 flex items-center text-[17px]">
+              <div className="mb-5 text-[17px]">
                 <label className="pr-5">Номер телефона:</label>
                 <PhoneInput
                   international
@@ -184,6 +199,41 @@ export default function SettingsPage() {
                 {form.phone !== toE164(user?.phone) && (
                   <span className="ml-2 inline-block h-2.5 w-2.5 rounded-full bg-green-500"></span>
                 )}
+              </div>
+              {/* Telegram уведомления о бронированиях */}
+              <div className="mb-5">
+                <p className="text-[17px]">
+                  Telegram-уведомления о бронированиях:
+                </p>
+                {user?.telegramChatId ? (
+                  <div className="mt-2 flex items-center gap-3">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-green-500/20 px-3 py-1 text-[13px] text-green-300">
+                      Подключено
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => clearTelegramLink.mutate()}
+                      className="cursor-pointer rounded-full border border-white/20 px-4 py-1.5 text-[13px] text-white/80 hover:text-white"
+                    >
+                      Отвязать
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => startTelegramLink.mutate()}
+                    disabled={startTelegramLink.isPending}
+                    className="mt-2 cursor-pointer rounded-[30px] bg-[#3a2a4a] px-6 py-2.5 text-base font-semibold text-white hover:bg-[#4a3a5a] disabled:opacity-60"
+                  >
+                    {startTelegramLink.isPending
+                      ? "Подключаем..."
+                      : "Подключить Telegram"}
+                  </button>
+                )}
+                <p className="pt-2 text-[13px] text-white/60">
+                  Новые заявки с сайта будут приходить вам в Telegram бот{" "}
+                  <span className="text-white/80">@radius_booking_bot</span>
+                </p>
               </div>
               <button
                 className="mt-10 cursor-pointer rounded-[30px] bg-[#3a2a4a] px-8 py-3 text-base font-semibold text-white hover:bg-[#4a3a5a]"
@@ -226,6 +276,72 @@ export default function SettingsPage() {
               </button>
             </div>
           </div>
+        </Modal>
+
+        {/* Модалка привязки Telegram */}
+        <Modal
+          open={!!linkCode}
+          onClose={() => setLinkCode("")}
+        >
+          {confirmTelegramLink.isSuccess ? (
+            <div className="flex flex-col items-center gap-3 py-4 text-center">
+              <p className="text-4xl">✅</p>
+              <p className="text-lg font-semibold text-[#1a1a2e]">
+                Telegram подключен!
+              </p>
+              <p className="text-sm text-[#555]">
+                Теперь заявки на ваши квартиры будут приходить вам в бот{" "}
+                @radius_booking_bot
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  confirmTelegramLink.reset();
+                  setLinkCode("");
+                }}
+                className="mt-2 cursor-pointer rounded-[30px] bg-[#b552c7] px-6 py-2.5 text-base font-semibold text-white hover:bg-[#a244b2]"
+              >
+                Готово
+              </button>
+            </div>
+          ) : (
+            <div className="text-center">
+              <p className="text-[17px] font-semibold text-[#1a1a2e]">
+                Подключение Telegram
+              </p>
+              <p className="mt-3 text-sm text-[#555]">
+                1. Откройте бота{" "}
+                <span className="font-medium text-[#6b21a8]">
+                  @radius_booking_bot
+                </span>{" "}
+                в Telegram
+              </p>
+              <p className="mt-1 text-sm text-[#555]">
+                2. Нажмите кнопку «Запустить»
+              </p>
+              <p className="mt-1 text-sm text-[#555]">
+                3. Отправьте боту этот код:
+              </p>
+              <p className="mx-auto mt-3 w-fit rounded-2xl bg-[#f6eefe] px-8 py-3 text-3xl font-bold tracking-[0.3em] text-[#6b21a8]">
+                {linkCode}
+              </p>
+              <button
+                type="button"
+                onClick={() => confirmTelegramLink.mutate()}
+                disabled={confirmTelegramLink.isPending}
+                className="mt-5 cursor-pointer rounded-[30px] bg-[#b552c7] px-6 py-2.5 text-base font-semibold text-white hover:bg-[#a244b2] disabled:opacity-60"
+              >
+                {confirmTelegramLink.isPending
+                  ? "Проверяем..."
+                  : "Я отправил код — проверить"}
+              </button>
+              {confirmTelegramLink.error && (
+                <p className="mx-auto mt-3 max-w-xs text-sm text-red-600">
+                  {confirmTelegramLink.error.message}
+                </p>
+              )}
+            </div>
+          )}
         </Modal>
       </AuthGuard>
     </>

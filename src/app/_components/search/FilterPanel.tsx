@@ -70,8 +70,8 @@ export function FilterPanel({
                 onClick={() => onChange({ ...filters, rooms: active ? null : r })}
                 className={`min-w-[44px] cursor-pointer rounded-full border px-4 py-2 text-sm font-medium transition-all duration-200 ${
                   active
-                    ? "border-[#6b21a8] bg-[#6b21a8] text-white shadow-[0_4px_12px_rgba(107,33,168,0.3)]"
-                    : "border-[#e0e0e0] bg-white text-[#222] hover:border-[#6b21a8]"
+                    ? "border-gray-800 bg-gray-800 text-white shadow-[0_4px_12px_rgba(0,0,0,0.2)]"
+                    : "border-[#e0e0e0] bg-white text-[#222] hover:border-gray-800"
                 }`}
               >
                 {r === 4 ? "4+" : r}
@@ -96,8 +96,8 @@ export function FilterPanel({
                 onClick={() => onChange({ ...filters, beds: active ? null : n })}
                 className={`min-w-[44px] cursor-pointer rounded-full border px-4 py-2 text-sm font-medium transition-all duration-200 ${
                   active
-                    ? "border-[#6b21a8] bg-[#6b21a8] text-white shadow-[0_4px_12px_rgba(107,33,168,0.3)]"
-                    : "border-[#e0e0e0] bg-white text-[#222] hover:border-[#6b21a8]"
+                    ? "border-gray-800 bg-gray-800 text-white shadow-[0_4px_12px_rgba(0,0,0,0.2)]"
+                    : "border-[#e0e0e0] bg-white text-[#222] hover:border-gray-800"
                 }`}
               >
                 {n === 4 ? "4+" : n}
@@ -122,8 +122,8 @@ export function FilterPanel({
                 onClick={() => onChange({ ...filters, sofas: active ? null : n })}
                 className={`min-w-[44px] cursor-pointer rounded-full border px-4 py-2 text-sm font-medium transition-all duration-200 ${
                   active
-                    ? "border-[#6b21a8] bg-[#6b21a8] text-white shadow-[0_4px_12px_rgba(107,33,168,0.3)]"
-                    : "border-[#e0e0e0] bg-white text-[#222] hover:border-[#6b21a8]"
+                    ? "border-gray-800 bg-gray-800 text-white shadow-[0_4px_12px_rgba(0,0,0,0.2)]"
+                    : "border-[#e0e0e0] bg-white text-[#222] hover:border-gray-800"
                 }`}
               >
                 {n === 4 ? "4+" : n}

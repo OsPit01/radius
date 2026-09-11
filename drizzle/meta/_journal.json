@@ -15,6 +15,13 @@
       "when": 1788290138862,
       "tag": "0001_funny_rogue",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789160333077,
+      "tag": "0002_handy_ronan",
+      "breakpoints": true
     }
   ]
 }

@@ -4,6 +4,7 @@ import { users, apartments, favorites } from "@/server/db/schema";
 import { eq, count } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { getRoleInfo, isAdminRole, ROLE_VALUES } from "@/lib/constants/roles";
+import { getTelegramUpdates, sendTelegramMessage } from "@/lib/telegram";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import type * as schema from "@/server/db/schema";
 
@@ -82,6 +83,8 @@ export const userRouter = createTRPCRouter({
           emailVerified: users.emailVerified,
           totalBookings: users?.totalBookings,
           totalFavorites: users?.totalFavorites,
+          telegramChatId: users.telegramChatId,
+          telegramLinkCode: users.telegramLinkCode,
         })
         .from(users)
         .where(eq(users.id, input.id));
@@ -181,6 +184,12 @@ export const userRouter = createTRPCRouter({
         patronymic: z.string().optional(),
         totalBookings: z.number().optional(),
         totalFavorites: z.number().optional(),
+        telegramChatId: z
+          .string()
+          .trim()
+          .regex(/^-?\d{1,20}$/, "Telegram chat id должен быть числом")
+          .nullable()
+          .optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -197,6 +206,7 @@ export const userRouter = createTRPCRouter({
           patronymic: input.patronymic,
           totalBookings: input.totalBookings,
           totalFavorites: input.totalFavorites,
+          telegramChatId: input.telegramChatId ?? undefined,
         })
         .where(eq(users.id, userId))
         .returning();
@@ -279,4 +289,73 @@ export const userRouter = createTRPCRouter({
         .returning();
       return updated;
     }),
+
+  // 8. Telegram: начать привязку (генерируем одноразовый код)
+  startTelegramLink: protectedProcedure.mutation(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+    const code = String(
+      Math.floor(Math.random() * 900_000) + 100_000,
+    );
+
+    await ctx.db
+      .update(users)
+      .set({ telegramLinkCode: code })
+      .where(eq(users.id, userId));
+
+    return { code };
+  }),
+
+  // 9. Telegram: подтвердить привязку (считываем код из getUpdates)
+  confirmTelegramLink: protectedProcedure.mutation(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+
+    const [user] = await ctx.db
+      .select({ telegramLinkCode: users.telegramLinkCode })
+      .from(users)
+      .where(eq(users.id, userId));
+
+    const expectedCode = user?.telegramLinkCode;
+    if (!expectedCode) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Сначала нажмите «Подключить Telegram»",
+      });
+    }
+
+    const updates = await getTelegramUpdates();
+    const match = updates.find((u) => u.text.trim() === expectedCode);
+
+    if (!match) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "Сообщение с кодом не найдено. Убедитесь, что код отправлен боту @radius_booking_bot точно как на экране",
+      });
+    }
+
+    await ctx.db
+      .update(users)
+      .set({
+        telegramChatId: String(match.chatId),
+        telegramLinkCode: null,
+      })
+      .where(eq(users.id, userId));
+
+    await sendTelegramMessage(
+      String(match.chatId),
+      "Поздравляем! Вы подключили уведомления. Теперь на этот чат будут приходить заявки на бронирование.",
+    );
+
+    return { chatId: String(match.chatId) };
+  }),
+
+  // 10. Telegram: отвязать
+  clearTelegramLink: protectedProcedure.mutation(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+    await ctx.db
+      .update(users)
+      .set({ telegramChatId: null, telegramLinkCode: null })
+      .where(eq(users.id, userId));
+    return { ok: true };
+  }),
 });

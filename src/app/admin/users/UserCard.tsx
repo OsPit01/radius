@@ -121,7 +121,7 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
             ))}
           </select>
           <button
-            className="cursor-pointer rounded-[30px] bg-[#b552c7] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#9a3fb0]"
+            className="cursor-pointer rounded-[30px] bg-gray-800 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-700"
             onClick={() => {
               if (!selectedRole) return;
               updateRole.mutate({ userId: user.id, role: selectedRole });
@@ -201,7 +201,7 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
           <button
             onClick={handleSave}
             disabled={updateUser.isPending}
-            className="mt-2 cursor-pointer rounded-[30px] bg-[#b552c7] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#9a3fb0]"
+            className="mt-2 cursor-pointer rounded-[30px] bg-gray-800 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-gray-700"
           >
             {updateUser.isPending ? "Сохранение..." : "Сохранить"}
           </button>

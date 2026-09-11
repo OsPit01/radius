@@ -91,6 +91,11 @@ export const users = createTable("user", (d) => ({
   totalApartments: d.integer().notNull().default(0),
   // null = не забанен, дата = забанен до этого момента
   bannedUntil: d.timestamp({ withTimezone: true }),
+  // Telegram chat id арендодателя (куда слать уведомления о брони).
+  // null = не указан, уведомления не отправляются.
+  telegramChatId: d.varchar({ length: 50 }),
+  // Одноразовый код для привязки Telegram (после привязки стирается).
+  telegramLinkCode: d.varchar({ length: 10 }),
 }));
 // ======== User ============= //
 export const usersRelations = relations(users, ({ many }) => ({
@@ -190,6 +195,26 @@ export const notification = createTable("notification", (d) => ({
   readAt: d.timestamp({ withTimezone: true }),
   link: d.varchar({ length: 255 }),
   priority: d.varchar({ length: 20 }).default("normal"),
+  createdAt: d
+    .timestamp({ withTimezone: true })
+    .$defaultFn(() => new Date())
+    .notNull(),
+}));
+
+export const booking = createTable("booking", (d) => ({
+  id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+  apartmentId: d
+    .integer()
+    .notNull()
+    .references(() => apartments.id),
+  userId: d.varchar({ length: 255 }).references(() => users.id),
+  guestName: d.varchar({ length: 255 }).notNull(),
+  guestPhone: d.varchar({ length: 50 }).notNull(),
+  guests: d.integer().notNull(),
+  checkInDate: d.date({ mode: "date" }).notNull(),
+  checkOutDate: d.date({ mode: "date" }).notNull(),
+  message: d.text(),
+  status: d.varchar({ length: 20 }).notNull().default("new"),
   createdAt: d
     .timestamp({ withTimezone: true })
     .$defaultFn(() => new Date())
