@@ -4,7 +4,6 @@ import { users, apartments, favorites } from "@/server/db/schema";
 import { eq, count } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { getRoleInfo, isAdminRole, ROLE_VALUES } from "@/lib/constants/roles";
-import { getTelegramUpdates, sendTelegramMessage } from "@/lib/telegram";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import type * as schema from "@/server/db/schema";
 
@@ -305,48 +304,24 @@ export const userRouter = createTRPCRouter({
     return { code };
   }),
 
-  // 9. Telegram: подтвердить привязку (считываем код из getUpdates)
+  // 9. Telegram: подтвердить привязку (webhook уже привязал chatId, осталось проверить)
   confirmTelegramLink: protectedProcedure.mutation(async ({ ctx }) => {
     const userId = ctx.session.user.id;
 
     const [user] = await ctx.db
-      .select({ telegramLinkCode: users.telegramLinkCode })
+      .select({ telegramChatId: users.telegramChatId })
       .from(users)
       .where(eq(users.id, userId));
 
-    const expectedCode = user?.telegramLinkCode;
-    if (!expectedCode) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Сначала нажмите «Подключить Telegram»",
-      });
-    }
-
-    const updates = await getTelegramUpdates();
-    const match = updates.find((u) => u.text.trim() === expectedCode);
-
-    if (!match) {
+    if (!user?.telegramChatId) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message:
-          "Сообщение с кодом не найдено. Убедитесь, что код отправлен боту @radius_booking_bot точно как на экране",
+          "Сообщение с кодом пока не получено. Убедитесь, что код отправлен боту @radius_booking_bot точно как на экране",
       });
     }
 
-    await ctx.db
-      .update(users)
-      .set({
-        telegramChatId: String(match.chatId),
-        telegramLinkCode: null,
-      })
-      .where(eq(users.id, userId));
-
-    await sendTelegramMessage(
-      String(match.chatId),
-      "Поздравляем! Вы подключили уведомления. Теперь на этот чат будут приходить заявки на бронирование.",
-    );
-
-    return { chatId: String(match.chatId) };
+    return { chatId: user.telegramChatId };
   }),
 
   // 10. Telegram: отвязать
