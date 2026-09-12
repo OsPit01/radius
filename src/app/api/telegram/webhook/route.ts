@@ -29,8 +29,14 @@ export async function POST(req: NextRequest) {
   if (env.TELEGRAM_WEBHOOK_SECRET && secret !== env.TELEGRAM_WEBHOOK_SECRET) {
     return NextResponse.json({ ok: false }, { status: 401 });
   }
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ ok: true });
+  }
+  const parsed = telegramUpdateSchema.safeParse(body);
 
-  const parsed = telegramUpdateSchema.safeParse(await req.json());
   if (!parsed.success) {
     return NextResponse.json({ ok: false });
   }
