@@ -77,7 +77,7 @@ export default async function ApartmentPage({
           <div className="flex flex-col rounded-2xl border border-[#e0e0e0] bg-white p-6 shadow-sm">
             {/* Адрес + метро (одной строкой с иконками) */}
             <div className="flex flex-wrap items-start gap-x-2 gap-y-1">
-              <span className="text-gray-400">📍</span>
+              <span>📍</span>
               <p className="flex-1 text-base text-[#222]">
                 г. {apartment.apartment.city}, ул. {apartment.apartment.street},{" "}
                 {apartment.apartment.numberHome}
@@ -88,8 +88,8 @@ export default async function ApartmentPage({
             </div>
 
             <div className="mt-2 flex flex-wrap items-center gap-x-2">
-              <span className="text-gray-400">🚇</span>
-              <p className="text-sm text-[#888]">
+              <span>🚇</span>
+              <p className="text-sm text-gray-800">
                 {apartment.apartment.metro
                   ? `${apartment.apartment.metro} минут до метро`
                   : "Метро нет в шаговой доступности"}
@@ -97,21 +97,21 @@ export default async function ApartmentPage({
             </div>
             {sleepText && (
               <div className="mt-2 flex flex-wrap items-center gap-x-2">
-                <span className="text-gray-400">🛏️</span>
-                <p className="text-sm text-[#888]">{sleepText}</p>
+                <span>🛏️</span>
+                <p className="text-sm text-gray-800">{sleepText}</p>
               </div>
             )}
 
             {/* Время заезда/выезда */}
             <div className="mt-2 flex flex-wrap items-center gap-x-2">
-              <span className="text-gray-400">🕒</span>
-              <p className="text-sm text-[#888]">
+              <span>🕒</span>
+              <p className="text-sm text-gray-800">
                 Заселение после{" "}
-                <span className="rounded-lg bg-gray-100 px-2 py-0.5 text-sm font-medium text-gray-800">
+                <span className="border-b-[1px] px-2 py-0.5 text-[13px] font-medium text-gray-800">
                   {apartment.apartment.checkInTime ?? "14:00"}
-                </span>
-                , выезд до{" "}
-                <span className="rounded-lg bg-gray-100 px-2 py-0.5 text-sm font-medium text-gray-800">
+                </span>{" "}
+                выезд до{" "}
+                <span className="border-b-[1px] px-2 py-0.5 text-[13px] font-medium text-gray-800">
                   {apartment.apartment.checkOutTime ?? "12:00"}
                 </span>
               </p>
@@ -119,13 +119,13 @@ export default async function ApartmentPage({
 
             {/* Цена */}
             <div className="mt-6 flex flex-wrap items-baseline gap-x-1.5">
-              <span className="text-3xl font-bold text-gray-800">
+              <span className="text-[20px] font-bold text-gray-800">
                 {apartment.apartment.price}
               </span>
-              <span className="text-lg font-medium text-gray-600">
+              <span className="text-[10px] font-medium text-gray-900">
                 {apartment.apartment.currency ?? "BYN"}
               </span>
-              <span className="text-sm text-gray-600">/ сутки</span>
+              <span className="text-[15px] text-gray-900">/ сутки</span>
             </div>
 
             {/* Арендодатель */}

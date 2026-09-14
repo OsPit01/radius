@@ -3,7 +3,9 @@ import { useSession } from "next-auth/react";
 import { ApartmentCard } from "./ApartmentCard";
 import { api } from "@/trpc/react";
 import type { Filters } from "../search/FilterPanel";
-
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect, useState } from "react";
+const APARTMENTS_PAGE_SIZE = 1;
 type Apartment = {
   id: number;
   title: string;
@@ -23,7 +25,7 @@ type Apartment = {
 };
 
 type ApartmentsListProps = {
-  apartments: Apartment[]; // ← ЭТО ДОЛЖНО БЫТЬ!
+  apartments: Apartment[];
   searchQuery?: string;
   totalGuests?: number;
   filters?: Filters;
@@ -39,6 +41,7 @@ export function ApartmentsList({
   const { data: favIds } = api.favorites.listIds.useQuery(undefined, {
     enabled: !!session?.user,
   });
+
   // ===== ФИЛЬТРАЦИЯ =====
   const filteredApartments = apartments.filter((apartment) => {
     const matchesSearch =
@@ -58,13 +61,11 @@ export function ApartmentsList({
         : apartment.rooms === filters.rooms);
 
     const totalBeds = (apartment.beds ?? 0) + (apartment.singleBeds ?? 0);
-    const matchesBeds =
-      filters?.beds == null || totalBeds >= filters.beds;
+    const matchesBeds = filters?.beds == null || totalBeds >= filters.beds;
 
     const totalSofas =
       (apartment.doubleSofas ?? 0) + (apartment.singleSofas ?? 0);
-    const matchesSofas =
-      filters?.sofas == null || totalSofas >= filters.sofas;
+    const matchesSofas = filters?.sofas == null || totalSofas >= filters.sofas;
 
     return (
       matchesSearch &&
@@ -76,9 +77,23 @@ export function ApartmentsList({
       matchesSofas
     );
   });
-
   const foundCount = filteredApartments.length;
 
+  const totalPages = Math.ceil(
+    filteredApartments.length / APARTMENTS_PAGE_SIZE,
+  );
+  //Состояние страниц
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const visibleApartments = filteredApartments.slice(
+    (currentPage - 1) * APARTMENTS_PAGE_SIZE,
+    currentPage * APARTMENTS_PAGE_SIZE,
+  );
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, totalGuests, filters]);
+
+  const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
   if (foundCount === 0) {
     return (
       <div className="my-[50px] w-full">
@@ -112,7 +127,7 @@ export function ApartmentsList({
       </h2>
 
       <div className="mx-auto grid max-w-[1400px] grid-cols-2 gap-[50px] px-5 max-md:grid-cols-1 max-md:gap-5 max-md:px-4">
-        {filteredApartments.map((apartment) => (
+        {visibleApartments.map((apartment) => (
           <ApartmentCard
             key={apartment.id}
             apartment={apartment}
@@ -120,6 +135,65 @@ export function ApartmentsList({
           />
         ))}
       </div>
+      <div className="mt-10 flex items-center justify-center gap-4">
+        <button
+          type="button"
+          onClick={() => setCurrentPage(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-gray-200 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          <ChevronLeft className="h-6 w-6"></ChevronLeft>
+        </button>
+
+        <div>
+          {getPageItems(currentPage, totalPages).map((item) =>
+            typeof item === "number" ? (
+              <button
+                key={item}
+                type="button"
+                onClick={() => setCurrentPage(item)}
+                className={`ml-1 h-11 w-11 rounded-full transition-colors ${item === currentPage ? "bg-gray-700 text-white" : "bg-gray-200 text-[#333] hover:bg-gray-300"}`}
+              >
+                {item}
+              </button>
+            ) : (
+              <span key="dots">...</span>
+            ),
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={() => setCurrentPage(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-gray-200 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          <ChevronRight className="h-6 w-6"></ChevronRight>
+        </button>
+      </div>
     </div>
   );
+}
+function getPageItems(
+  currentPage: number,
+  totalPages: number,
+): (number | string)[] {
+  const items: (number | string)[] = [];
+  items.push(1);
+  // 2. многоточие слева (условие!)
+  if (currentPage - 1 > 2) {
+    items.push("...");
+  }
+  // 3. соседи ( цикл, но с защитой границ)
+  for (let page = currentPage - 1; page <= currentPage + 1; page++) {
+    if (page > 1 && page < totalPages) {
+      items.push(page);
+    }
+  }
+  // 4. многоточие справа (условие!)
+  if (currentPage + 1 < totalPages - 1) items.push("...");
+  // 5. последняя страница (только если больше 1)
+  if (totalPages > 1) {
+    items.push(totalPages);
+  }
+  return items;
 }
