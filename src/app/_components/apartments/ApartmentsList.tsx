@@ -5,7 +5,8 @@ import { api } from "@/trpc/react";
 import type { Filters } from "../search/FilterPanel";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
-const APARTMENTS_PAGE_SIZE = 1;
+const APARTMENTS_PAGE_SIZE = 12;
+
 type Apartment = {
   id: number;
   title: string;
@@ -93,7 +94,6 @@ export function ApartmentsList({
     setCurrentPage(1);
   }, [searchQuery, totalGuests, filters]);
 
-  const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
   if (foundCount === 0) {
     return (
       <div className="my-[50px] w-full">
@@ -179,8 +179,13 @@ function getPageItems(
 ): (number | string)[] {
   const items: (number | string)[] = [];
   items.push(1);
+
+  // СЛУЧАЙ 1 — страниц мало, показываем всё
+  if (totalPages < 7) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
   // 2. многоточие слева (условие!)
-  if (currentPage - 1 > totalPages - 6) {
+  if (currentPage - 1 > 2) {
     items.push("...");
   }
   // 3. соседи ( цикл, но с защитой границ)
@@ -189,8 +194,7 @@ function getPageItems(
       items.push(page);
     }
   }
-  // 4. многоточие справа (условие!)
-  if (currentPage + 1 < totalPages - 1) items.push("...");
+
   // 5. последняя страница (только если больше 1)
   if (totalPages > 1) {
     items.push(totalPages);
