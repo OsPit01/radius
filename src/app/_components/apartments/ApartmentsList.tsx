@@ -146,18 +146,18 @@ export function ApartmentsList({
         </button>
 
         <div>
-          {getPageItems(currentPage, totalPages).map((item) =>
+          {getPageItems(currentPage, totalPages).map((item, index) =>
             typeof item === "number" ? (
               <button
                 key={item}
                 type="button"
                 onClick={() => setCurrentPage(item)}
-                className={`ml-1 h-11 w-11 rounded-full transition-colors ${item === currentPage ? "bg-gray-700 text-white" : "bg-gray-200 text-[#333] hover:bg-gray-300"}`}
+                className={`ml-1 h-8 w-8 rounded-full transition-colors ${item === currentPage ? "bg-gray-700 text-white" : "bg-gray-200 text-[#333] hover:bg-gray-300"}`}
               >
                 {item}
               </button>
             ) : (
-              <span key="dots">...</span>
+              <span key={`dots-${index}`}>...</span>
             ),
           )}
         </div>
@@ -180,7 +180,7 @@ function getPageItems(
   const items: (number | string)[] = [];
   items.push(1);
   // 2. многоточие слева (условие!)
-  if (currentPage - 1 > 2) {
+  if (currentPage - 1 > totalPages - 6) {
     items.push("...");
   }
   // 3. соседи ( цикл, но с защитой границ)
