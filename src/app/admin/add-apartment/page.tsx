@@ -10,6 +10,7 @@ import { Step4_Details } from "./steps/Step4_Details";
 import { Step5_Images } from "./steps/Step5_Images";
 import { NavigationButtons } from "./components/NavigationButtons";
 import { ClientHeader } from "@/app/_components/layout/ClientHeader";
+import { Modal } from "@/app/_components/ui/Modal";
 import {
   formatApartmentData,
   validateStep,
@@ -61,6 +62,7 @@ export default function AddApartmentPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errorFields, setErrorFields] = useState<(keyof FormData)[]>([]);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   // ===== ФУНКЦИЯ ОБНОВЛЕНИЯ ДАННЫХ =====
   const updateField = (
@@ -75,7 +77,7 @@ export default function AddApartmentPage() {
   const createApartment = api.apartment.create.useMutation({
     onSuccess: async () => {
       await utils.apartment.getAll.invalidate();
-      router.push("/");
+      setShowSuccess(true);
     },
     onError: (trpcErr) => {
       setError(trpcErr.message ?? "Произошла ошибка при отправке");
@@ -216,6 +218,24 @@ export default function AddApartmentPage() {
           </form>
         </div>
       </div>
+
+      <Modal
+        open={showSuccess}
+        onClose={() => router.push("/")}
+        title="Объект добавлен"
+      >
+        <p className="mb-6 text-center text-base text-[#333]">
+          Ваш объект успешно добавлен и находится на модерации. После проверки
+          модератором он появится в каталоге.
+        </p>
+        <button
+          type="button"
+          onClick={() => router.push("/")}
+          className="w-full cursor-pointer rounded-[30px] bg-gray-800 px-6 py-3 text-base font-medium text-white transition-colors hover:bg-gray-700"
+        >
+          На главную
+        </button>
+      </Modal>
     </>
   );
 }

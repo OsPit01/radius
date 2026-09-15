@@ -2,7 +2,7 @@
 
 import type { Filters } from "./FilterPanel";
 
-export type ChipKey = "priceMin" | "priceMax" | "rooms" | "beds" | "sofas";
+export type ChipKey = "priceMin" | "priceMax" | "rooms" | "beds" | "sofas" | "metro";
 
 export function FilterChips({
   filters,
@@ -36,6 +36,12 @@ export function FilterChips({
     chips.push({
       key: "sofas",
       label: `диванов: от ${label}`,
+    });
+  }
+  if (filters.metro !== null) {
+    chips.push({
+      key: "metro",
+      label: `метро: до ${filters.metro} мин`,
     });
   }
 

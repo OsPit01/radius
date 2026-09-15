@@ -134,6 +134,7 @@ export const apartmentRouter = createTRPCRouter({
           rooms: z.number().int().min(1).optional(),
           beds: z.number().int().min(1).optional(),
           sofas: z.number().int().min(1).optional(),
+          metro: z.number().int().min(1).optional(),
         })
         .optional(),
     )
@@ -174,6 +175,12 @@ export const apartmentRouter = createTRPCRouter({
             sql`${apartments.doubleSofas} + ${apartments.singleSofas}`,
             input.sofas,
           ),
+        );
+      }
+      if (input?.metro) {
+        // metro хранится как varchar (минуты пешком), поэтому сравниваем численно через CAST
+        conditions.push(
+          sql`${apartments.metro} IS NOT NULL AND ${apartments.metro} <> '' AND CAST(${apartments.metro} AS INTEGER) <= ${input.metro}`,
         );
       }
 

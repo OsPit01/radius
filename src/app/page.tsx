@@ -51,6 +51,7 @@ export default async function Home({ searchParams }: HomePageProps) {
     rooms: filters.rooms,
     beds: filters.beds,
     sofas: filters.sofas,
+    metro: filters.metro,
   });
   const apartments = data.map((item) => getApartmentCardData(item.apartment));
   const queryString = buildQueryString(filters);

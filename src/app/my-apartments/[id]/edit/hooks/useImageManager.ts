@@ -120,6 +120,12 @@ export function useImageManager({
 
     newImages.splice(index, 0, draggedItem);
     onImagesChange?.(newImages);
+
+    const firstImage = newImages[0];
+    if (firstImage && firstImage !== mainImage) {
+      onMainImageChange?.(firstImage);
+    }
+
     setDragIndex(index);
   };
 

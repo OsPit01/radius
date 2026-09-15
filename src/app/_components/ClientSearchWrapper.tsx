@@ -27,6 +27,7 @@ function toUiFilters(initial: SearchFilters): Filters {
     rooms: initial.rooms ?? null,
     beds: initial.beds ?? null,
     sofas: initial.sofas ?? null,
+    metro: initial.metro ?? null,
   };
 }
 
@@ -99,6 +100,7 @@ export function ClientSearchWrapper({
       rooms: tempFilters.rooms ?? undefined,
       beds: tempFilters.beds ?? undefined,
       sofas: tempFilters.sofas ?? undefined,
+      metro: tempFilters.metro ?? undefined,
     };
     router.replace(buildSearchUrl(urlFilters), { scroll: false });
     setTimeout(() => setIsLoading(false), 300);
@@ -111,7 +113,8 @@ export function ClientSearchWrapper({
 
   // ===== УБРАТЬ ОДИН ФИЛЬТР (чип) =====
   const removeFilter = (key: ChipKey) => {
-    const isCountFilter = key === "rooms" || key === "beds" || key === "sofas";
+    const isCountFilter =
+      key === "rooms" || key === "beds" || key === "sofas" || key === "metro";
     const next: Filters = {
       ...activeFilters,
       [key]: isCountFilter ? null : "",
@@ -126,6 +129,7 @@ export function ClientSearchWrapper({
       rooms: next.rooms ?? undefined,
       beds: next.beds ?? undefined,
       sofas: next.sofas ?? undefined,
+      metro: next.metro ?? undefined,
     };
     router.replace(buildSearchUrl(urlFilters), { scroll: false });
   };

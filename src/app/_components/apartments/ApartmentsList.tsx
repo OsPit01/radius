@@ -68,6 +68,10 @@ export function ApartmentsList({
       (apartment.doubleSofas ?? 0) + (apartment.singleSofas ?? 0);
     const matchesSofas = filters?.sofas == null || totalSofas >= filters.sofas;
 
+    const matchesMetro =
+      filters?.metro == null ||
+      (apartment.metro !== "" && Number(apartment.metro) <= filters.metro);
+
     return (
       matchesSearch &&
       matchesCapacity &&
@@ -75,7 +79,8 @@ export function ApartmentsList({
       matchesPriceMax &&
       matchesRooms &&
       matchesBeds &&
-      matchesSofas
+      matchesSofas &&
+      matchesMetro
     );
   });
   const foundCount = filteredApartments.length;

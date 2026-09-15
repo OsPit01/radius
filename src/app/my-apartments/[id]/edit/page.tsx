@@ -108,9 +108,12 @@ export default function EditApartmentPage() {
       if (!item) return;
       next.splice(toIdx, 0, item);
       updateField("images", next);
+      if (next[0] && next[0] !== mainImage) {
+        updateField("image", next[0]);
+      }
       setDragIdx(toIdx);
     },
-    [images, dragIdx, updateField],
+    [images, dragIdx, updateField, mainImage],
   );
 
   const handleFileChange = useCallback(
@@ -158,7 +161,7 @@ export default function EditApartmentPage() {
                         }`}
                         draggable={!isMain}
                         onDragStart={() => !isMain && handleDragStart(index)}
-                        onDragOver={(e) => !isMain && handleDragOver(e, index)}
+                        onDragOver={(e) => handleDragOver(e, index)}
                         onDragEnd={handleDragEnd}
                       >
                         <div className="relative h-full w-full">

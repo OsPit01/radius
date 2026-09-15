@@ -6,6 +6,7 @@ export type Filters = {
   rooms: number | null; // null = не выбрано, 4 = "4+"
   beds: number | null; // null = не выбрано, 4 = "4+"
   sofas: number | null; // null = не выбрано, 4 = "4+"
+  metro: number | null; // null = не выбрано, значение = "до N минут пешком"
 };
 
 export const EMPTY_FILTERS: Filters = {
@@ -14,9 +15,11 @@ export const EMPTY_FILTERS: Filters = {
   rooms: null,
   beds: null,
   sofas: null,
+  metro: null,
 };
 
 const COUNT_OPTIONS = [1, 2, 3, 4]; // 4 отображается как "4+"
+const METRO_OPTIONS = [5, 10, 15, 20, 25, 30]; // до N минут пешком
 
 export function FilterPanel({
   filters,
@@ -131,6 +134,30 @@ export function FilterPanel({
             );
           })}
         </div>
+      </div>
+
+      {/* Метро (до N минут пешком) */}
+      <div>
+        <p className="mb-3 text-sm font-semibold text-[#222]">
+          До метро, минут
+        </p>
+        <select
+          value={filters.metro ?? ""}
+          onChange={(e) =>
+            onChange({
+              ...filters,
+              metro: e.target.value ? Number(e.target.value) : null,
+            })
+          }
+          className="w-full cursor-pointer rounded-xl border border-[#e0e0e0] bg-white px-3.5 py-2.5 text-sm text-[#222] outline-none transition-colors focus:border-[#6b21a8]"
+        >
+          <option value="">Любое</option>
+          {METRO_OPTIONS.map((m) => (
+            <option key={m} value={m}>
+              до {m} минут
+            </option>
+          ))}
+        </select>
       </div>
     </div>
   );

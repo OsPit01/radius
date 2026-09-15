@@ -9,6 +9,7 @@ export type SearchFilters = {
   rooms?: number;
   beds?: number;
   sofas?: number;
+  metro?: number;
 };
 
 // Фиксированный порядок ключей в строке запроса:
@@ -21,6 +22,7 @@ const QUERY_KEY_ORDER = [
   "rooms",
   "beds",
   "sofas",
+  "metro",
 ] as const;
 
 function toPositiveInt(value: string | string[] | undefined): number | undefined {
@@ -44,6 +46,7 @@ export function parseSearchParams(
     rooms: toPositiveInt(searchParams.rooms),
     beds: toPositiveInt(searchParams.beds),
     sofas: toPositiveInt(searchParams.sofas),
+    metro: toPositiveInt(searchParams.metro),
   };
 }
 
