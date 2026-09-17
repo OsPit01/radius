@@ -22,11 +22,11 @@ export function buildStatusNotificationText(
   reason?: string,
 ): string {
   if (status === "active") {
-    return `Ваш объект ${title} Прошёл модерацию, поздравляем!`;
+    return `Ваш объект «${title}» прошёл модерацию, поздравляем!`;
   }
   if (status === "inactive") {
     return reason
-      ? `Ваш объект «${title}» отклонён. Причина: ${reason} `
+      ? `Ваш объект «${title}» отклонён. Причина: ${reason}`
       : `Ваш объект «${title}» отклонён`;
   }
   return `Ваш объект «${title}» на модерации`;

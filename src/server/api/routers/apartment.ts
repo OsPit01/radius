@@ -88,7 +88,7 @@ const createApartmentSchema = z.object({
       /^[A-Za-zА-Яа-яЁё\s.\-()]+$/,
       "В названии улицы не должно быть цифр",
     ),
-  numberHome: z.string().min(1, "Номер дома обязатеелен"),
+  numberHome: z.string().min(1, "Номер дома обязателен"),
   building: z.string().nullable().optional(),
 
   // ЧТО И ЗАЧЕМ ТУТ МЕНЯТЬ: Убрали .min(2) и сделали поле .optional().default("").

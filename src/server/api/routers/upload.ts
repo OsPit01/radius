@@ -3,6 +3,9 @@ import { TRPCError } from "@trpc/server";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { getSupabaseAdmin } from "@/server/supabase";
 
+// Максимальный размер загружаемого изображения — 5 МБ.
+const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
+
 export const uploadRouter = createTRPCRouter({
   image: protectedProcedure
     .input(z.object({ dataUrl: z.string() }))
@@ -18,9 +21,26 @@ export const uploadRouter = createTRPCRouter({
 
       const mimeType = match[1] ?? "image/jpeg";
       const base64 = match[2] ?? "";
-      const ext = mimeType.split("/")[1]?.replace("+", "") ?? "jpg";
+
+      // SVG запрещён: может содержать скрипты (XSS).
+      if (mimeType === "image/svg+xml") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Формат SVG не поддерживается",
+        });
+      }
 
       const buffer = Buffer.from(base64, "base64");
+
+      // Лимит размера файла, чтобы не загружали слишком тяжёлые изображения.
+      if (buffer.length > MAX_IMAGE_SIZE_BYTES) {
+        throw new TRPCError({
+          code: "PAYLOAD_TOO_LARGE",
+          message: "Файл слишком большой. Максимум 5 МБ",
+        });
+      }
+
+      const ext = mimeType.split("/")[1]?.replace("+", "") ?? "jpg";
       const fileName = `${crypto.randomUUID()}.${ext}`;
 
       const supabaseAdmin = getSupabaseAdmin();

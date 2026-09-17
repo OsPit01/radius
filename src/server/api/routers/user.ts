@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { users, apartments, favorites } from "@/server/db/schema";
+import { users, apartments, favorites, booking } from "@/server/db/schema";
 import { eq, count } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { getRoleInfo, isAdminRole, ROLE_VALUES } from "@/lib/constants/roles";
@@ -156,7 +156,6 @@ export const userRouter = createTRPCRouter({
         }
       }
 
-      // TODO: добавить подсчёт бронирований и избранного, когда появятся соответствующие таблицы
       const [user] = await ctx.db
         .select()
         .from(users)
@@ -172,12 +171,19 @@ export const userRouter = createTRPCRouter({
         .from(favorites)
         .where(eq(favorites.userId, userId));
 
+      // Заявки на бронирование квартир этого пользователя (как арендодателя)
+      const [bookingsCount] = await ctx.db
+        .select({ count: count() })
+        .from(booking)
+        .innerJoin(apartments, eq(booking.apartmentId, apartments.id))
+        .where(eq(apartments.createdById, userId));
+
       return {
         user,
         stats: {
-          totalApartments: apartmentsCount?.count ?? 0, // TODO: подсчёт из apartments
-          totalBookings: 0, // TODO: подсчёт из bookings
-          totalFavorites: favoritesCount?.count ?? 0, // TODO: подсчёт из favorites
+          totalApartments: apartmentsCount?.count ?? 0,
+          totalBookings: bookingsCount?.count ?? 0,
+          totalFavorites: favoritesCount?.count ?? 0,
         },
       };
     }),
@@ -192,8 +198,6 @@ export const userRouter = createTRPCRouter({
         firstName: z.string().optional(),
         lastName: z.string().optional(),
         patronymic: z.string().optional(),
-        totalBookings: z.number().optional(),
-        totalFavorites: z.number().optional(),
         telegramChatId: z
           .string()
           .trim()
@@ -214,8 +218,6 @@ export const userRouter = createTRPCRouter({
           firstName: input.firstName,
           lastName: input.lastName,
           patronymic: input.patronymic,
-          totalBookings: input.totalBookings,
-          totalFavorites: input.totalFavorites,
           telegramChatId: input.telegramChatId ?? undefined,
         })
         .where(eq(users.id, userId))

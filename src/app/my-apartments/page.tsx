@@ -43,7 +43,7 @@ export default function MyApartmentsPage() {
     <>
       <AuthGuard>
         <ClientHeader />
-        <div className="mt-auto max-w-[1200px] px-5 py-10 max-md:px-4 max-md:py-5">
+        <div className="mx-auto mt-auto max-w-[1200px] px-5 py-10 max-md:px-4 max-md:py-5">
           <div className="mb-2 flex flex-wrap items-center gap-4">
             <span className="text-[28px] font-bold text-[#222] max-md:text-[22px]">
               Мои объекты

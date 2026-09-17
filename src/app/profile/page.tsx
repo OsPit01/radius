@@ -116,7 +116,7 @@ export default function ProfilePage() {
               {[
                 { value: stats.totalApartments, label: "Объектов" },
                 { value: stats.totalBookings, label: "Бронирований" },
-                { value: stats.totalFavorites, label: "квартиры в избраном" },
+                { value: stats.totalFavorites, label: "квартиры в избранном" },
               ].map((stat) => (
                 <div
                   key={stat.label}

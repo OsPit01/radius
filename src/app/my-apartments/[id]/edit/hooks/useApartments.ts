@@ -22,9 +22,6 @@ export function useMyApartments() {
     onSuccess: async () => {
       await refetch();
     },
-    onError: (err) => {
-      console.error("Ошибка удаления:", err.message);
-    },
   });
 
   const handleDelete = (id: number) => {

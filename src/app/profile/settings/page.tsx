@@ -94,8 +94,7 @@ export default function SettingsPage() {
       const res = await uploadImage.mutateAsync({ dataUrl });
       setForm((prev) => ({ ...prev, image: res.url }));
       setModalOpen(false);
-    } catch (error) {
-      console.error(error);
+    } catch {
       alert("Не удалось загрузить фото");
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = "";

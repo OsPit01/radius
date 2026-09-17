@@ -15,7 +15,7 @@ export default function FavoritesPage() {
       <AuthGuard>
         <ClientHeader />
         <div className="mx-auto max-w-[1400px] px-5 py-10 max-md:px-4">
-          <h1 className="mb-8 text-2xl font-bold text-[#222]">Избраное</h1>
+          <h1 className="mb-8 text-2xl font-bold text-[#222]">Избранное</h1>
 
           {isLoading ? (
             <LoadingSpinner label="Загрузка..." />

@@ -29,7 +29,7 @@ export function Step1_Type({ formData, updateField }: StepProps) {
       </div>
       <p className="mt-3 text-sm text-[#888]">
         {" "}
-        Выберите тип обьекта (пока доступна только квартира)
+        Выберите тип объекта (пока доступна только квартира)
       </p>
       <p className="mt-5 p-[5px] text-[13px] text-[rgba(216,214,214,0.911)]">
         {" "}

@@ -66,29 +66,33 @@ export function buildSearchUrl(filters: SearchFilters): string {
 }
 
 // ===== SEO-ЗАГОЛОВКИ ДЛЯ ОТФИЛЬТРОВАННЫХ СТРАНИЦ =====
-function roomsWord(rooms: number): string {
-  if (rooms === 1) return "1-комнатная";
-  return `${rooms}-комнатные`;
-}
-
 export function buildSearchTitle(filters: SearchFilters): string {
   if (!filters.city && !filters.rooms && !filters.guests) return HOME_TITLE;
-  const parts: string[] = [];
-  if (filters.rooms) parts.push(roomsWord(filters.rooms));
-  if (filters.city) parts.push(`в ${filters.city}`);
-  const subject = parts.length > 0 ? `Квартиры на сутки ${parts.join(" ")}` : "Квартиры на сутки";
+
+  const subject = filters.rooms
+    ? filters.rooms === 1
+      ? "1-комнатная квартира на сутки"
+      : `${filters.rooms}-комнатные квартиры на сутки`
+    : "Квартиры на сутки";
+
+  const withCity = filters.city ? `${subject} в ${filters.city}` : subject;
+
   if (filters.guests && filters.guests > 1) {
-    return `${subject} — снять на сутки на ${filters.guests} человек | Radius`;
+    return `${withCity} — снять на сутки на ${filters.guests} человек | Radius`;
   }
-  return `${subject} — снять на сутки | Radius`;
+  return `${withCity} — снять на сутки | Radius`;
 }
 
 export function buildSearchDescription(filters: SearchFilters): string {
   if (!filters.city && !filters.rooms && !filters.guests) return HOME_DESCRIPTION;
-  const parts: string[] = [];
-  if (filters.rooms) parts.push(roomsWord(filters.rooms));
-  if (filters.city) parts.push(filters.city);
-  const subject =
-    parts.length > 0 ? `Снять ${parts.join(" ")} квартиру на сутки` : "Снять квартиру на сутки";
-  return `${subject}. Актуальные фото, честные цены, бронирование онлайн напрямую от собственников.`;
+
+  const subject = filters.rooms
+    ? filters.rooms === 1
+      ? "Снять 1-комнатную квартиру"
+      : `Снять ${filters.rooms}-комнатные квартиры`
+    : "Снять квартиру";
+
+  const withCity = filters.city ? `${subject} в ${filters.city}` : subject;
+
+  return `${withCity} на сутки. Актуальные фото, честные цены, бронирование онлайн напрямую от собственников.`;
 }
