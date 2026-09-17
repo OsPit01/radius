@@ -36,7 +36,10 @@ export function PhotoGallery({
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const swiperRef = useRef<SwiperType | null>(null);
 
-  const slides = photos.map((src) => ({ src }));
+  const slides = photos.map((src, i) => ({
+    src,
+    alt: `${title} — фото ${i + 1}`,
+  }));
 
   const openLightbox = (index: number) => {
     setActiveIndex(index);
@@ -103,7 +106,7 @@ export function PhotoGallery({
             >
               <Image
                 src={src}
-                alt=""
+                alt={`${title} — фото ${i + 1}`}
                 fill
                 unoptimized
                 className="object-cover"
