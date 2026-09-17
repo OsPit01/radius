@@ -171,10 +171,12 @@ export default async function ApartmentPage({
                     {formatPhoneForDisplay(apartment.user.phone)}
                   </a>
                 )}
-                <BookingButton
-                  apartmentId={apartment.apartment.id}
-                  apartmentTitle={apartment.apartment.title}
-                />
+                {apartment.user.hasTelegram && (
+                  <BookingButton
+                    apartmentId={apartment.apartment.id}
+                    apartmentTitle={apartment.apartment.title}
+                  />
+                )}
               </div>
             )}
           </div>

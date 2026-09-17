@@ -31,6 +31,9 @@ const selectApartmentWithUser = (db: Database) =>
         firstName: users.firstName,
         lastName: users.lastName,
         patronymic: users.patronymic,
+        // Публично раскрываем только факт подключения Telegram,
+        // а не сам chat id владельца.
+        hasTelegram: sql<boolean>`${users.telegramChatId} IS NOT NULL`,
       },
     })
     .from(apartments)
