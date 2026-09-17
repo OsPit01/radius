@@ -68,6 +68,18 @@ export const userRouter = createTRPCRouter({
   getById: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
+      // Безопасность: личные данные доступны только самому пользователю
+      // или администратору. Чужой id — запрещён.
+      if (
+        input.id !== ctx.session.user.id &&
+        !isAdminRole(ctx.session.user.role)
+      ) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Нет доступа к данным другого пользователя",
+        });
+      }
+
       const [user] = await ctx.db
         .select({
           id: users.id,
@@ -83,7 +95,6 @@ export const userRouter = createTRPCRouter({
           totalBookings: users?.totalBookings,
           totalFavorites: users?.totalFavorites,
           telegramChatId: users.telegramChatId,
-          telegramLinkCode: users.telegramLinkCode,
         })
         .from(users)
         .where(eq(users.id, input.id));

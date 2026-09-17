@@ -207,17 +207,12 @@ export const apartmentRouter = createTRPCRouter({
   getByIdPublic: publicProcedure
     .input(z.object({ id: z.number() }))
     .query(async ({ ctx, input }) => {
+      // Публично доступны только опубликованные (active) квартиры.
       const [apartment] = await selectApartmentWithUser(ctx.db).where(
-        eq(apartments.id, input.id),
+        and(eq(apartments.id, input.id), eq(apartments.status, "active")),
       );
 
-      if (!apartment) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Квартира не найдена",
-        });
-      }
-      return apartment;
+      return apartment ?? null;
     }),
 
   // 3. Создать квартиру
@@ -339,6 +334,27 @@ export const apartmentRouter = createTRPCRouter({
           code: "FORBIDDEN",
           message: "У вас нет прав на редактирование этого объекта",
         });
+      }
+
+      // Адрес опубликованного объекта может менять только администратор.
+      // Обычный владелец не может менять адрес, пока объект уже опубликован.
+      if (existing.status === "active" && !isAdmin) {
+        const addressChanged =
+          existing.city !== input.city ||
+          existing.street !== input.street ||
+          existing.numberHome !== input.numberHome ||
+          (existing.building ?? "") !== (input.building ?? "") ||
+          (existing.district ?? "") !== (input.district ?? "") ||
+          (existing.formattedAddress ?? "") !==
+            (input.formattedAddress ?? "");
+
+        if (addressChanged) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message:
+              "Изменение адреса опубликованного объекта доступно только администратору",
+          });
+        }
       }
 
       const [updated] = await ctx.db

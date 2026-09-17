@@ -7,6 +7,7 @@ import { PhotoGallery } from "@/app/_components/apartments/PhotoGallery";
 import { ApartmentTabs } from "@/app/_components/apartments/ApartmentTabs";
 import { formatPhoneForDisplay } from "@/lib/phone";
 import { BookingButton } from "@/app/_components/apartments/BookingButton";
+import { getCurrencySymbol } from "@/lib/constants/currencies";
 
 export async function generateMetadata({
   params,
@@ -123,7 +124,7 @@ export default async function ApartmentPage({
                 {apartment.apartment.price}
               </span>
               <span className="text-[10px] font-medium text-gray-900">
-                {apartment.apartment.currency ?? "BYN"}
+                {getCurrencySymbol(apartment.apartment.currency)}
               </span>
               <span className="text-[15px] text-gray-900">/ сутки</span>
             </div>

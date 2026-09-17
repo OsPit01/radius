@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { AuthGuard } from "@/app/_components/layout/AuthGuard";
 import Image from "next/image";
 import Link from "next/link";
 import { AMENITIES, PARKING_TYPES, CURRENCIES } from "@/lib/constants";
 import { PAYERTYPE } from "@/lib/constants/info-company";
+import { isAdminRole } from "@/lib/constants/roles";
 import { EDIT_INPUT_CLASS, toggleAmenity, sanitizeStreet } from "@/lib/utils";
 import { useApartmentForm } from "./hooks/useApartmentForm";
 import { ClientHeader } from "@/app/_components/layout/ClientHeader";
@@ -41,12 +43,22 @@ export default function EditApartmentPage() {
     error,
     updateField,
     handleSubmit,
+    apartmentData,
   } = useApartmentForm(id);
+
+  const { data: session } = useSession();
+  // Адрес опубликованного объекта может менять только администратор.
+  const isAdmin = isAdminRole(session?.user?.role);
+  const isPublished = apartmentData?.apartment.status === "active";
+  const canEditAddress = !isPublished || isAdmin;
 
   const [isUploading, setIsUploading] = useState(false);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [streetSuggestions, setStreetSuggestions] = useState<string[]>([]);
   const [streetOpen, setStreetOpen] = useState(false);
+  // Флаг «пользователь печатает улицу прямо сейчас».
+  // Автодополнение не должно срабатывать при автоматической подгрузке адреса из БД.
+  const streetUserTypedRef = useRef(false);
 
   const uploadImage = api.upload.image.useMutation();
   const utils = api.useUtils();
@@ -55,6 +67,13 @@ export default function EditApartmentPage() {
   const mainImage = useMemo(() => formData.image ?? "", [formData.image]);
 
   useEffect(() => {
+    // Автодополнение срабатывает только когда поле активно И пользователь
+    // сам печатает улицу (не при загрузке адреса из БД).
+    if (!canEditAddress || !streetUserTypedRef.current) {
+      setStreetSuggestions([]);
+      setStreetOpen(false);
+      return;
+    }
     const query = formData.street.trim();
     if (query.length < 1) {
       setStreetSuggestions([]);
@@ -77,7 +96,7 @@ export default function EditApartmentPage() {
       })();
     }, 400);
     return () => clearTimeout(timer);
-  }, [formData.street, formData.city, utils]);
+  }, [formData.street, formData.city, utils, canEditAddress]);
 
   const addImages = useCallback(
     async (files: FileList | null) => {
@@ -507,6 +526,12 @@ export default function EditApartmentPage() {
                 <div className="mt-[35px] mb-[15px] border-b border-[#3a2a4a] pb-2 text-xl font-semibold text-white">
                   Адрес
                 </div>
+                {!canEditAddress && (
+                  <p className="mb-4 rounded-lg border border-[#3a2a4a] bg-[#2a1a3a] px-4 py-3 text-sm text-[#c9b3e1]">
+                    Адрес опубликованного объекта может изменить только
+                    администратор.
+                  </p>
+                )}
                 <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
                   <div className="mb-4 flex flex-col gap-1.5">
                     <label className="text-sm font-medium text-white">
@@ -517,7 +542,8 @@ export default function EditApartmentPage() {
                       value={formData.city}
                       onChange={(e) => updateField("city", e.target.value)}
                       required
-                      className={EDIT_INPUT_CLASS}
+                      disabled={!canEditAddress}
+                      className={`${EDIT_INPUT_CLASS} disabled:cursor-not-allowed disabled:opacity-50`}
                     />
                   </div>
                   <div className="mb-4 flex flex-col gap-1.5">
@@ -528,7 +554,8 @@ export default function EditApartmentPage() {
                       type="text"
                       value={formData.district}
                       onChange={(e) => updateField("district", e.target.value)}
-                      className={EDIT_INPUT_CLASS}
+                      disabled={!canEditAddress}
+                      className={`${EDIT_INPUT_CLASS} disabled:cursor-not-allowed disabled:opacity-50`}
                     />
                   </div>
                 </div>
@@ -540,13 +567,16 @@ export default function EditApartmentPage() {
                     <input
                       type="text"
                       value={formData.street}
-                      onChange={(e) =>
-                        updateField("street", sanitizeStreet(e.target.value))
-                      }
+                      onChange={(e) => {
+                        streetUserTypedRef.current = true;
+                        updateField("street", sanitizeStreet(e.target.value));
+                      }}
+                      onBlur={() => setStreetOpen(false)}
                       placeholder="Начните вводить название улицы"
                       autoComplete="off"
                       required
-                      className={EDIT_INPUT_CLASS}
+                      disabled={!canEditAddress}
+                      className={`${EDIT_INPUT_CLASS} disabled:cursor-not-allowed disabled:opacity-50`}
                     />
                     {streetOpen && streetSuggestions.length > 0 && (
                       <ul className="absolute top-full right-0 left-0 z-50 mt-1 max-h-[240px] overflow-y-auto rounded-xl border-2 border-[#3a2a4a] bg-[#1a0a2a] shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
@@ -556,6 +586,7 @@ export default function EditApartmentPage() {
                               type="button"
                               onMouseDown={(e) => {
                                 e.preventDefault();
+                                streetUserTypedRef.current = false;
                                 updateField("street", s);
                                 setStreetOpen(false);
                               }}
@@ -579,7 +610,8 @@ export default function EditApartmentPage() {
                         updateField("numberHome", e.target.value)
                       }
                       required
-                      className={EDIT_INPUT_CLASS}
+                      disabled={!canEditAddress}
+                      className={`${EDIT_INPUT_CLASS} disabled:cursor-not-allowed disabled:opacity-50`}
                     />
                   </div>
                 </div>
@@ -591,7 +623,8 @@ export default function EditApartmentPage() {
                     type="text"
                     value={formData.building}
                     onChange={(e) => updateField("building", e.target.value)}
-                    className={EDIT_INPUT_CLASS}
+                    disabled={!canEditAddress}
+                    className={`${EDIT_INPUT_CLASS} disabled:cursor-not-allowed disabled:opacity-50`}
                   />
                 </div>
               </section>

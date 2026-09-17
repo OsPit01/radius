@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { api } from "@/trpc/react";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
+import { getCurrencySymbol } from "@/lib/constants/currencies";
 
 // Тип для квартиры (поля из базы могут быть null)
 type Apartment = {
@@ -14,6 +15,7 @@ type Apartment = {
   district: string | null;
   capacity: number;
   price: number;
+  currency: string;
   image: string;
   description: string | null;
   rooms: number;
@@ -108,7 +110,7 @@ export function ApartmentCard({
             </div>
           </button>
           <span className="absolute right-3 bottom-3 z-10 rounded-lg bg-white px-2.5 py-1 text-sm font-bold text-[#222] shadow-sm">
-            BYN {apartment.price}
+            {apartment.price} {getCurrencySymbol(apartment.currency)}
           </span>
         </div>
         <div className="px-2.5 pt-3 pb-1">
