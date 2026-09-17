@@ -9,13 +9,16 @@ import type { Dispatch, SetStateAction } from "react";
 
 export type FormData = {
   type: string;
+  region: string;
+  district: string;
   city: string;
+  cityDistrict: string;
   cityError: string;
   street: string;
+  streetConfirmed: boolean;
   numberHome: string;
   building: string;
   formattedAddress: string;
-  district: string;
   addressError: string;
   title: string;
   capacity: number;
@@ -40,7 +43,7 @@ export type FormData = {
   payerName: string;
 };
 
-export type StepFieldValue = string | number | string[];
+export type StepFieldValue = string | number | string[] | boolean;
 
 export type StepProps = {
   formData: FormData;
@@ -75,7 +78,7 @@ export function generateFormattedAddress(formData: FormData): string {
   const buildingClean = formData.building?.trim() ?? "";
 
   let address = cityClean;
-  if (streetClean) address += `, ул. ${streetClean}`;
+  if (streetClean) address += `, ${streetClean}`;
   if (numberHomeClean) address += `, д. ${numberHomeClean}`;
   if (buildingClean) address += `/${buildingClean}`;
 
@@ -92,7 +95,7 @@ export function sanitizeStreet(value: string): string {
 
 export function updateFieldWithAddress(
   field: keyof FormData,
-  value: string | number | string[],
+  value: string | number | string[] | boolean,
   prevData: FormData,
 ): FormData {
   const newData = { ...prevData, [field]: value };
@@ -114,7 +117,8 @@ export function formatApartmentData(formData: FormData) {
     city: formData.city?.trim() ?? "",
     street: formData.street?.trim() ?? "",
     numberHome: formData.numberHome?.trim() ?? "",
-    district: formData.district?.trim() ?? "",
+    district:
+      formData.cityDistrict?.trim() || formData.district?.trim() || "",
     building: formData.building?.trim() ?? null,
     formattedAddress: fullAddressForMap,
     capacity: Number(formData.capacity ?? 0),
@@ -163,20 +167,29 @@ export function validateStep(
       }
       return { isValid: true, error: null, fields: [] };
 
-    case 2:
-      if (formData.city.trim().length < 2) {
-        return { isValid: false, error: "Введите город", fields: ["city"] };
+    case 2: {
+      const badFields: (keyof FormData)[] = [];
+      if (!formData.region) badFields.push("region");
+      if (!formData.district.trim()) badFields.push("district");
+      if (formData.city.trim().length < 2) badFields.push("city");
+      if (badFields.length > 0) {
+        return {
+          isValid: false,
+          error: "Выберите область, район и населённый пункт",
+          fields: badFields,
+        };
       }
       return { isValid: true, error: null, fields: [] };
+    }
 
     case 3: {
       const badFields: (keyof FormData)[] = [];
-      if (formData.street.trim().length < 2) badFields.push("street");
+      if (!formData.streetConfirmed) badFields.push("street");
       if (formData.numberHome.trim().length < 1) badFields.push("numberHome");
       if (badFields.length > 0) {
         return {
           isValid: false,
-          error: "Заполните обязательные поля адреса",
+          error: "Выберите улицу из списка и укажите номер дома",
           fields: badFields,
         };
       }
@@ -236,7 +249,7 @@ export function getFormLabel(
       return `Район: ${formData.district ?? "не указан"}`;
     case "full_address":
       if (!formData.street && !formData.building) return "Адрес: не заполнен";
-      return `г. ${formData.city}, ул. ${formData.street}, д. /корп ${formData.building}`;
+      return `г. ${formData.city}, ${formData.street}, д. /корп ${formData.building}`;
     case "formattedAddress": {
       const fullAddress = generateFormattedAddress(formData);
       return `Адрес: ${fullAddress ?? "не указан"}`;

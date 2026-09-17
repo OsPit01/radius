@@ -79,7 +79,7 @@ export default async function ApartmentPage({
             <div className="flex flex-wrap items-start gap-x-2 gap-y-1">
               <span>📍</span>
               <p className="flex-1 text-base text-[#222]">
-                г. {apartment.apartment.city}, ул. {apartment.apartment.street},{" "}
+                г. {apartment.apartment.city}, {apartment.apartment.street},{" "}
                 {apartment.apartment.numberHome}
                 {apartment.apartment.building
                   ? `, к. ${apartment.apartment.building}`

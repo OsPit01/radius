@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { AuthGuard } from "@/app/_components/layout/AuthGuard";
 import Image from "next/image";
@@ -45,11 +45,39 @@ export default function EditApartmentPage() {
 
   const [isUploading, setIsUploading] = useState(false);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [streetSuggestions, setStreetSuggestions] = useState<string[]>([]);
+  const [streetOpen, setStreetOpen] = useState(false);
 
   const uploadImage = api.upload.image.useMutation();
+  const utils = api.useUtils();
 
   const images = useMemo(() => formData.images ?? [], [formData.images]);
   const mainImage = useMemo(() => formData.image ?? "", [formData.image]);
+
+  useEffect(() => {
+    const query = formData.street.trim();
+    if (query.length < 1) {
+      setStreetSuggestions([]);
+      setStreetOpen(false);
+      return;
+    }
+    const timer = setTimeout(() => {
+      void (async () => {
+        try {
+          const results = await utils.geo.searchStreets.fetch({
+            query,
+            location: formData.city,
+          });
+          setStreetSuggestions(results);
+          setStreetOpen(results.length > 0);
+        } catch {
+          setStreetSuggestions([]);
+          setStreetOpen(false);
+        }
+      })();
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [formData.street, formData.city, utils]);
 
   const addImages = useCallback(
     async (files: FileList | null) => {
@@ -505,7 +533,7 @@ export default function EditApartmentPage() {
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
-                  <div className="mb-4 flex flex-col gap-1.5">
+                  <div className="relative mb-4 flex flex-col gap-1.5">
                     <label className="text-sm font-medium text-white">
                       Улица *
                     </label>
@@ -515,9 +543,30 @@ export default function EditApartmentPage() {
                       onChange={(e) =>
                         updateField("street", sanitizeStreet(e.target.value))
                       }
+                      placeholder="Начните вводить название улицы"
+                      autoComplete="off"
                       required
                       className={EDIT_INPUT_CLASS}
                     />
+                    {streetOpen && streetSuggestions.length > 0 && (
+                      <ul className="absolute top-full right-0 left-0 z-50 mt-1 max-h-[240px] overflow-y-auto rounded-xl border-2 border-[#3a2a4a] bg-[#1a0a2a] shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
+                        {streetSuggestions.map((s) => (
+                          <li key={s}>
+                            <button
+                              type="button"
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                updateField("street", s);
+                                setStreetOpen(false);
+                              }}
+                              className="block w-full cursor-pointer px-4 py-3 text-left text-sm text-white transition-colors hover:bg-[rgba(107,33,168,0.2)]"
+                            >
+                              {s}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                   <div className="mb-4 flex flex-col gap-1.5">
                     <label className="text-sm font-medium text-white">

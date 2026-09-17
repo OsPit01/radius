@@ -28,13 +28,16 @@ export default function AddApartmentPage() {
   // ЧТО И ЗАЧЕМ ТУТ МЕНЯТЬ: Полностью вернули твой ОРИГИНАЛЬНЫЙ useState со всеми дефолтными полями
   const [formData, setFormData] = useState<FormData>({
     type: "apartment",
+    region: "",
+    district: "",
     city: "",
+    cityDistrict: "",
     cityError: "",
     street: "",
+    streetConfirmed: false,
     numberHome: "",
     building: "",
     formattedAddress: "",
-    district: "",
     addressError: "",
     title: "",
     capacity: 2,
@@ -67,7 +70,7 @@ export default function AddApartmentPage() {
   // ===== ФУНКЦИЯ ОБНОВЛЕНИЯ ДАННЫХ =====
   const updateField = (
     field: keyof FormData,
-    value: string | number | string[],
+    value: string | number | string[] | boolean,
   ) => {
     setFormData((prev) => updateFieldWithAddress(field, value, prev));
     setErrorFields((prev) => prev.filter((f) => f !== field));

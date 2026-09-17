@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { index, pgTableCreator, primaryKey } from "drizzle-orm/pg-core";
+import { index, pgTableCreator, primaryKey, uniqueIndex } from "drizzle-orm/pg-core";
 import { type AdapterAccount } from "next-auth/adapters";
 
 /**
@@ -220,3 +220,19 @@ export const booking = createTable("booking", (d) => ({
     .$defaultFn(() => new Date())
     .notNull(),
 }));
+
+// ======== Streets (справочник улиц для автодополнения) ============= //
+export const streets = createTable(
+  "street",
+  (d) => ({
+    id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+    name: d.varchar({ length: 255 }).notNull(),
+    region: d.varchar({ length: 100 }).notNull(),
+    district: d.varchar({ length: 150 }).notNull(),
+    city: d.varchar({ length: 150 }).notNull(),
+  }),
+  (t) => [
+    index("street_city_idx").on(t.city),
+    uniqueIndex("street_city_name_idx").on(t.city, t.name),
+  ],
+);

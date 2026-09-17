@@ -46,10 +46,7 @@ export function NavigationButtons({
         // Если шаг ПОСЛЕДНИЙ (5-й), рендерится кнопка отправки формы на сервер
         <button
           type="button"
-          onClick={() => {
-            console.log("🔴 КНОПКА НАЖАТА! onNext:", onNext);
-            onNext();
-          }} //ВЫЗЫВАЕТ goToNextStep, КОТОРЫЙ ВЫЗЫВАЕТ handleSubmit
+          onClick={onNext}
           disabled={isSubmitting}
           className={`${btnPrimary} ${currentStep > 1 ? "ml-auto" : ""}`}
         >
