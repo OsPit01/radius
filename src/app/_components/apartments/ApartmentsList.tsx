@@ -137,6 +137,7 @@ export function ApartmentsList({
             key={apartment.id}
             apartment={apartment}
             isFavorite={favIds?.includes(apartment.id) ?? false}
+            guests={totalGuests}
           />
         ))}
       </div>

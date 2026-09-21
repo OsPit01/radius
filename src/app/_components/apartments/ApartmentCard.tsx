@@ -29,9 +29,11 @@ type Apartment = {
 export function ApartmentCard({
   apartment,
   isFavorite,
+  guests,
 }: {
   apartment: Apartment;
   isFavorite: boolean;
+  guests?: number;
 }) {
   //Сессия
   const { data: session } = useSession();
@@ -78,7 +80,7 @@ export function ApartmentCard({
   return (
     <>
       <Link
-        href={`/apartments/${apartment.id}`}
+        href={`/apartments/${apartment.id}${guests && guests > 1 ? `?guests=${guests}` : ""}`}
         className="overflow-hidden rounded-2xl border border-[#ada3a3] bg-white p-0.5 transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_15px_24px_rgba(0,0,0,0.1)]"
       >
         <div className="relative h-[350px] w-full overflow-hidden max-md:h-[250px]">

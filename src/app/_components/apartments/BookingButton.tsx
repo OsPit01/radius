@@ -3,6 +3,9 @@
 import { useState } from "react";
 import { api } from "@/trpc/react";
 import { Modal } from "@/app/_components/ui/Modal";
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
+import { isValidPhoneNumber } from "@/lib/phone";
 
 type BookingButtonProps = {
   apartmentId: number;
@@ -32,7 +35,7 @@ export function BookingButton({ apartmentId, apartmentTitle }: BookingButtonProp
 
   const submitDisabled =
     !guestName.trim() ||
-    !guestPhone.trim() ||
+    !isValidPhoneNumber(guestPhone) ||
     !checkInDate ||
     !checkOutDate ||
     createBooking.isPending;
@@ -43,7 +46,7 @@ export function BookingButton({ apartmentId, apartmentTitle }: BookingButtonProp
     createBooking.mutate({
       apartmentId,
       guestName: guestName.trim(),
-      guestPhone: guestPhone.trim(),
+      guestPhone,
       guests,
       checkInDate: new Date(checkInDate),
       checkOutDate: new Date(checkOutDate),
@@ -96,12 +99,14 @@ export function BookingButton({ apartmentId, apartmentTitle }: BookingButtonProp
 
             <label className="flex flex-col gap-1 text-sm font-medium text-[#222]">
               Телефон
-              <input
-                type="tel"
+              <PhoneInput
+                international
+                countries={["BY", "RU"]}
+                defaultCountry="BY"
                 value={guestPhone}
-                onChange={(e) => setGuestPhone(e.target.value)}
-                placeholder="+375 (29) 123-45-67"
-                className="rounded-xl border border-[#e0e0e0] px-4 py-3 text-base text-[#222] outline-none focus:border-[#6b21a8]"
+                onChange={(value) => setGuestPhone(value ?? "")}
+                placeholder="Введите номер телефона"
+                className="rounded-xl border border-[#e0e0e0] px-4 py-3 text-base text-[#222]"
               />
             </label>
 

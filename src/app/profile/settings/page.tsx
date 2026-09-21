@@ -8,7 +8,7 @@ import { ClientHeader } from "@/app/_components/layout/ClientHeader";
 import Image from "next/image";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
-import { toE164 } from "@/lib/phone";
+import { toE164, isValidPhoneNumber } from "@/lib/phone";
 import { readFileAsDataURL } from "@/lib/file";
 import { Modal } from "@/app/_components/ui/Modal";
 
@@ -74,6 +74,10 @@ export default function SettingsPage() {
   }, [user]);
   const handleSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
+    if (form.phone && !isValidPhoneNumber(form.phone)) {
+      alert("Введите корректный номер телефона");
+      return;
+    }
     updateMutation.mutate({
       name:
         [form.firstName, form.lastName].filter(Boolean).join(" ") || undefined,
@@ -190,6 +194,7 @@ export default function SettingsPage() {
                 <label className="pr-5">Номер телефона:</label>
                 <PhoneInput
                   international
+                  countries={["BY", "RU"]}
                   defaultCountry="BY"
                   value={form.phone}
                   onChange={(value) => setForm({ ...form, phone: value ?? "" })}
