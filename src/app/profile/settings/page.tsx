@@ -198,7 +198,7 @@ export default function SettingsPage() {
                   defaultCountry="BY"
                   value={form.phone}
                   onChange={(value) => setForm({ ...form, phone: value ?? "" })}
-                  className="w-1/2 border-b border-white/30 bg-transparent p-1 pl-2 text-[15px]"
+                  className="w-full border-b border-white/30 bg-transparent p-1 pl-2 text-[15px] md:w-1/2"
                 />
                 {form.phone !== toE164(user?.phone) && (
                   <span className="ml-2 inline-block h-2.5 w-2.5 rounded-full bg-green-500"></span>

@@ -434,7 +434,7 @@ export function Step4_Details({
               updateField("unp", e.target.value.replace(/\D/g, "").slice(0, 9))
             }
             placeholder="Введите УНП"
-            className={`${INPUT_CLASS} w-[300px] ${hasError("unp") ? "!border-[#ef4444]" : ""}`}
+            className={`${INPUT_CLASS} w-full max-w-[300px] ${hasError("unp") ? "!border-[#ef4444]" : ""}`}
             maxLength={9}
           />
           <label className="text-medium text-sm text-white">

@@ -122,7 +122,7 @@ export function BookingButton({ apartmentId, apartmentTitle }: BookingButtonProp
               />
             </label>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <label className="flex flex-col gap-1 text-sm font-medium text-[#222]">
                 Заезд
                 <input

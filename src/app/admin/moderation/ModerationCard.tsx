@@ -158,7 +158,7 @@ export function ModerationCard({ item }: { item: ModerationItem }) {
               ></textarea>
             </div>
             {/* кнопки отправить/отменить */}
-            <div className="ustify-center ml-2 flex gap-3 text-sm">
+            <div className="ml-2 flex justify-center gap-3 text-sm">
               {/* кнопка отправить */}
               <button
                 onClick={() => {

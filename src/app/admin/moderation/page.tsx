@@ -52,7 +52,7 @@ export default function ModerationPage() {
 
         <div className="mx-auto max-w-[1200px] px-4 py-10">
           {/* ПОИСК ПО ID (INPUT) */}
-          <div className="mb-5 px-15">
+          <div className="mb-5">
             <input
               type="text"
               placeholder="поиск по id"
@@ -62,7 +62,9 @@ export default function ModerationPage() {
               className={`${EDIT_INPUT_CLASS} w-full`}
             />
           </div>
-          <h1 className="text-semibold pb-2 text-[25px]">Модерация объектов</h1>
+          <h1 className="text-semibold pb-2 text-[25px] max-md:text-xl">
+            Модерация объектов
+          </h1>
 
           <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-md:grid-cols-1">
             {filteredData.map((item) => (
@@ -71,7 +73,9 @@ export default function ModerationPage() {
           </div>
           {searchId.trim() !== "" && filteredData.length === 0 && (
             <div className="flex justify-center pt-14 max-md:mt-4">
-              <p className="text-[35px] text-black">Ничего не найдено...</p>
+              <p className="text-2xl text-black max-md:text-lg">
+                Ничего не найдено...
+              </p>
             </div>
           )}
         </div>

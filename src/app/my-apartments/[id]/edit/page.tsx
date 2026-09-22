@@ -662,7 +662,7 @@ export default function EditApartmentPage() {
                       )
                     }
                     placeholder="Введите УНП"
-                    className={`${EDIT_INPUT_CLASS} w-[300px]`}
+                    className={`${EDIT_INPUT_CLASS} w-full max-w-[300px]`}
                     maxLength={9}
                   />
                   <label className="text-medium text-sm text-white">

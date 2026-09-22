@@ -31,8 +31,10 @@ export default function MyNotifications() {
     <>
       <AuthGuard>
         <ClientHeader />
-        <div className="mt-auto flex w-full items-center justify-between px-5 py-10">
-          <span className="text-[30px]">Мои уведомления</span>
+        <div className="mt-auto flex w-full flex-wrap items-center justify-between gap-2 px-5 py-10 max-md:py-5">
+          <span className="text-2xl font-bold text-[#222] max-md:text-xl">
+            Мои уведомления
+          </span>
           {notifications?.some((n) => !n.isRead) ? (
             <button
               type="button"
