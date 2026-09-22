@@ -163,15 +163,38 @@ export const bookingsRouter = createTRPCRouter({
         .from(apartments)
         .where(eq(apartments.id, targetBooking.apartmentId));
       if (!apartment) throw new TRPCError({ code: "NOT_FOUND" });
-      // ШАГ 3: проверить, что владелец квартиры === текущий юзер
+
+      // проверить, что владелец квартиры === текущий юзер
       if (apartment.createdById !== userId)
         throw new TRPCError({ code: "FORBIDDEN" });
+
       // обновить status у брони и вернуть
       const [updated] = await ctx.db
         .update(booking)
         .set({ status: input.status })
         .where(eq(booking.id, input.bookingId))
         .returning();
+      //уведомляем гостя если он авторизован
+      if (targetBooking.userId) {
+        await ctx.db
+          .insert(notification)
+          .values({
+            userId: targetBooking.userId,
+            type:
+              input.status === "approved"
+                ? "booking_approved"
+                : "booking_rejected",
+            title:
+              input.status === "approved"
+                ? "Заявка одобрена"
+                : "Заявка отклонена",
+            text: `Ваша заявка на «${apartment.title}» ${input.status === "approved" ? "одобрена" : "отклонена"}`,
+
+            apartmentId: targetBooking.apartmentId,
+            link: "/profile/bookings",
+          })
+          .returning();
+      }
       return updated;
     }),
 });
