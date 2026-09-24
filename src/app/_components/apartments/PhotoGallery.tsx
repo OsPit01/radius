@@ -1,19 +1,19 @@
 "use client";
 import { useState, useRef } from "react";
-import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
 import type { Swiper as SwiperType } from "swiper";
 import Lightbox from "yet-another-react-lightbox";
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
 import Counter from "yet-another-react-lightbox/plugins/counter";
 import { FiMaximize2 } from "react-icons/fi";
+import { ImageWithFallback } from "@/app/_components/ui/ImageWithFallback";
 import "swiper/css";
 import "yet-another-react-lightbox/styles.css";
 
 function GalleryImage({ src, alt }: { src: string; alt: string }) {
   return (
     <div className="relative h-full w-full overflow-hidden">
-      <Image
+      <ImageWithFallback
         src={src}
         alt={alt}
         fill
@@ -104,7 +104,7 @@ export function PhotoGallery({
                   : "border-transparent opacity-60 hover:opacity-100"
               }`}
             >
-              <Image
+              <ImageWithFallback
                 src={src}
                 alt={`${title} — фото ${i + 1}`}
                 fill

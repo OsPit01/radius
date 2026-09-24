@@ -1,5 +1,4 @@
 import { type Metadata } from "next";
-import Image from "next/image";
 import { api } from "@/trpc/server";
 import { notFound } from "next/navigation";
 import { ClientHeader } from "@/app/_components/layout/ClientHeader";
@@ -8,6 +7,7 @@ import { ApartmentTabs } from "@/app/_components/apartments/ApartmentTabs";
 import { formatPhoneForDisplay } from "@/lib/phone";
 import { BookingButton } from "@/app/_components/apartments/BookingButton";
 import { getCurrencySymbol } from "@/lib/constants/currencies";
+import { Avatar } from "@/app/_components/ui/Avatar";
 
 export async function generateMetadata({
   params,
@@ -133,26 +133,13 @@ export default async function ApartmentPage({
             {apartment.user && (
               <div className="mt-auto border-t border-[#eee5f4] pt-4">
                 <div className="mt-5 flex items-center gap-3">
-                  {apartment.user.image ? (
-                    // Фото арендодателя, если оно есть
-                    <Image
-                      src={apartment.user.image}
-                      alt={apartment.user.name ?? "Арендодатель"}
-                      width={44}
-                      height={44}
-                      unoptimized
-                      className="h-11 w-11 shrink-0 rounded-full object-cover"
-                    />
-                  ) : (
-                    // Нет фото → кружок с первой буквой имени
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gray-100 text-lg text-gray-800">
-                      {(
-                        apartment.user.firstName?.[0] ??
-                        apartment.user.name?.[0] ??
-                        "В"
-                      ).toUpperCase()}
-                    </div>
-                  )}
+                  <Avatar
+                    src={apartment.user.image}
+                    name={apartment.user.name}
+                    fallbackText={
+                      apartment.user.firstName?.[0] ?? apartment.user.name?.[0]
+                    }
+                  />
                   <div className="min-w-0">
                     <p className="truncate text-base font-medium text-[#222]">
                       {apartment.user.firstName

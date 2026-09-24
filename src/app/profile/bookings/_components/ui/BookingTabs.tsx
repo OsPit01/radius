@@ -1,11 +1,15 @@
 "use client";
 
-type TabsProps = {
-  tabs: readonly { id: string; label: string }[];
-  active: string;
-  onChange: (id: string) => void;
+type TabsProps<T extends string> = {
+  tabs: readonly { id: T; label: string }[];
+  active: T;
+  onChange: (id: T) => void;
 };
-export function Tabs({ tabs, active, onChange }: TabsProps) {
+export function Tabs<T extends string>({
+  tabs,
+  active,
+  onChange,
+}: TabsProps<T>) {
   return (
     <div className="flex gap-2 pb-10">
       {tabs.map((tab) => (

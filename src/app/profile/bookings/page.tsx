@@ -6,6 +6,7 @@ import { formatPhoneForDisplay } from "@/lib/phone";
 import { Modal } from "@/app/_components/ui/Modal";
 import { useState } from "react";
 import { Tabs } from "./_components/ui/BookingTabs";
+
 const BOOKING_STATUS_LABELS: Record<string, string> = {
   new: "Новая заявка",
   approved: "Подтверждена",
@@ -28,22 +29,51 @@ export default function BookingsPage() {
     isPending,
     isError,
   } = api.bookings.listForOwner.useQuery();
+
   const setStatus = api.bookings.setStatus.useMutation({
     onSuccess: () => {
       void utils.bookings.listForOwner.invalidate();
     },
   });
+  const cancelBooking = api.bookings.cancel.useMutation({
+    onSuccess: () => {
+      void utils.bookings.listForUser.invalidate();
+    },
+  });
+  const {
+    data: myBookings,
+    isPending: isMyPending,
+    isError: isMyError,
+  } = api.bookings.listForUser.useQuery();
+
   const [confirm, setConfirm] = useState<{
     bookingId: number;
     status: "approved" | "rejected";
   } | null>(null);
   const [tab, setTab] = useState("new");
+  const [mode, setMode] = useState<"owner" | "guest">("owner");
+  const currentData = mode === "owner" ? bookings : myBookings;
+  const currentPending = mode === "owner" ? isPending : isMyPending;
+  const currentError = mode === "owner" ? isError : isMyError;
   const filtered =
-    bookings?.filter(({ booking }) => booking.status === tab) ?? [];
+    currentData?.filter(({ booking }) => booking.status === tab) ?? [];
+
+  // переключатель сдаю/снимаю
+
   return (
     <AuthGuard>
       <ClientHeader />
-
+      <div className="">
+        {/* Интерфейс переключатель сдаю/снимаю */}
+        <Tabs
+          tabs={[
+            { id: "owner", label: "Сдаю" },
+            { id: "guest", label: "Снимаю" },
+          ]}
+          active={mode}
+          onChange={setMode}
+        ></Tabs>
+      </div>
       <div className="mx-auto mt-5.5 max-w-3xl px-4 pt-5 pb-16">
         <Tabs
           tabs={[
@@ -62,23 +92,23 @@ export default function BookingsPage() {
           Заявки, которые оставляют гости на ваших квартирах
         </p>
 
-        {isPending && (
+        {currentPending && (
           <p className="py-8 text-center text-[#888]">Загрузка заявок...</p>
         )}
 
-        {isError && (
+        {currentError && (
           <p className="py-8 text-center text-red-600">
             Не удалось загрузить заявки. Попробуйте позже.
           </p>
         )}
 
-        {!isPending && !isError && bookings?.length === 0 && (
+        {!currentPending && !currentError && currentData?.length === 0 && (
           <p className="py-8 text-center text-[#888]">
             Пока нет ни одной заявки на бронирование.
           </p>
         )}
 
-        {!isPending && !isError && bookings && (
+        {!currentPending && !currentError && currentData && (
           <>
             {filtered.length === 0 ? (
               <p className="py-8 text-center text-[#888]">

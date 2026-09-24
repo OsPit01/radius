@@ -140,6 +140,62 @@ export const bookingsRouter = createTRPCRouter({
       .innerJoin(apartments, eq(booking.apartmentId, apartments.id))
       .where(eq(apartments.createdById, userId));
   }),
+  listForUser: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+    return ctx.db
+      .select({
+        booking: booking,
+        apartment: {
+          title: apartments.title,
+          city: apartments.city,
+          street: apartments.street,
+          numberHome: apartments.numberHome,
+        },
+      })
+      .from(booking)
+      .innerJoin(apartments, eq(booking.apartmentId, apartments.id))
+      .where(eq(booking.userId, userId));
+  }),
+  cancel: protectedProcedure
+    .input(z.object({ bookingId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      const [targetBooking] = await ctx.db
+        .select()
+        .from(booking)
+        .where(eq(booking.id, input.bookingId));
+      if (!targetBooking) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const [apartment] = await ctx.db
+        .select()
+        .from(apartments)
+        .where(eq(apartments.id, targetBooking.apartmentId));
+      if (!apartment) throw new TRPCError({ code: "NOT_FOUND" });
+
+      if (targetBooking.userId !== userId)
+        throw new TRPCError({ code: "FORBIDDEN" });
+
+      const [updated] = await ctx.db
+        .update(booking)
+        .set({ status: "cancelled" })
+        .where(eq(booking.id, input.bookingId))
+        .returning();
+
+      if (apartment?.createdById) {
+        await ctx.db.insert(notification).values({
+          userId: apartment.createdById,
+          type: "booking_cancelled",
+          title: "Бронь отменена гостем",
+          text: "Гость отменил бронирование",
+
+          apartmentId: targetBooking.apartmentId,
+          link: "/profile/bookings",
+        });
+      }
+      return updated;
+    }),
+
   setStatus: protectedProcedure
     .input(
       z.object({

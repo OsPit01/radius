@@ -1,11 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { api } from "@/trpc/react";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { getCurrencySymbol } from "@/lib/constants/currencies";
+import { ImageWithFallback } from "@/app/_components/ui/ImageWithFallback";
 
 // Тип для квартиры (поля из базы могут быть null)
 type Apartment = {
@@ -84,7 +84,7 @@ export function ApartmentCard({
         className="overflow-hidden rounded-2xl border border-[#ada3a3] bg-white p-0.5 transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_15px_24px_rgba(0,0,0,0.1)]"
       >
         <div className="relative h-[350px] w-full overflow-hidden max-md:h-[250px]">
-          <Image
+          <ImageWithFallback
             src={apartment.image}
             alt={apartment.title}
             fill
