@@ -50,11 +50,24 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   }
 
+  // Поддержка двух способов привязки:
+  // 1) пользователь присылает просто код (старый способ);
+  // 2) пользователь жмёт deep-link «/start КОД» (новый, без ручного ввода).
+  let code = text;
+  if (text.startsWith("/start")) {
+    code = text.replace("/start", "").trim();
+  }
+
+  // Если кода нет (например просто «/start» без аргумента) — нечего привязывать.
+  if (!code) {
+    return NextResponse.json({ ok: true });
+  }
+
   // Ищем пользователя, которому был выдан такой код привязки
   const [user] = await db
     .select({ id: users.id })
     .from(users)
-    .where(eq(users.telegramLinkCode, text))
+    .where(eq(users.telegramLinkCode, code))
     .limit(1);
 
   if (!user) {

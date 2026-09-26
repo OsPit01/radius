@@ -25,6 +25,9 @@ export type ApartmentFormData = {
   description: string;
   rules: string;
   metro: string;
+  area: number;
+  floor: number;
+  bathrooms: number;
   amenities: string[];
   parking: string;
   image: string;
@@ -55,6 +58,9 @@ const defaultFormData: ApartmentFormData = {
   description: "",
   rules: "",
   metro: "",
+  area: 0,
+  floor: 0,
+  bathrooms: 0,
   amenities: [],
   parking: "",
   image: "",
@@ -112,6 +118,9 @@ export function useApartmentForm(apartmentId: string) {
         description: apt.description ?? "",
         rules: apt.rules ?? "",
         metro: apt.metro ?? "",
+        area: apt.area ?? 0,
+        floor: apt.floor ?? 0,
+        bathrooms: apt.bathrooms ?? 0,
         amenities: apt.amenities ?? [],
         parking: apt.parking ?? "",
         image: apt.image ?? "",

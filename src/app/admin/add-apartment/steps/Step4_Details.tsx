@@ -265,6 +265,51 @@ export function Step4_Details({
         />
       </div>
 
+      {/* Площадь / этаж / санузлы */}
+      <div className="mt-5 grid grid-cols-3 gap-4 max-[640px]:grid-cols-1">
+        <div className="flex flex-col gap-2">
+          <label htmlFor="area-field" className="text-sm font-medium text-white/80">
+            Площадь, м²
+          </label>
+          <input
+            id="area-field"
+            type="number"
+            min={0}
+            value={formData.area || ""}
+            onChange={(e) => updateField("area", Number(e.target.value))}
+            className={INPUT_CLASS}
+            placeholder="45"
+          />
+        </div>
+        <div className="flex flex-col gap-2">
+          <label htmlFor="floor-field" className="text-sm font-medium text-white/80">
+            Этаж
+          </label>
+          <input
+            id="floor-field"
+            type="number"
+            value={formData.floor || ""}
+            onChange={(e) => updateField("floor", Number(e.target.value))}
+            className={INPUT_CLASS}
+            placeholder="5"
+          />
+        </div>
+        <div className="flex flex-col gap-2">
+          <label htmlFor="bathrooms-field" className="text-sm font-medium text-white/80">
+            Санузлы
+          </label>
+          <input
+            id="bathrooms-field"
+            type="number"
+            min={0}
+            value={formData.bathrooms || ""}
+            onChange={(e) => updateField("bathrooms", Number(e.target.value))}
+            className={INPUT_CLASS}
+            placeholder="1"
+          />
+        </div>
+      </div>
+
       {/* ========== РАЗДЕЛИТЕЛЬ ========== */}
       <div className="mt-7 mb-5 border-t border-[rgba(255,255,255,0.12)]" />
 

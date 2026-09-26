@@ -2,6 +2,11 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { favorites, apartments } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
+import { apartmentCardColumns } from "@/server/apartment-selects";
+
+const apartmentIdInput = z.object({
+  apartmentId: z.number().int().positive("Некорректный идентификатор объекта"),
+});
 
 export const favoritesRouter = createTRPCRouter({
   listIds: protectedProcedure.query(async ({ ctx }) => {
@@ -14,7 +19,7 @@ export const favoritesRouter = createTRPCRouter({
   }),
 
   toggle: protectedProcedure
-    .input(z.object({ apartmentId: z.number() }))
+    .input(apartmentIdInput)
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
       // 1. Проверяем если уже такая запись?
@@ -47,7 +52,7 @@ export const favoritesRouter = createTRPCRouter({
     }),
   //4. эта квартира у пользователя в избранном или нет?
   isFavorite: protectedProcedure
-    .input(z.object({ apartmentId: z.number() }))
+    .input(apartmentIdInput)
     .query(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
       const [existing] = await ctx.db
@@ -63,10 +68,14 @@ export const favoritesRouter = createTRPCRouter({
     }),
   list: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.session.user.id;
+    // Отдаём только публичные поля карточки и только опубликованные объекты:
+    // скрытая/снятая с модерации квартира не должна «протекать» через избранное.
     return await ctx.db
-      .select({ apartment: apartments })
+      .select(apartmentCardColumns)
       .from(favorites)
       .innerJoin(apartments, eq(favorites.apartmentId, apartments.id))
-      .where(eq(favorites.userId, userId));
+      .where(
+        and(eq(favorites.userId, userId), eq(apartments.status, "active")),
+      );
   }),
 });

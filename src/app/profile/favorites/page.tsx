@@ -6,6 +6,7 @@ import { ApartmentCard } from "@/app/_components/apartments/ApartmentCard";
 import { LoadingSpinner } from "@/app/_components/ui/LoadingSpinner";
 import Link from "next/link";
 import { FaRegHeart } from "react-icons/fa";
+import { getApartmentCardData } from "@/lib/apartment-format";
 
 export default function FavoritesPage() {
   const { data: favorites, isLoading } = api.favorites.list.useQuery();
@@ -37,10 +38,10 @@ export default function FavoritesPage() {
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-[50px] max-md:grid-cols-1 max-md:gap-5">
-              {favorites.map((item) => (
+              {favorites.map((apartment) => (
                 <ApartmentCard
-                  key={item.apartment.id}
-                  apartment={item.apartment}
+                  key={apartment.id}
+                  apartment={getApartmentCardData(apartment)}
                   isFavorite={true}
                 />
               ))}

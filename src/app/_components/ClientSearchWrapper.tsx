@@ -13,6 +13,7 @@ import {
 import { FilterChips, type ChipKey } from "@/app/_components/search/FilterChips";
 import type { ApartmentCardData } from "@/lib/apartment-format";
 import { buildSearchUrl, type SearchFilters } from "@/lib/search-params";
+import { MIN_BOOKING_GUESTS } from "@/lib/constants/booking";
 
 type ClientSearchWrapperProps = {
   initialFilters: SearchFilters;
@@ -42,7 +43,7 @@ export function ClientSearchWrapper({
     initialFilters.city ?? "",
   );
   const [activeTotalGuests, setActiveTotalGuests] = useState(
-    initialFilters.guests ?? 1,
+    initialFilters.guests ?? MIN_BOOKING_GUESTS,
   );
   const [activeFilters, setActiveFilters] = useState<Filters>(
     toUiFilters(initialFilters),
@@ -94,7 +95,7 @@ export function ClientSearchWrapper({
     setActiveFilters(tempFilters);
     const urlFilters: SearchFilters = {
       city: query.trim() || undefined,
-      guests: guests > 1 ? guests : undefined,
+      guests: guests > MIN_BOOKING_GUESTS ? guests : undefined,
       priceMin: tempFilters.priceMin ? Number(tempFilters.priceMin) : undefined,
       priceMax: tempFilters.priceMax ? Number(tempFilters.priceMax) : undefined,
       rooms: tempFilters.rooms ?? undefined,
@@ -123,7 +124,10 @@ export function ClientSearchWrapper({
     setTempFilters(next);
     const urlFilters: SearchFilters = {
       city: activeSearchQuery.trim() || undefined,
-      guests: activeTotalGuests > 1 ? activeTotalGuests : undefined,
+      guests:
+        activeTotalGuests > MIN_BOOKING_GUESTS
+          ? activeTotalGuests
+          : undefined,
       priceMin: next.priceMin ? Number(next.priceMin) : undefined,
       priceMax: next.priceMax ? Number(next.priceMax) : undefined,
       rooms: next.rooms ?? undefined,
@@ -139,6 +143,8 @@ export function ClientSearchWrapper({
     setActiveFilters(EMPTY_FILTERS);
     setTempFilters(EMPTY_FILTERS);
     setActiveSearchQuery("");
+    // Гостей тоже сбрасываем: иначе состояние разойдётся с URL (/ без ?guests)
+    setActiveTotalGuests(MIN_BOOKING_GUESTS);
     router.replace(buildSearchUrl({}), { scroll: false });
   };
 

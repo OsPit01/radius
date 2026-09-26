@@ -1,4 +1,8 @@
 import { HOME_TITLE, HOME_DESCRIPTION } from "@/lib/seo";
+import {
+  DEFAULT_BOOKING_GUESTS,
+  MAX_BOOKING_GUESTS,
+} from "@/lib/constants/booking";
 
 // ===== ЕДИНЫЙ ИСТОЧНИК ПРАВДЫ ДЛЯ URL-ФИЛЬТРОВ ПОИСКА =====
 export type SearchFilters = {
@@ -63,6 +67,20 @@ export function buildQueryString(filters: SearchFilters): string {
 export function buildSearchUrl(filters: SearchFilters): string {
   const qs = buildQueryString(filters);
   return qs ? `/?${qs}` : "/";
+}
+
+/**
+ * Сколько гостей подставить в форму бронирования, пришедших из URL.
+ * Разбор — единый (через parseSearchParams), здесь только политика:
+ * мусор и нереальные значения обрезаются до допустимого диапазона,
+ * а если гостей в URL нет — берётся значение по умолчанию.
+ */
+export function parseBookingGuests(
+  searchParams: Record<string, string | string[] | undefined>,
+): number {
+  const guests = parseSearchParams(searchParams).guests;
+  if (guests === undefined) return DEFAULT_BOOKING_GUESTS;
+  return Math.min(guests, MAX_BOOKING_GUESTS);
 }
 
 // ===== SEO-ЗАГОЛОВКИ ДЛЯ ОТФИЛЬТРОВАННЫХ СТРАНИЦ =====

@@ -6,17 +6,39 @@ import { Modal } from "@/app/_components/ui/Modal";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import { isValidPhoneNumber } from "@/lib/phone";
+import {
+  DEFAULT_BOOKING_GUESTS,
+  MAX_BOOKING_GUESTS,
+  MIN_BOOKING_GUESTS,
+} from "@/lib/constants/booking";
+import { pluralRu } from "@/lib/plural";
 
 type BookingButtonProps = {
   apartmentId: number;
   apartmentTitle: string;
+  /** Сколько гостей выбрано в поиске — стартовое значение поля. */
+  initialGuests?: number;
+  /** Вместимость квартиры — верхняя граница поля. */
+  apartmentCapacity?: number;
 };
 
-export function BookingButton({ apartmentId, apartmentTitle }: BookingButtonProps) {
+export function BookingButton({
+  apartmentId,
+  apartmentTitle,
+  initialGuests = DEFAULT_BOOKING_GUESTS,
+  apartmentCapacity,
+}: BookingButtonProps) {
   const [open, setOpen] = useState(false);
   const [guestName, setGuestName] = useState("");
   const [guestPhone, setGuestPhone] = useState("");
-  const [guests, setGuests] = useState(2);
+  // Не больше, чем вмещает квартира, но и не больше общего лимита площадки.
+  const maxGuests = Math.min(
+    apartmentCapacity ?? MAX_BOOKING_GUESTS,
+    MAX_BOOKING_GUESTS,
+  );
+  const [guests, setGuests] = useState(() =>
+    Math.min(Math.max(initialGuests, MIN_BOOKING_GUESTS), maxGuests),
+  );
   const [checkInDate, setCheckInDate] = useState("");
   const [checkOutDate, setCheckOutDate] = useState("");
   const [message, setMessage] = useState("");
@@ -26,7 +48,7 @@ export function BookingButton({ apartmentId, apartmentTitle }: BookingButtonProp
       setOpen(false);
       setGuestName("");
       setGuestPhone("");
-      setGuests(2);
+      setGuests(Math.min(Math.max(initialGuests, MIN_BOOKING_GUESTS), maxGuests));
       setCheckInDate("");
       setCheckOutDate("");
       setMessage("");
@@ -114,12 +136,19 @@ export function BookingButton({ apartmentId, apartmentTitle }: BookingButtonProp
               Количество гостей
               <input
                 type="number"
-                min={1}
-                max={20}
+                min={MIN_BOOKING_GUESTS}
+                max={maxGuests}
                 value={guests}
                 onChange={(e) => setGuests(Number(e.target.value))}
                 className="rounded-xl border border-[#e0e0e0] px-4 py-3 text-base text-[#222] outline-none focus:border-[#6b21a8]"
               />
+              {apartmentCapacity !== undefined && (
+                <span className="text-xs font-normal text-[#888]">
+                  Квартира вмещает до {apartmentCapacity}{" "}
+                  {pluralRu(apartmentCapacity, "гостя", "гостей", "гостей")} —
+                  больше указать нельзя.
+                </span>
+              )}
             </label>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

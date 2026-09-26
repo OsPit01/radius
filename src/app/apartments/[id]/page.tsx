@@ -7,16 +7,26 @@ import { ApartmentTabs } from "@/app/_components/apartments/ApartmentTabs";
 import { formatPhoneForDisplay } from "@/lib/phone";
 import { BookingButton } from "@/app/_components/apartments/BookingButton";
 import { getCurrencySymbol } from "@/lib/constants/currencies";
+import { parseBookingGuests } from "@/lib/search-params";
+import { parseApartmentId } from "@/lib/apartment-id";
 import { Avatar } from "@/app/_components/ui/Avatar";
+
+type ApartmentPageProps = {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
 
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
-  const { id } = await params;
+  const { id: rawId } = await params;
+  const id = parseApartmentId(rawId);
+  if (id === null) return {};
+
   const caller = await api();
-  const apartment = await caller.apartment.getByIdPublic({ id: Number(id) });
+  const apartment = await caller.apartment.getByIdPublic({ id });
 
   if (!apartment) return {};
 
@@ -28,7 +38,7 @@ export async function generateMetadata({
   return {
     title: `${title} — снять на сутки в ${city ?? "Минске"}`,
     description: metaDescription,
-    alternates: { canonical: `/apartments/${id}` },
+    alternates: { canonical: `/apartments/${rawId}` },
     openGraph: {
       title: `${title} — снять на сутки в ${city ?? "Минске"}`,
       description: metaDescription,
@@ -39,13 +49,17 @@ export async function generateMetadata({
 
 export default async function ApartmentPage({
   params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-  const caller = await api();
+  searchParams,
+}: ApartmentPageProps) {
+  const { id: rawId } = await params;
+  const sp = await searchParams;
+  // Гости из поиска (?guests=3) → стартовое значение в форме бронирования
+  const initialGuests = parseBookingGuests(sp);
+  const id = parseApartmentId(rawId);
+  if (id === null) notFound();
 
-  const apartment = await caller.apartment.getByIdPublic({ id: Number(id) });
+  const caller = await api();
+  const apartment = await caller.apartment.getByIdPublic({ id });
 
   if (!apartment) {
     notFound();
@@ -56,6 +70,8 @@ export default async function ApartmentPage({
     : [apartment.apartment.image];
 
   const a = apartment.apartment;
+  const hasExtras =
+    (a.area ?? 0) > 0 || (a.floor ?? 0) > 0 || (a.bathrooms ?? 0) > 0;
   const sleepParts = [
     a.beds ? `${a.beds} двусп. кровать` : "",
     a.singleBeds ? `${a.singleBeds} односп. кровать` : "",
@@ -100,6 +116,15 @@ export default async function ApartmentPage({
               <div className="mt-2 flex flex-wrap items-center gap-x-2">
                 <span>🛏️</span>
                 <p className="text-sm text-gray-800">{sleepText}</p>
+              </div>
+            )}
+
+            {/* Доп. характеристики: площадь, этаж, санузлы */}
+            {hasExtras && (
+              <div className="mt-2 flex flex-wrap items-center gap-x-3 text-sm text-gray-800">
+                {a.area ? <span>📐 {a.area} м²</span> : null}
+                {a.floor ? <span>🏢 {a.floor} этаж</span> : null}
+                {a.bathrooms ? <span>🛁 {a.bathrooms} санузел(а)</span> : null}
               </div>
             )}
 
@@ -158,14 +183,17 @@ export default async function ApartmentPage({
                     {formatPhoneForDisplay(apartment.user.phone)}
                   </a>
                 )}
-                {apartment.user.hasTelegram && (
-                  <BookingButton
-                    apartmentId={apartment.apartment.id}
-                    apartmentTitle={apartment.apartment.title}
-                  />
-                )}
               </div>
             )}
+
+            {/* Бронирование доступно всегда: заявка сохраняется в БД,
+                а Telegram-уведомление владельцу — дополнительный канал. */}
+            <BookingButton
+              apartmentId={apartment.apartment.id}
+              apartmentTitle={apartment.apartment.title}
+              initialGuests={initialGuests}
+              apartmentCapacity={apartment.apartment.capacity}
+            />
           </div>
         </div>
         <ApartmentTabs

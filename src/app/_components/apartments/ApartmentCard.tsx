@@ -6,32 +6,15 @@ import { api } from "@/trpc/react";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { getCurrencySymbol } from "@/lib/constants/currencies";
 import { ImageWithFallback } from "@/app/_components/ui/ImageWithFallback";
-
-// Тип для квартиры (поля из базы могут быть null)
-type Apartment = {
-  id: number;
-  title: string;
-  city: string;
-  district: string | null;
-  capacity: number;
-  price: number;
-  currency: string;
-  image: string;
-  description: string | null;
-  rooms: number;
-  beds: number;
-  singleBeds: number;
-  doubleSofas: number;
-  singleSofas: number;
-  metro: string | null;
-};
+import { pluralRu } from "@/lib/plural";
+import type { ApartmentCardData } from "@/lib/apartment-format";
 
 export function ApartmentCard({
   apartment,
   isFavorite,
   guests,
 }: {
-  apartment: Apartment;
+  apartment: ApartmentCardData;
   isFavorite: boolean;
   guests?: number;
 }) {
@@ -130,7 +113,8 @@ export function ApartmentCard({
             количество комнат: {apartment.rooms}
           </span>
           <span className="rounded-[15px] border border-[#aca9a9] bg-[#efecf3] px-2.5 py-1 text-sm font-normal">
-            до {apartment.capacity} {getCapacityText(apartment.capacity)}
+            {apartment.capacity}{" "}
+            {pluralRu(apartment.capacity, "гость", "гостя", "гостей")}
           </span>
         </div>
         <div className="flex flex-wrap gap-1.5 px-2.5 pt-1.5">
@@ -165,9 +149,4 @@ export function ApartmentCard({
       </Link>
     </>
   );
-}
-
-function getCapacityText(capacity: number) {
-  if (capacity > 1) return "человек";
-  return "человека";
 }

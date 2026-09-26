@@ -1,0 +1,10 @@
+
+> radius@0.1.0 start
+> next start -p 3100
+
+   ▲ Next.js 15.5.18
+   - Local:        http://localhost:3100
+   - Network:      http://192.168.100.35:3100
+
+ ✓ Starting...
+[TypeError: routesManifest.dataRoutes is not iterable]

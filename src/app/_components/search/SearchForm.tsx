@@ -1,6 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import {
+  MAX_BOOKING_GUESTS,
+  MIN_BOOKING_GUESTS,
+} from "@/lib/constants/booking";
 
 type SearchFormProps = {
   onSearchClick: (query: string, guests: number) => void; // при нажатии на лупу
@@ -24,7 +28,7 @@ export function SearchForm({
   const [tempSearchQuery, setTempSearchQuery] = useState(initialQuery);
   const [isGuestWindowOpen, setIsGuestWindowOpen] = useState(false);
   const [tempAdults, setTempAdults] = useState(
-    initialGuests > 1 ? initialGuests : 1,
+    initialGuests > MIN_BOOKING_GUESTS ? initialGuests : MIN_BOOKING_GUESTS,
   );
   const [tempChildren, setTempChildren] = useState(0);
   const [pets, setPets] = useState(0);
@@ -43,25 +47,25 @@ export function SearchForm({
 
   // ===== УВЕЛИЧЕНИЕ КОЛИЧЕСТВА =====
   const increase = (type: "adults" | "children" | "pets") => {
-    if (type === "adults" && tempAdults < 20) {
+    if (type === "adults" && tempAdults < MAX_BOOKING_GUESTS) {
       const newAdults = tempAdults + 1;
       setTempAdults(newAdults);
       updateTempGuests(newAdults, tempChildren);
     }
-    if (type === "children" && tempChildren < 20) {
+    if (type === "children" && tempChildren < MAX_BOOKING_GUESTS) {
       const newChildren = tempChildren + 1;
       setTempChildren(newChildren);
       setChildAges([...childAges, 0]);
       updateTempGuests(tempAdults, newChildren);
     }
-    if (type === "pets" && pets < 20) {
+    if (type === "pets" && pets < MAX_BOOKING_GUESTS) {
       setPets(pets + 1);
     }
   };
 
   // ===== УМЕНЬШЕНИЕ КОЛИЧЕСТВА =====
   const decrease = (type: "adults" | "children" | "pets") => {
-    if (type === "adults" && tempAdults > 1) {
+    if (type === "adults" && tempAdults > MIN_BOOKING_GUESTS) {
       const newAdults = tempAdults - 1;
       setTempAdults(newAdults);
       updateTempGuests(newAdults, tempChildren);
@@ -187,7 +191,7 @@ export function SearchForm({
                     <button
                       className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-[#ccc] bg-[whitesmoke] p-0 text-[22px] max-[480px]:h-6 max-[480px]:w-6 max-[480px]:text-base max-md:h-7 max-md:w-7 max-md:text-lg"
                       onClick={() => decrease("adults")}
-                      disabled={tempAdults <= 1}
+                      disabled={tempAdults <= MIN_BOOKING_GUESTS}
                     >
                       -
                     </button>
@@ -197,7 +201,7 @@ export function SearchForm({
                     <button
                       className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-[#ccc] bg-[whitesmoke] p-0 text-[22px] max-[480px]:h-6 max-[480px]:w-6 max-[480px]:text-base max-md:h-7 max-md:w-7 max-md:text-lg"
                       onClick={() => increase("adults")}
-                      disabled={tempAdults >= 25}
+                      disabled={tempAdults >= MAX_BOOKING_GUESTS}
                     >
                       +
                     </button>
@@ -221,7 +225,7 @@ export function SearchForm({
                     <button
                       className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-[#ccc] bg-[whitesmoke] p-0 text-[22px] max-[480px]:h-6 max-[480px]:w-6 max-[480px]:text-base max-md:h-7 max-md:w-7 max-md:text-lg"
                       onClick={() => increase("children")}
-                      disabled={tempChildren >= 20}
+                      disabled={tempChildren >= MAX_BOOKING_GUESTS}
                     >
                       +
                     </button>

@@ -519,6 +519,45 @@ export default function EditApartmentPage() {
                     />
                   </div>
                 </div>
+
+                {/* Площадь / этаж / санузлы */}
+                <div className="grid grid-cols-3 gap-4 max-md:grid-cols-1">
+                  <div className="mb-4 flex flex-col gap-1.5">
+                    <label className="text-sm font-medium text-white">
+                      Площадь, м²
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={formData.area || ""}
+                      onChange={(e) => updateField("area", Number(e.target.value))}
+                      className={EDIT_INPUT_CLASS}
+                    />
+                  </div>
+                  <div className="mb-4 flex flex-col gap-1.5">
+                    <label className="text-sm font-medium text-white">
+                      Этаж
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.floor || ""}
+                      onChange={(e) => updateField("floor", Number(e.target.value))}
+                      className={EDIT_INPUT_CLASS}
+                    />
+                  </div>
+                  <div className="mb-4 flex flex-col gap-1.5">
+                    <label className="text-sm font-medium text-white">
+                      Санузлы
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={formData.bathrooms || ""}
+                      onChange={(e) => updateField("bathrooms", Number(e.target.value))}
+                      className={EDIT_INPUT_CLASS}
+                    />
+                  </div>
+                </div>
               </section>
 
               {/* АДРЕС */}

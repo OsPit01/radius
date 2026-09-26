@@ -9,6 +9,11 @@ import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { sendTelegramMessage } from "@/lib/telegram";
 import { isValidPhoneNumber } from "@/lib/phone";
+import { expireStaleBookings } from "@/server/booking-expiry";
+import {
+  MAX_BOOKING_GUESTS,
+  MIN_BOOKING_GUESTS,
+} from "@/lib/constants/booking";
 
 const createBookingSchema = z.object({
   apartmentId: z.number().int().positive(),
@@ -19,7 +24,11 @@ const createBookingSchema = z.object({
     .min(1, "Укажите телефон")
     .max(50)
     .refine(isValidPhoneNumber, "Неверный номер телефона"),
-  guests: z.number().int().positive().max(20),
+  guests: z
+    .number({ message: "Укажите количество гостей" })
+    .int()
+    .min(MIN_BOOKING_GUESTS, "Укажите количество гостей")
+    .max(MAX_BOOKING_GUESTS, `Максимум ${MAX_BOOKING_GUESTS} гостей`),
   checkInDate: z.coerce.date(),
   checkOutDate: z.coerce.date(),
   message: z.string().trim().max(1000).optional(),
@@ -54,6 +63,13 @@ export const bookingsRouter = createTRPCRouter({
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Дата выезда должна быть позже даты заезда",
+        });
+      }
+
+      if (apartment.capacity > 0 && input.guests > apartment.capacity) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Квартира рассчитана максимум на ${apartment.capacity} гостей`,
         });
       }
 
@@ -126,6 +142,7 @@ export const bookingsRouter = createTRPCRouter({
 
   listForOwner: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.session.user.id;
+    // Заявки на квартиры владельца + данные гостя (booking) и владельца (owner).
     return ctx.db
       .select({
         booking: booking,
@@ -135,13 +152,22 @@ export const bookingsRouter = createTRPCRouter({
           street: apartments.street,
           numberHome: apartments.numberHome,
         },
+        owner: {
+          id: apartments.createdById,
+          name: users.name,
+          phone: users.phone,
+          firstName: users.firstName,
+          lastName: users.lastName,
+        },
       })
       .from(booking)
       .innerJoin(apartments, eq(booking.apartmentId, apartments.id))
+      .innerJoin(users, eq(apartments.createdById, users.id))
       .where(eq(apartments.createdById, userId));
   }),
   listForUser: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.session.user.id;
+    // Брони гостя + данные владельца квартиры (чтобы гость мог связаться).
     return ctx.db
       .select({
         booking: booking,
@@ -151,9 +177,17 @@ export const bookingsRouter = createTRPCRouter({
           street: apartments.street,
           numberHome: apartments.numberHome,
         },
+        owner: {
+          id: apartments.createdById,
+          name: users.name,
+          phone: users.phone,
+          firstName: users.firstName,
+          lastName: users.lastName,
+        },
       })
       .from(booking)
       .innerJoin(apartments, eq(booking.apartmentId, apartments.id))
+      .innerJoin(users, eq(apartments.createdById, users.id))
       .where(eq(booking.userId, userId));
   }),
   cancel: protectedProcedure
@@ -195,6 +229,13 @@ export const bookingsRouter = createTRPCRouter({
       }
       return updated;
     }),
+
+  // Ленивая автоотмена просроченных заявок: вызывается со страницы «Мои брони»
+  // при загрузке, чтобы таймер работал без внешнего cron (Vercel cron платный).
+  expireBookings: protectedProcedure.mutation(async () => {
+    const expired = await expireStaleBookings();
+    return { expired };
+  }),
 
   setStatus: protectedProcedure
     .input(

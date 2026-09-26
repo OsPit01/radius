@@ -37,6 +37,10 @@ export const apartments = createTable(
     doubleSofas: d.integer().notNull().default(0),
     singleSofas: d.integer().notNull().default(0),
     metro: d.varchar({ length: 100 }),
+    // ===== Доп. характеристики объекта (для удобства арендатора) =====
+    area: d.integer(), // площадь, м²
+    floor: d.integer(), // этаж
+    bathrooms: d.integer(), // количество санузлов
     isAvailable: d.boolean().default(true),
     //////////////////////////////////////////
     currency: d.varchar({ length: 10 }).notNull().default("BYN"),

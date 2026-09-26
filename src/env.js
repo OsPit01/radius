@@ -18,6 +18,8 @@ export const env = createEnv({
     RESEND_API_KEY: z.string().optional(),
     TELEGRAM_BOT_TOKEN: z.string(),
     TELEGRAM_WEBHOOK_SECRET: z.string().optional(),
+    // Секрет для cron-эндпоинтов (Vercel Cron). В проде обязателен.
+    CRON_SECRET: z.string().optional(),
     DATABASE_URL: z.string().url(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
@@ -46,6 +48,7 @@ export const env = createEnv({
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN,
     TELEGRAM_WEBHOOK_SECRET: process.env.TELEGRAM_WEBHOOK_SECRET,
+    CRON_SECRET: process.env.CRON_SECRET,
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,

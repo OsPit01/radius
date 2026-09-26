@@ -14,57 +14,28 @@ import {
   buildStatusNotificationText,
 } from "@/lib/constants/apartment-status";
 import { isAdminRole } from "@/lib/constants/roles";
+import {
+  selectApartmentCards,
+  selectApartmentOwnList,
+  selectApartmentPublic,
+} from "@/server/apartment-selects";
 
 type Database = PostgresJsDatabase<typeof schema>;
 
-// ===== ОБЩИЙ ЗАПРОС: квартира + владелец =====
+// ===== ОБЩИЕ СХЕМЫ ВВОДА =====
+const apartmentIdInput = z.object({
+  id: z.number().int().positive("Некорректный идентификатор объекта"),
+});
+
+// ===== ЗАПРОС ДЛЯ ПРИВАТНЫХ ПРОЦЕДУР (владелец / админ) =====
+// Здесь отдаём квартиру целиком: нужны все поля, включая служебные.
+// Публичные процедуры (главная, страница объекта) так делать НЕ должны —
+// они используют selectApartmentCards / selectApartmentPublic из
+// src/server/apartment-selects.ts, где список безопасных полей один на всех.
 const selectApartmentWithUser = (db: Database) =>
   db
     .select({
       apartment: apartments,
-      user: {
-        id: users.id,
-        name: users.name,
-        email: users.email,
-        image: users.image,
-        phone: users.phone,
-        firstName: users.firstName,
-        lastName: users.lastName,
-        patronymic: users.patronymic,
-        // Публично раскрываем только факт подключения Telegram,
-        // а не сам chat id владельца.
-        hasTelegram: sql<boolean>`${users.telegramChatId} IS NOT NULL`,
-      },
-    })
-    .from(apartments)
-    .leftJoin(users, eq(apartments.createdById, users.id));
-
-// ===== ЛЁГКИЙ ЗАПРОС для списка (без тяжёлого массива images и лишних полей) =====
-const selectApartmentLight = (db: Database) =>
-  db
-    .select({
-      apartment: {
-        id: apartments.id,
-        type: apartments.type,
-        title: apartments.title,
-        city: apartments.city,
-        district: apartments.district,
-        capacity: apartments.capacity,
-        price: apartments.price,
-        image: apartments.image,
-        description: apartments.description,
-        rooms: apartments.rooms,
-        beds: apartments.beds,
-        singleBeds: apartments.singleBeds,
-        doubleSofas: apartments.doubleSofas,
-        singleSofas: apartments.singleSofas,
-        metro: apartments.metro,
-        currency: apartments.currency,
-        status: apartments.status,
-        rejectionReason: apartments.rejectionReason,
-        createdAt: apartments.createdAt,
-        updatedAt: apartments.updatedAt,
-      },
       user: {
         id: users.id,
         name: users.name,
@@ -187,12 +158,13 @@ export const apartmentRouter = createTRPCRouter({
         );
       }
 
-      return await selectApartmentLight(ctx.db).where(and(...conditions));
+      // Публично отдаём только карточку: без данных владельца и служебных полей.
+      return await selectApartmentCards(ctx.db).where(and(...conditions));
     }),
 
   // 2. Получить одну квартиру по ID
   getById: protectedProcedure
-    .input(z.object({ id: z.number() }))
+    .input(apartmentIdInput)
     .query(async ({ ctx, input }) => {
       const [apartment] = await selectApartmentWithUser(ctx.db).where(
         eq(apartments.id, input.id),
@@ -208,10 +180,11 @@ export const apartmentRouter = createTRPCRouter({
     }),
   // 2.1. Получить одну квартиру по ID (публичный доступ)
   getByIdPublic: publicProcedure
-    .input(z.object({ id: z.number() }))
+    .input(apartmentIdInput)
     .query(async ({ ctx, input }) => {
-      // Публично доступны только опубликованные (active) квартиры.
-      const [apartment] = await selectApartmentWithUser(ctx.db).where(
+      // Публично доступны только опубликованные (active) квартиры,
+      // и только публичные поля (см. src/server/apartment-selects.ts).
+      const [apartment] = await selectApartmentPublic(ctx.db).where(
         and(eq(apartments.id, input.id), eq(apartments.status, "active")),
       );
 
@@ -398,7 +371,7 @@ export const apartmentRouter = createTRPCRouter({
     }),
   //удалить обьект админ/собственник
   delete: protectedProcedure
-    .input(z.object({ id: z.number() }))
+    .input(apartmentIdInput)
     .mutation(async ({ ctx, input }) => {
       const [existing] = await ctx.db
         .select()
@@ -424,7 +397,7 @@ export const apartmentRouter = createTRPCRouter({
   getMyApartments: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.session.user.id;
 
-    return await selectApartmentLight(ctx.db).where(
+    return await selectApartmentOwnList(ctx.db).where(
       eq(apartments.createdById, userId),
     );
   }),

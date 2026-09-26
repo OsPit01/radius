@@ -35,7 +35,12 @@ export default function SettingsPage() {
 
   // Telegram: привязка через одноразовый код
   const startTelegramLink = api.user.startTelegramLink.useMutation({
-    onSuccess: (data) => setLinkCode(data.code),
+    onSuccess: (data) => {
+      setLinkCode(data.code);
+      // Открываем бота сразу с готовым кодом (deep-link) —
+      // пользователю не нужно ничего вводить вручную.
+      window.open(`https://t.me/radius_booking_bot?start=${data.code}`, "_blank");
+    },
   });
   const confirmTelegramLink = api.user.confirmTelegramLink.useMutation({
     onSuccess: () => {
@@ -314,20 +319,14 @@ export default function SettingsPage() {
                 Подключение Telegram
               </p>
               <p className="mt-3 text-sm text-[#555]">
-                1. Откройте бота{" "}
+                1. Мы открыли бота{" "}
                 <span className="font-medium text-[#6b21a8]">
                   @radius_booking_bot
                 </span>{" "}
                 в Telegram
               </p>
               <p className="mt-1 text-sm text-[#555]">
-                2. Нажмите кнопку «Запустить»
-              </p>
-              <p className="mt-1 text-sm text-[#555]">
-                3. Отправьте боту этот код:
-              </p>
-              <p className="mx-auto mt-3 w-fit rounded-2xl bg-[#f6eefe] px-8 py-3 text-3xl font-bold tracking-[0.3em] text-[#6b21a8]">
-                {linkCode}
+                2. Нажмите в нём кнопку «Запустить» (Start)
               </p>
               <button
                 type="button"
@@ -337,7 +336,7 @@ export default function SettingsPage() {
               >
                 {confirmTelegramLink.isPending
                   ? "Проверяем..."
-                  : "Я отправил код — проверить"}
+                  : "Я нажал «Запустить» — проверить"}
               </button>
               {confirmTelegramLink.error && (
                 <p className="mx-auto mt-3 max-w-xs text-sm text-red-600">

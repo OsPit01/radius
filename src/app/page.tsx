@@ -53,7 +53,7 @@ export default async function Home({ searchParams }: HomePageProps) {
     sofas: filters.sofas,
     metro: filters.metro,
   });
-  const apartments = data.map((item) => getApartmentCardData(item.apartment));
+  const apartments = data.map((apartment) => getApartmentCardData(apartment));
   const queryString = buildQueryString(filters);
 
   return (

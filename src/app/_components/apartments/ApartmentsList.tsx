@@ -5,28 +5,11 @@ import { api } from "@/trpc/react";
 import type { Filters } from "../search/FilterPanel";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
+import type { ApartmentCardData } from "@/lib/apartment-format";
 const APARTMENTS_PAGE_SIZE = 12;
 
-type Apartment = {
-  id: number;
-  title: string;
-  city: string;
-  district: string;
-  capacity: number;
-  price: number;
-  image: string;
-  description: string;
-  rooms: number;
-  beds: number;
-  singleBeds: number;
-  doubleSofas: number;
-  singleSofas: number;
-  metro: string;
-  currency: string;
-};
-
 type ApartmentsListProps = {
-  apartments: Apartment[];
+  apartments: ApartmentCardData[];
   searchQuery?: string;
   totalGuests?: number;
   filters?: Filters;
