@@ -109,14 +109,20 @@ export default function MyApartmentsPage() {
                           </button>
                         </div>
                         {/* ИНДИКАТОР СТАТУСА + тултип при наведении */}
-                        <span
-                          className="group relative ml-auto hidden h-4 w-4 cursor-help rounded-[35px] sm:inline-block"
-                          style={{ background: s.color }}
-                        >
-                          <span className="pointer-events-none absolute top-1/2 right-full mr-2 -translate-y-1/2 rounded-lg bg-[#222] px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100">
-                            Статус: {s.label}
+                        <div className="flex items-center justify-between pt-2">
+                          <span className="text-[13px] font-bold text-gray-500">
+                            {" "}
+                            ID: {item.apartment.id}{" "}
                           </span>
-                        </span>
+                          <span
+                            className="group relative ml-auto hidden h-4 w-4 cursor-help rounded-[35px] sm:inline-block"
+                            style={{ background: s.color }}
+                          >
+                            <span className="pointer-events-none absolute top-1/2 right-full mr-2 -translate-y-1/2 rounded-lg bg-[#222] px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+                              Статус: {s.label}
+                            </span>
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
