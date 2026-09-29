@@ -4,8 +4,8 @@ import { notFound } from "next/navigation";
 import { ClientHeader } from "@/app/_components/layout/ClientHeader";
 import { PhotoGallery } from "@/app/_components/apartments/PhotoGallery";
 import { ApartmentTabs } from "@/app/_components/apartments/ApartmentTabs";
-import { formatPhoneForDisplay } from "@/lib/phone";
 import { BookingButton } from "@/app/_components/apartments/BookingButton";
+import { OwnerPhone } from "@/app/_components/apartments/OwnerPhone";
 import { getCurrencySymbol } from "@/lib/constants/currencies";
 import { parseBookingGuests } from "@/lib/search-params";
 import { parseApartmentId } from "@/lib/apartment-id";
@@ -148,7 +148,7 @@ export default async function ApartmentPage({
               <span className="text-[20px] font-bold text-gray-800">
                 {apartment.apartment.price}
               </span>
-              <span className="text-[10px] font-medium text-gray-900">
+              <span className="text-[13px] font-medium text-gray-900">
                 {getCurrencySymbol(apartment.apartment.currency)}
               </span>
               <span className="text-[15px] text-gray-900">/ сутки</span>
@@ -174,15 +174,10 @@ export default async function ApartmentPage({
                     <p className="text-sm text-gray-500">Арендодатель</p>
                   </div>
                 </div>
-                {apartment.user.phone && (
-                  <a
-                    href={`tel:${apartment.user.phone}`}
-                    className="mt-3 flex items-center gap-2 rounded-xl bg-gray-800 px-4 py-3 text-center text-sm font-medium text-white transition-colors hover:bg-gray-700"
-                  >
-                    <span>📞</span>
-                    {formatPhoneForDisplay(apartment.user.phone)}
-                  </a>
-                )}
+                <OwnerPhone
+                  phone={apartment.user.phone}
+                  canViewPhone={apartment.canViewPhone}
+                />
               </div>
             )}
 

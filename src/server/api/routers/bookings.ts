@@ -1,19 +1,20 @@
 import { z } from "zod";
-import {
-  createTRPCRouter,
-  publicProcedure,
-  protectedProcedure,
-} from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { booking, apartments, users, notification } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { sendTelegramMessage } from "@/lib/telegram";
 import { isValidPhoneNumber } from "@/lib/phone";
 import { expireStaleBookings } from "@/server/booking-expiry";
+import { enforceRateLimit } from "@/server/rate-limit";
 import {
   MAX_BOOKING_GUESTS,
   MIN_BOOKING_GUESTS,
 } from "@/lib/constants/booking";
+
+// Защита от флуда: сколько заявок один гость может оставить за одно окно.
+const BOOKING_RATE_LIMIT = 5;
+const BOOKING_RATE_WINDOW_MS = 10 * 60 * 1000;
 
 const createBookingSchema = z.object({
   apartmentId: z.number().int().positive(),
@@ -35,10 +36,17 @@ const createBookingSchema = z.object({
 });
 
 export const bookingsRouter = createTRPCRouter({
-  create: publicProcedure
+  create: protectedProcedure
     .input(createBookingSchema)
     .mutation(async ({ ctx, input }) => {
-      const userId = ctx.session?.user?.id ?? null;
+      const userId = ctx.session.user.id;
+
+      await enforceRateLimit(
+        ctx.db,
+        `booking:${userId}`,
+        BOOKING_RATE_LIMIT,
+        BOOKING_RATE_WINDOW_MS,
+      );
 
       const [apartment] = await ctx.db
         .select()
@@ -73,6 +81,21 @@ export const bookingsRouter = createTRPCRouter({
         });
       }
 
+      // Владельца ищем ДО вставки брони: если его вдруг нет (битые данные
+      // объекта), заявка не должна попасть в БД «наполовину» — иначе получим
+      // запись, о которой никто не узнает (ни уведомления, ни Telegram).
+      const [owner] = await ctx.db
+        .select({
+          telegramChatId: users.telegramChatId,
+          name: users.name,
+          id: users.id,
+        })
+        .from(users)
+        .where(eq(users.id, apartment.createdById ?? ""));
+      if (!owner?.id) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
       const [created] = await ctx.db
         .insert(booking)
         .values({
@@ -89,18 +112,6 @@ export const bookingsRouter = createTRPCRouter({
 
       if (!created) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-      }
-
-      const [owner] = await ctx.db
-        .select({
-          telegramChatId: users.telegramChatId,
-          name: users.name,
-          id: users.id,
-        })
-        .from(users)
-        .where(eq(users.id, apartment.createdById ?? ""));
-      if (!owner?.id) {
-        throw new TRPCError({ code: "NOT_FOUND" });
       }
       const [createNotification] = await ctx.db
         .insert(notification)

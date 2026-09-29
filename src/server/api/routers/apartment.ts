@@ -109,6 +109,8 @@ export const apartmentRouter = createTRPCRouter({
           beds: z.number().int().min(1).optional(),
           sofas: z.number().int().min(1).optional(),
           metro: z.number().int().min(1).optional(),
+          limit: z.number().int().min(1).max(100).optional(),
+          offset: z.number().int().min(0).optional(),
         })
         .optional(),
     )
@@ -159,7 +161,11 @@ export const apartmentRouter = createTRPCRouter({
       }
 
       // Публично отдаём только карточку: без данных владельца и служебных полей.
-      return await selectApartmentCards(ctx.db).where(and(...conditions));
+      // Пагинация: защищает от раздувания ответа при росте каталога.
+      return await selectApartmentCards(ctx.db)
+        .where(and(...conditions))
+        .limit(input?.limit ?? 50)
+        .offset(input?.offset ?? 0);
     }),
 
   // 2. Получить одну квартиру по ID
@@ -176,6 +182,18 @@ export const apartmentRouter = createTRPCRouter({
           message: "Квартира не найдена",
         });
       }
+
+      // Полные данные (включая email/телефон владельца) — только владельцу
+      // или администратору. Чужому авторизованному — FORBIDDEN.
+      const isOwner = apartment.apartment.createdById === ctx.session.user.id;
+      const isAdmin = isAdminRole(ctx.session.user.role);
+      if (!isOwner && !isAdmin) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "У вас нет прав на просмотр полных данных этого объекта",
+        });
+      }
+
       return apartment;
     }),
   // 2.1. Получить одну квартиру по ID (публичный доступ)
@@ -184,11 +202,26 @@ export const apartmentRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       // Публично доступны только опубликованные (active) квартиры,
       // и только публичные поля (см. src/server/apartment-selects.ts).
+      // Телефон владельца — персональные данные: анонимному посетителю
+      // он не отдаётся вообще (затираем на null в ответе), а не прячется стилями.
+      const canViewPhone = !!ctx.session?.user;
+
       const [apartment] = await selectApartmentPublic(ctx.db).where(
         and(eq(apartments.id, input.id), eq(apartments.status, "active")),
       );
 
-      return apartment ?? null;
+      if (!apartment) return null;
+
+      return {
+        ...apartment,
+        user: apartment.user
+          ? {
+              ...apartment.user,
+              phone: canViewPhone ? apartment.user.phone : null,
+            }
+          : null,
+        canViewPhone,
+      };
     }),
 
   // 3. Создать квартиру

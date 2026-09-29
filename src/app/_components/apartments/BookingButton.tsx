@@ -6,12 +6,14 @@ import { Modal } from "@/app/_components/ui/Modal";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import { isValidPhoneNumber } from "@/lib/phone";
+import { useSession } from "next-auth/react";
 import {
   DEFAULT_BOOKING_GUESTS,
   MAX_BOOKING_GUESTS,
   MIN_BOOKING_GUESTS,
 } from "@/lib/constants/booking";
 import { pluralRu } from "@/lib/plural";
+import Link from "next/link";
 
 type BookingButtonProps = {
   apartmentId: number;
@@ -28,6 +30,7 @@ export function BookingButton({
   initialGuests = DEFAULT_BOOKING_GUESTS,
   apartmentCapacity,
 }: BookingButtonProps) {
+  const { data: session } = useSession();
   const [open, setOpen] = useState(false);
   const [guestName, setGuestName] = useState("");
   const [guestPhone, setGuestPhone] = useState("");
@@ -48,7 +51,9 @@ export function BookingButton({
       setOpen(false);
       setGuestName("");
       setGuestPhone("");
-      setGuests(Math.min(Math.max(initialGuests, MIN_BOOKING_GUESTS), maxGuests));
+      setGuests(
+        Math.min(Math.max(initialGuests, MIN_BOOKING_GUESTS), maxGuests),
+      );
       setCheckInDate("");
       setCheckOutDate("");
       setMessage("");
@@ -78,19 +83,29 @@ export function BookingButton({
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-gray-800 px-4 py-3 text-center text-sm font-medium text-white transition-colors hover:bg-gray-700"
-      >
-        Забронировать
-      </button>
-
+      {session ? (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-gray-800 px-4 py-3 text-center text-sm font-medium text-white transition-colors hover:bg-gray-700"
+        >
+          Забронировать
+        </button>
+      ) : (
+        <Link
+          href="/auth/signin"
+          className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-gray-800 px-4 py-3 text-center text-sm font-medium text-white transition-colors hover:bg-gray-700"
+        >
+          Забронировать
+        </Link>
+      )}
       <Modal open={open} onClose={() => setOpen(false)} title="Бронирование">
         {createBooking.isSuccess ? (
           <div className="flex flex-col items-center gap-3 py-6 text-center">
             <div className="text-4xl">✅</div>
-            <p className="text-lg font-semibold text-[#222]">Заявка отправлена!</p>
+            <p className="text-lg font-semibold text-[#222]">
+              Заявка отправлена!
+            </p>
             <p className="text-sm text-[#888]">
               Владелец увидит вашу заявку в Telegram и свяжется с вами.
             </p>
@@ -105,7 +120,8 @@ export function BookingButton({
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col gap-3">
             <p className="text-sm text-[#888]">
-              Квартира: <span className="font-medium text-[#222]">{apartmentTitle}</span>
+              Квартира:{" "}
+              <span className="font-medium text-[#222]">{apartmentTitle}</span>
             </p>
 
             <label className="flex flex-col gap-1 text-sm font-medium text-[#222]">
@@ -118,7 +134,6 @@ export function BookingButton({
                 className="rounded-xl border border-[#e0e0e0] px-4 py-3 text-base text-[#222] outline-none focus:border-[#6b21a8]"
               />
             </label>
-
             <label className="flex flex-col gap-1 text-sm font-medium text-[#222]">
               Телефон
               <PhoneInput

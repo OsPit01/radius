@@ -2,14 +2,26 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { getSupabaseAdmin } from "@/server/supabase";
+import { enforceRateLimit } from "@/server/rate-limit";
 
 // Максимальный размер загружаемого изображения — 5 МБ.
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 
+// Защита от флуда: сколько изображений один пользователь может загрузить за час.
+const UPLOAD_RATE_LIMIT = 20;
+const UPLOAD_RATE_WINDOW_MS = 60 * 60 * 1000;
+
 export const uploadRouter = createTRPCRouter({
   image: protectedProcedure
     .input(z.object({ dataUrl: z.string() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      await enforceRateLimit(
+        ctx.db,
+        `upload:${ctx.session.user.id}`,
+        UPLOAD_RATE_LIMIT,
+        UPLOAD_RATE_WINDOW_MS,
+      );
+
       // dataUrl выглядит так: "data:image/jpeg;base64,<данные>"
       const match = /^data:(image\/[\w+-]+);base64,(.+)$/.exec(input.dataUrl);
       if (!match) {

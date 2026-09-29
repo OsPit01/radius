@@ -81,12 +81,10 @@ export const users = createTable("user", (d) => ({
   firstName: d.varchar({ length: 100 }),
   lastName: d.varchar({ length: 100 }),
   patronymic: d.varchar({ length: 100 }),
-  emailVerified: d
-    .timestamp({
-      mode: "date",
-      withTimezone: true,
-    })
-    .$defaultFn(() => /* @__PURE__ */ new Date()),
+  emailVerified: d.timestamp({
+    mode: "date",
+    withTimezone: true,
+  }),
   image: d.text(),
   role: d.varchar({ length: 50 }).notNull().default("user"),
   // ===== НОВЫЕ ПОЛЯ =====
@@ -240,3 +238,12 @@ export const streets = createTable(
     uniqueIndex("street_city_name_idx").on(t.city, t.name),
   ],
 );
+
+// ======== Rate limit (защита от флуда) ============= //
+// Ключ — строка вида `booking:{userId}` или `upload:{userId}`.
+// Счётчик живёт до наступления resetAt, затем окно начинается заново.
+export const rateLimit = createTable("rate_limit", (d) => ({
+  key: d.varchar({ length: 255 }).notNull().primaryKey(),
+  count: d.integer().notNull().default(0),
+  resetAt: d.timestamp({ withTimezone: true }).notNull(),
+}));

@@ -22,6 +22,8 @@ declare module "next-auth" {
       email: string;
       image: string | null;
       role: Role;
+      /** Дата, до которой аккаунт заблокирован (null — не забанен). */
+      bannedUntil: Date | null;
     };
   }
 
@@ -37,6 +39,7 @@ declare module "next-auth" {
 declare module "@auth/core/adapters" {
   interface AdapterUser {
     role?: Role;
+    bannedUntil?: Date | null;
   }
 }
 
@@ -69,6 +72,7 @@ export const authConfig = {
           ...session.user,
           id: user.id,
           role: user.role ?? "user",
+          bannedUntil: user.bannedUntil ?? null,
         },
       };
     },

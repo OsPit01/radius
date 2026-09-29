@@ -62,7 +62,22 @@ export const userRouter = createTRPCRouter({
         message: "У вас нет прав на просмотр всех пользователей",
       });
     }
-    return await ctx.db.select().from(users);
+    // Отдаём только то, что нужно админке. Служебные и приватные поля
+    // (telegramChatId, telegramLinkCode, bannedUntil, emailVerified, счётчики)
+    // в список не входят — им здесь не место.
+    return await ctx.db
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        phone: users.phone,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        patronymic: users.patronymic,
+        image: users.image,
+        role: users.role,
+      })
+      .from(users);
   }),
   // 2. Получить одного пользователя по ID
   getById: protectedProcedure
@@ -156,11 +171,6 @@ export const userRouter = createTRPCRouter({
         }
       }
 
-      const [user] = await ctx.db
-        .select()
-        .from(users)
-        .where(eq(users.id, userId));
-
       const [apartmentsCount] = await ctx.db
         .select({ count: count() })
         .from(apartments)
@@ -179,7 +189,6 @@ export const userRouter = createTRPCRouter({
         .where(eq(apartments.createdById, userId));
 
       return {
-        user,
         stats: {
           totalApartments: apartmentsCount?.count ?? 0,
           totalBookings: bookingsCount?.count ?? 0,

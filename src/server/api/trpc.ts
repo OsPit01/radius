@@ -120,6 +120,17 @@ export const protectedProcedure = t.procedure
     if (!ctx.session?.user) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
+
+    // Проверка бана: заблокированный пользователь не может совершать
+    // никаких авторизованных действий, даже если его сессия ещё жива.
+    const bannedUntil = ctx.session.user.bannedUntil;
+    if (bannedUntil && bannedUntil.getTime() > Date.now()) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Ваш аккаунт заблокирован",
+      });
+    }
+
     return next({
       ctx: {
         // infers the `session` as non-nullable
