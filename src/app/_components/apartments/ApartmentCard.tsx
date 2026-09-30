@@ -103,7 +103,7 @@ export function ApartmentCard({
             {apartment.title}
           </span>
         </div>
-        <div className="flex px-2.5 pt-1 text-sm font-normal break-words">
+        <div className="flex px-3.5 pt-1 pt-4 pb-2 text-sm font-normal break-words">
           {apartment.city}
           {apartment.district ? `, ${apartment.district}` : ""}
         </div>

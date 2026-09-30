@@ -1,5 +1,10 @@
 import { relations } from "drizzle-orm";
-import { index, pgTableCreator, primaryKey, uniqueIndex } from "drizzle-orm/pg-core";
+import {
+  index,
+  pgTableCreator,
+  primaryKey,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
 import { type AdapterAccount } from "next-auth/adapters";
 
 /**
@@ -221,6 +226,10 @@ export const booking = createTable("booking", (d) => ({
     .timestamp({ withTimezone: true })
     .$defaultFn(() => new Date())
     .notNull(),
+}));
+// чат (message)
+export const conversation = createTable("conversation", (d) => ({
+  id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
 }));
 
 // ======== Streets (справочник улиц для автодополнения) ============= //
