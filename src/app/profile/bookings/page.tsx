@@ -145,7 +145,7 @@ export default function BookingsPage() {
     <AuthGuard>
       <ClientHeader />
       {/* Переключатель «Сдаю / Снимаю» */}
-      <div className="pt-2 pb-15">
+      <div className="mx-auto max-w-3xl px-4 pt-2">
         <Tabs
           tabs={[
             { id: "owner", label: "Сдаю" },

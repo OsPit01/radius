@@ -227,9 +227,25 @@ export const booking = createTable("booking", (d) => ({
     .$defaultFn(() => new Date())
     .notNull(),
 }));
-// чат (message)
+// чат (диалог)
 export const conversation = createTable("conversation", (d) => ({
   id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+  bookingId: d
+    .integer()
+    .notNull()
+    .references(() => booking.id),
+  guestId: d
+    .varchar({ length: 255 })
+    .notNull()
+    .references(() => users.id),
+  ownerId: d
+    .varchar({ length: 255 })
+    .notNull()
+    .references(() => users.id),
+  createdAt: d
+    .timestamp({ withTimezone: true })
+    .$defaultFn(() => new Date())
+    .notNull(),
 }));
 
 // ======== Streets (справочник улиц для автодополнения) ============= //

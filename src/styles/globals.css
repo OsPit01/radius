@@ -19,6 +19,11 @@
   outline: none;
   border: none;
   background: transparent;
+  color: #222;
+}
+
+/* Тёмная тема (страница настроек профиля) — белый текст номера телефона */
+.autofill-dark .PhoneInputInput {
   color: white;
 }
 

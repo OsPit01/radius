@@ -61,15 +61,35 @@ export function Header() {
           )}
         </div>
 
-        {/* КНОПКА ГАМБУРГЕРА (мобилка) */}
-        <button
-          className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg text-2xl text-[#222] transition-colors hover:bg-[#f5f5f5] md:hidden"
-          onClick={() => setMenuOpen((prev) => !prev)}
-          aria-label={menuOpen ? "Закрыть меню" : "Открыть меню"}
-          aria-expanded={menuOpen}
-        >
-          {menuOpen ? "✕" : "☰"}
-        </button>
+        {/* УПРАВЛЕНИЕ (мобилка): избранное + уведомления + гамбургер */}
+        <div className="flex shrink-0 items-center gap-1 md:hidden">
+          {session?.user && (
+            <>
+              <Link
+                href="/profile/favorites"
+                className="cursor-pointer rounded-lg p-2 text-[1.1rem] no-underline transition-colors hover:bg-[#f5f5f5]"
+                aria-label="Избранное"
+              >
+                ❤️
+              </Link>
+              <Link
+                href="/my-notifications"
+                className="cursor-pointer rounded-lg p-2 no-underline transition-colors hover:bg-[#f5f5f5]"
+                aria-label="Уведомления"
+              >
+                <NotificationBell />
+              </Link>
+            </>
+          )}
+          <button
+            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg text-2xl text-[#222] transition-colors hover:bg-[#f5f5f5]"
+            onClick={() => setMenuOpen((prev) => !prev)}
+            aria-label={menuOpen ? "Закрыть меню" : "Открыть меню"}
+            aria-expanded={menuOpen}
+          >
+            {menuOpen ? "✕" : "☰"}
+          </button>
+        </div>
       </div>
 
       {/* МОБИЛЬНОЕ МЕНЮ */}
