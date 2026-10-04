@@ -15,6 +15,7 @@ export type ApartmentCardData = {
   doubleSofas: number;
   singleSofas: number;
   metro: string;
+  amenities: string[];
 };
 
 // Структура полей, которые возвращает selectApartmentLight
@@ -35,6 +36,7 @@ type ApartmentSource = {
   doubleSofas: number | null;
   singleSofas: number | null;
   metro: string | null;
+  amenities: string[] | null;
 };
 
 export function getApartmentCardData(
@@ -57,5 +59,6 @@ export function getApartmentCardData(
     doubleSofas: apartment.doubleSofas ?? 0,
     singleSofas: apartment.singleSofas ?? 0,
     metro: apartment.metro ?? "",
+    amenities: apartment.amenities ?? [],
   };
 }

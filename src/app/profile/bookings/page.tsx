@@ -5,7 +5,9 @@ import { api } from "@/trpc/react";
 import { formatPhoneForDisplay } from "@/lib/phone";
 import { Modal } from "@/app/_components/ui/Modal";
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { Tabs } from "./_components/ui/BookingTabs";
+import { ModeSwitch } from "./_components/ui/BookingModeSwitch";
 
 // Человекочитаемые подписи статусов брони.
 const BOOKING_STATUS_LABELS: Record<string, string> = {
@@ -39,6 +41,10 @@ function ownerDisplayName(owner: {
 
 export default function BookingsPage() {
   const utils = api.useUtils();
+  const { data: session } = useSession();
+  // Обычный пользователь (role "user") может только снимать жильё —
+  // переключатель «Сдаю / Снимаю» ему не нужен, показываем только «Снимаю».
+  const canHost = session?.user?.role !== "user";
 
   // Заявки на мои квартиры (я — владелец).
   const {
@@ -93,14 +99,20 @@ export default function BookingsPage() {
   // Активная вкладка внутри режима.
   const [tab, setTab] = useState("new");
 
+  // Для обычного пользователя режим принудительно «Снимаю»,
+  // а вкладка по умолчанию — «Активные» (вкладки «Новые» у гостя нет).
+  const currentMode: "owner" | "guest" = canHost ? mode : "guest";
+  const currentTab =
+    currentMode === "guest" && tab === "new" ? "approved" : tab;
+
   // Выбираем данные текущего режима.
-  const currentData = mode === "owner" ? bookings : myBookings;
-  const currentPending = mode === "owner" ? isPending : isMyPending;
-  const currentError = mode === "owner" ? isError : isMyError;
+  const currentData = currentMode === "owner" ? bookings : myBookings;
+  const currentPending = currentMode === "owner" ? isPending : isMyPending;
+  const currentError = currentMode === "owner" ? isError : isMyError;
 
   // Вкладки статусов зависят от режима. У обеих сторон есть «Прошедшие».
   const statusTabs: { id: string; label: string }[] =
-    mode === "owner"
+    currentMode === "owner"
       ? [
           { id: "new", label: "Новые" },
           { id: "approved", label: "Активные" },
@@ -118,14 +130,14 @@ export default function BookingsPage() {
     // Прошла ли дата выезда (одна и та же логика для обеих сторон).
     const isPast = new Date(booking.checkOutDate) < new Date();
 
-    if (tab === "past") {
+    if (currentTab === "past") {
       // «Прошедшие» — те, у кого дата выезда уже в прошлом.
       return isPast;
     }
-    if (tab === "approved") {
+    if (currentTab === "approved") {
       // «Активные» — предстоящие. У гостя сюда же попадают заявки,
       // ожидающие подтверждения (status "new"), чтобы они не «терялись».
-      if (mode === "guest") {
+      if (currentMode === "guest") {
         return (
           (booking.status === "new" || booking.status === "approved") && !isPast
         );
@@ -134,36 +146,38 @@ export default function BookingsPage() {
     }
     // «Отклонённые» / «Отменённые» — туда же показываем автоотменённые (expired),
     // чтобы заявка не «исчезала» после срабатывания таймера.
-    if (tab === "rejected" || tab === "cancelled") {
-      return booking.status === tab || booking.status === "expired";
+    if (currentTab === "rejected" || currentTab === "cancelled") {
+      return booking.status === currentTab || booking.status === "expired";
     }
     // «Новые» — просто по статусу.
-    return booking.status === tab;
+    return booking.status === currentTab;
   });
 
   return (
     <AuthGuard>
       <ClientHeader />
-      {/* Переключатель «Сдаю / Снимаю» */}
-      <div className="mx-auto max-w-3xl px-4 pt-2">
-        <Tabs
-          tabs={[
-            { id: "owner", label: "Сдаю" },
-            { id: "guest", label: "Снимаю" },
-          ]}
-          active={mode}
-          onChange={(id) => {
-            setMode(id);
-            // При смене режима сбрасываем вкладку на дефолтную,
-            // иначе старый tab может не существовать в новом режиме.
-            setTab(id === "owner" ? "new" : "approved");
-          }}
-        />
-      </div>
+      {/* Переключатель «Сдаю / Снимаю» — только для владельца/админа */}
+      {canHost && (
+        <div className="mx-auto max-w-full px-4 pt-2">
+          <ModeSwitch
+            tabs={[
+              { id: "owner", label: "Сдаю" },
+              { id: "guest", label: "Снимаю" },
+            ]}
+            active={currentMode}
+            onChange={(id) => {
+              setMode(id);
+              // При смене режима сбрасываем вкладку на дефолтную,
+              // иначе старый tab может не существовать в новом режиме.
+              setTab(id === "owner" ? "new" : "approved");
+            }}
+          />
+        </div>
+      )}
 
       <div className="mx-auto max-w-3xl px-4 pt-5">
         {/* Вкладки статусов текущего режима */}
-        <Tabs tabs={statusTabs} active={tab} onChange={setTab} />
+        <Tabs tabs={statusTabs} active={currentTab} onChange={setTab} />
 
         <h1 className="mb-1 pt-10 text-2xl font-bold text-[#222]">Мои брони</h1>
         <p className="mb-6 text-sm text-[#888]">

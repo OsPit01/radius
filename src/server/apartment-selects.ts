@@ -39,6 +39,7 @@ export const apartmentCardColumns = {
   doubleSofas: apartments.doubleSofas,
   singleSofas: apartments.singleSofas,
   metro: apartments.metro,
+  amenities: apartments.amenities,
 };
 
 /** Карточка + подробности для страницы объекта (без точного адреса и служебных полей). */
