@@ -247,7 +247,23 @@ export const conversation = createTable("conversation", (d) => ({
     .$defaultFn(() => new Date())
     .notNull(),
 }));
-
+// Message
+export const message = createTable("message", (d) => ({
+  id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+  conversationId: d
+    .integer()
+    .notNull()
+    .references(() => conversation.id),
+  senderId: d
+    .varchar({ length: 255 })
+    .notNull()
+    .references(() => users.id),
+  text: d.text().notNull(),
+  createdAt: d
+    .timestamp({ withTimezone: true })
+    .$defaultFn(() => new Date())
+    .notNull(),
+}));
 // ======== Streets (справочник улиц для автодополнения) ============= //
 export const streets = createTable(
   "street",

@@ -1,6 +1,12 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { booking, apartments, users, notification } from "@/server/db/schema";
+import {
+  booking,
+  apartments,
+  users,
+  notification,
+  conversation,
+} from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { sendTelegramMessage } from "@/lib/telegram";
@@ -81,6 +87,15 @@ export const bookingsRouter = createTRPCRouter({
         });
       }
 
+      // Владелец не может бронировать собственный объект —
+      // иначе получился бы чат «сам с собой» (guestId === ownerId).
+      if (apartment.createdById === userId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Нельзя забронировать свою квартиру",
+        });
+      }
+
       // Владельца ищем ДО вставки брони: если его вдруг нет (битые данные
       // объекта), заявка не должна попасть в БД «наполовину» — иначе получим
       // запись, о которой никто не узнает (ни уведомления, ни Telegram).
@@ -113,6 +128,11 @@ export const bookingsRouter = createTRPCRouter({
       if (!created) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
+      await ctx.db.insert(conversation).values({
+        bookingId: created.id,
+        guestId: userId,
+        ownerId: owner.id,
+      });
       const [createNotification] = await ctx.db
         .insert(notification)
         .values({

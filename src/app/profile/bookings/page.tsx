@@ -131,8 +131,14 @@ export default function BookingsPage() {
     const isPast = new Date(booking.checkOutDate) < new Date();
 
     if (currentTab === "past") {
-      // «Прошедшие» — те, у кого дата выезда уже в прошлом.
-      return isPast;
+      // «Прошедшие» — гость реально прожил: дата выезда в прошлом,
+      // и заявка НЕ отменена / НЕ отклонена / НЕ истекла.
+      return (
+        isPast &&
+        booking.status !== "cancelled" &&
+        booking.status !== "rejected" &&
+        booking.status !== "expired"
+      );
     }
     if (currentTab === "approved") {
       // «Активные» — предстоящие. У гостя сюда же попадают заявки,

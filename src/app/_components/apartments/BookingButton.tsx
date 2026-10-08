@@ -140,6 +140,7 @@ export function BookingButton({
                 international
                 countries={["BY", "RU"]}
                 defaultCountry="BY"
+                limitMaxLength
                 value={guestPhone}
                 onChange={(value) => setGuestPhone(value ?? "")}
                 placeholder="Введите номер телефона"

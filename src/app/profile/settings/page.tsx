@@ -201,6 +201,7 @@ export default function SettingsPage() {
                   international
                   countries={["BY", "RU"]}
                   defaultCountry="BY"
+                  limitMaxLength
                   value={form.phone}
                   onChange={(value) => setForm({ ...form, phone: value ?? "" })}
                   className="w-full border-b border-white/30 bg-transparent p-1 pl-2 text-[15px] md:w-1/2"
