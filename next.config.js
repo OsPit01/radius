@@ -38,18 +38,6 @@ const config = {
   },
   // Отключи кэш в разработке (чтобы избежать проблем с кешированием)
   generateEtags: process.env.NODE_ENV === "development" ? false : true,
-  // Один канонический адрес: любой заход через www редиректит на https://radius-stay.by,
-  // чтобы Google не считал www.radius-stay.by и radius-stay.by двумя разными сайтами.
-  async redirects() {
-    return [
-      {
-        source: "/:path*",
-        has: [{ type: "host", value: "www.radius-stay.by" }],
-        destination: "https://radius-stay.by/:path*",
-        permanent: true,
-      },
-    ];
-  },
 };
 
 export default config;
