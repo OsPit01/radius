@@ -10,6 +10,7 @@ import { getCurrencySymbol } from "@/lib/constants/currencies";
 import { parseBookingGuests } from "@/lib/search-params";
 import { parseApartmentId } from "@/lib/apartment-id";
 import { Avatar } from "@/app/_components/ui/Avatar";
+import { ApartmentViewTracker } from "@/app/_components/analytics/ApartmentViewTracker";
 
 type ApartmentPageProps = {
   params: Promise<{ id: string }>;
@@ -83,6 +84,8 @@ export default async function ApartmentPage({
   return (
     <>
       <ClientHeader />
+
+      <ApartmentViewTracker apartmentId={apartment.apartment.id} />
 
       <div className="mx-auto mt-5.5 max-w-5xl px-4 pb-[60px]">
         <h1 className="mb-6 text-3xl font-bold text-[#222]">

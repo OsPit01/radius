@@ -288,3 +288,37 @@ export const rateLimit = createTable("rate_limit", (d) => ({
   count: d.integer().notNull().default(0),
   resetAt: d.timestamp({ withTimezone: true }).notNull(),
 }));
+
+// ======== Аналитика: уникальные переходы на сайт ============= //
+// visitorId — уникальный id браузера (генерируется на клиенте, хранится
+// в localStorage). Первичный ключ гарантирует: один браузер = один переход,
+// повторные заходы (обновление страницы, возврат) не учитываются.
+export const siteVisit = createTable("site_visit", (d) => ({
+  visitorId: d.varchar({ length: 64 }).notNull().primaryKey(),
+  createdAt: d
+    .timestamp({ withTimezone: true })
+    .$defaultFn(() => new Date())
+    .notNull(),
+}));
+
+// ======== Аналитика: уникальные просмотры квартир ============= //
+// Один браузер (visitorId) учитывается как один просмотр конкретной
+// квартиры — повторные открытия той же квартиры не считаются.
+export const apartmentView = createTable(
+  "apartment_view",
+  (d) => ({
+    visitorId: d.varchar({ length: 64 }).notNull(),
+    apartmentId: d
+      .integer()
+      .notNull()
+      .references(() => apartments.id),
+    createdAt: d
+      .timestamp({ withTimezone: true })
+      .$defaultFn(() => new Date())
+      .notNull(),
+  }),
+  (t) => [
+    primaryKey({ columns: [t.visitorId, t.apartmentId] }),
+    index("apartment_view_apartment_idx").on(t.apartmentId),
+  ],
+);

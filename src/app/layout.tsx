@@ -6,6 +6,8 @@ import { SessionProvider } from "next-auth/react";
 import { TRPCReactProvider } from "@/trpc/react";
 import { Footer } from "@/app/_components/layout/Footer";
 import { CookieConsent } from "@/app/_components/ui/CookieConsent";
+import { VisitTracker } from "@/app/_components/analytics/VisitTracker";
+import { GoogleAnalytics } from "@/app/_components/analytics/GoogleAnalytics";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -53,9 +55,11 @@ export default function RootLayout({
   return (
     <html lang="ru" className={`${inter.variable}`}>
       <body className="flex min-h-screen flex-col">
+        <GoogleAnalytics />
         <SessionProvider>
           <TRPCReactProvider>
             <div className="flex-1">{children}</div>
+            <VisitTracker />
           </TRPCReactProvider>
         </SessionProvider>
         <Footer />
