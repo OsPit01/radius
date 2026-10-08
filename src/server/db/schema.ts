@@ -194,10 +194,8 @@ export const notification = createTable("notification", (d) => ({
   type: d.varchar({ length: 50 }).notNull(),
   title: d.varchar({ length: 255 }).notNull(),
   text: d.text().notNull(),
-  apartmentId: d
-    .integer()
-    .notNull()
-    .references(() => apartments.id),
+  // Уведомления могут быть не привязаны к объекту (например, сообщение админа).
+  apartmentId: d.integer().references(() => apartments.id),
   isRead: d.boolean().notNull().default(false),
   readAt: d.timestamp({ withTimezone: true }),
   link: d.varchar({ length: 255 }),
@@ -259,6 +257,8 @@ export const message = createTable("message", (d) => ({
     .notNull()
     .references(() => users.id),
   text: d.text().notNull(),
+  // Прочитал ли получатель это сообщение (для счётчика непрочитанных).
+  isRead: d.boolean().notNull().default(false),
   createdAt: d
     .timestamp({ withTimezone: true })
     .$defaultFn(() => new Date())

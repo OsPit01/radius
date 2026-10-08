@@ -4,6 +4,7 @@ import { Modal } from "@/app/_components/ui/Modal";
 import { getRoleInfo, type RoleKey } from "@/lib/constants/roles";
 import { api } from "@/trpc/react";
 import { useState } from "react";
+import Link from "next/link";
 
 type AdminUser = {
   id: string;
@@ -37,6 +38,10 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
   const [banOpen, setBanOpen] = useState(false);
   const [banDays, setBanDays] = useState(7);
 
+  const [notifyOpen, setNotifyOpen] = useState(false);
+  const [notifyForm, setNotifyForm] = useState({ title: "", text: "" });
+  const [objectsOpen, setObjectsOpen] = useState(false);
+
   const utils = api.useUtils();
 
   const updateRole = api.user.updateRole.useMutation({
@@ -67,6 +72,23 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
       alert(error.message);
     },
   });
+
+  // Админ отправляет уведомление пользователю.
+  const notifyUser = api.notification.notifyUser.useMutation({
+    onSuccess: () => {
+      setNotifyOpen(false);
+      setNotifyForm({ title: "", text: "" });
+    },
+    onError: (error) => {
+      alert(error.message);
+    },
+  });
+
+  // Объекты пользователя (подгружаем только когда модалка открыта).
+  const { data: userObjects } = api.apartment.getByUser.useQuery(
+    { userId: user.id },
+    { enabled: objectsOpen },
+  );
 
   const handleSave = () => {
     updateUser.mutate({
@@ -145,6 +167,22 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
             className="flex-1 cursor-pointer rounded-[30px] border border-[#e5e5e5] px-5 py-2 text-sm font-medium text-[#666] transition-colors hover:border-red-400 hover:text-red-500"
           >
             Забанить
+          </button>
+        </div>
+
+        {/* Кнопки: Уведомить + Объекты */}
+        <div className="mt-2 flex gap-2">
+          <button
+            onClick={() => setNotifyOpen(true)}
+            className="flex-1 cursor-pointer rounded-[30px] border border-[#e5e5e5] px-5 py-2 text-sm font-medium text-[#666] transition-colors hover:border-[#b552c7] hover:text-[#b552c7]"
+          >
+            Уведомить
+          </button>
+          <button
+            onClick={() => setObjectsOpen(true)}
+            className="flex-1 cursor-pointer rounded-[30px] border border-[#e5e5e5] px-5 py-2 text-sm font-medium text-[#666] transition-colors hover:border-[#b552c7] hover:text-[#b552c7]"
+          >
+            Объекты
           </button>
         </div>
       </div>
@@ -240,6 +278,77 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
           >
             {banUser.isPending ? "Баним..." : "Забанить"}
           </button>
+        </div>
+      </Modal>
+
+      {/* Модалка уведомления */}
+      <Modal
+        open={notifyOpen}
+        onClose={() => setNotifyOpen(false)}
+        title="Уведомить пользователя"
+      >
+        <div className="flex flex-col gap-3">
+          <input
+            value={notifyForm.title}
+            onChange={(e) =>
+              setNotifyForm({ ...notifyForm, title: e.target.value })
+            }
+            placeholder="Заголовок"
+            className={inputClass}
+          />
+          <textarea
+            value={notifyForm.text}
+            onChange={(e) =>
+              setNotifyForm({ ...notifyForm, text: e.target.value })
+            }
+            placeholder="Текст уведомления"
+            rows={3}
+            className="resize-none rounded-lg border border-[#ddd] px-3 py-2 text-sm text-[#222] outline-none focus:border-[#b552c7]"
+          />
+          <button
+            onClick={() =>
+              notifyUser.mutate({
+                userId: user.id,
+                title: notifyForm.title.trim(),
+                text: notifyForm.text.trim(),
+              })
+            }
+            disabled={!notifyForm.title.trim() || !notifyForm.text.trim() || notifyUser.isPending}
+            className="mt-2 cursor-pointer rounded-[30px] bg-gray-800 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-[#c4b5fd]"
+          >
+            {notifyUser.isPending ? "Отправляем..." : "Отправить"}
+          </button>
+        </div>
+      </Modal>
+
+      {/* Модалка объектов пользователя */}
+      <Modal
+        open={objectsOpen}
+        onClose={() => setObjectsOpen(false)}
+        title="Объекты пользователя"
+      >
+        <div className="flex max-h-[60vh] flex-col gap-2 overflow-y-auto">
+          {userObjects?.length === 0 && (
+            <p className="py-4 text-center text-sm text-[#888]">
+              У пользователя нет объектов
+            </p>
+          )}
+          {userObjects?.map((o) => (
+            <div
+              key={o.apartment.id}
+              className="flex items-center justify-between gap-2 border-b border-[#eee] py-2"
+            >
+              <span className="min-w-0 truncate text-sm text-[#222]">
+                {o.apartment.title}
+              </span>
+              <Link
+                href={`/my-apartments/${o.apartment.id}/edit`}
+                className="shrink-0 cursor-pointer rounded-[30px] border border-[#b552c7] px-4 py-1.5 text-sm font-medium text-[#b552c7] no-underline transition-colors hover:bg-[#f6eefe]"
+              >
+                Редактировать
+              </Link>
+            </div>
+          ))}
         </div>
       </Modal>
     </>

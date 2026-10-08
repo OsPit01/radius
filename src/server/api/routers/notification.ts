@@ -3,6 +3,7 @@ import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { count, and, eq, desc, asc } from "drizzle-orm";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
+import { isAdminRole } from "@/lib/constants/roles";
 
 export const notificationRouter = createTRPCRouter({
   getUnreadCount: protectedProcedure.query(({ ctx }) => {
@@ -58,4 +59,31 @@ export const notificationRouter = createTRPCRouter({
         and(eq(notification.userId, userId), eq(notification.isRead, false)),
       );
   }),
+
+  // Админ пишет пользователю — сообщение приходит в уведомления, не в чат.
+  notifyUser: protectedProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        title: z.string().trim().min(1).max(255),
+        text: z.string().trim().min(1).max(2000),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!isAdminRole(ctx.session.user.role)) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Только администратор может уведомлять пользователей",
+        });
+      }
+
+      await ctx.db.insert(notification).values({
+        userId: input.userId,
+        type: "admin_message",
+        title: input.title,
+        text: input.text,
+        link: "/profile",
+      });
+      return { ok: true };
+    }),
 });

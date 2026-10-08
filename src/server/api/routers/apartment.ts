@@ -434,6 +434,21 @@ export const apartmentRouter = createTRPCRouter({
       eq(apartments.createdById, userId),
     );
   }),
+
+  // Все объекты конкретного пользователя — только для администратора.
+  getByUser: protectedProcedure
+    .input(z.object({ userId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      if (!isAdminRole(ctx.session.user.role)) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "У вас нет прав на просмотр чужих объектов",
+        });
+      }
+      return await selectApartmentOwnList(ctx.db).where(
+        eq(apartments.createdById, input.userId),
+      );
+    }),
   //вернуть все объекты
   getForModeration: protectedProcedure.query(async ({ ctx }) => {
     if (!isAdminRole(ctx.session.user.role)) {

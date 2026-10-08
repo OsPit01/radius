@@ -57,6 +57,8 @@ export function UserDropdown({ user }: UserDropdownProps) {
     { id: user.id ?? "" },
     { enabled: !!user.id },
   );
+  // Счётчик непрочитанных сообщений (для бейджа у пункта «Сообщения»).
+  const { data: unreadCount } = api.chat.unreadCount.useQuery();
   const avatar = dbUser?.image ?? user.image ?? null;
   const displayName =
     dbUser?.firstName || dbUser?.lastName
@@ -95,9 +97,14 @@ export function UserDropdown({ user }: UserDropdownProps) {
             <Link
               key={item.href}
               href={item.href}
-              className="block p-[5px] text-[15px] transition-colors duration-200 hover:w-full hover:rounded-[5px] hover:bg-[#f9f9fd] hover:p-2.5"
+              className="flex items-center justify-between p-[5px] text-[15px] transition-colors duration-200 hover:w-full hover:rounded-[5px] hover:bg-[#f9f9fd] hover:p-2.5"
             >
-              {item.label}
+              <span>{item.label}</span>
+              {item.href === "/profile/chat" && (unreadCount ?? 0) > 0 && (
+                <span className="rounded-full bg-red-500 px-2 py-0.5 text-xs font-semibold text-white">
+                  {unreadCount}
+                </span>
+              )}
             </Link>
           ))}
 
