@@ -11,6 +11,8 @@ import { parseBookingGuests } from "@/lib/search-params";
 import { parseApartmentId } from "@/lib/apartment-id";
 import { Avatar } from "@/app/_components/ui/Avatar";
 import { ApartmentViewTracker } from "@/app/_components/analytics/ApartmentViewTracker";
+import { JsonLd } from "@/app/_components/JsonLd";
+import { SITE_URL } from "@/lib/seo";
 
 type ApartmentPageProps = {
   params: Promise<{ id: string }>;
@@ -81,8 +83,27 @@ export default async function ApartmentPage({
   ].filter(Boolean);
   const sleepText = sleepParts.join(", ");
 
+  // Структурированные данные: объект размещения (LodgingBusiness).
+  // Помогает Google показывать расширенный сниппет (цена, адрес, фото).
+  const lodgingSchema = {
+    "@context": "https://schema.org",
+    "@type": "LodgingBusiness",
+    name: a.title,
+    description: a.description ?? "",
+    image: a.image,
+    url: `${SITE_URL}/apartments/${id}`,
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: `${a.street} ${a.numberHome}`,
+      addressLocality: a.city,
+      addressCountry: "BY",
+    },
+    priceRange: `${a.price} ${getCurrencySymbol(a.currency)}`,
+  };
+
   return (
     <>
+      <JsonLd data={lodgingSchema} />
       <ClientHeader />
 
       <ApartmentViewTracker apartmentId={apartment.apartment.id} />

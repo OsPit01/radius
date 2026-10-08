@@ -10,6 +10,8 @@ type ChatListItem = RouterOutputs["chat"]["list"][number];
 type ChatListProps = {
   chats: ChatListItem[];
   userId: string;
+  /** id выбранной беседы — чтобы подсветить её. */
+  selectedId?: number | null;
   onSelect: (conversationId: number) => void;
 };
 
@@ -19,19 +21,27 @@ type ChatListProps = {
  *  - название квартиры;
  *  - имя собеседника.
  */
-export function ChatList({ chats, userId, onSelect }: ChatListProps) {
+export function ChatList({
+  chats,
+  userId,
+  selectedId,
+  onSelect,
+}: ChatListProps) {
   return (
     <ul className="flex flex-col">
       {chats.map((c) => {
         // Кто собеседник: если я гость — показываем владельца, иначе — гостя.
         const other = c.conversation.guestId === userId ? c.owner : c.guest;
+        const isActive = c.conversation.id === selectedId;
 
         return (
           <li key={c.conversation.id}>
             <button
               type="button"
               onClick={() => onSelect(c.conversation.id)}
-              className="flex w-full items-center gap-3 border-b border-[#eee] px-2 py-3 text-left transition-colors hover:bg-[#fafafa]"
+              className={`flex w-full items-center gap-3 border-b border-[#eee] px-2 py-3 text-left transition-colors hover:bg-[#fafafa] ${
+                isActive ? "bg-[#f6eefe]" : ""
+              }`}
             >
               {/* Фото квартиры (или заглушка, если фото нет) */}
               <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-[#f0f0f0]">

@@ -70,53 +70,79 @@ export default function ChatPage() {
     sendMessage.mutate({ conversationId: selectedId, text });
   };
 
+  // ===== Блок списка бесед (общий для мобилки и десктопа) =====
+  const listView = (
+    <div>
+      <h1 className="flex items-center gap-2 pt-6 pb-4 text-2xl font-bold text-[#222]">
+        Сообщения
+        {(unreadCount ?? 0) > 0 && (
+          <span className="rounded-full bg-red-500 px-2.5 py-0.5 text-sm font-semibold text-white">
+            {unreadCount}
+          </span>
+        )}
+      </h1>
+
+      {chats?.length === 0 && (
+        <p className="py-16 text-center text-[#888]">
+          Пока нет ни одного диалога
+        </p>
+      )}
+
+      {chats && chats.length > 0 && (
+        <ChatList
+          chats={chats}
+          userId={userId}
+          selectedId={selectedId}
+          onSelect={handleSelect}
+        />
+      )}
+    </div>
+  );
+
+  // ===== Блок окна чата (или заглушка «выберите чат») =====
+  const chatView =
+    selectedId === null ? (
+      <div className="flex h-[calc(100vh-140px)] items-center justify-center text-[#888]">
+        Выберите чат, чтобы начать переписку
+      </div>
+    ) : (
+      <ChatWindow
+        apartmentTitle={selected?.apartment.title ?? ""}
+        companion={companion}
+        bookingDates={
+          selected
+            ? formatBookingDates(
+                selected.booking.checkInDate,
+                selected.booking.checkOutDate,
+              )
+            : ""
+        }
+        messages={messages ?? []}
+        myUserId={userId}
+        myPerson={myPerson}
+        onBack={() => setSelectedId(null)}
+        onSend={handleSend}
+        isSending={sendMessage.isPending}
+      />
+    );
+
   return (
     <AuthGuard>
       <ClientHeader />
-      <div className="mx-auto max-w-2xl px-4 pb-4">
-        {selectedId === null ? (
-          // ===== СПИСОК БЕСЕД =====
-          <div>
-            <h1 className="flex items-center gap-2 pt-6 pb-4 text-2xl font-bold text-[#222]">
-              Сообщения
-              {(unreadCount ?? 0) > 0 && (
-                <span className="rounded-full bg-red-500 px-2.5 py-0.5 text-sm font-semibold text-white">
-                  {unreadCount}
-                </span>
-              )}
-            </h1>
 
-            {chats?.length === 0 && (
-              <p className="py-16 text-center text-[#888]">
-                Пока нет ни одного диалога
-              </p>
-            )}
+      {/* ===== МОБИЛКА: одна колонка, переключение список ↔ чат ===== */}
+      <div className="mx-auto max-w-2xl px-4 pb-4 md:hidden">
+        {selectedId === null ? listView : chatView}
+      </div>
 
-            {chats && chats.length > 0 && (
-              <ChatList chats={chats} userId={userId} onSelect={handleSelect} />
-            )}
-          </div>
-        ) : (
-          // ===== ОКНО ЧАТА =====
-          <ChatWindow
-            apartmentTitle={selected?.apartment.title ?? ""}
-            companion={companion}
-            bookingDates={
-              selected
-                ? formatBookingDates(
-                    selected.booking.checkInDate,
-                    selected.booking.checkOutDate,
-                  )
-                : ""
-            }
-            messages={messages ?? []}
-            myUserId={userId}
-            myPerson={myPerson}
-            onBack={() => setSelectedId(null)}
-            onSend={handleSend}
-            isSending={sendMessage.isPending}
-          />
-        )}
+      {/* ===== ДЕСКТОП: список слева + чат справа (без переходов) ===== */}
+      <div className="mx-auto hidden max-w-6xl px-4 pb-4 md:flex">
+        {/* Левая колонка — список бесед */}
+        <aside className="w-80 shrink-0 border-r border-[#eee] pr-4">
+          {listView}
+        </aside>
+        {/* Правая колонка — открытый чат */}
+        <div className="min-w-0 flex-1 pl-4">{chatView}</div>
       </div>
     </AuthGuard>
   );

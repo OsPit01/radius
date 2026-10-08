@@ -4,28 +4,37 @@ import { useSession } from "next-auth/react";
 import { AuthGuard } from "@/app/_components/layout/AuthGuard";
 import { api } from "@/trpc/react";
 import { ClientHeader } from "@/app/_components/layout/ClientHeader";
-import { isAdminRole } from "@/lib/constants/roles";
 
+// Статистика АРЕНДОДАТЕЛЯ: просмотры моих объектов, брони и избранное.
+// Доступна только тем, кто сдаёт жильё (роль не "user").
+// (Общая статистика по всему сайту живёт отдельно — в /admin/statistics,
+// и видна только администрации.)
 export default function StatisticsPage() {
   const { data: session } = useSession();
   const role = session?.user?.role;
 
-  const { data: myStats } = api.analytics.getMyApartmentStats.useQuery();
+  const { data: myStats } = api.analytics.getMyApartmentStats.useQuery(
+    undefined,
+    { enabled: role !== "user" },
+  );
 
-  const { data: siteStats } = api.analytics.getSiteStats.useQuery(undefined, {
-    enabled: isAdminRole(role),
-  });
+  // Обычному пользователю статистика не нужна — показываем заглушку.
+  if (role === "user") {
+    return (
+      <AuthGuard>
+        <ClientHeader />
+        <div className="p-[60px_20px] text-center text-lg">
+          Статистика доступна только арендодателям
+        </div>
+      </AuthGuard>
+    );
+  }
 
   const cards = [
-    {
-      value: isAdminRole(role) ? (siteStats?.totalVisits ?? 0) : 0,
-      label: "Уникальных переходов на сайт",
-      hidden: !isAdminRole(role),
-    },
     { value: myStats?.totalViews ?? 0, label: "Просмотров квартир" },
     { value: myStats?.totalBookings ?? 0, label: "Бронирований" },
     { value: myStats?.totalFavorites ?? 0, label: "Добавлений в избранное" },
-  ].filter((c) => !c.hidden);
+  ];
 
   const apartments = myStats?.perApartment ?? [];
 
@@ -36,7 +45,7 @@ export default function StatisticsPage() {
         <div className="min-h-screen bg-[linear-gradient(135deg,#f5f0f7_0%,#e8e0f0_100%)] px-5 py-10 max-md:px-3 max-md:py-4">
           <div className="mx-auto max-w-[900px] rounded-[24px] bg-[#f6f6fa] p-12 shadow-[0_20px_60px_rgba(0,0,0,0.08)] max-[480px]:rounded-2xl max-[480px]:p-4 max-md:rounded-[20px] max-md:p-6">
             <h1 className="mb-6 text-[28px] font-bold text-[#1a1a2e] max-md:text-[22px]">
-              📊 Статистика
+              📊 Статистика моих объектов
             </h1>
 
             <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">

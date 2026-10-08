@@ -4,11 +4,26 @@ import Link from "next/link";
 
 const STORAGE_KEY = "cookie-consent";
 
+// Разрешает аналитику/рекламу после согласия пользователя.
+// Вызывается и при нажатии «Принять», и при повторном заходе,
+// если согласие уже было дано ранее.
+function grantConsent() {
+  window.gtag?.("consent", "update", {
+    ad_storage: "granted",
+    ad_user_data: "granted",
+    ad_personalization: "granted",
+    analytics_storage: "granted",
+  });
+}
+
 export function CookieConsent() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (!localStorage.getItem(STORAGE_KEY)) {
+    if (localStorage.getItem(STORAGE_KEY)) {
+      // Уже принимал cookies раньше — сразу разрешаем аналитику.
+      grantConsent();
+    } else {
       setVisible(true);
     }
   }, []);
@@ -16,6 +31,7 @@ export function CookieConsent() {
   const accept = () => {
     localStorage.setItem(STORAGE_KEY, "accepted");
     setVisible(false);
+    grantConsent();
   };
 
   if (!visible) return null;

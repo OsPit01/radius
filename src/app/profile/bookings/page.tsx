@@ -294,7 +294,7 @@ export default function BookingsPage() {
                               status: "approved",
                             })
                           }
-                          className="mt-5 cursor-pointer rounded-[25px] border border-green-900 px-2 text-black transition-all duration-300 hover:bg-green-700 hover:text-white"
+                          className="mt-5 cursor-pointer rounded-[25px] border border-green-900 px-4 py-2 text-black transition-all duration-300 hover:bg-green-700 hover:text-white"
                         >
                           Одобрить
                         </button>
@@ -305,7 +305,7 @@ export default function BookingsPage() {
                               status: "rejected",
                             })
                           }
-                          className="mt-5 cursor-pointer rounded-[25px] border border-red-900 px-2 text-black transition-all duration-300 hover:bg-red-700 hover:text-white"
+                          className="mt-5 cursor-pointer rounded-[25px] border border-red-900 px-4 py-2 text-black transition-all duration-300 hover:bg-red-700 hover:text-white"
                         >
                           Отклонить
                         </button>
@@ -318,7 +318,7 @@ export default function BookingsPage() {
                           onClick={() =>
                             cancelBooking.mutate({ bookingId: booking.id })
                           }
-                          className="mt-5 cursor-pointer rounded-[25px] border border-red-900 px-2 text-black transition-all duration-300 hover:bg-red-700 hover:text-white"
+                          className="mt-5 cursor-pointer rounded-[25px] border border-red-900 px-4 py-2 text-black transition-all duration-300 hover:bg-red-700 hover:text-white"
                         >
                           Отменить бронирование
                         </button>

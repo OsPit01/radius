@@ -190,6 +190,19 @@ export default function ProfilePage() {
                   →
                 </span>
               </Link>
+              {/* Статистику видят только те, кто сдаёт жильё (роль не "user"). */}
+              {user.role !== "user" && (
+                <Link
+                  href="/profile/statistics"
+                  className="group flex cursor-pointer items-center gap-4 rounded-[14px] p-3.5 font-medium text-[#1a1a2e] no-underline transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] hover:translate-x-1.5 hover:bg-white max-[480px]:p-3 max-[480px]:text-sm"
+                >
+                  <span className="w-8 shrink-0 text-center text-xl">📊</span>
+                  Статистика
+                  <span className="ml-auto text-xl font-bold text-black transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:translate-x-1">
+                    →
+                  </span>
+                </Link>
+              )}
               {isAdminRole(user.role) && (
                 <>
                   <div className="px-5 pt-5 pb-2 text-[11px] font-bold tracking-[0.8px] text-[#a5a0b5] uppercase">
@@ -211,6 +224,16 @@ export default function ProfilePage() {
                   >
                     <span className="w-8 shrink-0 text-center text-xl">🛡️</span>
                     Модерация объектов
+                    <span className="ml-auto text-xl font-bold text-black transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:translate-x-1">
+                      →
+                    </span>
+                  </Link>
+                  <Link
+                    href="/admin/statistics"
+                    className="group flex cursor-pointer items-center gap-4 rounded-[14px] p-3.5 font-medium text-[#1a1a2e] no-underline transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] hover:translate-x-1.5 hover:bg-[#fef0f0] max-[480px]:p-3 max-[480px]:text-sm"
+                  >
+                    <span className="w-8 shrink-0 text-center text-xl">📊</span>
+                    Общая статистика
                     <span className="ml-auto text-xl font-bold text-black transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:translate-x-1">
                       →
                     </span>

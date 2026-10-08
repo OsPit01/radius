@@ -21,7 +21,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-[100] w-full border-b border-[#eaeaea] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
-      <div className="mx-auto flex w-full items-center justify-between gap-10 px-20 py-4 max-lg:px-10 max-md:px-5">
+      <div className="mx-auto flex w-full items-center justify-between gap-10 px-20 py-4 max-lg:px-10 max-md:gap-2 max-md:px-5">
         {/* ЛОГО */}
         <Link
           href="/"

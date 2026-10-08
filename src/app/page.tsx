@@ -2,9 +2,10 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { ClientHeader } from "@/app/_components/layout/ClientHeader";
 import { ClientSearchWrapper } from "./_components/ClientSearchWrapper";
+import { JsonLd } from "@/app/_components/JsonLd";
 import { caller } from "@/trpc/server";
 import { getApartmentCardData } from "@/lib/apartment-format";
-import { SITE_URL } from "@/lib/seo";
+import { SITE_NAME, SITE_URL } from "@/lib/seo";
 import {
   parseSearchParams,
   buildQueryString,
@@ -56,8 +57,23 @@ export default async function Home({ searchParams }: HomePageProps) {
   const apartments = data.map((apartment) => getApartmentCardData(apartment));
   const queryString = buildQueryString(filters);
 
+  // Структурированные данные: сайт + «поиск по сайту» (Sitelinks Searchbox).
+  // Благодаря SearchAction Google может показать поле поиска прямо в выдаче.
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: SITE_NAME,
+    url: SITE_URL,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${SITE_URL}/?city={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
+  };
+
   return (
     <>
+      <JsonLd data={websiteSchema} />
       <ClientHeader />
 
       <main className="mx-auto min-h-screen max-w-[1400px] px-20 pt-5 pb-[60px] max-lg:px-10 max-lg:pb-10 max-md:px-5 max-md:py-[30px]">
