@@ -74,7 +74,7 @@ export default function ChatPage() {
   const listView = (
     <div>
       <h1 className="flex items-center gap-2 pt-6 pb-4 text-2xl font-bold text-[#222]">
-        Сообщения
+        Мои сообщения
         {(unreadCount ?? 0) > 0 && (
           <span className="rounded-full bg-red-500 px-2.5 py-0.5 text-sm font-semibold text-white">
             {unreadCount}

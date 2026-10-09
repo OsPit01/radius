@@ -28,16 +28,14 @@ export function ChatHeader({
       <button
         type="button"
         onClick={onBack}
-        className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-xl text-[#222] transition-colors hover:bg-[#f0f0f0]"
+        className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-xl text-[20px] font-semibold text-[#222] transition-colors hover:bg-[#f0f0f0]"
         aria-label="Назад к списку бесед"
       >
         ←
       </button>
 
       <div className="min-w-0 flex-1">
-        <p className="truncate font-semibold text-[#222]">
-          {apartmentTitle}
-        </p>
+        <p className="truncate font-semibold text-[#222]">{apartmentTitle}</p>
         <p className="truncate text-sm text-[#888]">
           {displayName(companion)} · {bookingDates}
         </p>

@@ -74,9 +74,7 @@ export function ChatWindow({
       {/* Лента сообщений */}
       <div className="flex flex-1 flex-col gap-2 overflow-y-auto py-4">
         {messages?.length === 0 && (
-          <p className="py-8 text-center text-[#888]">
-            Нет сообщений. Напишите первым!
-          </p>
+          <p className="py-8 text-center text-[#888]">Нет сообщений.</p>
         )}
         {messages?.map((m) => {
           const isMine = m.senderId === myUserId;

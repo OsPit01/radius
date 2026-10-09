@@ -65,26 +65,34 @@ export default function StatisticsPage() {
             </div>
 
             <h2 className="mt-10 mb-4 text-lg font-semibold text-[#1a1a2e]">
-              Просмотры по квартирам
+              Статистика по каждой квартире
             </h2>
             {apartments.length === 0 ? (
               <p className="text-sm text-[#777]">
                 У вас пока нет объектов — добавьте квартиру, чтобы видеть
-                статистику просмотров.
+                статистику.
               </p>
             ) : (
               <ul className="flex flex-col gap-2">
                 {apartments.map((a) => (
                   <li
                     key={a.apartmentId}
-                    className="flex items-center justify-between gap-3 rounded-[14px] bg-white p-4"
+                    className="flex flex-col gap-2 rounded-[14px] bg-white p-4"
                   >
                     <span className="min-w-0 break-words font-medium text-[#1a1a2e]">
                       {a.title}
                     </span>
-                    <span className="shrink-0 rounded-full bg-[#f0e6f7] px-3 py-1 text-sm font-semibold text-[#8b3fa0]">
-                      {a.views} 👁
-                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      <span className="rounded-full bg-[#f0e6f7] px-3 py-1 text-sm font-semibold text-[#8b3fa0]">
+                        {a.views} 👁 просмотров
+                      </span>
+                      <span className="rounded-full bg-[#fdeaea] px-3 py-1 text-sm font-semibold text-[#b34a4a]">
+                        {a.favorites} ❤ в избранном
+                      </span>
+                      <span className="rounded-full bg-[#e8f3e8] px-3 py-1 text-sm font-semibold text-[#3a7a3a]">
+                        {a.bookings} 📅 броней
+                      </span>
+                    </div>
                   </li>
                 ))}
               </ul>

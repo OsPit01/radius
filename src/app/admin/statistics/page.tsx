@@ -6,14 +6,28 @@ import { api } from "@/trpc/react";
 import { ClientHeader } from "@/app/_components/layout/ClientHeader";
 import { isAdminRole } from "@/lib/constants/roles";
 
+// Человекочитаемые подписи статусов.
+const APARTMENT_STATUS_LABELS: Record<string, string> = {
+  active: "Опубликовано",
+  moderation: "На модерации",
+  rejected: "Отклонено",
+};
+
+const BOOKING_STATUS_LABELS: Record<string, string> = {
+  new: "Новые",
+  approved: "Подтверждены",
+  rejected: "Отклонены",
+  cancelled: "Отменены",
+  expired: "Истекли",
+};
+
 // Общая статистика по всему сайту — только для администрации.
 // Сама процедура analytics.getSiteStats дополнительно проверяет роль на сервере.
 export default function AdminStatisticsPage() {
   const { data: session } = useSession();
   const role = session?.user?.role;
 
-  // Запрашиваем только если я админ (сервер всё равно проверит повторно).
-  const { data: siteStats } = api.analytics.getSiteStats.useQuery(undefined, {
+  const { data: s } = api.analytics.getSiteStats.useQuery(undefined, {
     enabled: isAdminRole(role),
   });
 
@@ -26,6 +40,23 @@ export default function AdminStatisticsPage() {
     );
   }
 
+  const cards = [
+    { value: s?.totalVisits ?? 0, label: "Уникальных переходов" },
+    { value: s?.totalUsers ?? 0, label: "Пользователей" },
+    { value: s?.totalApartments ?? 0, label: "Квартир" },
+    { value: s?.totalBookings ?? 0, label: "Броней" },
+    { value: s?.totalViews ?? 0, label: "Просмотров квартир" },
+    { value: s?.totalFavorites ?? 0, label: "Добавлений в избранное" },
+    {
+      value: `${s?.conversionViewToBooking ?? 0}%`,
+      label: "Конверсия: просмотр → бронь",
+    },
+    {
+      value: `${s?.conversionViewToFavorite ?? 0}%`,
+      label: "Конверсия: просмотр → избранное",
+    },
+  ];
+
   return (
     <AuthGuard>
       <ClientHeader />
@@ -35,16 +66,62 @@ export default function AdminStatisticsPage() {
             📊 Общая статистика сайта
           </h1>
 
+          {/* Общие метрики */}
           <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
-            <div className="rounded-2xl bg-white p-5 text-center">
-              <div className="bg-[linear-gradient(135deg,black,#8b3fa0)] bg-clip-text text-2xl leading-[1.2] font-extrabold text-transparent max-md:text-[24px]">
-                {siteStats?.totalVisits ?? 0}
+            {cards.map((card) => (
+              <div
+                key={card.label}
+                className="rounded-2xl bg-white p-5 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_25px_rgba(181,82,199,0.1)]"
+              >
+                <div className="bg-[linear-gradient(135deg,black,#8b3fa0)] bg-clip-text text-2xl leading-[1.2] font-extrabold text-transparent max-md:text-[24px]">
+                  {card.value}
+                </div>
+                <div className="mt-1 text-sm font-medium text-[#555]">
+                  {card.label}
+                </div>
               </div>
-              <div className="mt-1 text-sm font-medium text-[#555]">
-                Уникальных переходов на сайт
-              </div>
-            </div>
+            ))}
           </div>
+
+          {/* Квартиры по статусам */}
+          <h2 className="mt-10 mb-4 text-lg font-semibold text-[#1a1a2e]">
+            Квартиры по статусам
+          </h2>
+          <ul className="flex flex-col gap-2">
+            {(s?.apartmentsByStatus ?? []).map((row) => (
+              <li
+                key={row.status}
+                className="flex items-center justify-between rounded-[14px] bg-white p-4"
+              >
+                <span className="font-medium text-[#1a1a2e]">
+                  {APARTMENT_STATUS_LABELS[row.status] ?? row.status}
+                </span>
+                <span className="rounded-full bg-[#f0e6f7] px-3 py-1 text-sm font-semibold text-[#8b3fa0]">
+                  {row.count}
+                </span>
+              </li>
+            ))}
+          </ul>
+
+          {/* Брони по статусам */}
+          <h2 className="mt-10 mb-4 text-lg font-semibold text-[#1a1a2e]">
+            Брони по статусам
+          </h2>
+          <ul className="flex flex-col gap-2">
+            {(s?.bookingsByStatus ?? []).map((row) => (
+              <li
+                key={row.status}
+                className="flex items-center justify-between rounded-[14px] bg-white p-4"
+              >
+                <span className="font-medium text-[#1a1a2e]">
+                  {BOOKING_STATUS_LABELS[row.status] ?? row.status}
+                </span>
+                <span className="rounded-full bg-[#f0e6f7] px-3 py-1 text-sm font-semibold text-[#8b3fa0]">
+                  {row.count}
+                </span>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </AuthGuard>
