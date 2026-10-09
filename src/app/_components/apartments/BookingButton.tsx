@@ -14,6 +14,7 @@ import {
 } from "@/lib/constants/booking";
 import { pluralRu } from "@/lib/plural";
 import Link from "next/link";
+import { reportConversion } from "@/lib/analytics";
 
 type BookingButtonProps = {
   apartmentId: number;
@@ -48,6 +49,7 @@ export function BookingButton({
 
   const createBooking = api.bookings.create.useMutation({
     onSuccess: () => {
+      reportConversion();
       setOpen(false);
       setGuestName("");
       setGuestPhone("");

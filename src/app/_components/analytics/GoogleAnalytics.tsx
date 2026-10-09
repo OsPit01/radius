@@ -45,6 +45,26 @@ export function GoogleAnalytics() {
           gtag('config', '${GA_ID}');
         `}
       </Script>
+
+      {/* 4. Конверсия Google Ads: функция вызывается из кода (reportConversion). */}
+      <Script id="ga-conversion" strategy="afterInteractive">
+        {`
+          window.gtag_report_conversion = function (url) {
+            var callback = function () {
+              if (typeof url !== 'undefined') {
+                window.location = url;
+              }
+            };
+            gtag('event', 'conversion', {
+              'send_to': 'AW-18503326894/oKtLCP6e5pYdEK65ifdE',
+              'value': 1.0,
+              'currency': 'USD',
+              'event_callback': callback
+            });
+            return false;
+          };
+        `}
+      </Script>
     </>
   );
 }
