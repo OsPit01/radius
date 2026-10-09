@@ -160,14 +160,7 @@ export function ApartmentCard({
             e.stopPropagation();
           }}
           className="px-2.5 pt-2 pb-2"
-        >
-          <BookingButton
-            apartmentId={apartment.id}
-            apartmentTitle={apartment.title}
-            initialGuests={guests}
-            apartmentCapacity={apartment.capacity}
-          />
-        </div>
+        ></div>
       </Link>
     </>
   );
