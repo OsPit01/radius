@@ -1,7 +1,12 @@
 "use client";
 
-import Image from "next/image";
-import { avatarInitial, displayName, formatChatDate, type ChatPerson } from "@/lib/chat";
+import {
+  avatarInitial,
+  displayName,
+  formatChatDate,
+  type ChatPerson,
+} from "@/lib/chat";
+import { Avatar } from "@/app/_components/ui/Avatar";
 
 type MessageBubbleProps = {
   /** Текст сообщения. */
@@ -24,28 +29,18 @@ export function MessageBubble({
   sender,
   createdAt,
 }: MessageBubbleProps) {
-  // Аватар: фото пользователя или кружок с первой буквой имени.
-  const avatar =
-    sender?.image ? (
-      <Image
-        src={sender.image}
-        alt={displayName(sender)}
-        width={32}
-        height={32}
-        unoptimized
-        className="h-8 w-8 shrink-0 rounded-full object-cover"
-      />
-    ) : (
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#e9e0f0] text-sm font-bold text-[#6b21a8]">
-        {avatarInitial(sender)}
-      </div>
-    );
-
   return (
     <div className={`flex items-end gap-2 ${isMine ? "flex-row-reverse" : ""}`}>
-      {avatar}
+      {/* Аватар отправителя: фото или буква, если фото нет / не загрузилось. */}
+      <Avatar
+        src={sender?.image}
+        name={displayName(sender)}
+        fallbackText={avatarInitial(sender)}
+        size={32}
+      />
 
-      <div className="flex max-w-[70%] flex-col">
+      {/* min-w-0 разрешает flex-элементу сжиматься, а не растягивать окно. */}
+      <div className="flex max-w-[70%] min-w-0 flex-col">
         {/* Имя отправителя (видно только у чужих, чтобы отличать в групповой переписке) */}
         {!isMine && (
           <span className="mb-0.5 px-1 text-xs text-[#888]">
@@ -53,8 +48,9 @@ export function MessageBubble({
           </span>
         )}
 
+        {/* break-words переносит длинные слова, чтобы текст не вылезал за пузырь. */}
         <div
-          className={`rounded-2xl px-4 py-2 text-[15px] ${
+          className={`rounded-2xl px-4 py-2 text-[15px] break-words whitespace-pre-line ${
             isMine
               ? "rounded-br-sm bg-[#6b21a8] text-white"
               : "rounded-bl-sm bg-[#f0f0f0] text-[#222]"

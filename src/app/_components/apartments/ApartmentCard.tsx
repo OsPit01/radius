@@ -8,7 +8,6 @@ import { getCurrencySymbol } from "@/lib/constants/currencies";
 import { ImageWithFallback } from "@/app/_components/ui/ImageWithFallback";
 import { pluralRu } from "@/lib/plural";
 import type { ApartmentCardData } from "@/lib/apartment-format";
-import { BookingButton } from "@/app/_components/apartments/BookingButton";
 
 export function ApartmentCard({
   apartment,
@@ -152,15 +151,6 @@ export function ApartmentCard({
             )}
           </div>
         )}
-        {/* Кнопка бронирования на карточке. stopPropagation — чтобы клик
-            не переходил по ссылке на страницу квартиры, а открывал модалку. */}
-        <div
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-          className="px-2.5 pt-2 pb-2"
-        ></div>
       </Link>
     </>
   );

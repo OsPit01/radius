@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import type { RouterOutputs } from "@/trpc/react";
 import { displayName } from "@/lib/chat";
+import { ImageWithFallback } from "@/app/_components/ui/ImageWithFallback";
 
 // Тип элемента списка — это ровно то, что возвращает процедура chat.list.
 type ChatListItem = RouterOutputs["chat"]["list"][number];
@@ -39,14 +39,14 @@ export function ChatList({
             <button
               type="button"
               onClick={() => onSelect(c.conversation.id)}
-              className={`flex w-full items-center gap-3 border-b border-[#eee] px-2 py-3 text-left transition-colors hover:bg-[#fafafa] ${
-                isActive ? "bg-[#f6eefe]" : ""
+              className={`flex w-full items-center gap-3 rounded-[15px] border-b border-gray-300 px-2 py-3 text-left transition-colors hover:bg-[#fafafa] ${
+                isActive ? "border border-gray-900 duration-700" : ""
               }`}
             >
-              {/* Фото квартиры (или заглушка, если фото нет) */}
+              {/* Фото квартиры (или заглушка, если фото нет / не загрузилось) */}
               <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-[#f0f0f0]">
                 {c.apartment.image ? (
-                  <Image
+                  <ImageWithFallback
                     src={c.apartment.image}
                     alt={c.apartment.title}
                     fill

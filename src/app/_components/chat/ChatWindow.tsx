@@ -72,7 +72,7 @@ export function ChatWindow({
       />
 
       {/* Лента сообщений */}
-      <div className="flex flex-1 flex-col gap-2 overflow-y-auto py-4">
+      <div className="flex flex-1 flex-col gap-2 overflow-y-auto py-8">
         {messages?.length === 0 && (
           <p className="py-8 text-center text-[#888]">Нет сообщений.</p>
         )}
@@ -93,7 +93,7 @@ export function ChatWindow({
       </div>
 
       {/* Поле ввода + кнопка отправки */}
-      <div className="flex gap-2 border-t border-[#eee] pt-3">
+      <div className="flex gap-2 border-t border-gray-300 pt-3">
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}

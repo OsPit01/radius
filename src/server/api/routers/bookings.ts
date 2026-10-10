@@ -6,6 +6,7 @@ import {
   users,
   notification,
   conversation,
+  message,
 } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
@@ -128,11 +129,31 @@ export const bookingsRouter = createTRPCRouter({
       if (!created) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
-      await ctx.db.insert(conversation).values({
-        bookingId: created.id,
-        guestId: userId,
-        ownerId: owner.id,
+      const [createdConversation] = await ctx.db
+        .insert(conversation)
+        .values({
+          bookingId: created.id,
+          guestId: userId,
+          ownerId: owner.id,
+        })
+        .returning();
+      if (!createdConversation)
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const summary = [
+        "📋 Детали бронирования:",
+        `Квартира: ${apartment.title}`,
+        `Гость: ${input.guestName}`,
+        `Телефон: ${input.guestPhone}`,
+        `Гостей: ${input.guests}`,
+        `Заезд: ${input.checkInDate.toLocaleDateString("ru-RU")}`,
+        `Выезд: ${input.checkOutDate.toLocaleDateString("ru-RU")}`,
+      ].join("\n");
+      await ctx.db.insert(message).values({
+        conversationId: createdConversation.id,
+        senderId: userId,
+        text: summary,
       });
+
       const [createNotification] = await ctx.db
         .insert(notification)
         .values({
@@ -167,8 +188,6 @@ export const bookingsRouter = createTRPCRouter({
 
         await sendTelegramMessage(chatId, text.join("\n"));
       }
-
-      return { id: created.id };
     }),
 
   listForOwner: protectedProcedure.query(async ({ ctx }) => {

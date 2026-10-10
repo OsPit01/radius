@@ -138,7 +138,7 @@ export default function ChatPage() {
       {/* ===== ДЕСКТОП: список слева + чат справа (без переходов) ===== */}
       <div className="mx-auto hidden max-w-6xl px-4 pb-4 md:flex">
         {/* Левая колонка — список бесед */}
-        <aside className="w-80 shrink-0 border-r border-[#eee] pr-4">
+        <aside className="w-80 shrink-0 border-r border-gray-300 pr-4">
           {listView}
         </aside>
         {/* Правая колонка — открытый чат */}

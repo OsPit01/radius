@@ -24,7 +24,7 @@ export function ChatHeader({
   onBack,
 }: ChatHeaderProps) {
   return (
-    <div className="flex items-center gap-3 border-b border-[#eee] py-3">
+    <div className="flex items-center gap-3 border-b border-gray-300 py-3">
       <button
         type="button"
         onClick={onBack}
