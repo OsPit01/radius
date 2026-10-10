@@ -94,14 +94,24 @@ export function ChatWindow({
 
       {/* Поле ввода + кнопка отправки */}
       <div className="flex gap-2 border-t border-gray-300 pt-3">
-        <input
+        <textarea
+          rows={1}
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => {
+            setText(e.target.value);
+            // авто-рост: подстраиваем высоту под текст, но не выше ~3 строк
+            e.target.style.height = "auto";
+            e.target.style.height = `${Math.min(e.target.scrollHeight, 72)}px`;
+          }}
           onKeyDown={(e) => {
-            if (e.key === "Enter") handleSend();
+            // Enter — отправить, Shift+Enter — новая строка
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              handleSend();
+            }
           }}
           placeholder="Сообщение..."
-          className="min-w-0 flex-1 rounded-full border border-[#e0e0e0] px-4 py-2.5 text-[15px] text-[#222] outline-none focus:border-[#6b21a8]"
+          className="min-w-0 flex-1 resize-none rounded-2xl border border-[#e0e0e0] px-4 py-2.5 text-[15px] text-[#222] outline-none focus:border-[#6b21a8]"
         />
         <button
           type="button"
