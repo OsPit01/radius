@@ -93,15 +93,26 @@ export function ChatWindow({
       </div>
 
       {/* Поле ввода + кнопка отправки */}
-      <div className="flex gap-2 border-t border-gray-300 pt-3">
+      {/* Поле ввода + кнопка отправки */}
+      {/* items-end — чтобы кнопка НЕ растягивалась по высоте textarea */}
+      <div className="flex items-end gap-2 border-t border-gray-300 pt-3">
         <textarea
           rows={1}
           value={text}
           onChange={(e) => {
             setText(e.target.value);
-            // авто-рост: подстраиваем высоту под текст, но не выше ~3 строк
-            e.target.style.height = "auto";
-            e.target.style.height = `${Math.min(e.target.scrollHeight, 72)}px`;
+            const el = e.target;
+
+            // авто-рост с ограничением по высоте (72px ≈ 3 строки).
+            // Меняй 72, если хочешь другую максимальную высоту поля.
+            el.style.height = "auto";
+            el.style.height = `${Math.min(el.scrollHeight, 72)}px`;
+
+            // если текста больше, чем влезает — держим последнюю строку видимой,
+            // т.к. overflow-hidden и скроллбар скрыт
+            if (el.scrollHeight > 72) {
+              el.scrollTop = el.scrollHeight;
+            }
           }}
           onKeyDown={(e) => {
             // Enter — отправить, Shift+Enter — новая строка
@@ -111,13 +122,16 @@ export function ChatWindow({
             }
           }}
           placeholder="Сообщение..."
-          className="min-w-0 flex-1 resize-none rounded-2xl border border-[#e0e0e0] px-4 py-2.5 text-[15px] text-[#222] outline-none focus:border-[#6b21a8]"
+          // maxLength — жёсткий лимит символов. Меняй тут (300–350 норм для чата).
+          maxLength={300}
+          className="min-w-0 flex-1 resize-none overflow-hidden rounded-2xl border border-[#e0e0e0] px-4 py-2.5 pr-5 text-[15px] text-[#222] outline-none focus:border-[#6b21a8]"
         />
         <button
           type="button"
           onClick={handleSend}
           disabled={!text.trim() || isSending}
-          className="shrink-0 cursor-pointer rounded-full bg-[#6b21a8] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#5a1a8f] disabled:cursor-not-allowed disabled:bg-[#c4b5fd]"
+          // self-end — страховка, чтобы кнопка всегда была снизу и не тянулась
+          className="shrink-0 cursor-pointer self-end rounded-full bg-[#6b21a8] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#5a1a8f] disabled:cursor-not-allowed disabled:bg-[#c4b5fd]"
         >
           Отправить
         </button>
