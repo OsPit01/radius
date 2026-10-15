@@ -151,6 +151,15 @@ export function ApartmentCard({
             )}
           </div>
         )}
+        {/* Кнопка бронирования на карточке. stopPropagation — чтобы клик
+            не переходил по ссылке на страницу квартиры, а открывал модалку. */}
+        <div
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          className="px-2.5 pt-2 pb-2"
+        ></div>
       </Link>
     </>
   );

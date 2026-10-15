@@ -8,6 +8,8 @@ import { bookingsRouter } from "./routers/bookings";
 import { geoRouter } from "./routers/geo";
 import { chatRouter } from "./routers/chat";
 import { analyticsRouter } from "./routers/analytics";
+import { supportRouter } from "./routers/support";
+
 /**
  * This is the primary router for your server.
  *
@@ -23,6 +25,7 @@ export const appRouter = createTRPCRouter({
   geo: geoRouter,
   chat: chatRouter,
   analytics: analyticsRouter,
+  support: supportRouter,
 });
 
 // export type definition of API

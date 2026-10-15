@@ -9,7 +9,7 @@ import { CookieConsent } from "@/app/_components/ui/CookieConsent";
 import { VisitTracker } from "@/app/_components/analytics/VisitTracker";
 import { GoogleAnalytics } from "@/app/_components/analytics/GoogleAnalytics";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/seo";
-
+import { SupportChatButton } from "./_components/SupportChatButton";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
@@ -63,6 +63,7 @@ export default function RootLayout({
           </TRPCReactProvider>
         </SessionProvider>
         <Footer />
+        <SupportChatButton />
         <CookieConsent />
       </body>
     </html>

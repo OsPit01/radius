@@ -322,3 +322,33 @@ export const apartmentView = createTable(
     index("apartment_view_apartment_idx").on(t.apartmentId),
   ],
 );
+export const supportTicket = createTable("support_ticket", (d) => ({
+  id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+  userId: d
+    .varchar({ length: 255 })
+    .notNull()
+    .references(() => users.id),
+  assignedToId: d.varchar({ length: 255 }).references(() => users.id),
+  status: d.varchar({ length: 20 }).notNull().default("open"),
+  createdAt: d
+    .timestamp({ withTimezone: true })
+    .$defaultFn(() => new Date())
+    .notNull(),
+}));
+export const supportMessage = createTable("support_message", (d) => ({
+  id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+  ticketId: d
+    .integer()
+    .references(() => supportTicket.id)
+    .notNull(),
+  senderId: d
+    .varchar({ length: 255 })
+    .notNull()
+    .references(() => users.id),
+  text: d.text().notNull(),
+  isRead: d.boolean().default(false).notNull(),
+  createdAt: d
+    .timestamp({ withTimezone: true })
+    .$defaultFn(() => new Date())
+    .notNull(),
+}));
