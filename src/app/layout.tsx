@@ -59,11 +59,12 @@ export default function RootLayout({
         <SessionProvider>
           <TRPCReactProvider>
             <div className="flex-1">{children}</div>
+            <SupportChatButton />
             <VisitTracker />
           </TRPCReactProvider>
         </SessionProvider>
         <Footer />
-        <SupportChatButton />
+
         <CookieConsent />
       </body>
     </html>
