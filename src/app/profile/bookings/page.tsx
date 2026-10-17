@@ -270,7 +270,10 @@ export default function BookingsPage() {
                           )}
                         </>
                       )}
-                      <p>Человек: {booking.guests}</p>
+                      <p>
+                        Гостей: {booking.guests}
+                        {booking.children > 0 && ` (детей: ${booking.children})`}
+                      </p>
                       <p>
                         Заезд: {formatDate(booking.checkInDate)} — выезд:{" "}
                         {formatDate(booking.checkOutDate)}

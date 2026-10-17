@@ -32,3 +32,13 @@ export function isValidPhoneNumber(
   if (!value) return false;
   return safeParse(value)?.isValid() ?? false;
 }
+
+// Достаёт "+код" страны из международного номера: "+375291234567" → "+375".
+// Работает для ЛЮБОЙ страны — ничего не зашито под Беларусь или Россию.
+export function getCountryCodePrefixFromNumber(
+  value: string,
+): string | undefined {
+  const parsed = safeParse(value);
+  if (!parsed) return undefined;
+  return `+${parsed.countryCallingCode}`;
+}

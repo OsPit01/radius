@@ -13,7 +13,7 @@ import {
 import { FilterChips, type ChipKey } from "@/app/_components/search/FilterChips";
 import type { ApartmentCardData } from "@/lib/apartment-format";
 import { buildSearchUrl, type SearchFilters } from "@/lib/search-params";
-import { MIN_BOOKING_GUESTS } from "@/lib/constants/booking";
+import { DEFAULT_BOOKING_GUESTS } from "@/lib/constants/booking";
 
 type ClientSearchWrapperProps = {
   initialFilters: SearchFilters;
@@ -43,7 +43,10 @@ export function ClientSearchWrapper({
     initialFilters.city ?? "",
   );
   const [activeTotalGuests, setActiveTotalGuests] = useState(
-    initialFilters.guests ?? MIN_BOOKING_GUESTS,
+    initialFilters.guests ?? DEFAULT_BOOKING_GUESTS,
+  );
+  const [activeChildren, setActiveChildren] = useState(
+    initialFilters.children ?? 0,
   );
   const [activeFilters, setActiveFilters] = useState<Filters>(
     toUiFilters(initialFilters),
@@ -88,14 +91,16 @@ export function ClientSearchWrapper({
   }, [apartments.length]);
 
   // ===== ПРИМЕНИТЬ ВСЕ ФИЛЬТРЫ (поиск + гости + цена/комнаты) =====
-  const handleSearch = (query: string, guests: number) => {
+  const handleSearch = (query: string, guests: number, children: number) => {
     setIsLoading(true);
     setActiveSearchQuery(query);
     setActiveTotalGuests(guests);
+    setActiveChildren(children);
     setActiveFilters(tempFilters);
     const urlFilters: SearchFilters = {
       city: query.trim() || undefined,
-      guests: guests > MIN_BOOKING_GUESTS ? guests : undefined,
+      guests: guests !== DEFAULT_BOOKING_GUESTS ? guests : undefined,
+      children: children > 0 ? children : undefined,
       priceMin: tempFilters.priceMin ? Number(tempFilters.priceMin) : undefined,
       priceMax: tempFilters.priceMax ? Number(tempFilters.priceMax) : undefined,
       rooms: tempFilters.rooms ?? undefined,
@@ -125,9 +130,10 @@ export function ClientSearchWrapper({
     const urlFilters: SearchFilters = {
       city: activeSearchQuery.trim() || undefined,
       guests:
-        activeTotalGuests > MIN_BOOKING_GUESTS
+        activeTotalGuests !== DEFAULT_BOOKING_GUESTS
           ? activeTotalGuests
           : undefined,
+      children: activeChildren > 0 ? activeChildren : undefined,
       priceMin: next.priceMin ? Number(next.priceMin) : undefined,
       priceMax: next.priceMax ? Number(next.priceMax) : undefined,
       rooms: next.rooms ?? undefined,
@@ -144,16 +150,22 @@ export function ClientSearchWrapper({
     setTempFilters(EMPTY_FILTERS);
     setActiveSearchQuery("");
     // Гостей тоже сбрасываем: иначе состояние разойдётся с URL (/ без ?guests)
-    setActiveTotalGuests(MIN_BOOKING_GUESTS);
+    setActiveTotalGuests(DEFAULT_BOOKING_GUESTS);
+    setActiveChildren(0);
     router.replace(buildSearchUrl({}), { scroll: false });
   };
 
   return (
     <>
       <SearchForm
-        onSearchClick={(query, guests) => handleSearch(query, guests)}
+        onSearchClick={(query, guests, children) =>
+          handleSearch(query, guests, children)
+        }
         onTempQueryChange={updateTempQuery}
-        onTempGuestsChange={(guests) => setActiveTotalGuests(guests)}
+        onTempGuestsChange={(guests, children) => {
+          setActiveTotalGuests(guests);
+          setActiveChildren(children);
+        }}
         onFilterClick={() => setMobileFiltersOpen(true)}
         initialQuery={activeSearchQuery}
         initialGuests={activeTotalGuests}
@@ -183,7 +195,9 @@ export function ClientSearchWrapper({
             <FilterPanel filters={tempFilters} onChange={setTempFilters} />
             <button
               type="button"
-              onClick={() => handleSearch(activeSearchQuery, activeTotalGuests)}
+              onClick={() =>
+                handleSearch(activeSearchQuery, activeTotalGuests, activeChildren)
+              }
               className="mt-5 w-full cursor-pointer rounded-[30px] bg-gray-800 px-4 py-2.5 text-sm font-medium text-white transition-colors duration-200 hover:bg-gray-700"
             >
               Показать объекты
@@ -200,6 +214,7 @@ export function ClientSearchWrapper({
               apartments={apartments}
               searchQuery={activeSearchQuery}
               totalGuests={activeTotalGuests}
+              totalChildren={activeChildren}
               filters={activeFilters}
             />
           )}
@@ -216,7 +231,7 @@ export function ClientSearchWrapper({
         <button
           type="button"
           onClick={() => {
-            handleSearch(activeSearchQuery, activeTotalGuests);
+            handleSearch(activeSearchQuery, activeTotalGuests, activeChildren);
             setMobileFiltersOpen(false);
           }}
           className="mt-6 w-full cursor-pointer rounded-[30px] bg-gray-800 px-6 py-3 text-base font-medium text-white transition-colors duration-200 hover:bg-gray-700"

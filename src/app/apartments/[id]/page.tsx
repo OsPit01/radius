@@ -7,7 +7,7 @@ import { ApartmentTabs } from "@/app/_components/apartments/ApartmentTabs";
 import { BookingButton } from "@/app/_components/apartments/BookingButton";
 import { OwnerPhone } from "@/app/_components/apartments/OwnerPhone";
 import { getCurrencySymbol } from "@/lib/constants/currencies";
-import { parseBookingGuests } from "@/lib/search-params";
+import { parseBookingGuests, parseBookingChildren } from "@/lib/search-params";
 import { parseApartmentId } from "@/lib/apartment-id";
 import { Avatar } from "@/app/_components/ui/Avatar";
 import { ApartmentViewTracker } from "@/app/_components/analytics/ApartmentViewTracker";
@@ -56,8 +56,9 @@ export default async function ApartmentPage({
 }: ApartmentPageProps) {
   const { id: rawId } = await params;
   const sp = await searchParams;
-  // Гости из поиска (?guests=3) → стартовое значение в форме бронирования
+  // Гости из поиска (?guests=3&children=1) → стартовые значения в форме бронирования
   const initialGuests = parseBookingGuests(sp);
+  const initialChildren = parseBookingChildren(sp);
   const id = parseApartmentId(rawId);
   if (id === null) notFound();
 
@@ -211,6 +212,7 @@ export default async function ApartmentPage({
               apartmentId={apartment.apartment.id}
               apartmentTitle={apartment.apartment.title}
               initialGuests={initialGuests}
+              initialChildren={initialChildren}
               apartmentCapacity={apartment.apartment.capacity}
             />
           </div>

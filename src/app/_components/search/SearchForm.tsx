@@ -7,9 +7,9 @@ import {
 } from "@/lib/constants/booking";
 
 type SearchFormProps = {
-  onSearchClick: (query: string, guests: number) => void; // при нажатии на лупу
+  onSearchClick: (query: string, guests: number, children: number) => void; // при нажатии на лупу
   onTempQueryChange: (query: string) => void; // при изменении текста
-  onTempGuestsChange: (guests: number) => void;
+  onTempGuestsChange: (guests: number, children: number) => void;
   onFilterClick: () => void; // открывает попап фильтров (мобилка)
   initialQuery?: string;
   initialGuests?: number;
@@ -42,7 +42,7 @@ export function SearchForm({
 
   const updateTempGuests = (adults: number, children: number) => {
     const total = adults + children;
-    onTempGuestsChange(total);
+    onTempGuestsChange(total, children);
   };
 
   // ===== УВЕЛИЧЕНИЕ КОЛИЧЕСТВА =====
@@ -123,12 +123,22 @@ export function SearchForm({
             onChange={handleSearchChange}
             onKeyDown={(e) => {
               if (e.key === "Enter")
-                onSearchClick(tempSearchQuery, tempAdults + tempChildren);
+                onSearchClick(
+                  tempSearchQuery,
+                  tempAdults + tempChildren,
+                  tempChildren,
+                );
             }}
           />
           <button
             type="button"
-            onClick={() => onSearchClick(tempSearchQuery, tempAdults + tempChildren)}
+            onClick={() =>
+              onSearchClick(
+                tempSearchQuery,
+                tempAdults + tempChildren,
+                tempChildren,
+              )
+            }
             aria-label="Поиск"
             className="absolute right-2.5 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-black text-white transition-transform duration-200 hover:scale-105 max-md:h-8 max-md:w-8 max-md:right-2"
           >

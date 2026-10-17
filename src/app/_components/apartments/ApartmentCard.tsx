@@ -8,15 +8,18 @@ import { getCurrencySymbol } from "@/lib/constants/currencies";
 import { ImageWithFallback } from "@/app/_components/ui/ImageWithFallback";
 import { pluralRu } from "@/lib/plural";
 import type { ApartmentCardData } from "@/lib/apartment-format";
+import { DEFAULT_BOOKING_GUESTS } from "@/lib/constants/booking";
 
 export function ApartmentCard({
   apartment,
   isFavorite,
   guests,
+  childrenCount,
 }: {
   apartment: ApartmentCardData;
   isFavorite: boolean;
   guests?: number;
+  childrenCount?: number;
 }) {
   //Сессия
   const { data: session } = useSession();
@@ -60,10 +63,21 @@ export function ApartmentCard({
     toggleFavorite.mutate({ apartmentId: apartment.id });
   };
 
+  // Ссылка на квартиру с параметрами поиска (?guests=3&children=1),
+  // чтобы форма бронирования сразу подхватила выбранных гостей и детей.
+  const searchParams = new URLSearchParams();
+  if (guests && guests !== DEFAULT_BOOKING_GUESTS) {
+    searchParams.set("guests", String(guests));
+  }
+  if (childrenCount && childrenCount > 0) {
+    searchParams.set("children", String(childrenCount));
+  }
+  const href = `/apartments/${apartment.id}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+
   return (
     <>
       <Link
-        href={`/apartments/${apartment.id}${guests && guests > 1 ? `?guests=${guests}` : ""}`}
+        href={href}
         className="overflow-hidden rounded-2xl border border-[#ada3a3] bg-white p-0.5 transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_15px_24px_rgba(0,0,0,0.1)]"
       >
         <div className="relative h-[350px] w-full overflow-hidden max-md:h-[250px]">

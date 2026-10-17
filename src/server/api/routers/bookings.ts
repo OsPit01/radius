@@ -37,6 +37,13 @@ const createBookingSchema = z.object({
     .int()
     .min(MIN_BOOKING_GUESTS, "Укажите количество гостей")
     .max(MAX_BOOKING_GUESTS, `Максимум ${MAX_BOOKING_GUESTS} гостей`),
+  children: z
+    .number()
+    .int()
+    .min(0, "Число детей не может быть отрицательным")
+    .max(MAX_BOOKING_GUESTS, `Максимум ${MAX_BOOKING_GUESTS} детей`)
+    .optional()
+    .default(0),
   checkInDate: z.coerce.date(),
   checkOutDate: z.coerce.date(),
   message: z.string().trim().max(1000).optional(),
@@ -88,6 +95,15 @@ export const bookingsRouter = createTRPCRouter({
         });
       }
 
+      // Должен быть хотя бы один взрослый: детей не может быть столько же,
+      // сколько гостей суммарно.
+      if (input.children >= input.guests) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Нужен хотя бы один взрослый",
+        });
+      }
+
       // Владелец не может бронировать собственный объект —
       // иначе получился бы чат «сам с собой» (guestId === ownerId).
       if (apartment.createdById === userId) {
@@ -120,6 +136,7 @@ export const bookingsRouter = createTRPCRouter({
           guestName: input.guestName,
           guestPhone: input.guestPhone,
           guests: input.guests,
+          children: input.children ?? 0,
           checkInDate: input.checkInDate,
           checkOutDate: input.checkOutDate,
           message: input.message ?? null,
@@ -139,12 +156,14 @@ export const bookingsRouter = createTRPCRouter({
         .returning();
       if (!createdConversation)
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const adults = input.guests - (input.children ?? 0);
       const summary = [
         "📋 Детали бронирования:",
         `Квартира: ${apartment.title}`,
         `Гость: ${input.guestName}`,
         `Телефон: ${input.guestPhone}`,
-        `Гостей: ${input.guests}`,
+        `Взрослых: ${adults}`,
+        `Детей: ${input.children ?? 0}`,
         `Заезд: ${input.checkInDate.toLocaleDateString("ru-RU")}`,
         `Выезд: ${input.checkOutDate.toLocaleDateString("ru-RU")}`,
       ].join("\n");
@@ -160,7 +179,7 @@ export const bookingsRouter = createTRPCRouter({
           userId: owner?.id,
           type: "booking_new",
           title: "Новая заявка на бронирование",
-          text: `Заявка на бронирование «${apartment.title}». Заезд: ${input.checkInDate.toLocaleDateString("ru-RU")} выезд: ${input.checkOutDate.toLocaleDateString("ru-RU")} имя гостя: ${input.guestName} номер телефона гостя: ${input.guestPhone}`,
+          text: `Заявка на бронирование «${apartment.title}». Заезд: ${input.checkInDate.toLocaleDateString("ru-RU")} выезд: ${input.checkOutDate.toLocaleDateString("ru-RU")} имя гостя: ${input.guestName} номер телефона гостя: ${input.guestPhone} взрослых: ${adults} детей: ${input.children ?? 0}`,
           apartmentId: input.apartmentId,
           link: "/profile/bookings",
         })
@@ -178,7 +197,8 @@ export const bookingsRouter = createTRPCRouter({
           `<b>Квартира:</b> ${apartment.title}`,
           `<b>Гость:</b> ${input.guestName}`,
           `<b>Телефон:</b> ${input.guestPhone}`,
-          `<b>Гостей:</b> ${input.guests}`,
+          `<b>Взрослых:</b> ${adults}`,
+          `<b>Детей:</b> ${input.children ?? 0}`,
           `<b>Заезд:</b> ${input.checkInDate.toLocaleDateString("ru-RU")}`,
           `<b>Выезд:</b> ${input.checkOutDate.toLocaleDateString("ru-RU")}`,
         ];

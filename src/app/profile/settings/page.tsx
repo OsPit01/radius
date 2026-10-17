@@ -8,7 +8,7 @@ import { ClientHeader } from "@/app/_components/layout/ClientHeader";
 import Image from "next/image";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
-import { toE164, isValidPhoneNumber } from "@/lib/phone";
+import { getCountryCodePrefixFromNumber, toE164, isValidPhoneNumber } from "@/lib/phone";
 import { readFileAsDataURL } from "@/lib/file";
 import { Modal } from "@/app/_components/ui/Modal";
 
@@ -55,6 +55,9 @@ export default function SettingsPage() {
   // Состояние модалки
   const [modalOpen, setModalOpen] = useState(false);
   const [linkCode, setLinkCode] = useState("");
+  // Последний известный "+код" страны ("+375", "+7" и т.д.) — чтобы восстановить
+  // код, если пользователь его стёр. Работает для любой страны.
+  const lastPhonePrefixRef = useRef("+375");
   const fileInputRef = useRef<HTMLInputElement>(null);
   // Состояние формы
   const [form, setForm] = useState({
@@ -67,12 +70,18 @@ export default function SettingsPage() {
   });
   useEffect(() => {
     if (user) {
+      const phone = toE164(user.phone);
+      // Запоминаем код страны телефона пользователя, чтобы защищать его от стирания.
+      if (phone) {
+        const prefix = getCountryCodePrefixFromNumber(phone);
+        if (prefix) lastPhonePrefixRef.current = prefix;
+      }
       setForm({
         name: user.name ?? "",
         firstName: user.firstName ?? "",
         lastName: user.lastName ?? "",
         patronymic: user.patronymic ?? "",
-        phone: toE164(user.phone),
+        phone,
         image: user.image ?? "",
       });
     }
@@ -92,6 +101,26 @@ export default function SettingsPage() {
       phone: form.phone || undefined,
       image: form.image || undefined,
     });
+  };
+
+  // Код страны телефона стирать нельзя, причём для ЛЮБОЙ страны (не только BY/RU).
+  const handlePhoneChange = (value?: string) => {
+    const next = value ?? "";
+    if (next.startsWith("+")) {
+      const prefix = getCountryCodePrefixFromNumber(next);
+      if (prefix) lastPhonePrefixRef.current = prefix;
+      setForm((prev) => ({ ...prev, phone: next }));
+      return;
+    }
+    const digits = next.replace(/\D/g, "");
+    const prefixDigits = lastPhonePrefixRef.current.slice(1);
+    const national = digits.startsWith(prefixDigits)
+      ? digits.slice(prefixDigits.length)
+      : digits;
+    setForm((prev) => ({
+      ...prev,
+      phone: lastPhonePrefixRef.current + national,
+    }));
   };
 
   // Выбор файла с компьютера
@@ -199,11 +228,10 @@ export default function SettingsPage() {
                 <label className="pr-5">Номер телефона:</label>
                 <PhoneInput
                   international
-                  countries={["BY", "RU"]}
                   defaultCountry="BY"
                   limitMaxLength
                   value={form.phone}
-                  onChange={(value) => setForm({ ...form, phone: value ?? "" })}
+                  onChange={handlePhoneChange}
                   className="w-full border-b border-white/30 bg-transparent p-1 pl-2 text-[15px] md:w-1/2"
                 />
                 {form.phone !== toE164(user?.phone) && (

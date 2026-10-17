@@ -8,6 +8,7 @@ import {
 export type SearchFilters = {
   city?: string;
   guests?: number;
+  children?: number;
   priceMin?: number;
   priceMax?: number;
   rooms?: number;
@@ -21,6 +22,7 @@ export type SearchFilters = {
 const QUERY_KEY_ORDER = [
   "city",
   "guests",
+  "children",
   "priceMin",
   "priceMax",
   "rooms",
@@ -45,6 +47,7 @@ export function parseSearchParams(
         ? searchParams.city.trim() || undefined
         : undefined,
     guests: toPositiveInt(searchParams.guests),
+    children: toPositiveInt(searchParams.children),
     priceMin: toPositiveInt(searchParams.priceMin),
     priceMax: toPositiveInt(searchParams.priceMax),
     rooms: toPositiveInt(searchParams.rooms),
@@ -81,6 +84,18 @@ export function parseBookingGuests(
   const guests = parseSearchParams(searchParams).guests;
   if (guests === undefined) return DEFAULT_BOOKING_GUESTS;
   return Math.min(guests, MAX_BOOKING_GUESTS);
+}
+
+/**
+ * Сколько детей подставить в форму бронирования, пришедших из URL.
+ * Если детей в URL нет — 0.
+ */
+export function parseBookingChildren(
+  searchParams: Record<string, string | string[] | undefined>,
+): number {
+  const children = parseSearchParams(searchParams).children;
+  if (children === undefined) return 0;
+  return Math.min(children, MAX_BOOKING_GUESTS);
 }
 
 // ===== SEO-ЗАГОЛОВКИ ДЛЯ ОТФИЛЬТРОВАННЫХ СТРАНИЦ =====

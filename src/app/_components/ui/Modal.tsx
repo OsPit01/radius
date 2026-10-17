@@ -36,7 +36,7 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
             <button
               type="button"
               onClick={onClose}
-              className="cursor-pointer rounded-full p-1 text-2xl leading-none text-gray-400 hover:text-black"
+              className="cursor-pointer rounded-full p-1 text-[35px] leading-none text-gray-400 hover:text-black"
               aria-label="Закрыть"
             >
               ×

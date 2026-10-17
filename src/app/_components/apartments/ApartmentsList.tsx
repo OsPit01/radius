@@ -12,6 +12,7 @@ type ApartmentsListProps = {
   apartments: ApartmentCardData[];
   searchQuery?: string;
   totalGuests?: number;
+  totalChildren?: number;
   filters?: Filters;
 };
 
@@ -19,6 +20,7 @@ export function ApartmentsList({
   apartments,
   searchQuery = "",
   totalGuests = 1,
+  totalChildren = 0,
   filters,
 }: ApartmentsListProps) {
   const { data: session } = useSession();
@@ -121,6 +123,7 @@ export function ApartmentsList({
             apartment={apartment}
             isFavorite={favIds?.includes(apartment.id) ?? false}
             guests={totalGuests}
+            childrenCount={totalChildren}
           />
         ))}
       </div>

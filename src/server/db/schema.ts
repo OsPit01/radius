@@ -216,6 +216,7 @@ export const booking = createTable("booking", (d) => ({
   guestName: d.varchar({ length: 255 }).notNull(),
   guestPhone: d.varchar({ length: 50 }).notNull(),
   guests: d.integer().notNull(),
+  children: d.integer().notNull().default(0),
   checkInDate: d.date({ mode: "date" }).notNull(),
   checkOutDate: d.date({ mode: "date" }).notNull(),
   message: d.text(),
