@@ -50,7 +50,6 @@ export function ChatList({
                     src={c.apartment.image}
                     alt={c.apartment.title}
                     fill
-                    unoptimized
                     className="object-cover"
                   />
                 ) : (

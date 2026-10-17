@@ -85,7 +85,6 @@ export function ApartmentCard({
             src={apartment.image}
             alt={apartment.title}
             fill
-            unoptimized
             className="rounded-[15px] object-cover"
           />
           <button

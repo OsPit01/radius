@@ -41,7 +41,6 @@ export function Avatar({
       alt={name ?? "Аватар"}
       width={size}
       height={size}
-      unoptimized
       onError={() => setFailed(true)}
       className="shrink-0 rounded-full object-cover"
       style={{ width: size, height: size }}

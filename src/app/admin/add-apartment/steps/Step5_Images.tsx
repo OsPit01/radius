@@ -138,7 +138,6 @@ export function Step5_Images({
                       width={200}
                       height={200}
                       className="h-full w-full object-cover"
-                      unoptimized
                       priority={index === 0}
                     />
                     {isMain && (

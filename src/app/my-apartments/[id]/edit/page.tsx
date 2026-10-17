@@ -217,7 +217,6 @@ export default function EditApartmentPage() {
                             alt={`Фото ${index + 1}`}
                             fill
                             className="object-cover"
-                            unoptimized
                           />
                           {isMain && (
                             <div className="absolute top-1 left-1 z-[5] rounded bg-[rgba(251,191,36,0.9)] px-2 py-0.5 text-[10px] font-semibold text-black max-[480px]:px-1.5 max-[480px]:py-0.5 max-[480px]:text-[8px]">

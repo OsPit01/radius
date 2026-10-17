@@ -82,7 +82,6 @@ export function UserDropdown({ user }: UserDropdownProps) {
             alt="avatar"
             width={32}
             height={32}
-            unoptimized
             className="h-[30px] w-[30px] rounded-[50px] object-cover"
           />
         ) : (

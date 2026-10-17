@@ -13,6 +13,7 @@
     "db:sync": "drizzle-kit push && node scripts/apply-rls.mjs",
     "db:studio": "drizzle-kit studio",
     "dev": "next dev --turbo",
+    "images:recompress": "npx tsx scripts/recompress-images.ts",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
     "format:write": "prettier --write \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
     "lint": "next lint",
@@ -43,6 +44,7 @@
     "react-icons": "^5.6.0",
     "react-phone-number-input": "^3.4.17",
     "server-only": "^0.0.1",
+    "sharp": "^0.35.5",
     "superjson": "^2.2.1",
     "swiper": "^14.1.0",
     "yet-another-react-lightbox": "^3.32.2",
@@ -62,6 +64,7 @@
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "tailwindcss": "^4.0.15",
+    "tsx": "^4.23.15",
     "typescript": "^5.8.2",
     "typescript-eslint": "^8.27.0"
   },

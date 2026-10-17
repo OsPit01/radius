@@ -74,7 +74,6 @@ export default function MyApartmentsPage() {
                         className="object-cover"
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         priority={index < 3}
-                        unoptimized
                       />
                     </div>
                     <div className="flex flex-1 flex-col gap-2 p-5">

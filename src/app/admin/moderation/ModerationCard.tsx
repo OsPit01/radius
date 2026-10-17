@@ -37,7 +37,6 @@ export function ModerationCard({ item }: { item: ModerationItem }) {
             src={item.apartment.image}
             alt={item.apartment.title}
             fill
-            unoptimized
             className="object-cover"
           ></Image>
         </div>

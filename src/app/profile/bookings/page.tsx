@@ -231,7 +231,7 @@ export default function BookingsPage() {
 
                     <div className="grid grid-cols-1 gap-1 text-sm text-[#555]">
                       {/* Данные различаются: владелец видит гостя, гость — собственника */}
-                      {mode === "owner" ? (
+                      {currentMode === "owner" ? (
                         <>
                           <p>
                             Гость:{" "}
@@ -272,7 +272,8 @@ export default function BookingsPage() {
                       )}
                       <p>
                         Гостей: {booking.guests}
-                        {booking.children > 0 && ` (детей: ${booking.children})`}
+                        {booking.children > 0 &&
+                          ` (детей: ${booking.children})`}
                       </p>
                       <p>
                         Заезд: {formatDate(booking.checkInDate)} — выезд:{" "}
@@ -288,7 +289,7 @@ export default function BookingsPage() {
                     </p>
 
                     {/* Кнопки действия зависят от режима */}
-                    {mode === "owner" && booking.status === "new" && (
+                    {currentMode === "owner" && booking.status === "new" && (
                       <div className="flex gap-2">
                         <button
                           onClick={() =>
@@ -314,7 +315,7 @@ export default function BookingsPage() {
                         </button>
                       </div>
                     )}
-                    {mode === "guest" &&
+                    {currentMode === "guest" &&
                       (booking.status === "new" ||
                         booking.status === "approved") && (
                         <button

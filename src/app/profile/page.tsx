@@ -88,7 +88,6 @@ export default function ProfilePage() {
                     alt={user.role || "User"}
                     width={50}
                     height={50}
-                    unoptimized
                     className="h-20 w-20 rounded-full object-cover shadow-[0_4px_20px_rgba(181,82,199,0.2)] max-[480px]:h-20 max-[480px]:w-20 max-md:h-[75px] max-md:w-[75px]"
                   />
                 ) : (

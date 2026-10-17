@@ -7,7 +7,8 @@ import "./src/env.js";
 // Hostname хранилища Supabase берём из переменной окружения,
 // чтобы не хранить его захардкоженным в коде.
 function buildRemotePatterns() {
-  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseUrl =
+    process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseHost = supabaseUrl ? new URL(supabaseUrl).hostname : null;
 
   /** @type {Array<{ protocol: "https"; hostname: string; port: string; pathname: string }>} */

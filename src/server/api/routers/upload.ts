@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { getSupabaseAdmin } from "@/server/supabase";
 import { enforceRateLimit } from "@/server/rate-limit";
+import { optimizeImage } from "@/server/image-optimizer";
 
 // Максимальный размер загружаемого изображения — 5 МБ.
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
@@ -52,15 +53,35 @@ export const uploadRouter = createTRPCRouter({
         });
       }
 
-      const ext = mimeType.split("/")[1]?.replace("+", "") ?? "jpg";
-      const fileName = `${crypto.randomUUID()}.${ext}`;
+      // ===== ОПТИМИЗАЦИЯ (КРИТИЧЕСКИ ВАЖНЫЙ БЛОК) =====
+      // Любой входящий файл (jpeg/png/heic/etc) конвертируется в WebP
+      // с ресайзом до 1920px. Это гарантирует:
+      // 1. Всегда один формат (WebP) — проще кэшировать, быстрее грузить
+      // 2. Максимальный размер 1920px — достаточно для всех экранов
+      // 3. Качество 80 — визуально неотличимо от оригинала, вес в 3-5 раз меньше
+      //
+      // Если optimizeImage бросает ошибку (битый файл, неподдерживаемый формат) —
+      // отклоняем загрузку с внятным сообщением.
+      let optimized;
+      try {
+        optimized = await optimizeImage(buffer);
+      } catch {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "Не удалось обработать изображение. Убедитесь, что файл не повреждён и не является анимацией.",
+        });
+      }
+
+      // Файл назначения: {uuid}.webp — расширение всегда .webp
+      const fileName = `${crypto.randomUUID()}.webp`;
 
       const supabaseAdmin = getSupabaseAdmin();
 
       const { error } = await supabaseAdmin.storage
         .from("apartments")
-        .upload(fileName, buffer, {
-          contentType: mimeType,
+        .upload(fileName, optimized.buffer, {
+          contentType: "image/webp", // всегда webp
           cacheControl: "3600",
         });
 

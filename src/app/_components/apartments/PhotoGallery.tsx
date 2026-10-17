@@ -18,7 +18,6 @@ function GalleryImage({ src, alt }: { src: string; alt: string }) {
         alt={alt}
         fill
         draggable={false}
-        unoptimized
         className="object-cover"
       />
     </div>
@@ -108,7 +107,6 @@ export function PhotoGallery({
                 src={src}
                 alt={`${title} — фото ${i + 1}`}
                 fill
-                unoptimized
                 className="object-cover"
               />
             </button>
