@@ -47,11 +47,17 @@ export function BookingButton({
   const [checkOutDate, setCheckOutDate] = useState("");
   const [message, setMessage] = useState("");
 
+  type bookingFormErrors = {
+    name?: string;
+    phone?: string;
+    dates?: string;
+  };
+  const [errors, setErrors] = useState<bookingFormErrors>({});
   const createBooking = api.bookings.create.useMutation({
     onSuccess: () => {
       reportConversion();
       setOpen(false);
-      setGuestName("");
+      setGuestName(session?.user?.name ?? "");
       setGuestPhone("");
       setGuests(
         Math.min(Math.max(initialGuests, MIN_BOOKING_GUESTS), maxGuests),
@@ -61,17 +67,25 @@ export function BookingButton({
       setMessage("");
     },
   });
-
-  const submitDisabled =
-    !guestName.trim() ||
-    !isValidPhoneNumber(guestPhone) ||
-    !checkInDate ||
-    !checkOutDate ||
-    createBooking.isPending;
+  const handlePhoneChange = (value?: string) => {
+    const next = value ?? "";
+    if (!next.startsWith("+375")) {
+      setGuestPhone("+375" + next.replace(/\D/g, "").replace(/^375/, ""));
+      return;
+    }
+    setGuestPhone(next);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (submitDisabled) return;
+    const newErrors: bookingFormErrors = {};
+    if (!guestName.trim()) newErrors.name = "Укажите имя";
+    if (!isValidPhoneNumber(guestPhone))
+      newErrors.phone = "Введите корректный номер телефона";
+    if (!checkInDate || !checkOutDate)
+      newErrors.dates = "Укажите даты заезда и выезда";
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
     createBooking.mutate({
       apartmentId,
       guestName: guestName.trim(),
@@ -136,6 +150,9 @@ export function BookingButton({
                 className="rounded-xl border border-[#e0e0e0] px-4 py-3 text-base text-[#222] outline-none focus:border-[#6b21a8]"
               />
             </label>
+            {errors.name && (
+              <p className="text-sm text-red-600">{errors.name}</p>
+            )}
             <label className="flex flex-col gap-1 text-sm font-medium text-[#222]">
               Телефон
               <PhoneInput
@@ -149,7 +166,10 @@ export function BookingButton({
                 className="rounded-xl border border-[#e0e0e0] px-4 py-3 text-base text-[#222]"
               />
             </label>
-
+            {errors.phone && (
+              <p className="text-sm text-red-600">{errors.phone}</p>
+            )}
+            {/* НЕ ЗАБЫТЬ БАГ С ГОСТЯМИ!"" */}
             <label className="flex flex-col gap-1 text-sm font-medium text-[#222]">
               Количество гостей
               <input
@@ -179,6 +199,7 @@ export function BookingButton({
                   className="rounded-xl border border-[#e0e0e0] px-3 py-3 text-base text-[#222] outline-none focus:border-[#6b21a8]"
                 />
               </label>
+
               <label className="flex flex-col gap-1 text-sm font-medium text-[#222]">
                 Выезд
                 <input
@@ -189,6 +210,9 @@ export function BookingButton({
                 />
               </label>
             </div>
+            {errors.dates && (
+              <p className="text-sm text-red-600">{errors.dates}</p>
+            )}
 
             <label className="flex flex-col gap-1 text-sm font-medium text-[#222]">
               Комментарий (необязательно)
@@ -209,11 +233,9 @@ export function BookingButton({
 
             <button
               type="submit"
-              disabled={submitDisabled}
-              className="mt-1 rounded-xl bg-gray-800 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-[#c4b5fd]"
-            >
-              {createBooking.isPending ? "Отправляем..." : "Отправить заявку"}
-            </button>
+              disabled={createBooking.isPending}
+              className="mt-1 rounded-xl bg-gray-800 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-60"
+            ></button>
           </form>
         )}
       </Modal>
