@@ -46,11 +46,13 @@ export function ChatWindow({
   // Текст в поле ввода — локальное состояние окна чата.
   const [text, setText] = useState("");
   // Ссылка на нижнюю точку ленты — для автопрокрутки вниз.
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   // При появлении новых сообщений прокручиваем ленту вниз.
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const el = listRef.current;
+    if (!el) return;
+    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   }, [messages?.length]);
 
   // Отправка: чистим текст сразу, а сам запрос делает родитель.
@@ -62,7 +64,7 @@ export function ChatWindow({
   };
 
   return (
-    <div className="flex h-[calc(100vh-140px)] flex-col">
+    <div className="flex h-full min-h-0 flex-col">
       {/* Шапка с деталями бронирования */}
       <ChatHeader
         apartmentTitle={apartmentTitle}
@@ -71,8 +73,11 @@ export function ChatWindow({
         onBack={onBack}
       />
 
-      {/* Лента сообщений */}
-      <div className="flex flex-1 flex-col gap-2 overflow-y-auto py-8">
+      {/* Лента сообщений скроллится только она  */}
+      <div
+        ref={listRef}
+        className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto py-8"
+      >
         {messages?.length === 0 && (
           <p className="py-8 text-center text-[#888]">Нет сообщений.</p>
         )}
@@ -89,13 +94,12 @@ export function ChatWindow({
           );
         })}
         {/* Невидимая точка внизу — к ней скроллим при новом сообщении. */}
-        <div ref={bottomRef} />
       </div>
 
       {/* Поле ввода + кнопка отправки */}
       {/* Поле ввода + кнопка отправки */}
       {/* items-end — чтобы кнопка НЕ растягивалась по высоте textarea */}
-      <div className="flex items-end gap-2 border-t border-gray-300 pt-3">
+      <div className="flex shrink-0 items-end gap-2 border-t border-gray-300 pt-3">
         <textarea
           rows={1}
           value={text}

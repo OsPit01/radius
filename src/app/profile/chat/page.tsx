@@ -129,20 +129,22 @@ export default function ChatPage() {
   return (
     <AuthGuard>
       <ClientHeader />
+      {/* Общая обёртка: занимает экран минус хедер, без скролла страницы */}
+      <div className="flex h-[calc(100vh-64px)] flex-col overflow-hidden">
+        {/* ===== МОБИЛКА: одна колонка, переключение список ↔ чат ===== */}
+        <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col overflow-hidden px-4 pb-4 md:hidden">
+          {selectedId === null ? listView : chatView}
+        </div>
 
-      {/* ===== МОБИЛКА: одна колонка, переключение список ↔ чат ===== */}
-      <div className="mx-auto max-w-2xl px-4 pb-4 md:hidden">
-        {selectedId === null ? listView : chatView}
-      </div>
-
-      {/* ===== ДЕСКТОП: список слева + чат справа (без переходов) ===== */}
-      <div className="mx-auto hidden max-w-6xl px-4 pb-4 md:flex">
-        {/* Левая колонка — список бесед */}
-        <aside className="w-80 shrink-0 border-r border-gray-300 pr-4">
-          {listView}
-        </aside>
-        {/* Правая колонка — открытый чат */}
-        <div className="min-w-0 flex-1 pl-4">{chatView}</div>
+        {/* ДЕСКТОП */}
+        <div className="mx-auto hidden w-full max-w-6xl flex-1 overflow-hidden px-4 pb-4 md:flex">
+          <aside className="flex w-80 shrink-0 flex-col overflow-hidden border-r border-gray-300 pr-4">
+            {listView}
+          </aside>
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden pl-4">
+            {chatView}
+          </div>
+        </div>
       </div>
     </AuthGuard>
   );

@@ -21,7 +21,6 @@ export function SupportChatButton() {
     // 1. Открываем/берём заявку и ЖДЁМ её id
     const ticket = await openTicket.mutateAsync();
     if (!ticket) return;
-
     setTicketId(ticket.id);
     // 2. Отправляем сообщение в эту заявку
     await sendMessage.mutateAsync({ id: ticket.id, text: text.trim() });

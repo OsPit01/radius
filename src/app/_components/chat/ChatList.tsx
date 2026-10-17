@@ -39,7 +39,7 @@ export function ChatList({
             <button
               type="button"
               onClick={() => onSelect(c.conversation.id)}
-              className={`flex w-full items-center gap-3 rounded-[15px] border-b border-gray-300 px-2 py-3 text-left transition-colors hover:bg-[#fafafa] ${
+              className={`mt-1 flex w-full items-center gap-3 rounded-[15px] border-b border-gray-300 px-2 py-3 text-left transition-colors hover:bg-[#fafafa] ${
                 isActive ? "border border-gray-900 duration-700" : ""
               }`}
             >
