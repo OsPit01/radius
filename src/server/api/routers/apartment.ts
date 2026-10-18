@@ -519,11 +519,7 @@ export const apartmentRouter = createTRPCRouter({
         await ctx.db
           .update(users)
           .set({ role: "lessor" })
-          .where(
-            and(eq(users.id, update.createdById), eq(users.role, "users")),
-          );
-
-        // const [updateUserStatus] = await ctx.db.update()
+          .where(and(eq(users.id, update.createdById), eq(users.role, "user")));
       }
       return update;
     }),

@@ -197,7 +197,7 @@ export const notification = createTable("notification", (d) => ({
   // Уведомления могут быть не привязаны к объекту (например, сообщение админа).
   apartmentId: d
     .integer()
-    .references(() => apartments.id, { onDelete: "cascade" }),
+    .references(() => apartments.id, { onDelete: "set null" }),
   isRead: d.boolean().notNull().default(false),
   readAt: d.timestamp({ withTimezone: true }),
   link: d.varchar({ length: 255 }),
