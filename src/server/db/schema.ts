@@ -174,7 +174,7 @@ export const favorites = createTable(
     apartmentId: d
       .integer()
       .notNull()
-      .references(() => apartments.id),
+      .references(() => apartments.id, { onDelete: "cascade" }),
     createdAt: d
       .timestamp({ withTimezone: true })
       .$defaultFn(() => new Date())
@@ -195,7 +195,9 @@ export const notification = createTable("notification", (d) => ({
   title: d.varchar({ length: 255 }).notNull(),
   text: d.text().notNull(),
   // Уведомления могут быть не привязаны к объекту (например, сообщение админа).
-  apartmentId: d.integer().references(() => apartments.id),
+  apartmentId: d
+    .integer()
+    .references(() => apartments.id, { onDelete: "cascade" }),
   isRead: d.boolean().notNull().default(false),
   readAt: d.timestamp({ withTimezone: true }),
   link: d.varchar({ length: 255 }),
@@ -211,7 +213,7 @@ export const booking = createTable("booking", (d) => ({
   apartmentId: d
     .integer()
     .notNull()
-    .references(() => apartments.id),
+    .references(() => apartments.id, { onDelete: "cascade" }),
   userId: d.varchar({ length: 255 }).references(() => users.id),
   guestName: d.varchar({ length: 255 }).notNull(),
   guestPhone: d.varchar({ length: 50 }).notNull(),
@@ -232,7 +234,7 @@ export const conversation = createTable("conversation", (d) => ({
   bookingId: d
     .integer()
     .notNull()
-    .references(() => booking.id),
+    .references(() => booking.id, { onDelete: "cascade" }),
   guestId: d
     .varchar({ length: 255 })
     .notNull()
@@ -252,7 +254,7 @@ export const message = createTable("message", (d) => ({
   conversationId: d
     .integer()
     .notNull()
-    .references(() => conversation.id),
+    .references(() => conversation.id, { onDelete: "cascade" }),
   senderId: d
     .varchar({ length: 255 })
     .notNull()
@@ -312,7 +314,7 @@ export const apartmentView = createTable(
     apartmentId: d
       .integer()
       .notNull()
-      .references(() => apartments.id),
+      .references(() => apartments.id, { onDelete: "cascade" }),
     createdAt: d
       .timestamp({ withTimezone: true })
       .$defaultFn(() => new Date())

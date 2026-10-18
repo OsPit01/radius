@@ -8,7 +8,11 @@ import { ClientHeader } from "@/app/_components/layout/ClientHeader";
 import Image from "next/image";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
-import { getCountryCodePrefixFromNumber, toE164, isValidPhoneNumber } from "@/lib/phone";
+import {
+  getCountryCodePrefixFromNumber,
+  toE164,
+  isValidPhoneNumber,
+} from "@/lib/phone";
 import { readFileAsDataURL } from "@/lib/file";
 import { Modal } from "@/app/_components/ui/Modal";
 
@@ -39,7 +43,10 @@ export default function SettingsPage() {
       setLinkCode(data.code);
       // Открываем бота сразу с готовым кодом (deep-link) —
       // пользователю не нужно ничего вводить вручную.
-      window.open(`https://t.me/radius_booking_bot?start=${data.code}`, "_blank");
+      window.open(
+        `https://t.me/radius_booking_bot?start=${data.code}`,
+        "_blank",
+      );
     },
   });
   const confirmTelegramLink = api.user.confirmTelegramLink.useMutation({
@@ -148,7 +155,7 @@ export default function SettingsPage() {
       <AuthGuard>
         <ClientHeader />
         <div className="mx-auto max-w-[900px] rounded-[25px] px-5 py-10 max-[480px]:px-2.5 max-[480px]:py-5">
-          <div className="relative rounded-[15px] bg-[#0e081b] p-10 shadow-[0_2px_8px_rgba(0,0,0,0.08)] max-[480px]:p-4 max-md:p-5">
+          <div className="relative rounded-[15px] bg-gray-900 p-10 shadow-[0_2px_8px_rgba(0,0,0,0.08)] max-[480px]:p-4 max-md:p-5">
             <h1 className="text-[28px] font-bold text-white max-md:text-[22px]">
               Редактирование профиля
             </h1>
@@ -273,7 +280,7 @@ export default function SettingsPage() {
                 </p>
               </div>
               <button
-                className="mt-10 cursor-pointer rounded-[30px] bg-[#3a2a4a] px-8 py-3 text-base font-semibold text-white hover:bg-[#4a3a5a]"
+                className="mt-10 cursor-pointer rounded-[30px] bg-gray-700 px-8 py-3 text-base font-semibold text-gray-100 hover:bg-gray-600"
                 type="submit"
                 disabled={updateMutation.isPending}
               >
@@ -316,10 +323,7 @@ export default function SettingsPage() {
         </Modal>
 
         {/* Модалка привязки Telegram */}
-        <Modal
-          open={!!linkCode}
-          onClose={() => setLinkCode("")}
-        >
+        <Modal open={!!linkCode} onClose={() => setLinkCode("")}>
           {confirmTelegramLink.isSuccess ? (
             <div className="flex flex-col items-center gap-3 py-4 text-center">
               <p className="text-4xl">✅</p>

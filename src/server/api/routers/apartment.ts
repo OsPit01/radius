@@ -86,6 +86,9 @@ const createApartmentSchema = z.object({
   singleSofas: z.number().min(0).max(20).optional(),
   metro: z.string().optional(),
   //////////////////////////////
+  area: z.number().int().min(0).max(10_000).optional(),
+  floor: z.number().int().min(0).max(100).optional(),
+  bathrooms: z.number().int().min(0).max(20).optional(),
   currency: z.string().default("BYN"),
   amenities: z.array(z.string()).optional().default([]),
   payerType: z.string().default("individual"),
@@ -139,10 +142,7 @@ export const apartmentRouter = createTRPCRouter({
       }
       if (input?.beds) {
         conditions.push(
-          gte(
-            sql`${apartments.beds} + ${apartments.singleBeds}`,
-            input.beds,
-          ),
+          gte(sql`${apartments.beds} + ${apartments.singleBeds}`, input.beds),
         );
       }
       if (input?.sofas) {
@@ -262,6 +262,9 @@ export const apartmentRouter = createTRPCRouter({
           doubleSofas: input.doubleSofas ?? 0,
           singleSofas: input.singleSofas ?? 0,
           metro: input.metro ?? null,
+          area: input.area ?? null,
+          floor: input.floor ?? null,
+          bathrooms: input.bathrooms ?? null,
           createdById: userId,
           currency: input.currency ?? "BYN",
           amenities: input.amenities ?? [],
@@ -306,6 +309,9 @@ export const apartmentRouter = createTRPCRouter({
         rooms: z.number().min(1).max(10),
         beds: z.number().min(0).max(20).optional(),
         singleBeds: z.number().min(0).max(20).optional(),
+        area: z.number().int().min(0).max(10_000).optional(),
+        floor: z.number().int().min(0).max(100).optional(),
+        bathrooms: z.number().int().min(0).max(20).optional(),
         doubleSofas: z.number().min(0).max(20).optional(),
         singleSofas: z.number().min(0).max(20).optional(),
         metro: z.string().optional(),
@@ -353,9 +359,7 @@ export const apartmentRouter = createTRPCRouter({
           existing.street !== input.street ||
           existing.numberHome !== input.numberHome ||
           (existing.building ?? "") !== (input.building ?? "") ||
-          (existing.district ?? "") !== (input.district ?? "") ||
-          (existing.formattedAddress ?? "") !==
-            (input.formattedAddress ?? "");
+          (existing.district ?? "") !== (input.district ?? "");
 
         if (addressChanged) {
           throw new TRPCError({
@@ -389,6 +393,9 @@ export const apartmentRouter = createTRPCRouter({
           doubleSofas: input.doubleSofas ?? 0,
           singleSofas: input.singleSofas ?? 0,
           metro: input.metro,
+          area: input.area ?? null,
+          floor: input.floor ?? null,
+          bathrooms: input.bathrooms ?? null,
           amenities: input.amenities,
           payerType: input.payerType,
           payerName: input.payerName,
@@ -505,6 +512,18 @@ export const apartmentRouter = createTRPCRouter({
           apartmentId: input.id, // о каком объекте
           link: `/apartments/${input.id}`, // куда ведёт уведомление
         });
+      }
+      if (input.status === "active" && update.createdById) {
+        // Меняем роль владельца объявления на "lessor"
+
+        await ctx.db
+          .update(users)
+          .set({ role: "lessor" })
+          .where(
+            and(eq(users.id, update.createdById), eq(users.role, "users")),
+          );
+
+        // const [updateUserStatus] = await ctx.db.update()
       }
       return update;
     }),
