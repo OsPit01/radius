@@ -18,6 +18,7 @@ export type FormData = {
   streetConfirmed: boolean;
   numberHome: string;
   building: string;
+  microdistrict: string;
   formattedAddress: string;
   addressError: string;
   title: string;
@@ -123,6 +124,7 @@ export function formatApartmentData(formData: FormData) {
     district:
       formData.cityDistrict?.trim() || formData.district?.trim() || "",
     building: formData.building?.trim() ?? null,
+    microdistrict: formData.microdistrict?.trim() || undefined,
     formattedAddress: fullAddressForMap,
     capacity: Number(formData.capacity ?? 0),
     price: Number(formData.price ?? 0),

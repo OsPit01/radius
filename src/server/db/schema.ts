@@ -25,6 +25,9 @@ export const apartments = createTable(
     street: d.varchar({ length: 100 }).notNull(),
     numberHome: d.varchar({ length: 50 }).notNull(),
     district: d.varchar({ length: 200 }),
+    // Жилой массив / микрорайон (Уручье, Новая Боровая и т.п.) —
+    // то, что реально ищут люди, в отличие от административного района.
+    microdistrict: d.varchar({ length: 200 }),
     building: d.varchar({ length: 50 }),
     formattedAddress: d.text("formattedAddress"),
     capacity: d.integer().notNull(),

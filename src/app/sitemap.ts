@@ -14,6 +14,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       image: apartments.image,
       images: apartments.images,
       updatedAt: apartments.updatedAt,
+      microdistrict: apartments.microdistrict,
     })
     .from(apartments)
     .where(eq(apartments.status, "active"));
@@ -36,6 +37,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency: "daily",
     priority: 0.7,
   }));
+  // Популярные микрорайоны из активных объявлений — для SEO-страниц каталога
+  const popularMicrodistrict = Array.from(
+    new Set(
+      rows
+        .map((a) => a.microdistrict)
+        .filter((d): d is string => d !== null),
+    ),
+  );
+  const microdistrictUrls: MetadataRoute.Sitemap = popularMicrodistrict.map(
+    (microdistrict) => ({
+      url: `${SITE_URL}/microdistrict/${encodeURIComponent(microdistrict)}`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.9,
+    }),
+  );
 
   // Популярные комбинации «город + количество комнат»
   const roomCombos: MetadataRoute.Sitemap = popularCities.flatMap((city) =>
@@ -56,6 +73,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     ...catCityUrls,
     ...roomCombos,
+    ...microdistrictUrls,
     {
       url: `${SITE_URL}/privacy`,
       lastModified: new Date(),

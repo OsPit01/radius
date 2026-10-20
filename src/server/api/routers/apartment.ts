@@ -68,6 +68,7 @@ const createApartmentSchema = z.object({
   // ЧТО И ЗАЧЕМ ТУТ МЕНЯТЬ: Убрали .min(2) и сделали поле .optional().default("").
   // Теперь пустой инпут района на фронтенде не будет вызывать ошибку Zod "too_small" на сервере!
   district: z.string().optional().default(""),
+  microdistrict: z.string().optional(),
 
   formattedAddress: z.string().optional().default(""),
   capacity: z.number().min(1).max(20),
@@ -105,6 +106,7 @@ export const apartmentRouter = createTRPCRouter({
       z
         .object({
           city: z.string().trim().min(1).optional(),
+          microdistrict: z.string().trim().min(1).optional(),
           guests: z.number().int().min(1).optional(),
           priceMin: z.number().int().min(0).optional(),
           priceMax: z.number().int().min(0).optional(),
@@ -122,6 +124,9 @@ export const apartmentRouter = createTRPCRouter({
 
       if (input?.city) {
         conditions.push(ilike(apartments.city, `%${input.city}%`));
+      }
+      if (input?.microdistrict) {
+        conditions.push(eq(apartments.microdistrict, input.microdistrict));
       }
       if (input?.guests && input.guests > 1) {
         conditions.push(gte(apartments.capacity, input.guests));
@@ -245,6 +250,7 @@ export const apartmentRouter = createTRPCRouter({
           street: input.street,
           numberHome: input.numberHome,
           district: input.district,
+          microdistrict: input.microdistrict ?? null,
           building: input.building ?? null,
           formattedAddress: input.formattedAddress,
           capacity: input.capacity,
@@ -297,6 +303,7 @@ export const apartmentRouter = createTRPCRouter({
         numberHome: z.string().min(1),
         building: z.string().nullable().optional(),
         district: z.string().optional(),
+        microdistrict: z.string().optional(),
         formattedAddress: z.string().optional(),
         capacity: z.number().min(1).max(20),
         price: z.number().positive(),
@@ -359,7 +366,8 @@ export const apartmentRouter = createTRPCRouter({
           existing.street !== input.street ||
           existing.numberHome !== input.numberHome ||
           (existing.building ?? "") !== (input.building ?? "") ||
-          (existing.district ?? "") !== (input.district ?? "");
+          (existing.district ?? "") !== (input.district ?? "") ||
+          (existing.microdistrict ?? "") !== (input.microdistrict ?? "");
 
         if (addressChanged) {
           throw new TRPCError({
@@ -379,6 +387,7 @@ export const apartmentRouter = createTRPCRouter({
           numberHome: input.numberHome,
           building: input.building,
           district: input.district,
+          microdistrict: input.microdistrict ?? null,
           capacity: input.capacity,
           price: input.price,
           currency: input.currency,

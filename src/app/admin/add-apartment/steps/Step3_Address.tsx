@@ -141,6 +141,21 @@ export function Step3_Address({
         />
       </div>
 
+      {/* Микрорайон (необязательно) — жилой массив: Уручье, Новая Боровая */}
+      <div className="mt-2.5 flex flex-col gap-2">
+        <label className="pt-[5px] text-sm font-semibold text-white">
+          Микрорайон
+        </label>
+        <input
+          id="microdistrict-field"
+          type="text"
+          value={formData.microdistrict}
+          onChange={(e) => updateField("microdistrict", e.target.value)}
+          placeholder="Например: Уручье, Новая Боровая"
+          className={INPUT_CLASS}
+        />
+      </div>
+
       <div className="mt-5 p-[5px] text-[13px] text-[rgba(216,214,214,0.911)]">
         <p> {getTypeLabel(formData.type)}</p>
         <p> {getFormLabel(formData, "city")}</p>

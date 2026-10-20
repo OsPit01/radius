@@ -9,8 +9,10 @@ export default function robots(): MetadataRoute.Robots {
         allow: "/",
         disallow: [
           "/api/",
+          "/auth",
           "/profile",
           "/my-apartments",
+          "/my-notifications",
           "/admin",
           "/_next/",
         ],

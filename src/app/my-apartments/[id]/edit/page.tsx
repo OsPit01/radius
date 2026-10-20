@@ -529,7 +529,9 @@ export default function EditApartmentPage() {
                       type="number"
                       min={0}
                       value={formData.area || ""}
-                      onChange={(e) => updateField("area", Number(e.target.value))}
+                      onChange={(e) =>
+                        updateField("area", Number(e.target.value))
+                      }
                       className={EDIT_INPUT_CLASS}
                     />
                   </div>
@@ -540,7 +542,9 @@ export default function EditApartmentPage() {
                     <input
                       type="number"
                       value={formData.floor || ""}
-                      onChange={(e) => updateField("floor", Number(e.target.value))}
+                      onChange={(e) =>
+                        updateField("floor", Number(e.target.value))
+                      }
                       className={EDIT_INPUT_CLASS}
                     />
                   </div>
@@ -552,7 +556,9 @@ export default function EditApartmentPage() {
                       type="number"
                       min={0}
                       value={formData.bathrooms || ""}
-                      onChange={(e) => updateField("bathrooms", Number(e.target.value))}
+                      onChange={(e) =>
+                        updateField("bathrooms", Number(e.target.value))
+                      }
                       className={EDIT_INPUT_CLASS}
                     />
                   </div>
@@ -653,17 +659,35 @@ export default function EditApartmentPage() {
                     />
                   </div>
                 </div>
-                <div className="mb-4 flex flex-col gap-1.5">
-                  <label className="text-sm font-medium text-white">
-                    Корпус
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.building}
-                    onChange={(e) => updateField("building", e.target.value)}
-                    disabled={!canEditAddress}
-                    className={`${EDIT_INPUT_CLASS} disabled:cursor-not-allowed disabled:opacity-50`}
-                  />
+                <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
+                  <div className="mb-4 flex flex-col gap-1.5">
+                    <label className="text-sm font-medium text-white">
+                      Корпус
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.building}
+                      onChange={(e) => updateField("building", e.target.value)}
+                      disabled={!canEditAddress}
+                      className={`${EDIT_INPUT_CLASS} disabled:cursor-not-allowed disabled:opacity-50`}
+                    />
+                  </div>
+                  <div className="mb-4 flex flex-col gap-1.5">
+                    <label className="text-sm font-medium text-white">
+                      Микрорайон{" "}
+                      <span className="text-[#888]">(необязательно)</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.microdistrict}
+                      onChange={(e) =>
+                        updateField("microdistrict", e.target.value)
+                      }
+                      disabled={!canEditAddress}
+                      placeholder="Например: Уручье, Новая Боровая"
+                      className={`${EDIT_INPUT_CLASS} disabled:cursor-not-allowed disabled:opacity-50`}
+                    />
+                  </div>
                 </div>
               </section>
               {/*ЮРИДИЧЕСКАЯ ИНФОРМАЦИЯ/РЕКВИЗИТЫ ПЛАТЕЛЬЩИКА*/}

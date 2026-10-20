@@ -1,10 +1,21 @@
 import { type Metadata } from "next";
 import { ClientHeader } from "@/app/_components/layout/ClientHeader";
+import { SITE_NAME, SITE_URL } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Политика конфиденциальности",
   description:
     "Политика обработки персональных данных сайта radius-stay.by — какие данные мы собираем и как их защищаем.",
+  alternates: { canonical: "/privacy" },
+  openGraph: {
+    title: "Политика конфиденциальности",
+    description:
+      "Политика обработки персональных данных сайта radius-stay.by — какие данные мы собираем и как их защищаем.",
+    url: `${SITE_URL}/privacy`,
+    siteName: SITE_NAME,
+    type: "website",
+    locale: "ru_RU",
+  },
 };
 
 export default function PrivacyPage() {
@@ -17,7 +28,7 @@ export default function PrivacyPage() {
             Политика конфиденциальности
           </h1>
           <p className="mb-4 text-sm text-[#888]">
-            Дата последнего обновления: {new Date().toLocaleDateString("ru-RU")}
+            Дата последнего обновления: 19 октября 2026 г.
           </p>
 
           <Section title="1. Общие положения">
@@ -84,8 +95,16 @@ export default function PrivacyPage() {
                 <strong>Supabase</strong> — хранение данных (база данных);
               </li>
               <li>
-                <strong>Google LLC</strong> и <strong>Discord Inc.</strong> —
-                аутентификация пользователей через их учётные записи.
+                <strong>Google LLC</strong> — аутентификация пользователей через
+                их учётные записи Google;
+              </li>
+              <li>
+                <strong>Resend Inc.</strong> — отправка транзакционных писем
+                (ссылки для входа по электронной почте);
+              </li>
+              <li>
+                <strong>Telegram Messenger Inc.</strong> — отправка уведомлений
+                арендодателям (если пользователь подключил Telegram).
               </li>
             </ul>
             <p>
@@ -112,8 +131,11 @@ export default function PrivacyPage() {
               <li>обжаловать действия оператора в установленном порядке.</li>
             </ul>
             <p>
-              7.2. Для реализации прав необходимо направить запрос на адрес
-              [укажите email].
+              7.2. Для реализации прав необходимо направить запрос на адрес{" "}
+              <a href="mailto:flatofminsk@gmail.com" className="underline">
+                flatofminsk@gmail.com
+              </a>
+              .
             </p>
           </Section>
 

@@ -1,10 +1,21 @@
 import { type Metadata } from "next";
 import { ClientHeader } from "@/app/_components/layout/ClientHeader";
+import { SITE_NAME, SITE_URL } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Условия использования",
   description:
     "Условия использования сайта radius-stay.by — правила размещения и бронирования объектов недвижимости.",
+  alternates: { canonical: "/terms" },
+  openGraph: {
+    title: "Условия использования",
+    description:
+      "Условия использования сайта radius-stay.by — правила размещения и бронирования объектов недвижимости.",
+    url: `${SITE_URL}/terms`,
+    siteName: SITE_NAME,
+    type: "website",
+    locale: "ru_RU",
+  },
 };
 
 export default function TermsPage() {
@@ -15,7 +26,7 @@ export default function TermsPage() {
         <div className="rounded-2xl bg-white p-8 shadow-sm max-md:p-5">
           <h1 className="mb-6 text-3xl font-bold">Условия использования</h1>
           <p className="mb-4 text-sm text-[#888]">
-            Дата последнего обновления: {new Date().toLocaleDateString("ru-RU")}
+            Дата последнего обновления: 19 октября 2026 г.
           </p>
 
           <Section title="1. Общие положения">

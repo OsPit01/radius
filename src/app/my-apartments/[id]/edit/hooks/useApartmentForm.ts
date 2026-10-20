@@ -14,6 +14,7 @@ export type ApartmentFormData = {
   numberHome: string;
   building: string;
   district: string;
+  microdistrict: string;
   capacity: number;
   price: number;
   currency: string;
@@ -47,6 +48,7 @@ const defaultFormData: ApartmentFormData = {
   numberHome: "",
   building: "",
   district: "",
+  microdistrict: "",
   capacity: 2,
   price: 0,
   currency: "BYN",
@@ -107,6 +109,7 @@ export function useApartmentForm(apartmentId: string) {
         numberHome: apt.numberHome ?? "",
         building: apt.building ?? "",
         district: apt.district ?? "",
+        microdistrict: apt.microdistrict ?? "",
         capacity: apt.capacity ?? 2,
         price: apt.price ?? 0,
         currency: apt.currency ?? "BYN",

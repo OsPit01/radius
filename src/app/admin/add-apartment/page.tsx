@@ -37,6 +37,7 @@ export default function AddApartmentPage() {
     streetConfirmed: false,
     numberHome: "",
     building: "",
+    microdistrict: "",
     formattedAddress: "",
     addressError: "",
     title: "",

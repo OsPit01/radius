@@ -48,6 +48,7 @@ const apartmentPublicColumns = {
   street: apartments.street,
   numberHome: apartments.numberHome,
   building: apartments.building,
+  microdistrict: apartments.microdistrict,
   images: apartments.images,
   area: apartments.area,
   floor: apartments.floor,
