@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { and, eq, gte, ilike, lte, sql } from 'drizzle-orm';
+import { and, eq, gte, ilike, lte, or, type SQL, sql } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { z } from 'zod';
 
@@ -107,10 +107,16 @@ export const apartmentRouter = createTRPCRouter({
                 .optional(),
         )
         .query(async ({ ctx, input }) => {
-            const conditions = [eq(apartments.status, 'active')];
+            const conditions: (SQL | undefined)[] = [eq(apartments.status, 'active')];
 
             if (input?.city) {
-                conditions.push(ilike(apartments.city, `%${input.city}%`));
+                conditions.push(
+                    or(
+                        ilike(apartments.city, `%${input.city}%`),
+                        ilike(apartments.street, `%${input.city}%`),
+                        ilike(apartments.microdistrict, `%${input.city}%`),
+                    ),
+                );
             }
             if (input?.microdistrict) {
                 conditions.push(eq(apartments.microdistrict, input.microdistrict));

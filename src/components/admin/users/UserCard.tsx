@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import Link from 'next/link';
 
+import { Avatar } from '@/components/ui/Avatar';
 import { Modal } from '@/components/ui/Modal';
 import { getRoleInfo, type RoleKey } from '@/lib/constants/roles';
 import { api } from '@/trpc/react';
@@ -13,6 +14,7 @@ type AdminUser = {
     patronymic: string | null;
     phone: string | null;
     email: string;
+    image: string | null;
     role: string;
 };
 
@@ -23,7 +25,6 @@ type UserCardProps = {
 
 export function UserCard({ user, allowedRoles }: UserCardProps) {
     const roleInfo = getRoleInfo(user.role);
-    const initial = (user.firstName?.[0] ?? user.email?.[0] ?? '?').toUpperCase();
 
     const [selectedRole, setSelectedRole] = useState<RoleKey | ''>('');
     const [editOpen, setEditOpen] = useState(false);
@@ -106,9 +107,11 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
             <div className="flex flex-col rounded-2xl border border-border bg-card p-6 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
                 {/* Шапка: аватар + имя + email */}
                 <div className="flex items-center gap-3">
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary text-xl font-bold text-primary-foreground">
-                        {initial}
-                    </div>
+                    <Avatar
+                        src={user.image}
+                        name={user.firstName ?? user.email}
+                        size={56}
+                    />
                     <div className="min-w-0">
                         <p className="truncate text-lg font-semibold text-foreground">{user.firstName ?? user.email}</p>
                         <p className="truncate text-sm text-muted-foreground">{user.email}</p>
