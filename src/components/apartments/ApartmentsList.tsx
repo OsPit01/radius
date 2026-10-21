@@ -32,7 +32,12 @@ export function ApartmentsList({
 
     // ===== ФИЛЬТРАЦИЯ =====
     const filteredApartments = apartments.filter((apartment) => {
-        const matchesSearch = searchQuery === '' || apartment.city.toLowerCase().includes(searchQuery.toLowerCase());
+        const q = searchQuery.trim().toLowerCase();
+        const matchesSearch =
+            q === '' ||
+            apartment.city.toLowerCase().includes(q) ||
+            apartment.street.toLowerCase().includes(q) ||
+            apartment.microdistrict.toLowerCase().includes(q);
 
         const matchesCapacity = apartment.capacity >= totalGuests;
 
