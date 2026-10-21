@@ -8,18 +8,16 @@
  *   2, 3, 4, 22, 23     → вторая форма («2 гостя», «23 гостя»)
  *   5–20, 25–30, 100…   → третья форма  («5 гостей», «11 гостей»)
  */
-export function pluralRu(
-  count: number,
-  one: string,
-  few: string,
-  many: string,
-): string {
-  const abs = Math.abs(count);
-  const lastDigit = abs % 10;
-  const lastTwoDigits = abs % 100;
+export function pluralRu(count: number, one: string, few: string, many: string): string {
+    const abs = Math.abs(count);
+    const lastDigit = abs % 10;
+    const lastTwoDigits = abs % 100;
 
-  if (lastDigit === 1 && lastTwoDigits !== 11) return one;
-  if (lastDigit >= 2 && lastDigit <= 4 && (lastTwoDigits < 10 || lastTwoDigits >= 20))
-    return few;
-  return many;
+    if (lastDigit === 1 && lastTwoDigits !== 11) {
+        return one;
+    }
+    if (lastDigit >= 2 && lastDigit <= 4 && (lastTwoDigits < 10 || lastTwoDigits >= 20)) {
+        return few;
+    }
+    return many;
 }

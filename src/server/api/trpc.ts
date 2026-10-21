@@ -7,12 +7,13 @@
  * need to use are documented accordingly near the end.
  */
 
-import { initTRPC, TRPCError } from "@trpc/server";
-import superjson from "superjson";
-import { ZodError } from "zod";
+import { initTRPC, TRPCError } from '@trpc/server';
+import type { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from 'next';
+import superjson from 'superjson';
+import { ZodError } from 'zod';
 
-import { auth } from "@/server/auth";
-import { db } from "@/server/db";
+import { auth } from '@/server/auth';
+import { db } from '@/server/db';
 
 /**
  * 1. CONTEXT
@@ -21,19 +22,24 @@ import { db } from "@/server/db";
  *
  * These allow you to access things when processing a request, like the database, the session, etc.
  *
- * This helper generates the "internals" for a tRPC context. The API handler and RSC clients each
- * wrap this and provides the required context.
+ * This helper generates the "internals" for a tRPC context. The API handler and the
+ * `getServerSideProps` callers each wrap this and provide the required request/response pair.
  *
  * @see https://trpc.io/docs/server/context
  */
-export const createTRPCContext = async (opts: { headers: Headers }) => {
-  const session = await auth();
+export const createTRPCContext = async (opts: {
+    req: GetServerSidePropsContext['req'];
+    res: GetServerSidePropsContext['res'];
+}) => {
+    // auth() принимает пару (req, res) и из API route, и из getServerSideProps:
+    // читает из неё только заголовки и дописывает Set-Cookie.
+    const session = await auth(opts.req as NextApiRequest, opts.res as NextApiResponse);
 
-  return {
-    db,
-    session,
-    ...opts,
-  };
+    return {
+        db,
+        session,
+        ...opts,
+    };
 };
 
 /**
@@ -44,17 +50,16 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
  * errors on the backend.
  */
 const t = initTRPC.context<typeof createTRPCContext>().create({
-  transformer: superjson,
-  errorFormatter({ shape, error }) {
-    return {
-      ...shape,
-      data: {
-        ...shape.data,
-        zodError:
-          error.cause instanceof ZodError ? error.cause.flatten() : null,
-      },
-    };
-  },
+    transformer: superjson,
+    errorFormatter({ shape, error }) {
+        return {
+            ...shape,
+            data: {
+                ...shape.data,
+                zodError: error.cause instanceof ZodError ? error.cause.flatten() : null,
+            },
+        };
+    },
 });
 
 /**
@@ -85,16 +90,17 @@ export const createTRPCRouter = t.router;
  * network latency that would occur in production but not in local development.
  */
 const timingMiddleware = t.middleware(async ({ next, path }) => {
-  const start = Date.now();
+    const start = Date.now();
 
-  const result = await next();
+    const result = await next();
 
-  const end = Date.now();
-  if (process.env.NODE_ENV !== "production") {
-    console.log(`[TRPC] ${path} took ${end - start}ms to execute`);
-  }
+    const end = Date.now();
+    if (process.env.NODE_ENV !== 'production') {
+        // eslint-disable-next-line no-console
+        console.log(`[TRPC] ${path} took ${end - start}ms to execute`);
+    }
 
-  return result;
+    return result;
 });
 
 /**
@@ -114,27 +120,25 @@ export const publicProcedure = t.procedure.use(timingMiddleware);
  *
  * @see https://trpc.io/docs/procedures
  */
-export const protectedProcedure = t.procedure
-  .use(timingMiddleware)
-  .use(({ ctx, next }) => {
+export const protectedProcedure = t.procedure.use(timingMiddleware).use(({ ctx, next }) => {
     if (!ctx.session?.user) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
     }
 
     // Проверка бана: заблокированный пользователь не может совершать
     // никаких авторизованных действий, даже если его сессия ещё жива.
     const bannedUntil = ctx.session.user.bannedUntil;
     if (bannedUntil && bannedUntil.getTime() > Date.now()) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Ваш аккаунт заблокирован",
-      });
+        throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Ваш аккаунт заблокирован',
+        });
     }
 
     return next({
-      ctx: {
-        // infers the `session` as non-nullable
-        session: { ...ctx.session, user: ctx.session.user },
-      },
+        ctx: {
+            // infers the `session` as non-nullable
+            session: { ...ctx.session, user: ctx.session.user },
+        },
     });
-  });
+});

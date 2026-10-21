@@ -1,11 +1,6 @@
-import { relations } from "drizzle-orm";
-import {
-  index,
-  pgTableCreator,
-  primaryKey,
-  uniqueIndex,
-} from "drizzle-orm/pg-core";
-import { type AdapterAccount } from "next-auth/adapters";
+import { relations } from 'drizzle-orm';
+import { index, pgTableCreator, primaryKey, uniqueIndex } from 'drizzle-orm/pg-core';
+import { type AdapterAccount } from 'next-auth/adapters';
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -16,345 +11,331 @@ import { type AdapterAccount } from "next-auth/adapters";
 export const createTable = pgTableCreator((name) => `radius_${name}`);
 // ===== ТАБЛИЦА КВАРТИР =====
 export const apartments = createTable(
-  "apartment",
-  (d) => ({
-    id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
-    type: d.varchar({ length: 100 }),
-    title: d.varchar({ length: 200 }).notNull(),
-    city: d.varchar({ length: 100 }).notNull(),
-    street: d.varchar({ length: 100 }).notNull(),
-    numberHome: d.varchar({ length: 50 }).notNull(),
-    district: d.varchar({ length: 200 }),
-    // Жилой массив / микрорайон (Уручье, Новая Боровая и т.п.) —
-    // то, что реально ищут люди, в отличие от административного района.
-    microdistrict: d.varchar({ length: 200 }),
-    building: d.varchar({ length: 50 }),
-    formattedAddress: d.text("formattedAddress"),
-    capacity: d.integer().notNull(),
-    price: d.integer().notNull(),
-    image: d.text().notNull(),
-    description: d.text(),
-    rules: d.text(),
-    checkInTime: d.varchar({ length: 50 }),
-    checkOutTime: d.varchar({ length: 50 }),
-    reviewsCount: d.integer(),
-    rating: d.doublePrecision().default(0),
-    rooms: d.integer().notNull(),
-    beds: d.integer().notNull().default(0),
-    singleBeds: d.integer().notNull().default(0),
-    doubleSofas: d.integer().notNull().default(0),
-    singleSofas: d.integer().notNull().default(0),
-    metro: d.varchar({ length: 100 }),
-    // ===== Доп. характеристики объекта (для удобства арендатора) =====
-    area: d.integer(), // площадь, м²
-    floor: d.integer(), // этаж
-    bathrooms: d.integer(), // количество санузлов
-    isAvailable: d.boolean().default(true),
-    //////////////////////////////////////////
-    currency: d.varchar({ length: 10 }).notNull().default("BYN"),
-    amenities: d.varchar("amenities").array().default([]),
-    parking: d.varchar({ length: 50 }).default(""),
-    images: d.text("images").array().default([]),
-    createdById: d.varchar({ length: 255 }).references(() => users.id),
-    status: d.varchar({ length: 20 }).notNull().default("moderation"),
-    rejectionReason: d.text(),
-    // ===== Юридические данные для официальной сдачи (РБ) =====
-    // Кто сдаёт: individual | ip | company — выбор владельца
-    payerType: d.varchar({ length: 20 }).default("individual"),
-    // УНП — 9 цифр, у физлица может отсутствовать
-    unp: d.varchar({ length: 9 }),
-    // Наименование организации или ФИО для ИП
-    payerName: d.varchar({ length: 255 }),
-    createdAt: d
-      .timestamp({ withTimezone: true })
-      .$defaultFn(() => /* @__PURE__ */ new Date())
-      .notNull(),
-    updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
-  }),
-  (t) => [
-    index("apartment_city_idx").on(t.city),
-    index("apartment_capacity_idx").on(t.capacity),
-  ],
+    'apartment',
+    (d) => ({
+        id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+        type: d.varchar({ length: 100 }),
+        title: d.varchar({ length: 200 }).notNull(),
+        city: d.varchar({ length: 100 }).notNull(),
+        street: d.varchar({ length: 100 }).notNull(),
+        numberHome: d.varchar({ length: 50 }).notNull(),
+        district: d.varchar({ length: 200 }),
+        // Жилой массив / микрорайон (Уручье, Новая Боровая и т.п.) —
+        // то, что реально ищут люди, в отличие от административного района.
+        microdistrict: d.varchar({ length: 200 }),
+        building: d.varchar({ length: 50 }),
+        formattedAddress: d.text('formattedAddress'),
+        capacity: d.integer().notNull(),
+        price: d.integer().notNull(),
+        image: d.text().notNull(),
+        description: d.text(),
+        rules: d.text(),
+        checkInTime: d.varchar({ length: 50 }),
+        checkOutTime: d.varchar({ length: 50 }),
+        reviewsCount: d.integer(),
+        rating: d.doublePrecision().default(0),
+        rooms: d.integer().notNull(),
+        beds: d.integer().notNull().default(0),
+        singleBeds: d.integer().notNull().default(0),
+        doubleSofas: d.integer().notNull().default(0),
+        singleSofas: d.integer().notNull().default(0),
+        metro: d.varchar({ length: 100 }),
+        // ===== Доп. характеристики объекта (для удобства арендатора) =====
+        area: d.integer(), // площадь, м²
+        floor: d.integer(), // этаж
+        bathrooms: d.integer(), // количество санузлов
+        isAvailable: d.boolean().default(true),
+        //////////////////////////////////////////
+        currency: d.varchar({ length: 10 }).notNull().default('BYN'),
+        amenities: d.varchar('amenities').array().default([]),
+        parking: d.varchar({ length: 50 }).default(''),
+        images: d.text('images').array().default([]),
+        createdById: d.varchar({ length: 255 }).references(() => users.id),
+        status: d.varchar({ length: 20 }).notNull().default('moderation'),
+        rejectionReason: d.text(),
+        // ===== Юридические данные для официальной сдачи (РБ) =====
+        // Кто сдаёт: individual | ip | company — выбор владельца
+        payerType: d.varchar({ length: 20 }).default('individual'),
+        // УНП — 9 цифр, у физлица может отсутствовать
+        unp: d.varchar({ length: 9 }),
+        // Наименование организации или ФИО для ИП
+        payerName: d.varchar({ length: 255 }),
+        createdAt: d
+            .timestamp({ withTimezone: true })
+            .$defaultFn(() => /* @__PURE__ */ new Date())
+            .notNull(),
+        updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
+    }),
+    (t) => [index('apartment_city_idx').on(t.city), index('apartment_capacity_idx').on(t.capacity)],
 );
 // ======== User ============= //
-export const users = createTable("user", (d) => ({
-  id: d
-    .varchar({ length: 255 })
-    .notNull()
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  name: d.varchar({ length: 255 }),
-  email: d.varchar({ length: 255 }).notNull(),
-  phone: d.varchar({ length: 50 }),
-  firstName: d.varchar({ length: 100 }),
-  lastName: d.varchar({ length: 100 }),
-  patronymic: d.varchar({ length: 100 }),
-  emailVerified: d.timestamp({
-    mode: "date",
-    withTimezone: true,
-  }),
-  image: d.text(),
-  role: d.varchar({ length: 50 }).notNull().default("user"),
-  // ===== НОВЫЕ ПОЛЯ =====
-  totalBookings: d.integer().notNull().default(0),
-  totalFavorites: d.integer().notNull().default(0),
-  totalApartments: d.integer().notNull().default(0),
-  // null = не забанен, дата = забанен до этого момента
-  bannedUntil: d.timestamp({ withTimezone: true }),
-  // Telegram chat id арендодателя (куда слать уведомления о брони).
-  // null = не указан, уведомления не отправляются.
-  telegramChatId: d.varchar({ length: 50 }),
-  // Одноразовый код для привязки Telegram (после привязки стирается).
-  telegramLinkCode: d.varchar({ length: 10 }),
+export const users = createTable('user', (d) => ({
+    id: d
+        .varchar({ length: 255 })
+        .notNull()
+        .primaryKey()
+        .$defaultFn(() => crypto.randomUUID()),
+    name: d.varchar({ length: 255 }),
+    email: d.varchar({ length: 255 }).notNull(),
+    phone: d.varchar({ length: 50 }),
+    firstName: d.varchar({ length: 100 }),
+    lastName: d.varchar({ length: 100 }),
+    patronymic: d.varchar({ length: 100 }),
+    emailVerified: d.timestamp({
+        mode: 'date',
+        withTimezone: true,
+    }),
+    image: d.text(),
+    role: d.varchar({ length: 50 }).notNull().default('user'),
+    // ===== НОВЫЕ ПОЛЯ =====
+    totalBookings: d.integer().notNull().default(0),
+    totalFavorites: d.integer().notNull().default(0),
+    totalApartments: d.integer().notNull().default(0),
+    // null = не забанен, дата = забанен до этого момента
+    bannedUntil: d.timestamp({ withTimezone: true }),
+    // Telegram chat id арендодателя (куда слать уведомления о брони).
+    // null = не указан, уведомления не отправляются.
+    telegramChatId: d.varchar({ length: 50 }),
+    // Одноразовый код для привязки Telegram (после привязки стирается).
+    telegramLinkCode: d.varchar({ length: 10 }),
 }));
 // ======== User ============= //
 export const usersRelations = relations(users, ({ many }) => ({
-  accounts: many(accounts),
+    accounts: many(accounts),
 }));
 
 export const accounts = createTable(
-  "account",
-  (d) => ({
-    userId: d
-      .varchar({ length: 255 })
-      .notNull()
-      .references(() => users.id),
-    type: d.varchar({ length: 255 }).$type<AdapterAccount["type"]>().notNull(),
-    provider: d.varchar({ length: 255 }).notNull(),
-    providerAccountId: d.varchar({ length: 255 }).notNull(),
-    refresh_token: d.text(),
-    access_token: d.text(),
-    expires_at: d.integer(),
-    token_type: d.varchar({ length: 255 }),
-    scope: d.varchar({ length: 255 }),
-    id_token: d.text(),
-    session_state: d.varchar({ length: 255 }),
-  }),
-  (t) => [
-    primaryKey({ columns: [t.provider, t.providerAccountId] }),
-    index("account_user_id_idx").on(t.userId),
-  ],
+    'account',
+    (d) => ({
+        userId: d
+            .varchar({ length: 255 })
+            .notNull()
+            .references(() => users.id),
+        type: d.varchar({ length: 255 }).$type<AdapterAccount['type']>().notNull(),
+        provider: d.varchar({ length: 255 }).notNull(),
+        providerAccountId: d.varchar({ length: 255 }).notNull(),
+        refresh_token: d.text(),
+        access_token: d.text(),
+        expires_at: d.integer(),
+        token_type: d.varchar({ length: 255 }),
+        scope: d.varchar({ length: 255 }),
+        id_token: d.text(),
+        session_state: d.varchar({ length: 255 }),
+    }),
+    (t) => [primaryKey({ columns: [t.provider, t.providerAccountId] }), index('account_user_id_idx').on(t.userId)],
 );
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
-  user: one(users, { fields: [accounts.userId], references: [users.id] }),
+    user: one(users, { fields: [accounts.userId], references: [users.id] }),
 }));
 // ======== sessions  ============= //
 export const sessions = createTable(
-  "session",
-  (d) => ({
-    sessionToken: d.varchar({ length: 255 }).notNull().primaryKey(),
-    userId: d
-      .varchar({ length: 255 })
-      .notNull()
-      .references(() => users.id),
-    expires: d.timestamp({ mode: "date", withTimezone: true }).notNull(),
-  }),
-  (t) => [index("t_user_id_idx").on(t.userId)],
+    'session',
+    (d) => ({
+        sessionToken: d.varchar({ length: 255 }).notNull().primaryKey(),
+        userId: d
+            .varchar({ length: 255 })
+            .notNull()
+            .references(() => users.id),
+        expires: d.timestamp({ mode: 'date', withTimezone: true }).notNull(),
+    }),
+    (t) => [index('t_user_id_idx').on(t.userId)],
 );
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
-  user: one(users, { fields: [sessions.userId], references: [users.id] }),
+    user: one(users, { fields: [sessions.userId], references: [users.id] }),
 }));
 
 export const verificationTokens = createTable(
-  "verification_token",
-  (d) => ({
-    identifier: d.varchar({ length: 255 }).notNull(),
-    token: d.varchar({ length: 255 }).notNull(),
-    expires: d.timestamp({ mode: "date", withTimezone: true }).notNull(),
-  }),
-  (t) => [primaryKey({ columns: [t.identifier, t.token] })],
+    'verification_token',
+    (d) => ({
+        identifier: d.varchar({ length: 255 }).notNull(),
+        token: d.varchar({ length: 255 }).notNull(),
+        expires: d.timestamp({ mode: 'date', withTimezone: true }).notNull(),
+    }),
+    (t) => [primaryKey({ columns: [t.identifier, t.token] })],
 );
 
 export const favorites = createTable(
-  "favorite",
-  (d) => ({
-    userId: d
-      .varchar({ length: 255 })
-      .notNull()
-      .references(() => users.id),
-    apartmentId: d
-      .integer()
-      .notNull()
-      .references(() => apartments.id, { onDelete: "cascade" }),
-    createdAt: d
-      .timestamp({ withTimezone: true })
-      .$defaultFn(() => new Date())
-      .notNull(),
-  }),
-  (t) => [
-    primaryKey({ columns: [t.userId, t.apartmentId] }),
-    index("favorite_user_id_idx").on(t.userId),
-  ],
+    'favorite',
+    (d) => ({
+        userId: d
+            .varchar({ length: 255 })
+            .notNull()
+            .references(() => users.id),
+        apartmentId: d
+            .integer()
+            .notNull()
+            .references(() => apartments.id, { onDelete: 'cascade' }),
+        createdAt: d
+            .timestamp({ withTimezone: true })
+            .$defaultFn(() => new Date())
+            .notNull(),
+    }),
+    (t) => [primaryKey({ columns: [t.userId, t.apartmentId] }), index('favorite_user_id_idx').on(t.userId)],
 );
-export const notification = createTable("notification", (d) => ({
-  id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
-  userId: d
-    .varchar({ length: 255 })
-    .notNull()
-    .references(() => users.id),
-  type: d.varchar({ length: 50 }).notNull(),
-  title: d.varchar({ length: 255 }).notNull(),
-  text: d.text().notNull(),
-  // Уведомления могут быть не привязаны к объекту (например, сообщение админа).
-  apartmentId: d
-    .integer()
-    .references(() => apartments.id, { onDelete: "set null" }),
-  isRead: d.boolean().notNull().default(false),
-  readAt: d.timestamp({ withTimezone: true }),
-  link: d.varchar({ length: 255 }),
-  priority: d.varchar({ length: 20 }).default("normal"),
-  createdAt: d
-    .timestamp({ withTimezone: true })
-    .$defaultFn(() => new Date())
-    .notNull(),
+export const notification = createTable('notification', (d) => ({
+    id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+    userId: d
+        .varchar({ length: 255 })
+        .notNull()
+        .references(() => users.id),
+    type: d.varchar({ length: 50 }).notNull(),
+    title: d.varchar({ length: 255 }).notNull(),
+    text: d.text().notNull(),
+    // Уведомления могут быть не привязаны к объекту (например, сообщение админа).
+    apartmentId: d.integer().references(() => apartments.id, { onDelete: 'set null' }),
+    isRead: d.boolean().notNull().default(false),
+    readAt: d.timestamp({ withTimezone: true }),
+    link: d.varchar({ length: 255 }),
+    priority: d.varchar({ length: 20 }).default('normal'),
+    createdAt: d
+        .timestamp({ withTimezone: true })
+        .$defaultFn(() => new Date())
+        .notNull(),
 }));
 
-export const booking = createTable("booking", (d) => ({
-  id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
-  apartmentId: d
-    .integer()
-    .notNull()
-    .references(() => apartments.id, { onDelete: "cascade" }),
-  userId: d.varchar({ length: 255 }).references(() => users.id),
-  guestName: d.varchar({ length: 255 }).notNull(),
-  guestPhone: d.varchar({ length: 50 }).notNull(),
-  guests: d.integer().notNull(),
-  children: d.integer().notNull().default(0),
-  checkInDate: d.date({ mode: "date" }).notNull(),
-  checkOutDate: d.date({ mode: "date" }).notNull(),
-  message: d.text(),
-  status: d.varchar({ length: 20 }).notNull().default("new"),
-  createdAt: d
-    .timestamp({ withTimezone: true })
-    .$defaultFn(() => new Date())
-    .notNull(),
+export const booking = createTable('booking', (d) => ({
+    id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+    apartmentId: d
+        .integer()
+        .notNull()
+        .references(() => apartments.id, { onDelete: 'cascade' }),
+    userId: d.varchar({ length: 255 }).references(() => users.id),
+    guestName: d.varchar({ length: 255 }).notNull(),
+    guestPhone: d.varchar({ length: 50 }).notNull(),
+    guests: d.integer().notNull(),
+    children: d.integer().notNull().default(0),
+    checkInDate: d.date({ mode: 'date' }).notNull(),
+    checkOutDate: d.date({ mode: 'date' }).notNull(),
+    message: d.text(),
+    status: d.varchar({ length: 20 }).notNull().default('new'),
+    createdAt: d
+        .timestamp({ withTimezone: true })
+        .$defaultFn(() => new Date())
+        .notNull(),
 }));
 // чат (диалог)
-export const conversation = createTable("conversation", (d) => ({
-  id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
-  bookingId: d
-    .integer()
-    .notNull()
-    .references(() => booking.id, { onDelete: "cascade" }),
-  guestId: d
-    .varchar({ length: 255 })
-    .notNull()
-    .references(() => users.id),
-  ownerId: d
-    .varchar({ length: 255 })
-    .notNull()
-    .references(() => users.id),
-  createdAt: d
-    .timestamp({ withTimezone: true })
-    .$defaultFn(() => new Date())
-    .notNull(),
+export const conversation = createTable('conversation', (d) => ({
+    id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+    bookingId: d
+        .integer()
+        .notNull()
+        .references(() => booking.id, { onDelete: 'cascade' }),
+    guestId: d
+        .varchar({ length: 255 })
+        .notNull()
+        .references(() => users.id),
+    ownerId: d
+        .varchar({ length: 255 })
+        .notNull()
+        .references(() => users.id),
+    createdAt: d
+        .timestamp({ withTimezone: true })
+        .$defaultFn(() => new Date())
+        .notNull(),
 }));
 // Message
-export const message = createTable("message", (d) => ({
-  id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
-  conversationId: d
-    .integer()
-    .notNull()
-    .references(() => conversation.id, { onDelete: "cascade" }),
-  senderId: d
-    .varchar({ length: 255 })
-    .notNull()
-    .references(() => users.id),
-  text: d.text().notNull(),
-  // Прочитал ли получатель это сообщение (для счётчика непрочитанных).
-  isRead: d.boolean().notNull().default(false),
-  createdAt: d
-    .timestamp({ withTimezone: true })
-    .$defaultFn(() => new Date())
-    .notNull(),
+export const message = createTable('message', (d) => ({
+    id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+    conversationId: d
+        .integer()
+        .notNull()
+        .references(() => conversation.id, { onDelete: 'cascade' }),
+    senderId: d
+        .varchar({ length: 255 })
+        .notNull()
+        .references(() => users.id),
+    text: d.text().notNull(),
+    // Прочитал ли получатель это сообщение (для счётчика непрочитанных).
+    isRead: d.boolean().notNull().default(false),
+    createdAt: d
+        .timestamp({ withTimezone: true })
+        .$defaultFn(() => new Date())
+        .notNull(),
 }));
 // ======== Streets (справочник улиц для автодополнения) ============= //
 export const streets = createTable(
-  "street",
-  (d) => ({
-    id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
-    name: d.varchar({ length: 255 }).notNull(),
-    region: d.varchar({ length: 100 }).notNull(),
-    district: d.varchar({ length: 150 }).notNull(),
-    city: d.varchar({ length: 150 }).notNull(),
-  }),
-  (t) => [
-    index("street_city_idx").on(t.city),
-    uniqueIndex("street_city_name_idx").on(t.city, t.name),
-  ],
+    'street',
+    (d) => ({
+        id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+        name: d.varchar({ length: 255 }).notNull(),
+        region: d.varchar({ length: 100 }).notNull(),
+        district: d.varchar({ length: 150 }).notNull(),
+        city: d.varchar({ length: 150 }).notNull(),
+    }),
+    (t) => [index('street_city_idx').on(t.city), uniqueIndex('street_city_name_idx').on(t.city, t.name)],
 );
 
 // ======== Rate limit (защита от флуда) ============= //
 // Ключ — строка вида `booking:{userId}` или `upload:{userId}`.
 // Счётчик живёт до наступления resetAt, затем окно начинается заново.
-export const rateLimit = createTable("rate_limit", (d) => ({
-  key: d.varchar({ length: 255 }).notNull().primaryKey(),
-  count: d.integer().notNull().default(0),
-  resetAt: d.timestamp({ withTimezone: true }).notNull(),
+export const rateLimit = createTable('rate_limit', (d) => ({
+    key: d.varchar({ length: 255 }).notNull().primaryKey(),
+    count: d.integer().notNull().default(0),
+    resetAt: d.timestamp({ withTimezone: true }).notNull(),
 }));
 
 // ======== Аналитика: уникальные переходы на сайт ============= //
 // visitorId — уникальный id браузера (генерируется на клиенте, хранится
 // в localStorage). Первичный ключ гарантирует: один браузер = один переход,
 // повторные заходы (обновление страницы, возврат) не учитываются.
-export const siteVisit = createTable("site_visit", (d) => ({
-  visitorId: d.varchar({ length: 64 }).notNull().primaryKey(),
-  createdAt: d
-    .timestamp({ withTimezone: true })
-    .$defaultFn(() => new Date())
-    .notNull(),
+export const siteVisit = createTable('site_visit', (d) => ({
+    visitorId: d.varchar({ length: 64 }).notNull().primaryKey(),
+    createdAt: d
+        .timestamp({ withTimezone: true })
+        .$defaultFn(() => new Date())
+        .notNull(),
 }));
 
 // ======== Аналитика: уникальные просмотры квартир ============= //
 // Один браузер (visitorId) учитывается как один просмотр конкретной
 // квартиры — повторные открытия той же квартиры не считаются.
 export const apartmentView = createTable(
-  "apartment_view",
-  (d) => ({
-    visitorId: d.varchar({ length: 64 }).notNull(),
-    apartmentId: d
-      .integer()
-      .notNull()
-      .references(() => apartments.id, { onDelete: "cascade" }),
-    createdAt: d
-      .timestamp({ withTimezone: true })
-      .$defaultFn(() => new Date())
-      .notNull(),
-  }),
-  (t) => [
-    primaryKey({ columns: [t.visitorId, t.apartmentId] }),
-    index("apartment_view_apartment_idx").on(t.apartmentId),
-  ],
+    'apartment_view',
+    (d) => ({
+        visitorId: d.varchar({ length: 64 }).notNull(),
+        apartmentId: d
+            .integer()
+            .notNull()
+            .references(() => apartments.id, { onDelete: 'cascade' }),
+        createdAt: d
+            .timestamp({ withTimezone: true })
+            .$defaultFn(() => new Date())
+            .notNull(),
+    }),
+    (t) => [
+        primaryKey({ columns: [t.visitorId, t.apartmentId] }),
+        index('apartment_view_apartment_idx').on(t.apartmentId),
+    ],
 );
-export const supportTicket = createTable("support_ticket", (d) => ({
-  id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
-  userId: d
-    .varchar({ length: 255 })
-    .notNull()
-    .references(() => users.id),
-  assignedToId: d.varchar({ length: 255 }).references(() => users.id),
-  status: d.varchar({ length: 20 }).notNull().default("open"),
-  createdAt: d
-    .timestamp({ withTimezone: true })
-    .$defaultFn(() => new Date())
-    .notNull(),
+export const supportTicket = createTable('support_ticket', (d) => ({
+    id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+    userId: d
+        .varchar({ length: 255 })
+        .notNull()
+        .references(() => users.id),
+    assignedToId: d.varchar({ length: 255 }).references(() => users.id),
+    status: d.varchar({ length: 20 }).notNull().default('open'),
+    createdAt: d
+        .timestamp({ withTimezone: true })
+        .$defaultFn(() => new Date())
+        .notNull(),
 }));
-export const supportMessage = createTable("support_message", (d) => ({
-  id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
-  ticketId: d
-    .integer()
-    .references(() => supportTicket.id)
-    .notNull(),
-  senderId: d
-    .varchar({ length: 255 })
-    .notNull()
-    .references(() => users.id),
-  text: d.text().notNull(),
-  isRead: d.boolean().default(false).notNull(),
-  createdAt: d
-    .timestamp({ withTimezone: true })
-    .$defaultFn(() => new Date())
-    .notNull(),
+export const supportMessage = createTable('support_message', (d) => ({
+    id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+    ticketId: d
+        .integer()
+        .references(() => supportTicket.id)
+        .notNull(),
+    senderId: d
+        .varchar({ length: 255 })
+        .notNull()
+        .references(() => users.id),
+    text: d.text().notNull(),
+    isRead: d.boolean().default(false).notNull(),
+    createdAt: d
+        .timestamp({ withTimezone: true })
+        .$defaultFn(() => new Date())
+        .notNull(),
 }));

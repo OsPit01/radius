@@ -1,4 +1,4 @@
-import sharp from "sharp";
+import sharp from 'sharp';
 
 // ===== КОНСТАНТЫ ОПТИМИЗАЦИИ (каноничные настройки для веб-фотографий) =====
 
@@ -15,10 +15,10 @@ const WEBP_QUALITY = 80;
 
 // ===== РЕЗУЛЬТАТ ОПТИМИЗАЦИИ =====
 export interface OptimizedImage {
-  buffer: Buffer;
-  width: number;
-  height: number;
-  sizeBytes: number;
+    buffer: Buffer;
+    width: number;
+    height: number;
+    sizeBytes: number;
 }
 
 /**
@@ -41,31 +41,29 @@ export interface OptimizedImage {
  * @throws Error если формат не поддерживается sharp (битый файл, svg и т.д.)
  */
 export async function optimizeImage(buffer: Buffer): Promise<OptimizedImage> {
-  const image = sharp(buffer, { failOn: "none" });
+    const image = sharp(buffer, { failOn: 'none' });
 
-  const { width, height } = await image.metadata();
-  if (!width || !height) {
-    throw new Error("Не удалось определить размеры изображения");
-  }
+    const { width, height } = await image.metadata();
+    if (!width || !height) {
+        throw new Error('Не удалось определить размеры изображения');
+    }
 
-  const optimizedBuffer = await image
-    .resize({
-      width: MAX_WIDTH,
-      withoutEnlargement: true, // не растягиваем мелкие фото
-    })
-    .webp({ quality: WEBP_QUALITY })
-    .toBuffer();
+    const optimizedBuffer = await image
+        .resize({
+            width: MAX_WIDTH,
+            withoutEnlargement: true, // не растягиваем мелкие фото
+        })
+        .webp({ quality: WEBP_QUALITY })
+        .toBuffer();
 
-  const { width: newWidth, height: newHeight } = await sharp(
-    optimizedBuffer,
-  ).metadata();
+    const { width: newWidth, height: newHeight } = await sharp(optimizedBuffer).metadata();
 
-  return {
-    buffer: optimizedBuffer,
-    width: newWidth ?? width,
-    height: newHeight ?? height,
-    sizeBytes: optimizedBuffer.length,
-  };
+    return {
+        buffer: optimizedBuffer,
+        width: newWidth ?? width,
+        height: newHeight ?? height,
+        sizeBytes: optimizedBuffer.length,
+    };
 }
 
 /**
@@ -73,7 +71,11 @@ export async function optimizeImage(buffer: Buffer): Promise<OptimizedImage> {
  * Пример: 153600 → "150 KB"
  */
 export function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+    if (bytes < 1024) {
+        return `${bytes} B`;
+    }
+    if (bytes < 1024 * 1024) {
+        return `${(bytes / 1024).toFixed(1)} KB`;
+    }
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }

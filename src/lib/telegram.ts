@@ -1,11 +1,12 @@
-import { z } from "zod";
-import { env } from "@/env";
+import { z } from 'zod';
 
-const telegramApiBase = "https://api.telegram.org/bot";
+import { env } from '@/env';
+
+const telegramApiBase = 'https://api.telegram.org/bot';
 
 const telegramResponseSchema = z.object({
-  ok: z.boolean(),
-  description: z.string().optional(),
+    ok: z.boolean(),
+    description: z.string().optional(),
 });
 
 /**
@@ -14,25 +15,25 @@ const telegramResponseSchema = z.object({
  * @param text - текст сообщения (HTML разметка разрешена)
  */
 export async function sendTelegramMessage(
-  chatId: string,
-  text: string,
+    chatId: string,
+    text: string,
 ): Promise<{ ok: boolean; description?: string }> {
-  const url = new URL(`${telegramApiBase}${env.TELEGRAM_BOT_TOKEN}/sendMessage`);
+    const url = new URL(`${telegramApiBase}${env.TELEGRAM_BOT_TOKEN}/sendMessage`);
 
-  url.searchParams.set("chat_id", chatId);
-  url.searchParams.set("text", text);
-  url.searchParams.set("parse_mode", "HTML");
+    url.searchParams.set('chat_id', chatId);
+    url.searchParams.set('text', text);
+    url.searchParams.set('parse_mode', 'HTML');
 
-  const response = await fetch(url, { method: "POST" });
+    const response = await fetch(url, { method: 'POST' });
 
-  if (!response.ok) {
-    return { ok: false, description: `HTTP ${response.status}` };
-  }
+    if (!response.ok) {
+        return { ok: false, description: `HTTP ${response.status}` };
+    }
 
-  const data = telegramResponseSchema.safeParse(await response.json());
+    const data = telegramResponseSchema.safeParse(await response.json());
 
-  return {
-    ok: data.data?.ok ?? false,
-    description: data.data?.description,
-  };
+    return {
+        ok: data.data?.ok ?? false,
+        description: data.data?.description,
+    };
 }

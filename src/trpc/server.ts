@@ -1,18 +1,14 @@
-import "server-only";
+import type { GetServerSidePropsContext } from 'next';
 
-import { cache } from "react";
+import { appRouter } from '@/server/api/root';
+import { createTRPCContext } from '@/server/api/trpc';
 
-import { appRouter } from "@/server/api/root";
-import { createTRPCContext } from "@/server/api/trpc";
-
-// ===== СОЗДАЁМ КЭШИРОВАННЫЙ ВЫЗЫВАТЕЛЬ =====
-export const api = cache(async () => {
-  const ctx = await createTRPCContext({ headers: new Headers() });
-  return appRouter.createCaller(ctx);
-});
-
-// ===== ДЛЯ ПРОСТЫХ ВЫЗОВОВ (ЕСЛИ НЕ ХОЧЕШЬ AWAIT) =====
-export const caller = cache(async () => {
-  const ctx = await createTRPCContext({ headers: new Headers() });
-  return appRouter.createCaller(ctx);
-});
+/**
+ * Серверный вызыватель tRPC для getServerSideProps:
+ * ходит в роутеры напрямую, без HTTP, с сессией из cookies запроса.
+ *
+ * Импортировать только из getServerSideProps / API routes.
+ */
+export async function createServerCaller(ctx: Pick<GetServerSidePropsContext, 'req' | 'res'>) {
+    return appRouter.createCaller(await createTRPCContext({ req: ctx.req, res: ctx.res }));
+}

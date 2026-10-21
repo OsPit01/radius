@@ -8,8 +8,10 @@
  * Читатель url обязан проверить значение ДО запроса в БД.
  */
 export function parseApartmentId(raw: string | string[] | undefined): number | null {
-  const value = Array.isArray(raw) ? raw[0] : raw;
-  if (!value) return null;
-  const id = Number(value);
-  return Number.isInteger(id) && id > 0 ? id : null;
+    const value = Array.isArray(raw) ? raw[0] : raw;
+    if (!value) {
+        return null;
+    }
+    const id = Number(value);
+    return Number.isInteger(id) && id > 0 ? id : null;
 }
