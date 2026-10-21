@@ -29,6 +29,8 @@ export const apartmentCardColumns = {
     title: apartments.title,
     city: apartments.city,
     district: apartments.district,
+    street: apartments.street,
+    microdistrict: apartments.microdistrict,
     capacity: apartments.capacity,
     price: apartments.price,
     currency: apartments.currency,
