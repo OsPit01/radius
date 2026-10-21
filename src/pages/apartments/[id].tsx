@@ -1,4 +1,5 @@
 import type { GetServerSideProps } from 'next';
+import Link from 'next/link';
 
 import { ApartmentViewTracker } from '@/components/analytics/ApartmentViewTracker';
 import { ApartmentTabs } from '@/components/apartments/ApartmentTabs';
@@ -116,9 +117,15 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
                             <span>📍</span>
                             <p className="flex-1 text-base text-foreground">
                                 г. {apartment.apartment.city}
-                                {apartment.apartment.microdistrict
-                                    ? `, ${apartment.apartment.microdistrict}`
-                                    : ''}, {apartment.apartment.street}, {apartment.apartment.numberHome}
+                                {apartment.apartment.microdistrict && (
+                                    <Link
+                                        href={`/microdistrict/${encodeURIComponent(apartment.apartment.microdistrict)}`}
+                                        className="text-foreground underline underline-offset-2 transition-colors hover:text-primary"
+                                    >
+                                        ,{apartment.apartment.microdistrict}
+                                    </Link>
+                                )}
+                                {apartment.apartment.street}, {apartment.apartment.numberHome}
                                 {apartment.apartment.building ? `, к. ${apartment.apartment.building}` : ''}
                             </p>
                         </div>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useRouter } from 'next/router';
 
 import { ApartmentsList } from '@/components/apartments/ApartmentsList';
@@ -43,7 +44,9 @@ export function ClientSearchWrapper({ initialFilters, initialApartments }: Clien
 
     const [isLoading, setIsLoading] = useState(false);
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
     const [apartments, setApartments] = useState<ApartmentCardData[]>(initialApartments);
+    const [showAllMicrodistricts, setShowAllMicrodistricts] = useState(false);
 
     const shuffleApartments = (list: ApartmentCardData[]) => {
         return [...list].sort(() => Math.random() - 0.5);
@@ -139,7 +142,10 @@ export function ClientSearchWrapper({ initialFilters, initialApartments }: Clien
             scroll: false,
         });
     };
-
+    const microdistrict = Array.from(
+        new Set(apartments.map((a) => a.microdistrict).filter((m): m is string => m !== '')),
+    );
+    const visibleMicrodistricts = showAllMicrodistricts ? microdistrict : microdistrict.slice(0, 4);
     return (
         <>
             <SearchForm
@@ -154,6 +160,36 @@ export function ClientSearchWrapper({ initialFilters, initialApartments }: Clien
                 initialGuests={activeTotalGuests}
                 isLoading={isLoading}
             />
+
+            {activeSearchQuery.trim() !== '' && microdistrict.length > 0 && (
+                <div className="mt-4 flex flex-wrap justify-center gap-2 px-3">
+                    {visibleMicrodistricts.map((md) => (
+                        <button
+                            key={md}
+                            type="button"
+                            onClick={() => handleSearch(md, activeTotalGuests, activeChildren)}
+                            className="cursor-pointer rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary hover:text-primary"
+                        >
+                            {md}
+                        </button>
+                    ))}
+                    {/* 2. КНОПКА «показать ещё» — ПОСЛЕ map, на том же уровне */}
+                    {microdistrict.length > 4 && (
+                        <button
+                            type="button"
+                            onClick={() => setShowAllMicrodistricts((v) => !v)}
+                            className="flex cursor-pointer items-center gap-1 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                        >
+                            {showAllMicrodistricts ? 'Скрыть' : 'Показать ещё'}
+                            {showAllMicrodistricts ? (
+                                <ChevronUp className="h-4 w-4" />
+                            ) : (
+                                <ChevronDown className="h-4 w-4" />
+                            )}
+                        </button>
+                    )}
+                </div>
+            )}
 
             <FilterChips
                 filters={activeFilters}
