@@ -72,17 +72,17 @@ export function PhotoGallery({ photos, title }: { photos: string[]; title: strin
 
             <div className="mt-4 flex items-center justify-between">
                 <button
-                    className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-[#e0e0e0] bg-white text-xl shadow-sm transition-colors hover:bg-[#f5f5f5] disabled:opacity-40"
+                    className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-border bg-card text-xl shadow-sm transition-colors hover:bg-muted disabled:opacity-40"
                     onClick={() => swiperRef.current?.slidePrev()}
                     disabled={activeIndex === 0}
                 >
                     ←
                 </button>
-                <p className="text-sm text-[#666]">
+                <p className="text-sm text-muted-foreground">
                     {activeIndex + 1} из {photos.length}
                 </p>
                 <button
-                    className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-[#e0e0e0] bg-white text-xl shadow-sm transition-colors hover:bg-[#f5f5f5] disabled:opacity-40"
+                    className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-border bg-card text-xl shadow-sm transition-colors hover:bg-muted disabled:opacity-40"
                     onClick={() => swiperRef.current?.slideNext()}
                     disabled={activeIndex === photos.length - 1}
                 >
@@ -98,7 +98,7 @@ export function PhotoGallery({ photos, title }: { photos: string[]; title: strin
                             onClick={() => swiperRef.current?.slideTo(i)}
                             className={`relative h-16 w-24 flex-shrink-0 overflow-hidden rounded-lg border-2 transition-colors ${
                                 i === activeIndex
-                                    ? 'border-[#ff5a5f] opacity-100'
+                                    ? 'border-primary opacity-100'
                                     : 'border-transparent opacity-60 hover:opacity-100'
                             }`}
                         >

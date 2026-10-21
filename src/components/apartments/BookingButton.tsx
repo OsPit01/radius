@@ -147,14 +147,14 @@ export function BookingButton({
                 <button
                     type="button"
                     onClick={() => setOpen(true)}
-                    className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-gray-800 px-4 py-3 text-center text-sm font-medium text-white transition-colors hover:bg-gray-700"
+                    className="mt-3 flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-center text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
                 >
                     Забронировать
                 </button>
             ) : (
                 <Link
                     href="/auth/signin"
-                    className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-gray-800 px-4 py-3 text-center text-sm font-medium text-white transition-colors hover:bg-gray-700"
+                    className="mt-3 flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-center text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
                 >
                     Забронировать
                 </Link>
@@ -167,12 +167,14 @@ export function BookingButton({
                 {createBooking.isSuccess ? (
                     <div className="flex flex-col items-center gap-3 py-6 text-center">
                         <div className="text-4xl">✅</div>
-                        <p className="text-lg font-semibold text-[#222]">Заявка отправлена!</p>
-                        <p className="text-sm text-[#888]">Владелец увидит вашу заявку в Telegram и свяжется с вами.</p>
+                        <p className="text-lg font-semibold text-foreground">Заявка отправлена!</p>
+                        <p className="text-sm text-muted-foreground">
+                            Владелец увидит вашу заявку в Telegram и свяжется с вами.
+                        </p>
                         <button
                             type="button"
                             onClick={() => createBooking.reset()}
-                            className="mt-2 rounded-xl border border-[#6b21a8] px-6 py-2 text-sm font-medium text-[#6b21a8] hover:bg-[#f6eefe]"
+                            className="mt-2 rounded-xl border border-primary px-6 py-2 text-sm font-medium text-primary hover:bg-muted"
                         >
                             Хорошо
                         </button>
@@ -182,22 +184,22 @@ export function BookingButton({
                         onSubmit={handleSubmit}
                         className="flex flex-col gap-3"
                     >
-                        <p className="text-sm text-[#888]">
-                            Квартира: <span className="font-medium text-[#222]">{apartmentTitle}</span>
+                        <p className="text-sm text-muted-foreground">
+                            Квартира: <span className="font-medium text-foreground">{apartmentTitle}</span>
                         </p>
 
-                        <label className="flex flex-col gap-1 text-sm font-medium text-[#222]">
+                        <label className="flex flex-col gap-1 text-sm font-medium text-foreground">
                             Ваше имя
                             <input
                                 type="text"
                                 value={guestName}
                                 onChange={(e) => setGuestName(e.target.value)}
                                 placeholder="Например, Иван"
-                                className="rounded-xl border border-[#e0e0e0] px-4 py-3 text-base text-[#222] outline-none focus:border-[#6b21a8]"
+                                className="rounded-xl border border-border px-4 py-3 text-base text-foreground outline-none focus:border-primary"
                             />
                         </label>
-                        {errors.name && <p className="text-sm text-red-600">{errors.name}</p>}
-                        <label className="flex flex-col gap-1 text-sm font-medium text-[#222]">
+                        {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
+                        <label className="flex flex-col gap-1 text-sm font-medium text-foreground">
                             Телефон
                             <PhoneInput
                                 international
@@ -206,12 +208,12 @@ export function BookingButton({
                                 value={guestPhone}
                                 onChange={handlePhoneChange}
                                 placeholder="Введите номер телефона"
-                                className="rounded-xl border border-[#e0e0e0] px-4 py-3 text-base text-[#222]"
+                                className="rounded-xl border border-border px-4 py-3 text-base text-foreground"
                             />
                         </label>
-                        {errors.phone && <p className="text-sm text-red-600">{errors.phone}</p>}
+                        {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
                         {/* Гости: взрослые и дети — отдельными степперами */}
-                        <div className="flex flex-col gap-2 text-sm font-medium text-[#222]">
+                        <div className="flex flex-col gap-2 text-sm font-medium text-foreground">
                             <div className="flex items-center justify-between gap-3">
                                 <span>Взрослые</span>
                                 <div className="flex items-center gap-3">
@@ -219,18 +221,18 @@ export function BookingButton({
                                         type="button"
                                         onClick={() => setAdults((a) => Math.max(MIN_BOOKING_GUESTS, a - 1))}
                                         disabled={adults <= MIN_BOOKING_GUESTS}
-                                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#e0e0e0] text-xl font-bold text-[#222] transition-colors hover:bg-[#f5f5f5] disabled:cursor-not-allowed disabled:opacity-40"
+                                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-xl font-bold text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
                                     >
                                         −
                                     </button>
-                                    <span className="min-w-8 text-center text-lg font-semibold text-[#222]">
+                                    <span className="min-w-8 text-center text-lg font-semibold text-foreground">
                                         {adults}
                                     </span>
                                     <button
                                         type="button"
                                         onClick={() => setAdults((a) => Math.min(maxGuests - children, a + 1))}
                                         disabled={adults + children >= maxGuests}
-                                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#e0e0e0] text-xl font-bold text-[#222] transition-colors hover:bg-[#f5f5f5] disabled:cursor-not-allowed disabled:opacity-40"
+                                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-xl font-bold text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
                                     >
                                         +
                                     </button>
@@ -244,18 +246,18 @@ export function BookingButton({
                                         type="button"
                                         onClick={() => setChildren((c) => Math.max(0, c - 1))}
                                         disabled={children <= 0}
-                                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#e0e0e0] text-xl font-bold text-[#222] transition-colors hover:bg-[#f5f5f5] disabled:cursor-not-allowed disabled:opacity-40"
+                                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-xl font-bold text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
                                     >
                                         −
                                     </button>
-                                    <span className="min-w-8 text-center text-lg font-semibold text-[#222]">
+                                    <span className="min-w-8 text-center text-lg font-semibold text-foreground">
                                         {children}
                                     </span>
                                     <button
                                         type="button"
                                         onClick={() => setChildren((c) => Math.min(maxGuests - adults, c + 1))}
                                         disabled={adults + children >= maxGuests}
-                                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#e0e0e0] text-xl font-bold text-[#222] transition-colors hover:bg-[#f5f5f5] disabled:cursor-not-allowed disabled:opacity-40"
+                                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-xl font-bold text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
                                     >
                                         +
                                     </button>
@@ -263,7 +265,7 @@ export function BookingButton({
                             </div>
 
                             {apartmentCapacity !== undefined && (
-                                <span className="text-xs font-normal text-[#888]">
+                                <span className="text-xs font-normal text-muted-foreground">
                                     Квартира вмещает до {apartmentCapacity}{' '}
                                     {pluralRu(apartmentCapacity, 'гостя', 'гостей', 'гостей')} — больше указать нельзя.
                                 </span>
@@ -271,41 +273,41 @@ export function BookingButton({
                         </div>
 
                         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                            <label className="flex flex-col gap-1 text-sm font-medium text-[#222]">
+                            <label className="flex flex-col gap-1 text-sm font-medium text-foreground">
                                 Заезд
                                 <input
                                     type="date"
                                     value={checkInDate}
                                     onChange={(e) => setCheckInDate(e.target.value)}
-                                    className="rounded-xl border border-[#e0e0e0] px-3 py-3 text-base text-[#222] outline-none focus:border-[#6b21a8]"
+                                    className="rounded-xl border border-border px-3 py-3 text-base text-foreground outline-none focus:border-primary"
                                 />
                             </label>
 
-                            <label className="flex flex-col gap-1 text-sm font-medium text-[#222]">
+                            <label className="flex flex-col gap-1 text-sm font-medium text-foreground">
                                 Выезд
                                 <input
                                     type="date"
                                     value={checkOutDate}
                                     onChange={(e) => setCheckOutDate(e.target.value)}
-                                    className="rounded-xl border border-[#e0e0e0] px-3 py-3 text-base text-[#222] outline-none focus:border-[#6b21a8]"
+                                    className="rounded-xl border border-border px-3 py-3 text-base text-foreground outline-none focus:border-primary"
                                 />
                             </label>
                         </div>
-                        {errors.dates && <p className="text-sm text-red-600">{errors.dates}</p>}
+                        {errors.dates && <p className="text-sm text-destructive">{errors.dates}</p>}
 
-                        <label className="flex flex-col gap-1 text-sm font-medium text-[#222]">
+                        <label className="flex flex-col gap-1 text-sm font-medium text-foreground">
                             Комментарий (необязательно)
                             <textarea
                                 value={message}
                                 onChange={(e) => setMessage(e.target.value)}
                                 rows={3}
                                 placeholder="Например, время приезда, вопросы..."
-                                className="resize-none rounded-xl border border-[#e0e0e0] px-4 py-3 text-base text-[#222] outline-none focus:border-[#6b21a8]"
+                                className="resize-none rounded-xl border border-border px-4 py-3 text-base text-foreground outline-none focus:border-primary"
                             />
                         </label>
 
                         {createBooking.isError && (
-                            <p className="text-sm text-red-600">
+                            <p className="text-sm text-destructive">
                                 {createBooking.error.message ?? 'Не удалось отправить заявку'}
                             </p>
                         )}
@@ -313,7 +315,7 @@ export function BookingButton({
                         <button
                             type="submit"
                             disabled={createBooking.isPending}
-                            className="mt-1 rounded-xl bg-gray-800 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-60"
+                            className="mt-1 cursor-pointer rounded-xl bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             {createBooking.isPending ? 'Отправляем...' : 'Отправить заявку'}
                         </button>

@@ -53,14 +53,14 @@ export default function MicrodistrictPage({ slug, microdistrict, apartments }: M
                 <h1 className="text-[2rem] font-bold max-md:text-[1.5rem]">
                     Квартиры на сутки в микрорайоне {microdistrict}
                 </h1>
-                <p className="mt-3 text-[1.1rem] text-[#666] max-md:text-base">
+                <p className="mt-3 text-[1.1rem] text-muted-foreground max-md:text-base">
                     Найдено {apartments.length} {pluralRu(apartments.length, 'квартира', 'квартиры', 'квартир')}
                 </p>
             </div>
             <ApartmentsList apartments={apartments} />
 
-            <section className="mx-auto mt-12 max-w-3xl text-center text-[0.95rem] leading-relaxed text-[#555] max-md:mt-8 max-md:text-sm">
-                <h2 className="mb-4 text-[1.4rem] font-semibold text-[#333]">
+            <section className="mx-auto mt-12 max-w-3xl text-center text-[0.95rem] leading-relaxed text-muted-foreground max-md:mt-8 max-md:text-sm">
+                <h2 className="mb-4 text-[1.4rem] font-semibold text-foreground">
                     Снять квартиру на сутки в микрорайоне {microdistrict}
                 </h2>
                 <p>

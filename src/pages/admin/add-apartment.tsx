@@ -191,10 +191,10 @@ export default function AddApartmentPage() {
         <>
             <ClientHeader />
             <div className="add-apartment-page">
-                <div className="mx-auto my-6 max-w-[800px] rounded-[24px] border-2 border-white bg-[#0d021d] p-10 shadow-[0_10px_30px_white] max-[640px]:p-5">
+                <div className="mx-auto my-6 max-w-[800px] rounded-[24px] border border-border bg-card p-10 shadow-[0_10px_30px_rgba(0,0,0,0.08)] max-[640px]:p-5">
                     {/* Восстановлен ваш оригинальный h1 */}
                     <h1
-                        className="mb-[30px] text-center text-[28px] text-[#c4deeb]"
+                        className="mb-[30px] text-center text-[28px] text-primary"
                         onClick={() => null}
                     >
                         {' '}
@@ -227,14 +227,14 @@ export default function AddApartmentPage() {
                 onClose={() => router.push('/')}
                 title="Объект добавлен"
             >
-                <p className="mb-6 text-center text-base text-[#333]">
+                <p className="mb-6 text-center text-base text-foreground">
                     Ваш объект успешно добавлен и находится на модерации. После проверки модератором он появится в
                     каталоге.
                 </p>
                 <button
                     type="button"
                     onClick={() => router.push('/')}
-                    className="w-full cursor-pointer rounded-[30px] bg-gray-800 px-6 py-3 text-base font-medium text-white transition-colors hover:bg-gray-700"
+                    className="w-full cursor-pointer rounded-[30px] bg-foreground px-6 py-3 text-base font-medium text-background transition-colors hover:bg-foreground/85"
                 >
                     На главную
                 </button>

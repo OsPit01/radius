@@ -79,16 +79,18 @@ export default function ChatPage() {
     // ===== Блок списка бесед (общий для мобилки и десктопа) =====
     const listView = (
         <div>
-            <h1 className="flex items-center gap-2 pt-6 pb-4 text-2xl font-bold text-[#222]">
+            <h1 className="flex items-center gap-2 pt-6 pb-4 text-2xl font-bold text-foreground">
                 Мои сообщения
                 {(unreadCount ?? 0) > 0 && (
-                    <span className="rounded-full bg-red-500 px-2.5 py-0.5 text-sm font-semibold text-white">
+                    <span className="rounded-full bg-destructive px-2.5 py-0.5 text-sm font-semibold text-destructive-foreground">
                         {unreadCount}
                     </span>
                 )}
             </h1>
 
-            {chats?.length === 0 && <p className="py-16 text-center text-[#888]">Пока нет ни одного диалога</p>}
+            {chats?.length === 0 && (
+                <p className="py-16 text-center text-muted-foreground">Пока нет ни одного диалога</p>
+            )}
 
             {chats && chats.length > 0 && (
                 <ChatList
@@ -104,7 +106,7 @@ export default function ChatPage() {
     // ===== Блок окна чата (или заглушка «выберите чат») =====
     const chatView =
         selectedId === null ? (
-            <div className="flex h-[calc(100vh-140px)] items-center justify-center text-[#888]">
+            <div className="flex h-[calc(100vh-140px)] items-center justify-center text-muted-foreground">
                 Выберите чат, чтобы начать переписку
             </div>
         ) : (
@@ -135,7 +137,7 @@ export default function ChatPage() {
 
                 {/* ДЕСКТОП */}
                 <div className="mx-auto hidden w-full max-w-6xl flex-1 overflow-hidden px-4 pb-4 md:flex">
-                    <aside className="flex w-80 shrink-0 flex-col overflow-hidden border-r border-gray-300 pr-4">
+                    <aside className="flex w-80 shrink-0 flex-col overflow-hidden border-r border-border pr-4">
                         {listView}
                     </aside>
                     <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden pl-4">{chatView}</div>

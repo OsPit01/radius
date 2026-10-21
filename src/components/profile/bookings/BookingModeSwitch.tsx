@@ -19,8 +19,8 @@ export function ModeSwitch<T extends string>({ tabs, active, onChange }: ModeSwi
                     onClick={() => onChange(tab.id)}
                     className={`ml-2 flex-1 cursor-pointer px-4 py-4 text-sm font-semibold whitespace-nowrap active:scale-95 ${
                         active === tab.id
-                            ? 'border-b-2 border-purple-900 text-[25px] text-purple-900'
-                            : 'bg-gray-100 text-[#888] hover:text-[#222]'
+                            ? 'border-b-2 border-primary text-[25px] text-primary'
+                            : 'bg-muted text-muted-foreground hover:text-foreground'
                     }`}
                 >
                     {tab.label}

@@ -76,7 +76,7 @@ export function ApartmentCard({
         <>
             <Link
                 href={href}
-                className="overflow-hidden rounded-2xl border border-[#ada3a3] bg-white p-0.5 transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_15px_24px_rgba(0,0,0,0.1)]"
+                className="overflow-hidden rounded-2xl border border-border bg-card p-0.5 transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_15px_24px_rgba(0,0,0,0.1)]"
             >
                 <div className="relative h-[350px] w-full overflow-hidden max-md:h-[250px]">
                     <ImageWithFallback
@@ -88,24 +88,24 @@ export function ApartmentCard({
                     <button
                         type="button"
                         onClick={handleToggle}
-                        className="group absolute top-3 right-3 z-10 flex h-10 w-10 items-center justify-center"
+                        className="group absolute top-3 right-3 z-10 flex h-10 w-10 cursor-pointer items-center justify-center"
                     >
                         <div className="relative h-7 w-7 transition-transform duration-200 group-hover:scale-125">
                             {/* контурное — видно когда НЕ в избранном */}
                             <FaRegHeart
-                                className={`absolute top-0 left-0 h-7 w-7 text-gray-100 transition-all duration-300 group-hover:text-red-500 ${
+                                className={`absolute top-0 left-0 h-7 w-7 text-card drop-shadow-[0_0_2px_color-mix(in_oklab,var(--foreground)_55%,transparent)] transition-all duration-300 group-hover:text-primary/60 ${
                                     isFavorite ? 'scale-0 opacity-0' : 'scale-100 opacity-100'
                                 }`}
                             />
                             {/* залитое — видно когда В избранном */}
                             <FaHeart
-                                className={`absolute top-0 left-0 h-7 w-7 text-red-500 transition-all duration-300 ${
+                                className={`absolute top-0 left-0 h-7 w-7 text-primary drop-shadow-[0_0_2px_color-mix(in_oklab,var(--foreground)_35%,transparent)] transition-all duration-300 ${
                                     isFavorite ? 'scale-100 opacity-100' : 'scale-0 opacity-0'
                                 }`}
                             />
                         </div>
                     </button>
-                    <span className="absolute right-3 bottom-3 z-10 rounded-lg bg-white px-2.5 py-1 text-sm font-bold text-[#222] shadow-sm">
+                    <span className="absolute right-3 bottom-3 z-10 rounded-lg bg-card px-3 py-1.5 text-base font-bold text-foreground shadow-sm">
                         {apartment.price} {getCurrencySymbol(apartment.currency)}
                     </span>
                 </div>
@@ -117,43 +117,43 @@ export function ApartmentCard({
                     {apartment.district ? `, ${apartment.district}` : ''}
                 </div>
                 <div className="flex flex-wrap gap-1.5 px-2.5 pt-2">
-                    <span className="rounded-[15px] border border-[#aca9a9] bg-[#efecf3] px-2.5 py-1 text-sm font-normal">
+                    <span className="rounded-[15px] border border-border bg-muted px-2.5 py-1 text-sm font-normal">
                         {' '}
                         количество комнат: {apartment.rooms}
                     </span>
-                    <span className="rounded-[15px] border border-[#aca9a9] bg-[#efecf3] px-2.5 py-1 text-sm font-normal">
+                    <span className="rounded-[15px] border border-border bg-muted px-2.5 py-1 text-sm font-normal">
                         {apartment.capacity} {pluralRu(apartment.capacity, 'гость', 'гостя', 'гостей')}
                     </span>
                 </div>
                 <div className="flex flex-wrap gap-1.5 px-2.5 pt-1.5">
                     {apartment.beds > 0 && (
-                        <span className="rounded-[15px] border border-[#aca9a9] bg-[#efecf3] px-2.5 py-1 text-sm font-normal">
+                        <span className="rounded-[15px] border border-border bg-muted px-2.5 py-1 text-sm font-normal">
                             Кровать: {apartment.beds}
                         </span>
                     )}
                     {apartment.singleBeds > 0 && (
-                        <span className="rounded-[15px] border border-[#aca9a9] bg-[#efecf3] px-2.5 py-1 text-sm font-normal">
+                        <span className="rounded-[15px] border border-border bg-muted px-2.5 py-1 text-sm font-normal">
                             Односпальная: {apartment.singleBeds}
                         </span>
                     )}
                     {apartment.doubleSofas > 0 && (
-                        <span className="rounded-[15px] border border-[#aca9a9] bg-[#efecf3] px-2.5 py-1 text-sm font-normal">
+                        <span className="rounded-[15px] border border-border bg-muted px-2.5 py-1 text-sm font-normal">
                             Дв. диван: {apartment.doubleSofas}
                         </span>
                     )}
                     {apartment.singleSofas > 0 && (
-                        <span className="rounded-[15px] border border-[#aca9a9] bg-[#efecf3] px-2.5 py-1 text-sm font-normal">
+                        <span className="rounded-[15px] border border-border bg-muted px-2.5 py-1 text-sm font-normal">
                             Одн. диван: {apartment.singleSofas}
                         </span>
                     )}
                 </div>
                 {apartment.metro && (
                     <div className="flex flex-wrap gap-1.5 px-2.5 pt-1.5 pb-1">
-                        <p className="rounded-[15px] border border-[#aca9a9] bg-[#efecf3] px-2.5 py-1 text-sm font-normal">
+                        <p className="rounded-[15px] border border-border bg-muted px-2.5 py-1 text-sm font-normal">
                             метро: в {apartment.metro} минутах
                         </p>
                         {apartment.amenities.includes('gameConsole') && (
-                            <p className="rounded-[15px] border border-[#aca9a9] bg-[#efecf3] px-2.5 py-1 text-sm font-normal">
+                            <p className="rounded-[15px] border border-border bg-muted px-2.5 py-1 text-sm font-normal">
                                 Игровая консоль
                             </p>
                         )}

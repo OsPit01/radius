@@ -78,10 +78,10 @@ export function ApartmentsList({
     if (foundCount === 0) {
         return (
             <div className="my-[50px] w-full">
-                <h2 className="mb-10 text-center text-2xl font-bold text-[#333]">Варианты для проживания: 0</h2>
+                <h2 className="mb-10 text-center text-2xl font-bold text-foreground">Варианты для проживания: 0</h2>
                 <div className="p-[60px_20px] text-center">
-                    <p className="text-xl font-semibold text-[#333]">Ничего не найдено!</p>
-                    <p className="text-base text-[#666]">Попробуйте изменить параметры поиска</p>
+                    <p className="text-xl font-semibold text-foreground">Ничего не найдено!</p>
+                    <p className="text-base text-muted-foreground">Попробуйте изменить параметры поиска</p>
                 </div>
             </div>
         );
@@ -89,7 +89,7 @@ export function ApartmentsList({
 
     return (
         <div className="my-[50px] w-full">
-            <h2 className="mb-10 text-center text-2xl font-bold text-[#333]">
+            <h2 className="mb-10 text-center text-2xl font-bold text-foreground">
                 Варианты для проживания: {foundCount}
                 {searchQuery && <p className="text-lg font-semibold">Город: {searchQuery}</p>}
                 {totalGuests > 1 && <p className="text-base font-normal">Количество человек: {totalGuests}</p>}
@@ -111,7 +111,7 @@ export function ApartmentsList({
                     type="button"
                     onClick={() => setCurrentPage(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-gray-200 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-muted disabled:cursor-not-allowed disabled:opacity-40"
                 >
                     <ChevronLeft className="h-6 w-6"></ChevronLeft>
                 </button>
@@ -123,7 +123,7 @@ export function ApartmentsList({
                                 key={item}
                                 type="button"
                                 onClick={() => setCurrentPage(item)}
-                                className={`ml-1 h-8 w-8 rounded-full transition-colors ${item === currentPage ? 'bg-gray-700 text-white' : 'bg-gray-200 text-[#333] hover:bg-gray-300'}`}
+                                className={`ml-1 h-8 w-8 rounded-full transition-colors ${item === currentPage ? 'bg-foreground text-background' : 'bg-muted text-foreground hover:bg-border'}`}
                             >
                                 {item}
                             </button>
@@ -136,7 +136,7 @@ export function ApartmentsList({
                     type="button"
                     onClick={() => setCurrentPage(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-gray-200 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-muted disabled:cursor-not-allowed disabled:opacity-40"
                 >
                     <ChevronRight className="h-6 w-6"></ChevronRight>
                 </button>

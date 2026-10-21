@@ -30,18 +30,20 @@ export function MessageBubble({ text, isMine, sender, createdAt }: MessageBubble
             {/* min-w-0 разрешает flex-элементу сжиматься, а не растягивать окно. */}
             <div className="flex max-w-[70%] min-w-0 flex-col">
                 {/* Имя отправителя (видно только у чужих, чтобы отличать в групповой переписке) */}
-                {!isMine && <span className="mb-0.5 px-1 text-xs text-[#888]">{displayName(sender)}</span>}
+                {!isMine && <span className="mb-0.5 px-1 text-xs text-muted-foreground">{displayName(sender)}</span>}
 
                 {/* break-words переносит длинные слова, чтобы текст не вылезал за пузырь. */}
                 <div
                     className={`rounded-2xl px-4 py-2 text-[15px] break-words whitespace-pre-line ${
-                        isMine ? 'rounded-br-sm bg-[#6b21a8] text-white' : 'rounded-bl-sm bg-[#f0f0f0] text-[#222]'
+                        isMine
+                            ? 'rounded-br-sm bg-primary text-primary-foreground'
+                            : 'rounded-bl-sm bg-muted text-foreground'
                     }`}
                 >
                     {text}
                 </div>
 
-                <span className="mt-0.5 px-1 text-[11px] text-[#aaa]">{formatChatDate(createdAt)}</span>
+                <span className="mt-0.5 px-1 text-[11px] text-muted-foreground">{formatChatDate(createdAt)}</span>
             </div>
         </div>
     );

@@ -103,18 +103,18 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
             <ApartmentViewTracker apartmentId={apartment.apartment.id} />
 
             <div className="mx-auto mt-5.5 max-w-5xl px-4 pb-[60px]">
-                <h1 className="mb-6 text-3xl font-bold text-[#222]">{apartment.apartment.title}</h1>
+                <h1 className="mb-6 text-3xl font-bold text-foreground">{apartment.apartment.title}</h1>
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                     <PhotoGallery
                         photos={photos}
                         title={apartment.apartment.title}
                     />
 
-                    <div className="flex flex-col rounded-2xl border border-[#e0e0e0] bg-white p-6 shadow-sm">
+                    <div className="flex flex-col rounded-2xl border border-border bg-card p-6 shadow-sm">
                         {/* Адрес + метро (одной строкой с иконками) */}
                         <div className="flex flex-wrap items-start gap-x-2 gap-y-1">
                             <span>📍</span>
-                            <p className="flex-1 text-base text-[#222]">
+                            <p className="flex-1 text-base text-foreground">
                                 г. {apartment.apartment.city}
                                 {apartment.apartment.microdistrict
                                     ? `, ${apartment.apartment.microdistrict}`
@@ -125,7 +125,7 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
 
                         <div className="mt-2 flex flex-wrap items-center gap-x-2">
                             <span>🚇</span>
-                            <p className="text-sm text-gray-800">
+                            <p className="text-sm text-foreground">
                                 {apartment.apartment.metro
                                     ? `${apartment.apartment.metro} минут до метро`
                                     : 'Метро нет в шаговой доступности'}
@@ -134,13 +134,13 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
                         {sleepText && (
                             <div className="mt-2 flex flex-wrap items-center gap-x-2">
                                 <span>🛏️</span>
-                                <p className="text-sm text-gray-800">{sleepText}</p>
+                                <p className="text-sm text-foreground">{sleepText}</p>
                             </div>
                         )}
 
                         {/* Доп. характеристики: площадь, этаж, санузлы */}
                         {hasExtras && (
-                            <div className="mt-2 flex flex-wrap items-center gap-x-3 text-sm text-gray-800">
+                            <div className="mt-2 flex flex-wrap items-center gap-x-3 text-sm text-foreground">
                                 {a.area ? <span>📐 {a.area} м²</span> : null}
                                 {a.floor ? <span>🏢 {a.floor} этаж</span> : null}
                                 {a.bathrooms ? <span>🛁 {a.bathrooms} санузел(а)</span> : null}
@@ -150,13 +150,13 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
                         {/* Время заезда/выезда */}
                         <div className="mt-2 flex flex-wrap items-center gap-x-2">
                             <span>🕒</span>
-                            <p className="text-sm text-gray-800">
+                            <p className="text-sm text-foreground">
                                 Заселение после{' '}
-                                <span className="border-b-[1px] px-2 py-0.5 text-[13px] font-medium text-gray-800">
+                                <span className="border-b-[1px] px-2 py-0.5 text-[13px] font-medium text-foreground">
                                     {apartment.apartment.checkInTime ?? '14:00'}
                                 </span>{' '}
                                 выезд до{' '}
-                                <span className="border-b-[1px] px-2 py-0.5 text-[13px] font-medium text-gray-800">
+                                <span className="border-b-[1px] px-2 py-0.5 text-[13px] font-medium text-foreground">
                                     {apartment.apartment.checkOutTime ?? '12:00'}
                                 </span>
                             </p>
@@ -164,16 +164,16 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
 
                         {/* Цена */}
                         <div className="mt-6 flex flex-wrap items-baseline gap-x-1.5">
-                            <span className="text-[20px] font-bold text-gray-800">{apartment.apartment.price}</span>
-                            <span className="text-[13px] font-medium text-gray-900">
+                            <span className="text-[20px] font-bold text-foreground">{apartment.apartment.price}</span>
+                            <span className="text-[13px] font-medium text-foreground">
                                 {getCurrencySymbol(apartment.apartment.currency)}
                             </span>
-                            <span className="text-[15px] text-gray-900">/ сутки</span>
+                            <span className="text-[15px] text-foreground">/ сутки</span>
                         </div>
 
                         {/* Арендодатель */}
                         {apartment.user && (
-                            <div className="mt-auto border-t border-[#eee5f4] pt-4">
+                            <div className="mt-auto border-t border-border pt-4">
                                 <div className="mt-5 flex items-center gap-3">
                                     <Avatar
                                         src={apartment.user.image}
@@ -181,12 +181,12 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
                                         fallbackText={apartment.user.firstName?.[0] ?? apartment.user.name?.[0]}
                                     />
                                     <div className="min-w-0">
-                                        <p className="truncate text-base font-medium text-[#222]">
+                                        <p className="truncate text-base font-medium text-foreground">
                                             {apartment.user.firstName
                                                 ? `${apartment.user.firstName} `
                                                 : (apartment.user.name ?? 'Владелец')}
                                         </p>
-                                        <p className="text-sm text-gray-500">Арендодатель</p>
+                                        <p className="text-sm text-muted-foreground">Арендодатель</p>
                                     </div>
                                 </div>
                                 <OwnerPhone

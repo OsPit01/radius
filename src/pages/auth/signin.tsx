@@ -21,9 +21,9 @@ export default function SignInPage() {
         setIsSent(true);
     };
     return (
-        <div className="mx-auto mt-20 max-w-[500px] rounded-[20px] border-2 border-black bg-white px-5 py-5 max-md:mx-4 max-md:px-4">
+        <div className="mx-auto mt-20 max-w-[500px] rounded-[20px] border-2 border-foreground bg-card px-5 py-5 max-md:mx-4 max-md:px-4">
             <Seo title="Вход и регистрация" />
-            <span className="bg-gradient-to-r from-[#b552c7] to-[#1a0a2a] bg-clip-text text-[12px] font-normal tracking-[0.2em] text-transparent">
+            <span className="bg-gradient-to-r from-primary to-foreground bg-clip-text text-[12px] font-normal tracking-[0.2em] text-transparent">
                 {' '}
                 Radius stay
             </span>
@@ -45,12 +45,12 @@ export default function SignInPage() {
             <div className="my-6 flex items-center justify-center px-4">
                 <button
                     type="button"
-                    className="flex w-full items-center justify-center gap-3 rounded-xl border border-[#e0e0e0] bg-white py-3 font-medium text-[#222] transition-colors hover:bg-[#f5f5f5]"
+                    className="flex w-full items-center justify-center gap-3 rounded-xl border border-border bg-card py-3 font-medium text-foreground transition-colors hover:bg-muted"
                     onClick={handleGoogleSignIn}
                     disabled={isLoading}
                 >
                     {isLoading ? (
-                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
+                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-border border-t-foreground" />
                     ) : (
                         <FcGoogle size={20} />
                     )}
@@ -59,13 +59,13 @@ export default function SignInPage() {
                 {/* резделитель */}
             </div>
             <div className="my-6 flex items-center gap-3">
-                <div className="h-px flex-1 bg-[#e0e0e0]" />
+                <div className="h-px flex-1 bg-border" />
                 <span>или</span>
-                <div className="h-px flex-1 bg-[#e0e0e0]" />
+                <div className="h-px flex-1 bg-border" />
             </div>
             {/* действия вход через email */}
             {isSent ? (
-                <p className="mt-3 rounded-xl bg-gray-100 px-4 py-3 text-center text-[#222]">
+                <p className="mt-3 rounded-xl bg-muted px-4 py-3 text-center text-foreground">
                     Проверьте почту — мы отправили ссылку на {email}.
                 </p>
             ) : (
@@ -74,17 +74,17 @@ export default function SignInPage() {
                         type="email"
                         value={email}
                         placeholder="you@example.com"
-                        className="w-full rounded-xl border border-[#e0e0e0] bg-white px-4 py-3 text-[#222] outline-none focus:border-gray-400"
+                        className="w-full rounded-xl border border-border bg-card px-4 py-3 text-foreground outline-none focus:border-primary"
                         onChange={(e) => setEmail(e.target.value)}
                     />
                     <button
                         type="button"
-                        className="mt-3 w-full rounded-xl bg-gray-800 py-3 font-semibold text-white transition-colors hover:bg-gray-700"
+                        className="mt-3 w-full rounded-xl bg-foreground py-3 font-semibold text-background transition-colors hover:bg-foreground/85"
                         onClick={handleEmailSignIn}
                         disabled={isEmailLoading}
                     >
                         {isEmailLoading ? (
-                            <div className="mx-auto h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"></div>
+                            <div className="mx-auto h-5 w-5 animate-spin rounded-full border-2 border-border border-t-background"></div>
                         ) : (
                             'Получить ссылку для входа'
                         )}

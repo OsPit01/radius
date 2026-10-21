@@ -36,12 +36,12 @@ export function Step3_Address({ formData, updateField, error, errorFields }: Ste
     }, [formData.street, formData.city, utils]);
 
     return (
-        <fieldset className="animate-[fadeIn_0.3s_ease] text-white">
-            <legend className="mb-2.5 text-[17px] text-white">Шаг 3: Укажите адрес</legend>
+        <fieldset className="animate-[fadeIn_0.3s_ease] text-foreground">
+            <legend className="mb-2.5 text-[17px] text-foreground">Шаг 3: Укажите адрес</legend>
 
             {error && (
                 <div
-                    className="rounded-xl bg-[rgba(239,68,68,0.1)] p-3 text-center text-[#ef4444]"
+                    className="rounded-xl bg-destructive/10 p-3 text-center text-destructive"
                     role="alert"
                 >
                     {' '}
@@ -51,7 +51,7 @@ export function Step3_Address({ formData, updateField, error, errorFields }: Ste
 
             {/* Улица с автодополнением */}
             <div className="relative mt-2.5 flex flex-col gap-2">
-                <label className="pt-[5px] text-sm font-semibold text-white"> Улица* </label>
+                <label className="pt-[5px] text-sm font-semibold text-foreground"> Улица* </label>
                 <input
                     id="street-field"
                     type="text"
@@ -65,7 +65,7 @@ export function Step3_Address({ formData, updateField, error, errorFields }: Ste
                     className={`${INPUT_CLASS} ${getInputClassName(formData.street, 'street', errorFields)}`}
                 />
                 {streetOpen && streetSuggestions.length > 0 && (
-                    <ul className="absolute top-full right-0 left-0 z-50 mt-1 max-h-[240px] overflow-y-auto rounded-xl border-2 border-[#2a1a3a] bg-[#1a0a2a] shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
+                    <ul className="absolute top-full right-0 left-0 z-50 mt-1 max-h-[240px] overflow-y-auto rounded-xl border-2 border-border bg-card shadow-[0_8px_30px_rgba(0,0,0,0.25)]">
                         {streetSuggestions.map((s) => (
                             <li key={s}>
                                 <button
@@ -76,7 +76,7 @@ export function Step3_Address({ formData, updateField, error, errorFields }: Ste
                                         updateField('streetConfirmed', true);
                                         setStreetOpen(false);
                                     }}
-                                    className="block w-full cursor-pointer px-4 py-3 text-left text-sm text-white transition-colors hover:bg-[rgba(107,33,168,0.2)]"
+                                    className="block w-full cursor-pointer px-4 py-3 text-left text-sm text-foreground transition-colors hover:bg-primary/20"
                                 >
                                     {s}
                                 </button>
@@ -88,7 +88,7 @@ export function Step3_Address({ formData, updateField, error, errorFields }: Ste
 
             {/* Поле номер дома */}
             <div className="mt-2.5 flex flex-col gap-2">
-                <label className="pt-[5px] text-sm font-semibold text-white"> Номер дома*</label>
+                <label className="pt-[5px] text-sm font-semibold text-foreground"> Номер дома*</label>
                 <input
                     id="numberHome-field"
                     type="text"
@@ -101,7 +101,7 @@ export function Step3_Address({ formData, updateField, error, errorFields }: Ste
 
             {/* Поле корпуса */}
             <div className="mt-2.5 flex flex-col gap-2">
-                <label className="pt-[5px] text-sm font-semibold text-white">Корпус</label>
+                <label className="pt-[5px] text-sm font-semibold text-foreground">Корпус</label>
                 <input
                     id="building-field"
                     type="text"
@@ -114,7 +114,7 @@ export function Step3_Address({ formData, updateField, error, errorFields }: Ste
 
             {/* Микрорайон (необязательно) — жилой массив: Уручье, Новая Боровая */}
             <div className="mt-2.5 flex flex-col gap-2">
-                <label className="pt-[5px] text-sm font-semibold text-white">Микрорайон</label>
+                <label className="pt-[5px] text-sm font-semibold text-foreground">Микрорайон</label>
                 <input
                     id="microdistrict-field"
                     type="text"
@@ -125,7 +125,7 @@ export function Step3_Address({ formData, updateField, error, errorFields }: Ste
                 />
             </div>
 
-            <div className="mt-5 p-[5px] text-[13px] text-[rgba(216,214,214,0.911)]">
+            <div className="mt-5 p-[5px] text-[13px] text-muted-foreground">
                 <p> {getTypeLabel(formData.type)}</p>
                 <p> {getFormLabel(formData, 'city')}</p>
             </div>

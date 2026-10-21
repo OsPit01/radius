@@ -1,40 +1,158 @@
 @import "tailwindcss";
 
+/* Вариант `dark:` включается классом .dark на <html> (его ставит ThemeProvider). */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans:
     var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
+/*
+ * ===== ТЕМА =====
+ *
+ * Как это устроено (тот же принцип, что в shadcn/ui, Vercel и chatgpt.com):
+ *
+ *   1. Компоненты НИКОГДА не знают конкретных цветов. Они используют только
+ *      семантические утилиты: bg-background, bg-card, bg-muted, text-foreground,
+ *      text-muted-foreground, border-border, bg-primary, text-primary-foreground...
+ *
+ *   2. Каждая такая утилита ссылается на CSS-переменную (--card, --muted, ...).
+ *
+ *   3. Из переменных ТОЛЬКО ТРИ «базовые» (seed): --background, --foreground, --primary.
+ *      Всё остальное (карточки, границы, приглушённый текст, hover-фон, цвет текста
+ *      на кнопке акцента) ВЫЧИСЛЯЕТСЯ из них через color-mix() и relative colors.
+ *
+ * Поэтому достаточно поменять эти три цвета (профиль → «Внешний вид») —
+ * и пересчитывается весь сайт. Светлая и тёмная темы отличаются только набором
+ * базовых цветов (и тем, в какую сторону «приподнимается» карточка).
+ */
+
+/* Переменные → Tailwind-утилиты. `inline` — утилиты ссылаются на var(--token)
+   напрямую, поэтому переопределение переменных в рантайме работает мгновенно. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+}
+
+/* ----- Светлая тема (по умолчанию) ----- */
+:root {
+  color-scheme: light;
+
+  /* базовые цвета — именно их редактирует суперадмин в профиле */
+  --background: #f5f5f5;
+  --foreground: #222222;
+  --primary: #6b21a8;
+
+  /* карточки, шапка, модалки — чуть светлее фона */
+  --card: color-mix(in oklab, var(--background) 30%, white);
+
+  /* статусные цвета не зависят от трёх базовых */
+  --destructive: #dc2626;
+  --success: #15803d;
+  --warning: #b45309;
+}
+
+/* ----- Тёмная тема ----- */
+.dark {
+  color-scheme: dark;
+
+  --background: #0f0f10;
+  --foreground: #ededed;
+  --primary: #b552c7;
+
+  /* карточки, шапка, модалки — чуть светлее фона */
+  --card: color-mix(in oklab, var(--background) 93%, var(--foreground));
+
+  --destructive: #ef4444;
+  --success: #22c55e;
+  --warning: #f59e0b;
+}
+
+/* ----- Производные токены (одинаковая формула для обеих тем) ----- */
+:root,
+.dark {
+  /* приглушённая заливка: чипы, hover-фон, скелетоны */
+  --muted: color-mix(in oklab, var(--card) 92%, var(--foreground));
+  /* второстепенный текст: подписи, плейсхолдеры, иконки */
+  --muted-foreground: color-mix(in oklab, var(--foreground) 62%, var(--background));
+  --border: color-mix(in oklab, var(--card) 88%, var(--foreground));
+  --ring: var(--primary);
+
+  /* Цвет текста на заливке: белый или чёрный — что контрастнее.
+     Порог по яркости в OKLCH: светлее 0.65 → чёрный, темнее → белый. */
+  --primary-foreground: oklch(from var(--primary) clamp(0, (0.65 - l) * 1000, 1) 0 0);
+  --destructive-foreground: oklch(from var(--destructive) clamp(0, (0.65 - l) * 1000, 1) 0 0);
+  --success-foreground: oklch(from var(--success) clamp(0, (0.65 - l) * 1000, 1) 0 0);
+  --warning-foreground: oklch(from var(--warning) clamp(0, (0.65 - l) * 1000, 1) 0 0);
+}
+
+/* Браузеры без relative colors (старые) — безопасный запасной вариант. */
+@supports not (color: oklch(from red l c h)) {
+  :root,
+  .dark {
+    --primary-foreground: #fff;
+    --destructive-foreground: #fff;
+    --success-foreground: #fff;
+    --warning-foreground: #fff;
+  }
+}
+
 @layer base {
+  /* В Tailwind v4 граница по умолчанию — currentColor; возвращаем цвет темы,
+     чтобы `border` без цвета выглядел как border-border. */
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--border);
+  }
+
   body {
-    background-color: whitesmoke;
+    background-color: var(--background);
+    color: var(--foreground);
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
+
+  ::selection {
+    background-color: color-mix(in oklab, var(--primary) 30%, transparent);
+  }
 }
+
+/* ----- Сторонние компоненты ----- */
 
 .PhoneInputInput {
   outline: none;
   border: none;
   background: transparent;
-  color: #222;
-}
-
-/* Тёмная тема (страница настроек профиля) — белый текст номера телефона */
-.autofill-dark .PhoneInputInput {
-  color: white;
+  color: var(--foreground);
 }
 
 .PhoneInputCountrySelect {
-  color: black;
-  background-color: white;
+  color: var(--foreground);
+  background-color: var(--card);
 }
 
 .PhoneInputCountrySelect option {
-  color: black;
-  background-color: white;
+  color: var(--foreground);
+  background-color: var(--card);
 }
 
 .PhoneInputInput:focus {
@@ -43,14 +161,14 @@
   box-shadow: none;
 }
 
-.autofill-dark input:-webkit-autofill,
-.autofill-dark input:-webkit-autofill:hover,
-.autofill-dark input:-webkit-autofill:focus,
-.autofill-dark input:-webkit-autofill:active {
-  -webkit-text-fill-color: white;
-  -webkit-box-shadow: 0 0 0 1000px #0e081b inset;
-  box-shadow: 0 0 0 1000px #0e081b inset;
-  caret-color: white;
+/* Автозаполнение: браузер красит поле в свой голубой/жёлтый. Задержка перехода
+   «замораживает» исходный фон поля, а цвет текста и курсора берём из темы. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--foreground);
+  caret-color: var(--foreground);
   transition: background-color 999999s ease-in-out 0s;
 }
 

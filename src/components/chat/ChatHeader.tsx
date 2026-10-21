@@ -18,11 +18,11 @@ type ChatHeaderProps = {
  */
 export function ChatHeader({ apartmentTitle, companion, onBack }: ChatHeaderProps) {
     return (
-        <div className="flex items-center gap-3 border-b border-gray-300 py-3">
+        <div className="flex items-center gap-3 border-b border-border py-3">
             <button
                 type="button"
                 onClick={onBack}
-                className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-xl text-[20px] font-semibold text-[#222] transition-colors hover:bg-[#f0f0f0]"
+                className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-xl text-[20px] font-semibold text-foreground transition-colors hover:bg-muted"
                 aria-label="Назад к списку бесед"
             >
                 <ArrowLeft
@@ -32,8 +32,8 @@ export function ChatHeader({ apartmentTitle, companion, onBack }: ChatHeaderProp
             </button>
 
             <div className="min-w-0 flex-1">
-                <p className="truncate font-semibold text-[#222]">{apartmentTitle}</p>
-                <p className="truncate text-sm text-[#888]">{displayName(companion)}</p>
+                <p className="truncate font-semibold text-foreground">{apartmentTitle}</p>
+                <p className="truncate text-sm text-muted-foreground">{displayName(companion)}</p>
             </div>
         </div>
     );

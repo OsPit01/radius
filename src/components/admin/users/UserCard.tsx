@@ -99,19 +99,19 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
     };
 
     const inputClass =
-        'w-full rounded-lg border border-[#ddd] px-3 py-2 text-sm text-[#222] outline-none focus:border-[#b552c7]';
+        'w-full rounded-lg border border-border px-3 py-2 text-sm text-foreground outline-none focus:border-primary';
 
     return (
         <>
-            <div className="flex flex-col rounded-2xl border border-[#e5e5e5] bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
+            <div className="flex flex-col rounded-2xl border border-border bg-card p-6 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
                 {/* Шапка: аватар + имя + email */}
                 <div className="flex items-center gap-3">
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#b552c7] text-xl font-bold text-white">
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary text-xl font-bold text-primary-foreground">
                         {initial}
                     </div>
                     <div className="min-w-0">
-                        <p className="truncate text-lg font-semibold text-[#222]">{user.firstName ?? user.email}</p>
-                        <p className="truncate text-sm text-[#666]">{user.email}</p>
+                        <p className="truncate text-lg font-semibold text-foreground">{user.firstName ?? user.email}</p>
+                        <p className="truncate text-sm text-muted-foreground">{user.email}</p>
                     </div>
                 </div>
 
@@ -128,7 +128,7 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
                     <select
                         value={selectedRole}
                         onChange={(e) => setSelectedRole(e.target.value as RoleKey)}
-                        className="flex-1 cursor-pointer rounded-lg border border-[#ddd] bg-white px-3 py-2 text-sm text-[#222] outline-none focus:border-[#b552c7]"
+                        className="flex-1 cursor-pointer rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
                     >
                         <option value="">Выбрать роль...</option>
                         {allowedRoles.map((r) => (
@@ -141,7 +141,7 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
                         ))}
                     </select>
                     <button
-                        className="cursor-pointer rounded-[30px] bg-gray-800 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-700"
+                        className="cursor-pointer rounded-[30px] bg-foreground px-5 py-2 text-sm font-medium text-background transition-colors hover:bg-foreground/85"
                         onClick={() => {
                             if (!selectedRole) {
                                 return;
@@ -158,13 +158,13 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
                 <div className="mt-2 flex gap-2">
                     <button
                         onClick={() => setEditOpen(true)}
-                        className="flex-1 cursor-pointer rounded-[30px] border border-[#e5e5e5] px-5 py-2 text-sm font-medium text-[#666] transition-colors hover:border-[#b552c7] hover:text-[#b552c7]"
+                        className="flex-1 cursor-pointer rounded-[30px] border border-border px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary"
                     >
                         Редактировать
                     </button>
                     <button
                         onClick={() => setBanOpen(true)}
-                        className="flex-1 cursor-pointer rounded-[30px] border border-[#e5e5e5] px-5 py-2 text-sm font-medium text-[#666] transition-colors hover:border-red-400 hover:text-red-500"
+                        className="flex-1 cursor-pointer rounded-[30px] border border-border px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
                     >
                         Забанить
                     </button>
@@ -174,13 +174,13 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
                 <div className="mt-2 flex gap-2">
                     <button
                         onClick={() => setNotifyOpen(true)}
-                        className="flex-1 cursor-pointer rounded-[30px] border border-[#e5e5e5] px-5 py-2 text-sm font-medium text-[#666] transition-colors hover:border-[#b552c7] hover:text-[#b552c7]"
+                        className="flex-1 cursor-pointer rounded-[30px] border border-border px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary"
                     >
                         Уведомить
                     </button>
                     <button
                         onClick={() => setObjectsOpen(true)}
-                        className="flex-1 cursor-pointer rounded-[30px] border border-[#e5e5e5] px-5 py-2 text-sm font-medium text-[#666] transition-colors hover:border-[#b552c7] hover:text-[#b552c7]"
+                        className="flex-1 cursor-pointer rounded-[30px] border border-border px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary"
                     >
                         Объекты
                     </button>
@@ -229,7 +229,7 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
                     <button
                         onClick={handleSave}
                         disabled={updateUser.isPending}
-                        className="mt-2 cursor-pointer rounded-[30px] bg-gray-800 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-gray-700"
+                        className="mt-2 cursor-pointer rounded-[30px] bg-foreground px-6 py-2.5 text-sm font-medium text-background transition-colors hover:bg-foreground/85"
                     >
                         {updateUser.isPending ? 'Сохранение...' : 'Сохранить'}
                     </button>
@@ -243,8 +243,8 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
                 title="Забанить пользователя"
             >
                 <div className="flex flex-col gap-3">
-                    <p className="text-sm text-[#666]">{user.firstName ?? user.email}</p>
-                    <label className="flex flex-col gap-1.5 text-sm font-medium text-[#333]">
+                    <p className="text-sm text-muted-foreground">{user.firstName ?? user.email}</p>
+                    <label className="flex flex-col gap-1.5 text-sm font-medium text-foreground">
                         На сколько дней?
                         <input
                             type="number"
@@ -258,7 +258,7 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
                     <button
                         onClick={() => banUser.mutate({ userId: user.id, days: banDays })}
                         disabled={banUser.isPending}
-                        className="mt-2 cursor-pointer rounded-[30px] bg-red-500 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-600"
+                        className="mt-2 cursor-pointer rounded-[30px] bg-destructive px-6 py-2.5 text-sm font-semibold text-destructive-foreground transition-colors hover:bg-destructive/90"
                     >
                         {banUser.isPending ? 'Баним...' : 'Забанить'}
                     </button>
@@ -283,7 +283,7 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
                         onChange={(e) => setNotifyForm({ ...notifyForm, text: e.target.value })}
                         placeholder="Текст уведомления"
                         rows={3}
-                        className="resize-none rounded-lg border border-[#ddd] px-3 py-2 text-sm text-[#222] outline-none focus:border-[#b552c7]"
+                        className="resize-none rounded-lg border border-border px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
                     />
                     <button
                         onClick={() =>
@@ -294,7 +294,7 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
                             })
                         }
                         disabled={!notifyForm.title.trim() || !notifyForm.text.trim() || notifyUser.isPending}
-                        className="mt-2 cursor-pointer rounded-[30px] bg-gray-800 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-[#c4b5fd]"
+                        className="mt-2 cursor-pointer rounded-[30px] bg-foreground px-6 py-2.5 text-sm font-medium text-background transition-colors hover:bg-foreground/85 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground"
                     >
                         {notifyUser.isPending ? 'Отправляем...' : 'Отправить'}
                     </button>
@@ -309,17 +309,17 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
             >
                 <div className="flex max-h-[60vh] flex-col gap-2 overflow-y-auto">
                     {userObjects?.length === 0 && (
-                        <p className="py-4 text-center text-sm text-[#888]">У пользователя нет объектов</p>
+                        <p className="py-4 text-center text-sm text-muted-foreground">У пользователя нет объектов</p>
                     )}
                     {userObjects?.map((o) => (
                         <div
                             key={o.apartment.id}
-                            className="flex items-center justify-between gap-2 border-b border-[#eee] py-2"
+                            className="flex items-center justify-between gap-2 border-b border-border py-2"
                         >
-                            <span className="min-w-0 truncate text-sm text-[#222]">{o.apartment.title}</span>
+                            <span className="min-w-0 truncate text-sm text-foreground">{o.apartment.title}</span>
                             <Link
                                 href={`/my-apartments/${o.apartment.id}/edit`}
-                                className="shrink-0 cursor-pointer rounded-[30px] border border-[#b552c7] px-4 py-1.5 text-sm font-medium text-[#b552c7] no-underline transition-colors hover:bg-[#f6eefe]"
+                                className="shrink-0 cursor-pointer rounded-[30px] border border-primary px-4 py-1.5 text-sm font-medium text-primary no-underline transition-colors hover:bg-muted"
                             >
                                 Редактировать
                             </Link>

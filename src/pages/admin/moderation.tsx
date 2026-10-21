@@ -74,7 +74,7 @@ export default function ModerationPage() {
                     </div>
                     {searchId.trim() !== '' && filteredData.length === 0 && (
                         <div className="flex justify-center pt-14 max-md:mt-4">
-                            <p className="text-2xl text-black max-md:text-lg">Ничего не найдено...</p>
+                            <p className="text-2xl text-foreground max-md:text-lg">Ничего не найдено...</p>
                         </div>
                     )}
                 </div>

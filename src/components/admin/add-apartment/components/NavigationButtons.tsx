@@ -10,7 +10,7 @@ type NavigationButtonsProps = {
 };
 
 export function NavigationButtons({ currentStep, onNext, onPrev, isSubmitting, isLastStep }: NavigationButtonsProps) {
-    const btnPrimary = `flex-1 cursor-pointer rounded-[30px] bg-[#6b21a8] px-8 py-3 text-base font-semibold text-white transition-all duration-200 hover:bg-[#581c87] disabled:cursor-not-allowed disabled:bg-[#3a2a4a] disabled:text-[#666] max-[640px]:w-full max-[640px]:text-center`;
+    const btnPrimary = `flex-1 cursor-pointer rounded-[30px] bg-primary px-8 py-3 text-base font-semibold text-primary-foreground transition-all duration-200 hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground max-[640px]:w-full max-[640px]:text-center`;
 
     return (
         <div className="mt-[30px] flex justify-between gap-4 max-[640px]:flex-col">
@@ -19,7 +19,7 @@ export function NavigationButtons({ currentStep, onNext, onPrev, isSubmitting, i
                 <button
                     type="button"
                     onClick={onPrev}
-                    className="flex-1 cursor-pointer rounded-[30px] border border-[#dddddd] bg-white px-8 py-3 text-base font-semibold text-black transition-all duration-200 hover:bg-[#ebd8d8] max-[640px]:w-full max-[640px]:text-center"
+                    className="flex-1 cursor-pointer rounded-[30px] border border-border bg-card px-8 py-3 text-base font-semibold text-foreground transition-all duration-200 hover:bg-muted max-[640px]:w-full max-[640px]:text-center"
                 >
                     ← Назад
                 </button>

@@ -27,12 +27,12 @@ export function Step5_Images({ formData, updateField, error, errorFields }: Step
     const hasError = (field: keyof FormData) => errorFields.includes(field);
 
     return (
-        <fieldset className="animate-[fadeIn_0.3s_ease] text-white">
-            <legend className="mb-2.5 text-[17px] text-white">Шаг 5: Фотографии объекта</legend>
+        <fieldset className="animate-[fadeIn_0.3s_ease] text-foreground">
+            <legend className="mb-2.5 text-[17px] text-foreground">Шаг 5: Фотографии объекта</legend>
 
             {error && (
                 <div
-                    className="rounded-xl bg-[rgba(239,68,68,0.1)] p-3 text-center text-[#ef4444]"
+                    className="rounded-xl bg-destructive/10 p-3 text-center text-destructive"
                     role="alert"
                 >
                     {error}
@@ -40,14 +40,14 @@ export function Step5_Images({ formData, updateField, error, errorFields }: Step
             )}
 
             <div className="mt-2.5 flex flex-col gap-2">
-                <label className="pt-[5px] text-sm font-semibold text-white">
+                <label className="pt-[5px] text-sm font-semibold text-foreground">
                     Загрузите фотографии
                     <span className="required">*</span>
-                    <span className="mt-[-8px] mb-3 block text-sm text-[#b0a0b0]">(минимум 1 фото)</span>
+                    <span className="mt-[-8px] mb-3 block text-sm text-muted-foreground">(минимум 1 фото)</span>
                 </label>
 
                 <div
-                    className={`flex aspect-[4/1] w-full cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-[#2a1a3a] bg-[#1a0a2a] transition-all duration-200 hover:border-[#6b21a8] hover:bg-[rgba(107,33,168,0.05)] max-[480px]:aspect-[2/1] ${
+                    className={`flex aspect-[4/1] w-full cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-border bg-background transition-all duration-200 hover:border-primary hover:bg-primary/5 max-[480px]:aspect-[2/1] ${
                         isUploading ? 'opacity-60' : ''
                     }`}
                     onClick={openFilePicker}
@@ -74,29 +74,29 @@ export function Step5_Images({ formData, updateField, error, errorFields }: Step
                             <>
                                 <span className="text-3xl">📸</span>
                                 <p>Нажмите или перетащите фотографии</p>
-                                <small className="text-xs text-[#b0a0b0]">Можно выбрать несколько файлов</small>
+                                <small className="text-xs text-muted-foreground">Можно выбрать несколько файлов</small>
                             </>
                         )}
                     </div>
                 </div>
 
                 {hasError('images') && (
-                    <div className="mt-1 text-[13px] text-[#ee7272]">Добавьте хотя бы одну фотографию</div>
+                    <div className="mt-1 text-[13px] text-destructive">Добавьте хотя бы одну фотографию</div>
                 )}
             </div>
 
             {images.length > 0 && (
                 <div className="mt-2.5 flex flex-col gap-2">
                     <div className="flex items-center justify-between">
-                        <label className="pt-[5px] text-sm font-semibold text-white">
+                        <label className="pt-[5px] text-sm font-semibold text-foreground">
                             Фотографии ({images.length})
                             {mainImage && (
-                                <span className="ml-2 rounded bg-[rgba(251,191,36,0.9)] px-2 py-0.5 text-[10px] font-semibold text-black">
+                                <span className="ml-2 rounded bg-warning px-2 py-0.5 text-[10px] font-semibold text-warning-foreground">
                                     ⭐ Заглавная выбрана
                                 </span>
                             )}
                         </label>
-                        <span className="text-sm text-[#b0a0b0]">Перетаскивайте для изменения порядка</span>
+                        <span className="text-sm text-muted-foreground">Перетаскивайте для изменения порядка</span>
                     </div>
 
                     <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-4 py-[11px]">
@@ -105,9 +105,9 @@ export function Step5_Images({ formData, updateField, error, errorFields }: Step
                             return (
                                 <div
                                     key={index}
-                                    className={`relative aspect-square cursor-grab rounded-xl border-2 border-[#2a1a3a] bg-[#1a0a2a] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#6b21a8] hover:shadow-[0_4px_12px_rgba(107,33,168,0.3)] ${
+                                    className={`relative aspect-square cursor-grab rounded-xl border-2 border-border bg-background transition-all duration-300 hover:-translate-y-0.5 hover:border-primary hover:shadow-[0_4px_12px_color-mix(in_oklab,var(--primary)_30%,transparent)] ${
                                         isMain
-                                            ? 'border-[#fbbf24] shadow-[0_0_0_2px_#fbbf24,0_4px_12px_rgba(251,191,36,0.3)]'
+                                            ? 'border-warning shadow-[0_0_0_2px_var(--warning),0_4px_12px_color-mix(in_oklab,var(--warning)_30%,transparent)]'
                                             : ''
                                     }`}
                                     draggable
@@ -125,7 +125,7 @@ export function Step5_Images({ formData, updateField, error, errorFields }: Step
                                             priority={index === 0}
                                         />
                                         {isMain && (
-                                            <div className="pointer-events-none absolute top-2 left-2 z-[5] rounded bg-[rgba(251,191,36,0.9)] px-2 py-0.5 text-[10px] font-semibold text-black">
+                                            <div className="pointer-events-none absolute top-2 left-2 z-[5] rounded bg-warning px-2 py-0.5 text-[10px] font-semibold text-warning-foreground">
                                                 ⭐ Заглавная
                                             </div>
                                         )}
@@ -135,7 +135,7 @@ export function Step5_Images({ formData, updateField, error, errorFields }: Step
                                         {/* КРЕСТИК - ПЕРВЫЙ (СВЕРХУ) */}
                                         <button
                                             type="button"
-                                            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-none bg-black/70 text-xs text-white shadow-[0_2px_8px_rgba(0,0,0,0.3)] transition-all duration-200 hover:scale-110 hover:bg-[#ef4444]"
+                                            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-none bg-black/70 text-xs text-white shadow-[0_2px_8px_rgba(0,0,0,0.3)] transition-all duration-200 hover:scale-110 hover:bg-destructive/90"
                                             onClick={() => removeImage(index)}
                                             title="Удалить"
                                         >
@@ -146,7 +146,7 @@ export function Step5_Images({ formData, updateField, error, errorFields }: Step
                                         {!isMain && (
                                             <button
                                                 type="button"
-                                                className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-none bg-black/70 text-xs text-white shadow-[0_2px_8px_rgba(0,0,0,0.3)] transition-all duration-200 hover:scale-110 hover:bg-[#fbbf24] hover:text-black"
+                                                className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-none bg-black/70 text-xs text-white shadow-[0_2px_8px_rgba(0,0,0,0.3)] transition-all duration-200 hover:scale-110 hover:bg-warning hover:text-warning-foreground"
                                                 onClick={() => setMainImage(index)}
                                                 title="Сделать заглавной"
                                             >
@@ -161,11 +161,11 @@ export function Step5_Images({ formData, updateField, error, errorFields }: Step
                 </div>
             )}
 
-            <div className="mt-5 p-[5px] text-[13px] text-[rgba(216,214,214,0.911)]">
+            <div className="mt-5 p-[5px] text-[13px] text-muted-foreground">
                 <p>📸 Загружено: {images.length} фото</p>
                 {mainImage && <p>⭐ Заглавное фото: выбрано</p>}
                 {!mainImage && images.length > 0 && (
-                    <p className="text-[13px] text-[#ee7272]">⚠️ Выберите заглавное фото (⭐)</p>
+                    <p className="text-[13px] text-destructive">⚠️ Выберите заглавное фото (⭐)</p>
                 )}
             </div>
         </fieldset>

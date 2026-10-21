@@ -48,13 +48,13 @@ export default function MyApartmentsPage() {
                 <ClientHeader />
                 <div className="mx-auto mt-auto max-w-[1200px] px-5 py-10 max-md:px-4 max-md:py-5">
                     <div className="mb-2 flex flex-wrap items-center gap-4">
-                        <span className="text-[28px] font-bold text-[#222] max-md:text-[22px]">Мои объекты</span>
-                        <span className="rounded-[20px] bg-[#6b21a8] px-3.5 py-0.5 text-base font-semibold text-white">
+                        <span className="text-[28px] font-bold text-foreground max-md:text-[22px]">Мои объекты</span>
+                        <span className="rounded-[20px] bg-primary px-3.5 py-0.5 text-base font-semibold text-primary-foreground">
                             {count}
                         </span>
                     </div>
 
-                    <p className="mb-8 text-base text-[#666]">
+                    <p className="mb-8 text-base text-muted-foreground">
                         Всего {count} {count === 1 ? 'объявление' : 'объявлений'}
                     </p>
 
@@ -65,9 +65,9 @@ export default function MyApartmentsPage() {
                                 return (
                                     <div
                                         key={item.apartment.id}
-                                        className="flex flex-col overflow-hidden rounded-2xl bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_12px_32px_rgba(0,0,0,0.12)]"
+                                        className="flex flex-col overflow-hidden rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.08)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_12px_32px_rgba(0,0,0,0.12)]"
                                     >
-                                        <div className="relative h-[300px] w-full overflow-hidden bg-[#f0f0f0] max-[480px]:aspect-square max-md:aspect-[16/9] max-md:h-auto">
+                                        <div className="relative h-[300px] w-full overflow-hidden bg-muted max-[480px]:aspect-square max-md:aspect-[16/9] max-md:h-auto">
                                             <Image
                                                 src={item.apartment.image}
                                                 alt={item.apartment.title}
@@ -78,18 +78,18 @@ export default function MyApartmentsPage() {
                                             />
                                         </div>
                                         <div className="flex flex-1 flex-col gap-2 p-5">
-                                            <span className="mb-1 block text-lg leading-[1.3] font-semibold text-[#222]">
+                                            <span className="mb-1 block text-lg leading-[1.3] font-semibold text-foreground">
                                                 {item.apartment.title}
                                             </span>
-                                            <p className="mb-2 text-sm text-[#666]">{item.apartment.city}</p>
-                                            <p className="mb-3 text-[22px] font-bold text-[#222] max-md:text-xl">
+                                            <p className="mb-2 text-sm text-muted-foreground">{item.apartment.city}</p>
+                                            <p className="mb-3 text-[22px] font-bold text-foreground max-md:text-xl">
                                                 {item.apartment.price} {item.apartment.currency}
                                             </p>
                                             <div className="mt-auto flex flex-col gap-2 pt-4">
                                                 <div className="flex flex-wrap gap-2">
                                                     <Link
                                                         href={`/my-apartments/${item.apartment.id}/edit`}
-                                                        className="inline-block rounded-[30px] bg-[#1a0a2a] px-6 py-2.5 text-sm font-medium text-white no-underline transition-colors duration-200 hover:bg-[#4c2a6e] max-[480px]:w-full max-[480px]:text-center"
+                                                        className="inline-block rounded-[30px] bg-foreground px-6 py-2.5 text-sm font-medium text-background no-underline transition-colors duration-200 hover:bg-primary hover:text-primary-foreground max-[480px]:w-full max-[480px]:text-center"
                                                     >
                                                         Редактировать
                                                     </Link>
@@ -101,14 +101,14 @@ export default function MyApartmentsPage() {
                                                             })
                                                         }
                                                         disabled={isDeleting}
-                                                        className="cursor-pointer rounded-[30px] border-none bg-[#ef4444] px-6 py-2.5 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#dc2626] disabled:cursor-not-allowed disabled:opacity-50 max-[480px]:w-full max-[480px]:text-center"
+                                                        className="cursor-pointer rounded-[30px] border-none bg-destructive px-6 py-2.5 text-sm font-medium text-destructive-foreground transition-colors duration-200 hover:bg-destructive/90 disabled:cursor-not-allowed disabled:opacity-50 max-[480px]:w-full max-[480px]:text-center"
                                                     >
                                                         Удалить
                                                     </button>
                                                 </div>
                                                 {/* ИНДИКАТОР СТАТУСА + тултип при наведении */}
                                                 <div className="flex items-center justify-between pt-2">
-                                                    <span className="text-[13px] font-bold text-gray-500">
+                                                    <span className="text-[13px] font-bold text-muted-foreground">
                                                         {' '}
                                                         ID: {item.apartment.id}{' '}
                                                     </span>
@@ -116,7 +116,7 @@ export default function MyApartmentsPage() {
                                                         className="group relative ml-auto hidden h-4 w-4 cursor-help rounded-[35px] sm:inline-block"
                                                         style={{ background: s.color }}
                                                     >
-                                                        <span className="pointer-events-none absolute top-1/2 right-full mr-2 -translate-y-1/2 rounded-lg bg-[#222] px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+                                                        <span className="pointer-events-none absolute top-1/2 right-full mr-2 -translate-y-1/2 rounded-lg bg-foreground px-2 py-1 text-xs whitespace-nowrap text-background opacity-0 transition-opacity duration-150 group-hover:opacity-100">
                                                             Статус: {s.label}
                                                         </span>
                                                     </span>
@@ -128,11 +128,11 @@ export default function MyApartmentsPage() {
                             })}
                         </div>
                     ) : (
-                        <div className="rounded-2xl bg-[#f8f8f8] p-[80px_20px] text-center">
-                            <p className="mb-5 text-lg text-[#666]">У вас пока нет добавленных объектов</p>
+                        <div className="rounded-2xl bg-muted p-[80px_20px] text-center">
+                            <p className="mb-5 text-lg text-muted-foreground">У вас пока нет добавленных объектов</p>
                             <Link
                                 href="/admin/add-apartment"
-                                className="inline-block cursor-pointer rounded-[30px] border-none bg-[#6b21a8] px-8 py-3 text-base font-semibold text-white no-underline transition-colors duration-200 hover:bg-[#581c87] max-[480px]:w-full max-[480px]:text-center"
+                                className="inline-block cursor-pointer rounded-[30px] border-none bg-primary px-8 py-3 text-base font-semibold text-primary-foreground no-underline transition-colors duration-200 hover:bg-primary/90 max-[480px]:w-full max-[480px]:text-center"
                             >
                                 ➕ Добавить квартиру
                             </Link>
@@ -146,7 +146,7 @@ export default function MyApartmentsPage() {
                 onClose={() => setDeleteTarget(null)}
                 title="Удалить объект"
             >
-                <p className="text-base text-[#1a1a2e]">Вы уверены, что хотите удалить «{deleteTarget?.title}»?</p>
+                <p className="text-base text-foreground">Вы уверены, что хотите удалить «{deleteTarget?.title}»?</p>
                 <div className="mt-6 flex justify-center gap-3">
                     <button
                         type="button"
@@ -157,14 +157,14 @@ export default function MyApartmentsPage() {
                             setDeleteTarget(null);
                         }}
                         disabled={isDeleting}
-                        className="cursor-pointer rounded-[30px] bg-[#ef4444] px-6 py-2.5 text-base font-semibold text-white transition-colors hover:bg-[#dc2626] disabled:opacity-50"
+                        className="cursor-pointer rounded-[30px] bg-destructive px-6 py-2.5 text-base font-semibold text-destructive-foreground transition-colors hover:bg-destructive/90 disabled:opacity-50"
                     >
                         {isDeleting ? 'Удаление...' : 'Да, удалить'}
                     </button>
                     <button
                         type="button"
                         onClick={() => setDeleteTarget(null)}
-                        className="cursor-pointer rounded-[30px] border border-[#ddd] px-6 py-2.5 text-base font-semibold text-[#1a1a2e] transition-colors hover:bg-gray-100"
+                        className="cursor-pointer rounded-[30px] border border-border px-6 py-2.5 text-base font-semibold text-foreground transition-colors hover:bg-muted"
                     >
                         Отмена
                     </button>

@@ -164,13 +164,13 @@ export function ClientSearchWrapper({ initialFilters, initialApartments }: Clien
             <div className="mx-auto mt-6 flex w-full max-w-[1400px] gap-8 px-5 max-md:px-4">
                 {/* ===== САЙДБАР ФИЛЬТРОВ (десктоп/планшет) ===== */}
                 <aside className="hidden w-[260px] shrink-0 lg:block">
-                    <div className="sticky top-24 rounded-2xl border border-[#eaeaea] bg-white p-5 shadow-sm">
+                    <div className="sticky top-24 rounded-2xl border border-border bg-card p-5 shadow-sm">
                         <div className="mb-4 flex items-center justify-between">
-                            <p className="text-base font-bold text-[#222]">Фильтры</p>
+                            <p className="text-base font-bold text-foreground">Фильтры</p>
                             <button
                                 type="button"
                                 onClick={() => setTempFilters(EMPTY_FILTERS)}
-                                className="cursor-pointer text-sm font-medium text-[#6b21a8]"
+                                className="cursor-pointer text-sm font-medium text-primary"
                             >
                                 Сбросить
                             </button>
@@ -182,7 +182,7 @@ export function ClientSearchWrapper({ initialFilters, initialApartments }: Clien
                         <button
                             type="button"
                             onClick={() => handleSearch(activeSearchQuery, activeTotalGuests, activeChildren)}
-                            className="mt-5 w-full cursor-pointer rounded-[30px] bg-gray-800 px-4 py-2.5 text-sm font-medium text-white transition-colors duration-200 hover:bg-gray-700"
+                            className="mt-5 w-full cursor-pointer rounded-[30px] bg-foreground px-4 py-2.5 text-sm font-medium text-background transition-colors duration-200 hover:bg-foreground/85"
                         >
                             Показать объекты
                         </button>
@@ -221,7 +221,7 @@ export function ClientSearchWrapper({ initialFilters, initialApartments }: Clien
                         handleSearch(activeSearchQuery, activeTotalGuests, activeChildren);
                         setMobileFiltersOpen(false);
                     }}
-                    className="mt-6 w-full cursor-pointer rounded-[30px] bg-gray-800 px-6 py-3 text-base font-medium text-white transition-colors duration-200 hover:bg-gray-700"
+                    className="mt-6 w-full cursor-pointer rounded-[30px] bg-foreground px-6 py-3 text-base font-medium text-background transition-colors duration-200 hover:bg-foreground/85"
                 >
                     Показать результаты
                 </button>

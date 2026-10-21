@@ -299,10 +299,10 @@ export function getFormLabel(formData: FormData, field: keyof FormData | 'full_a
 // ============================================================
 
 export const INPUT_CLASS =
-    'w-full rounded-xl border-2 border-[#2a1a3a] bg-[#1a0a2a] px-4 py-3 text-base text-white outline-none transition-all duration-300 placeholder:text-[#666] focus:border-[#b552c7] focus:shadow-[0_0_0_3px_rgba(181,82,199,0.2)]';
+    'w-full rounded-xl border-2 border-border bg-background px-4 py-3 text-base text-foreground outline-none transition-all duration-300 placeholder:text-muted-foreground focus:border-primary focus:ring-[3px] focus:ring-primary/20';
 
 export const EDIT_INPUT_CLASS =
-    'rounded-lg border border-[#3a2a4a] bg-[#f4f0fc] px-3.5 py-2.5 text-base text-[#222] transition-colors duration-200 placeholder:text-[#999] focus:border-[#b552c7] focus:bg-white focus:shadow-[0_0_0_3px_rgba(181,82,199,0.15)] focus:outline-none';
+    'rounded-lg border border-border bg-muted px-3.5 py-2.5 text-base text-foreground transition-colors duration-200 placeholder:text-muted-foreground focus:border-primary focus:bg-card focus:ring-[3px] focus:ring-primary/15 focus:outline-none';
 
 export function getInputClassName(
     value: string | number,
@@ -317,14 +317,14 @@ export function getInputClassName(
     if (baseClass === 'city-input') {
         const classes: string[] = [];
         if (hasText && !isInvalid) {
-            classes.push('border-[#22c55e] bg-[rgba(34,197,94,0.1)] shadow-[0_0_0_3px_rgba(34,197,94,0.15)]');
+            classes.push('border-success bg-success/10 ring-[3px] ring-success/15');
         }
         if (isInvalid) {
-            classes.push('border-[#ee7272] bg-[rgba(239,68,68,0.1)] shadow-[0_0_0_3px_rgba(239,68,68,0.15)]');
+            classes.push('border-destructive bg-destructive/10 ring-[3px] ring-destructive/15');
         }
         return classes.join(' ');
     }
-    return isInvalid ? '!border-[#ef4444]' : '';
+    return isInvalid ? '!border-destructive' : '';
 }
 
 // ============================================================

@@ -21,7 +21,7 @@ export function Avatar({ src, name, fallbackText, size = 44 }: AvatarProps) {
     if (!src || failed) {
         return (
             <div
-                className="flex shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-800"
+                className="flex shrink-0 items-center justify-center rounded-full bg-muted text-foreground"
                 style={{ width: size, height: size, fontSize: size * 0.4 }}
             >
                 {initial}

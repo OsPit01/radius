@@ -30,9 +30,9 @@ export function ModerationCard({ item }: { item: ModerationItem }) {
         // Внешняя "коробка" карточки: белый фон, рамка, скругление, тень.
         // overflow-hidden — чтобы фото не вылезало за скруглённые углы
         <>
-            <div className="flex flex-col overflow-hidden rounded-2xl border border-[#e5e5e5] bg-white shadow-sm">
+            <div className="flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
                 {/* ФОТО. relative + fill + object-cover — картинка заполняет блок 16:9 */}
-                <div className="relative aspect-[16/9] w-full bg-[#f0f0f0]">
+                <div className="relative aspect-[16/9] w-full bg-muted">
                     <Image
                         src={item.apartment.image}
                         alt={item.apartment.title}
@@ -44,9 +44,9 @@ export function ModerationCard({ item }: { item: ModerationItem }) {
           flex-1 — растягивает блок, чтобы кнопки прижимались к низу карточки. */}
                 <div className="flex flex-1 flex-col gap-2 p-5">
                     {/* заголовок */}
-                    <p className="text-lg font-semibold text-[#222]">{item.apartment.title}</p>
+                    <p className="text-lg font-semibold text-foreground">{item.apartment.title}</p>
                     {/* город + цена. "·" — просто разделитель-точка в тексте */}
-                    <p className="text-sm text-[#666]">
+                    <p className="text-sm text-muted-foreground">
                         {item.apartment.city} · {item.apartment.price} {item.apartment.currency}
                     </p>
                     {/* СТАТУС — цветной бейдж. Цвет динамический, поэтому через style,
@@ -58,24 +58,28 @@ export function ModerationCard({ item }: { item: ModerationItem }) {
                         {statusInfo.label}
                     </span>
                     {/* ВЛАДЕЛЕЦ. item.user может быть null (leftJoin), поэтому "?" */}
-                    <p className="text-sm break-words text-[#666]">Email: {item.user?.email ?? 'нет данных'}</p>
-                    <p className="break-word text-sm text-[#666]">ФИО: {item.user?.name}</p>
+                    <p className="text-sm break-words text-muted-foreground">
+                        Email: {item.user?.email ?? 'нет данных'}
+                    </p>
+                    <p className="break-word text-sm text-muted-foreground">ФИО: {item.user?.name}</p>
                     {/* Юр данные */}
-                    <p className="text-sm text-[#666]">
+                    <p className="text-sm text-muted-foreground">
                         {PAYERTYPE.find((p) => p.value === item.apartment.payerType)?.label}
                     </p>
-                    <p className="text-[12px] break-words text-[#666]">УНП: {item.apartment.unp ?? 'не указан'}</p>
+                    <p className="text-[12px] break-words text-muted-foreground">
+                        УНП: {item.apartment.unp ?? 'не указан'}
+                    </p>
                     {/* //кнопки: ОДОБРОИТЬ/ОТКЛОНИТь  mt-auto прижимает к низу карточки  */}
                     <div className="mt-auto flex gap-2 pt-4 max-[480px]:flex-col">
                         <button
                             onClick={() => updateStatus.mutate({ id: item.apartment.id, status: 'active' })}
-                            className="flex-1 cursor-pointer rounded-[30px] bg-green-900 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-800"
+                            className="flex-1 cursor-pointer rounded-[30px] bg-success px-5 py-2 text-sm font-semibold text-success-foreground transition-colors hover:bg-success/90"
                         >
                             Одобрить
                         </button>
                         <button
                             onClick={() => setRejectOpen(true)}
-                            className="flex-1 cursor-pointer rounded-[30px] border border-orange-300 px-5 py-2 text-sm font-medium text-[#666] transition-colors hover:border-orange-600 hover:text-red-900"
+                            className="flex-1 cursor-pointer rounded-[30px] border border-border px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-warning hover:text-warning"
                         >
                             Отклонить
                         </button>
@@ -84,7 +88,7 @@ export function ModerationCard({ item }: { item: ModerationItem }) {
                     <div className="mt-auto flex gap-2 pt-4 max-[480px]:flex-col">
                         <button
                             onClick={() => setDeleteOpen(true)}
-                            className="flex-1 cursor-pointer rounded-[30px] border border-red-200 px-5 py-2 text-sm font-medium text-[#666] transition-colors hover:border-red-900 hover:text-red-900"
+                            className="flex-1 cursor-pointer rounded-[30px] border border-border px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
                         >
                             Удалить
                         </button>
@@ -93,20 +97,20 @@ export function ModerationCard({ item }: { item: ModerationItem }) {
                             href={`/my-apartments/${item.apartment.id}/edit`}
                             className="flex-1 max-[480px]:w-full"
                         >
-                            <button className="w-full cursor-pointer rounded-[30px] border border-blue-200 px-5 py-2 text-sm font-medium text-[#666] transition-colors hover:border-blue-900 hover:text-blue-900">
+                            <button className="w-full cursor-pointer rounded-[30px] border border-border px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary">
                                 Редактировать
                             </button>
                         </Link>
                     </div>
                     {/* ID ОБЪЕКТА */}
-                    <p className="text-sm text-[#999]">ID: {item.apartment.id}</p>
+                    <p className="text-sm text-muted-foreground">ID: {item.apartment.id}</p>
                     {/*////////////////// Часть Modal //////////////////////*/}
                     <Modal
                         open={deleteOpen}
                         onClose={() => setDeleteOpen(false)}
                         title="Удалить объект"
                     >
-                        <p className="mt-2 text-black"> Удалить объект: {item.apartment.title} ? </p>
+                        <p className="mt-2 text-foreground"> Удалить объект: {item.apartment.title} ? </p>
                         <div className="mt-6 flex justify-center gap-3">
                             <button
                                 type="button"
@@ -114,14 +118,14 @@ export function ModerationCard({ item }: { item: ModerationItem }) {
                                     deleteApartment.mutate({ id: item.apartment.id });
                                     setDeleteOpen(false);
                                 }}
-                                className="cursor-pointer rounded-[30px] bg-[#ef4444] px-6 py-2.5 text-base font-semibold text-white transition-colors hover:bg-[#dc2626] disabled:opacity-50"
+                                className="cursor-pointer rounded-[30px] bg-destructive px-6 py-2.5 text-base font-semibold text-destructive-foreground transition-colors hover:bg-destructive/90 disabled:opacity-50"
                             >
                                 {' '}
                                 Да, удалить
                             </button>
                             <button
                                 onClick={() => setDeleteOpen(false)}
-                                className="cursor-pointer rounded-[30px] border border-[#ddd] px-6 py-2.5 text-base font-semibold text-[#1a1a2e] transition-colors hover:bg-gray-100"
+                                className="cursor-pointer rounded-[30px] border border-border px-6 py-2.5 text-base font-semibold text-foreground transition-colors hover:bg-muted"
                             >
                                 Отмена
                             </button>
@@ -132,13 +136,13 @@ export function ModerationCard({ item }: { item: ModerationItem }) {
                         onClose={() => setRejectOpen(false)}
                         title="Отклонить объект"
                     >
-                        <p className="p-2 text-black">Укажите причину</p>
+                        <p className="p-2 text-foreground">Укажите причину</p>
                         {/* текс филд для отправки причины */}
                         <div className="flex flex-col gap-3 p-2 sm:flex-row">
                             <textarea
                                 rows={4}
                                 placeholder="Напишите причину..."
-                                className="w-full rounded-[15px] border border-gray-300 p-3 text-sm"
+                                className="w-full rounded-[15px] border border-border p-3 text-sm"
                                 onChange={(e) => setReason(e.target.value)}
                             ></textarea>
                         </div>
@@ -154,14 +158,14 @@ export function ModerationCard({ item }: { item: ModerationItem }) {
                                     });
                                     setRejectOpen(false);
                                 }}
-                                className="cursor-pointer rounded-[30px] border border-gray-500 px-10 py-2.5 transition-colors hover:border-green-900"
+                                className="cursor-pointer rounded-[30px] border border-border px-10 py-2.5 transition-colors hover:border-success"
                             >
                                 Отправить
                             </button>
                             {/* кнопка Отменить */}
                             <button
                                 onClick={() => setRejectOpen(false)}
-                                className="cursor-pointer rounded-[30px] border border-gray-500 px-10 py-2.5 transition-colors hover:border-red-800"
+                                className="cursor-pointer rounded-[30px] border border-border px-10 py-2.5 transition-colors hover:border-destructive"
                             >
                                 Отмена
                             </button>

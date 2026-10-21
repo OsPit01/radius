@@ -13,6 +13,7 @@ import { VisitTracker } from '@/components/analytics/VisitTracker';
 import { Footer } from '@/components/layout/Footer';
 import { Seo } from '@/components/Seo';
 import { SupportChatButton } from '@/components/SupportChatButton';
+import { ThemeProvider } from '@/components/theme/ThemeProvider';
 import { CookieConsent } from '@/components/ui/CookieConsent';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { NOINDEX_PATHS } from '@/lib/seo';
@@ -73,25 +74,27 @@ export default function App({ Component, pageProps }: AppProps) {
             {/* Значения по умолчанию; страницы переопределяют их своим <Seo> */}
             <Seo noindex={noindex} />
 
-            <div className="flex min-h-screen flex-col">
-                <GoogleAnalytics />
-                <SessionProvider>
-                    <TRPCReactProvider>
-                        <div className="flex-1">
-                            {isApartmentLoading ? (
-                                <LoadingSpinner label="Идёт загрузка объекта..." />
-                            ) : (
-                                <Component {...pageProps} />
-                            )}
-                        </div>
-                        <SupportChatButton />
-                        <VisitTracker />
-                    </TRPCReactProvider>
-                </SessionProvider>
-                <Footer />
+            <ThemeProvider>
+                <div className="flex min-h-screen flex-col">
+                    <GoogleAnalytics />
+                    <SessionProvider>
+                        <TRPCReactProvider>
+                            <div className="flex-1">
+                                {isApartmentLoading ? (
+                                    <LoadingSpinner label="Идёт загрузка объекта..." />
+                                ) : (
+                                    <Component {...pageProps} />
+                                )}
+                            </div>
+                            <SupportChatButton />
+                            <VisitTracker />
+                        </TRPCReactProvider>
+                    </SessionProvider>
+                    <Footer />
 
-                <CookieConsent />
-            </div>
+                    <CookieConsent />
+                </div>
+            </ThemeProvider>
         </>
     );
 }

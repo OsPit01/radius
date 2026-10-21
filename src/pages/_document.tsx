@@ -1,6 +1,8 @@
 import { Head, Html, Main, NextScript } from 'next/document';
 import Script from 'next/script';
 
+import { THEME_INIT_SCRIPT } from '@/lib/theme';
+
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
 export default function Document() {
@@ -37,6 +39,9 @@ export default function Document() {
                     name="google-site-verification"
                     content="w6kQbPKfMNh_S0ipt0xk7TRfCczM7rvMH0uuDrkAAJw"
                 />
+                {/* Пользовательские цвета темы применяем до первой отрисовки — иначе
+            страница мигнёт цветами по умолчанию. См. src/lib/theme.ts */}
+                <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
             </Head>
             <body>
                 {/* Google Analytics, шаг 1: default-согласие — всё запрещено (denied),

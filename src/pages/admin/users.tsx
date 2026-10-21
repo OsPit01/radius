@@ -33,7 +33,7 @@ export default function Users() {
             <AuthGuard>
                 <ClientHeader />
                 <div className="mx-auto max-w-[1200px] px-5 py-10 max-md:px-4">
-                    <h1 className="mb-8 text-2xl font-bold text-[#222]">Управление пользователями</h1>
+                    <h1 className="mb-8 text-2xl font-bold text-foreground">Управление пользователями</h1>
                     <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-md:grid-cols-1">
                         {users?.map((user) => (
                             <UserCard

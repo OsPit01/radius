@@ -12,7 +12,7 @@ type RoleInfo = {
 export const ROLES = {
     user: {
         label: 'Пользователь',
-        color: '#000000c4',
+        color: '#4b5563',
         level: 0,
     },
     lessor: {

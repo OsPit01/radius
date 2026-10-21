@@ -73,11 +73,11 @@ export default function Home({ filters, apartments }: HomePageProps) {
 
             <main className="mx-auto min-h-screen max-w-[1400px] px-20 pt-5 pb-[60px] max-lg:px-10 max-lg:pb-10 max-md:px-5 max-md:py-[30px]">
                 <div className="mx-auto max-w-[1400px] py-10 text-center">
-                    <h1 className="mb-5 text-[2rem] leading-[1.2] font-bold text-[#222] max-md:text-[2rem]">
+                    <h1 className="mb-5 text-[2rem] leading-[1.2] font-bold text-foreground max-md:text-[2rem]">
                         Посуточная аренда квартир
                     </h1>
 
-                    <h2 className="text-[1.2rem] leading-[1.5] text-[#666] max-md:text-base">
+                    <h2 className="text-[1.2rem] leading-[1.5] text-muted-foreground max-md:text-base">
                         квартиры на сутки напрямую от собственников
                     </h2>
 
@@ -88,7 +88,7 @@ export default function Home({ filters, apartments }: HomePageProps) {
                     />
                 </div>
 
-                <section className="mx-auto mt-12 max-w-3xl text-center text-[0.95rem] leading-relaxed text-[#555] max-md:mt-8 max-md:text-sm">
+                <section className="mx-auto mt-12 max-w-3xl text-center text-[0.95rem] leading-relaxed text-muted-foreground max-md:mt-8 max-md:text-sm">
                     <p className="mb-4">
                         Radius — удобный способ снять квартиру на сутки. У нас только проверенные объекты от
                         собственников: актуальные фотографии, честные цены и бронирование за пару минут. Выберите город,

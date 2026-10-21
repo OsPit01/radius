@@ -13,10 +13,10 @@ export default function TermsPage() {
                 canonical="/terms"
             />
             <ClientHeader />
-            <main className="mx-auto min-h-screen max-w-3xl px-5 py-10 text-[#222]">
-                <div className="rounded-2xl bg-white p-8 shadow-sm max-md:p-5">
+            <main className="mx-auto min-h-screen max-w-3xl px-5 py-10 text-foreground">
+                <div className="rounded-2xl bg-card p-8 shadow-sm max-md:p-5">
                     <h1 className="mb-6 text-3xl font-bold">Условия использования</h1>
-                    <p className="mb-4 text-sm text-[#888]">Дата последнего обновления: 19 октября 2026 г.</p>
+                    <p className="mb-4 text-sm text-muted-foreground">Дата последнего обновления: 19 октября 2026 г.</p>
 
                     <Section title="1. Общие положения">
                         <p>
@@ -88,7 +88,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
     return (
         <section className="mb-6">
             <h2 className="mb-2 text-xl font-semibold">{title}</h2>
-            <div className="space-y-2 text-[15px] leading-relaxed text-[#333]">{children}</div>
+            <div className="space-y-2 text-[15px] leading-relaxed text-foreground">{children}</div>
         </section>
     );
 }

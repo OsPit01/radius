@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { FaRegHeart } from 'react-icons/fa';
 
 import Link from 'next/link';
 import { signOut, useSession } from 'next-auth/react';
@@ -15,17 +16,44 @@ const mobileLinks = [
     { href: '/profile/settings', label: 'Настройки' },
 ] as const;
 
+/** true, как только страницу прокрутили хотя бы на пиксель (в духе шапки Vercel). */
+function useScrolled() {
+    const [scrolled, setScrolled] = useState(false);
+
+    useEffect(() => {
+        const update = () => setScrolled(window.scrollY > 0);
+        update();
+        window.addEventListener('scroll', update, { passive: true });
+        return () => window.removeEventListener('scroll', update);
+    }, []);
+
+    return scrolled;
+}
+
+/** Сердце «Избранное»: тот же значок, что на карточке, размером и цветом как колокольчик. */
+function FavoritesIcon() {
+    return (
+        <FaRegHeart className="h-5 w-5 text-muted-foreground transition-colors duration-200 group-hover:text-primary/60" />
+    );
+}
+
 export function Header() {
     const { data: session } = useSession();
     const [menuOpen, setMenuOpen] = useState(false);
+    const scrolled = useScrolled();
 
     return (
-        <header className="sticky top-0 z-[100] w-full border-b border-[#eaeaea] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+        <header
+            // Цвет как у страницы; граница в 1px появляется только при прокрутке.
+            className={`sticky top-0 z-[100] w-full border-b bg-background transition-colors duration-200 ${
+                scrolled || menuOpen ? 'border-foreground/15' : 'border-transparent'
+            }`}
+        >
             <div className="mx-auto flex w-full items-center justify-between gap-10 px-20 py-4 max-lg:px-10 max-md:gap-2 max-md:px-5">
                 {/* ЛОГО */}
                 <Link
                     href="/"
-                    className="shrink-0 text-2xl font-bold whitespace-nowrap text-[#222] no-underline"
+                    className="shrink-0 text-2xl font-bold whitespace-nowrap text-foreground no-underline"
                 >
                     Radius
                 </Link>
@@ -35,7 +63,7 @@ export function Header() {
                     {!session?.user ? (
                         <Link
                             href="/auth/signin"
-                            className="rounded-[30px] bg-white px-5 py-2 text-[0.85rem] font-medium text-black no-underline transition-colors duration-200 hover:bg-[#f5f5f5]"
+                            className="rounded-[30px] px-5 py-2 text-[0.85rem] font-medium text-foreground no-underline transition-colors duration-200 hover:bg-muted"
                         >
                             Войти
                         </Link>
@@ -47,14 +75,15 @@ export function Header() {
                         <div className="relative flex flex-1">
                             <Link
                                 href="/profile/favorites"
-                                className="cursor-pointer rounded-lg p-2 text-[1.1rem] no-underline transition-all duration-200 hover:bg-[#f5f5f5]"
+                                className="group cursor-pointer rounded-lg p-2 text-[1.1rem] no-underline transition-all duration-200 hover:bg-muted"
+                                aria-label="Избранное"
                             >
-                                ❤️
+                                <FavoritesIcon />
                             </Link>
                             {/* иконка колокольчик */}
                             <Link
                                 href="/my-notifications"
-                                className="cursor-pointer rounded-lg p-2 text-[1.1rem] no-underline transition-all duration-200 hover:bg-[#f5f5f5]"
+                                className="cursor-pointer rounded-lg p-2 text-[1.1rem] no-underline transition-all duration-200 hover:bg-muted"
                             >
                                 <NotificationBell />
                             </Link>
@@ -68,14 +97,14 @@ export function Header() {
                         <>
                             <Link
                                 href="/profile/favorites"
-                                className="cursor-pointer rounded-lg p-2 text-[1.1rem] no-underline transition-colors hover:bg-[#f5f5f5]"
+                                className="group cursor-pointer rounded-lg p-2 text-[1.1rem] no-underline transition-colors hover:bg-muted"
                                 aria-label="Избранное"
                             >
-                                ❤️
+                                <FavoritesIcon />
                             </Link>
                             <Link
                                 href="/my-notifications"
-                                className="cursor-pointer rounded-lg p-2 no-underline transition-colors hover:bg-[#f5f5f5]"
+                                className="cursor-pointer rounded-lg p-2 no-underline transition-colors hover:bg-muted"
                                 aria-label="Уведомления"
                             >
                                 <NotificationBell />
@@ -83,7 +112,7 @@ export function Header() {
                         </>
                     )}
                     <button
-                        className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg text-2xl text-[#222] transition-colors hover:bg-[#f5f5f5]"
+                        className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg text-2xl text-foreground transition-colors hover:bg-muted"
                         onClick={() => setMenuOpen((prev) => !prev)}
                         aria-label={menuOpen ? 'Закрыть меню' : 'Открыть меню'}
                         aria-expanded={menuOpen}
@@ -95,14 +124,14 @@ export function Header() {
 
             {/* МОБИЛЬНОЕ МЕНЮ */}
             {menuOpen && (
-                <div className="border-t border-[#eaeaea] md:hidden">
+                <div className="border-t border-border md:hidden">
                     <nav className="flex flex-col">
                         {mobileLinks.map((link) => (
                             <Link
                                 key={link.href}
                                 href={link.href}
                                 onClick={() => setMenuOpen(false)}
-                                className="border-b border-[#f5f5f5] px-5 py-4 text-base font-medium text-[#222] no-underline transition-colors hover:bg-[#f9f9fd]"
+                                className="border-b border-border px-5 py-4 text-base font-medium text-foreground no-underline transition-colors hover:bg-muted"
                             >
                                 {link.label}
                             </Link>
@@ -113,7 +142,7 @@ export function Header() {
                             <Link
                                 href="/auth/signin"
                                 onClick={() => setMenuOpen(false)}
-                                className="rounded-[30px] bg-[#222] px-6 py-2.5 text-sm font-medium text-white no-underline"
+                                className="rounded-[30px] bg-foreground px-6 py-2.5 text-sm font-medium text-background no-underline"
                             >
                                 Войти
                             </Link>
@@ -121,12 +150,12 @@ export function Header() {
                             <button
                                 type="button"
                                 onClick={() => signOut()}
-                                className="cursor-pointer rounded-[30px] bg-[#222] px-6 py-2.5 text-sm font-medium text-white"
+                                className="cursor-pointer rounded-[30px] bg-foreground px-6 py-2.5 text-sm font-medium text-background"
                             >
                                 Выйти
                             </button>
                         )}
-                        <span className="text-sm text-[#666]">РУ</span>
+                        <span className="text-sm text-muted-foreground">РУ</span>
                     </div>
                 </div>
             )}

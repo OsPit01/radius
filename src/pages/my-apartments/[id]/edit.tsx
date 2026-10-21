@@ -197,8 +197,8 @@ export default function EditApartmentPage() {
             <AuthGuard>
                 <ClientHeader />
                 <div className="mx-auto max-w-[900px] px-5 py-10 max-[480px]:px-2.5 max-[480px]:py-5">
-                    <div className="rounded-2xl bg-[#0e081b] p-10 shadow-[0_2px_8px_rgba(0,0,0,0.08)] max-[480px]:p-4 max-md:p-5">
-                        <h1 className="mb-[30px] text-[28px] font-bold text-white max-md:text-[22px]">
+                    <div className="rounded-2xl bg-card p-10 shadow-[0_2px_8px_rgba(0,0,0,0.08)] max-[480px]:p-4 max-md:p-5">
+                        <h1 className="mb-[30px] text-[28px] font-bold text-foreground max-md:text-[22px]">
                             Редактирование объекта
                         </h1>
 
@@ -214,8 +214,8 @@ export default function EditApartmentPage() {
                                         return (
                                             <div
                                                 key={index}
-                                                className={`relative aspect-square cursor-grab overflow-hidden rounded-lg border-2 border-[#3a2a4a] bg-[#2a1a3a] transition-colors duration-200 hover:border-[#6b21a8] ${
-                                                    isMain ? 'border-[#fbbf24]' : ''
+                                                className={`relative aspect-square cursor-grab overflow-hidden rounded-lg border-2 border-border bg-background transition-colors duration-200 hover:border-primary ${
+                                                    isMain ? 'border-warning' : ''
                                                 }`}
                                                 draggable={!isMain}
                                                 onDragStart={() => !isMain && handleDragStart(index)}
@@ -230,7 +230,7 @@ export default function EditApartmentPage() {
                                                         className="object-cover"
                                                     />
                                                     {isMain && (
-                                                        <div className="absolute top-1 left-1 z-[5] rounded bg-[rgba(251,191,36,0.9)] px-2 py-0.5 text-[10px] font-semibold text-black max-[480px]:px-1.5 max-[480px]:py-0.5 max-[480px]:text-[8px]">
+                                                        <div className="absolute top-1 left-1 z-[5] rounded bg-warning px-2 py-0.5 text-[10px] font-semibold text-warning-foreground max-[480px]:px-1.5 max-[480px]:py-0.5 max-[480px]:text-[8px]">
                                                             ⭐ Заглавная
                                                         </div>
                                                     )}
@@ -240,7 +240,7 @@ export default function EditApartmentPage() {
                                                         type="button"
                                                         className={`flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-none p-0 text-[13px] leading-none transition-all duration-200 hover:scale-110 max-[480px]:h-[22px] max-[480px]:w-[22px] max-[480px]:text-[10px] ${
                                                             isMain
-                                                                ? 'bg-[rgba(251,191,36,0.2)] text-[#fbbf24] shadow-[0_0_12px_rgba(251,191,36,0.3)] hover:bg-[rgba(251,191,36,0.3)]'
+                                                                ? 'bg-warning/20 text-warning shadow-[0_0_12px_color-mix(in_oklab,var(--warning)_30%,transparent)] hover:bg-warning/30'
                                                                 : 'bg-black/60 text-white/30 hover:bg-black/80 hover:text-white/80'
                                                         }`}
                                                         onClick={() => setMainImage(index)}
@@ -250,7 +250,7 @@ export default function EditApartmentPage() {
                                                     </button>
                                                     <button
                                                         type="button"
-                                                        className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-none bg-black/60 p-0 text-[13px] leading-none text-white/50 transition-all duration-200 hover:scale-110 hover:bg-[#ef4444] hover:text-white max-[480px]:h-[22px] max-[480px]:w-[22px] max-[480px]:text-[10px]"
+                                                        className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-none bg-black/60 p-0 text-[13px] leading-none text-white/50 transition-all duration-200 hover:scale-110 hover:bg-destructive/90 hover:text-destructive-foreground max-[480px]:h-[22px] max-[480px]:w-[22px] max-[480px]:text-[10px]"
                                                         onClick={() => removeImage(index)}
                                                         title="Удалить"
                                                     >
@@ -260,8 +260,8 @@ export default function EditApartmentPage() {
                                             </div>
                                         );
                                     })}
-                                    <label className="flex aspect-square cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-[#3a2a4a] bg-[#2a1a3a] transition-all duration-200 hover:border-[#6b21a8] hover:bg-[rgba(181,82,199,0.05)]">
-                                        <span className="flex cursor-pointer flex-col items-center gap-1 border-none bg-transparent text-[13px] text-[#b0a0b0]">
+                                    <label className="flex aspect-square cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-border bg-background transition-all duration-200 hover:border-primary hover:bg-primary/5">
+                                        <span className="flex cursor-pointer flex-col items-center gap-1 border-none bg-transparent text-[13px] text-muted-foreground">
                                             {isUploading ? '⏳' : '📸'}
                                             <span className="text-[28px]">{isUploading ? 'Загрузка...' : '+'}</span>
                                         </span>
@@ -277,18 +277,18 @@ export default function EditApartmentPage() {
                             </div>
 
                             {/* ИНФОРМАЦИЯ */}
-                            <section className="mb-10 text-[#d0c0d0]">
-                                <div className="mt-[35px] mb-[15px] border-b border-[#3a2a4a] pb-2 text-xl font-semibold text-white">
+                            <section className="mb-10 text-muted-foreground">
+                                <div className="mt-[35px] mb-[15px] border-b border-border pb-2 text-xl font-semibold text-foreground">
                                     🏠 Информация
                                 </div>
 
                                 {/* Подраздел: Название и цена */}
-                                <div className="mt-[30px] mb-7 border-b border-[#3a2a4a] pb-2 text-lg font-semibold text-[#c4deeb]">
+                                <div className="mt-[30px] mb-7 border-b border-border pb-2 text-lg font-semibold text-primary">
                                     💰 Название и цена
                                 </div>
                                 <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
                                     <div className="mb-4 flex flex-col gap-1.5">
-                                        <label className="text-sm font-medium text-white">Заголовок*</label>
+                                        <label className="text-sm font-medium text-foreground">Заголовок*</label>
                                         <input
                                             type="text"
                                             value={formData.title}
@@ -298,7 +298,7 @@ export default function EditApartmentPage() {
                                         />
                                     </div>
                                     <div className="mb-4 flex flex-col gap-1.5">
-                                        <label className="text-sm font-medium text-white">Цена за сутки*</label>
+                                        <label className="text-sm font-medium text-foreground">Цена за сутки*</label>
                                         <div className="flex items-center gap-2">
                                             <input
                                                 type="number"
@@ -311,7 +311,7 @@ export default function EditApartmentPage() {
                                             <select
                                                 value={formData.currency}
                                                 onChange={(e) => updateField('currency', e.target.value)}
-                                                className="h-[42px] cursor-pointer rounded-lg border border-[#3a2a4a] bg-[#2a1a3a] px-3 text-sm text-white outline-none"
+                                                className="h-[42px] cursor-pointer rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none"
                                             >
                                                 {CURRENCIES.map((c) => (
                                                     <option
@@ -327,12 +327,14 @@ export default function EditApartmentPage() {
                                 </div>
 
                                 {/* Подраздел: Вместимость */}
-                                <div className="mt-[30px] mb-7 border-b border-[#3a2a4a] pb-2 text-lg font-semibold text-[#c4deeb]">
+                                <div className="mt-[30px] mb-7 border-b border-border pb-2 text-lg font-semibold text-primary">
                                     🛋️ Вместимость
                                 </div>
                                 <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
                                     <div className="mb-4 flex flex-col gap-1.5">
-                                        <label className="text-sm font-medium text-white">Количество комнат*</label>
+                                        <label className="text-sm font-medium text-foreground">
+                                            Количество комнат*
+                                        </label>
                                         <input
                                             type="number"
                                             value={formData.rooms}
@@ -344,7 +346,9 @@ export default function EditApartmentPage() {
                                         />
                                     </div>
                                     <div className="mb-4 flex flex-col gap-1.5">
-                                        <label className="text-sm font-medium text-white">Вместимость (человек)</label>
+                                        <label className="text-sm font-medium text-foreground">
+                                            Вместимость (человек)
+                                        </label>
                                         <input
                                             type="number"
                                             value={formData.capacity}
@@ -357,12 +361,14 @@ export default function EditApartmentPage() {
                                 </div>
 
                                 {/* Подраздел: Места для сна (2 сверху, 2 снизу) */}
-                                <div className="mt-[30px] mb-7 border-b border-[#3a2a4a] pb-2 text-lg font-semibold text-[#c4deeb]">
+                                <div className="mt-[30px] mb-7 border-b border-border pb-2 text-lg font-semibold text-primary">
                                     🛏️ Места для сна
                                 </div>
                                 <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
                                     <div className="mb-4 flex flex-col gap-1.5">
-                                        <label className="text-sm font-medium text-white">Двуспальные кровати</label>
+                                        <label className="text-sm font-medium text-foreground">
+                                            Двуспальные кровати
+                                        </label>
                                         <input
                                             type="number"
                                             value={formData.beds}
@@ -373,7 +379,9 @@ export default function EditApartmentPage() {
                                         />
                                     </div>
                                     <div className="mb-4 flex flex-col gap-1.5">
-                                        <label className="text-sm font-medium text-white">Односпальные кровати</label>
+                                        <label className="text-sm font-medium text-foreground">
+                                            Односпальные кровати
+                                        </label>
                                         <input
                                             type="number"
                                             value={formData.singleBeds}
@@ -386,7 +394,9 @@ export default function EditApartmentPage() {
                                 </div>
                                 <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
                                     <div className="mb-4 flex flex-col gap-1.5">
-                                        <label className="text-sm font-medium text-white">Двуспальные диваны</label>
+                                        <label className="text-sm font-medium text-foreground">
+                                            Двуспальные диваны
+                                        </label>
                                         <input
                                             type="number"
                                             value={formData.doubleSofas}
@@ -397,7 +407,9 @@ export default function EditApartmentPage() {
                                         />
                                     </div>
                                     <div className="mb-4 flex flex-col gap-1.5">
-                                        <label className="text-sm font-medium text-white">Односпальные диваны</label>
+                                        <label className="text-sm font-medium text-foreground">
+                                            Односпальные диваны
+                                        </label>
                                         <input
                                             type="number"
                                             value={formData.singleSofas}
@@ -410,16 +422,16 @@ export default function EditApartmentPage() {
                                 </div>
 
                                 {/* Подраздел: Время заезда и выезда */}
-                                <div className="mt-[30px] mb-7 border-b border-[#3a2a4a] pb-2 text-lg font-semibold text-[#c4deeb]">
+                                <div className="mt-[30px] mb-7 border-b border-border pb-2 text-lg font-semibold text-primary">
                                     🕒 Время заезда и выезда
                                 </div>
                                 <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
                                     <div className="mb-4 flex flex-col gap-1.5">
-                                        <label className="text-sm font-medium text-white">Заселение</label>
+                                        <label className="text-sm font-medium text-foreground">Заселение</label>
                                         <select
                                             value={formData.checkInTime}
                                             onChange={(e) => updateField('checkInTime', e.target.value)}
-                                            className="h-[42px] cursor-pointer rounded-lg border border-[#3a2a4a] bg-[#2a1a3a] px-3 text-sm text-white outline-none"
+                                            className="h-[42px] cursor-pointer rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none"
                                         >
                                             {TIME_OPTIONS.map((t) => (
                                                 <option
@@ -432,11 +444,11 @@ export default function EditApartmentPage() {
                                         </select>
                                     </div>
                                     <div className="mb-4 flex flex-col gap-1.5">
-                                        <label className="text-sm font-medium text-white">Выезд</label>
+                                        <label className="text-sm font-medium text-foreground">Выезд</label>
                                         <select
                                             value={formData.checkOutTime}
                                             onChange={(e) => updateField('checkOutTime', e.target.value)}
-                                            className="h-[42px] cursor-pointer rounded-lg border border-[#3a2a4a] bg-[#2a1a3a] px-3 text-sm text-white outline-none"
+                                            className="h-[42px] cursor-pointer rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none"
                                         >
                                             {TIME_OPTIONS.map((t) => (
                                                 <option
@@ -451,12 +463,14 @@ export default function EditApartmentPage() {
                                 </div>
 
                                 {/* Подраздел: Расположение, описание, правила */}
-                                <div className="mt-[30px] mb-7 border-b border-[#3a2a4a] pb-2 text-lg font-semibold text-[#c4deeb]">
+                                <div className="mt-[30px] mb-7 border-b border-border pb-2 text-lg font-semibold text-primary">
                                     📍 Расположение и описание
                                 </div>
                                 <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
                                     <div className="mb-4 flex flex-col gap-1.5">
-                                        <label className="text-sm font-medium text-white">Метро (мин пешком)</label>
+                                        <label className="text-sm font-medium text-foreground">
+                                            Метро (мин пешком)
+                                        </label>
                                         <input
                                             type="text"
                                             inputMode="numeric"
@@ -466,7 +480,7 @@ export default function EditApartmentPage() {
                                         />
                                     </div>
                                     <div className="mb-4 flex flex-col gap-1.5">
-                                        <label className="text-sm font-medium text-white">Описание</label>
+                                        <label className="text-sm font-medium text-foreground">Описание</label>
                                         <textarea
                                             value={formData.description}
                                             onChange={(e) => updateField('description', e.target.value)}
@@ -475,8 +489,9 @@ export default function EditApartmentPage() {
                                         />
                                     </div>
                                     <div className="mb-4 flex flex-col gap-1.5">
-                                        <label className="text-sm font-medium text-white">
-                                            Правила проживания <span className="text-[#888]">(необязательно)</span>
+                                        <label className="text-sm font-medium text-foreground">
+                                            Правила проживания{' '}
+                                            <span className="text-muted-foreground">(необязательно)</span>
                                         </label>
                                         <textarea
                                             value={formData.rules}
@@ -491,7 +506,7 @@ export default function EditApartmentPage() {
                                 {/* Площадь / этаж / санузлы */}
                                 <div className="grid grid-cols-3 gap-4 max-md:grid-cols-1">
                                     <div className="mb-4 flex flex-col gap-1.5">
-                                        <label className="text-sm font-medium text-white">Площадь, м²</label>
+                                        <label className="text-sm font-medium text-foreground">Площадь, м²</label>
                                         <input
                                             type="number"
                                             min={0}
@@ -501,7 +516,7 @@ export default function EditApartmentPage() {
                                         />
                                     </div>
                                     <div className="mb-4 flex flex-col gap-1.5">
-                                        <label className="text-sm font-medium text-white">Этаж</label>
+                                        <label className="text-sm font-medium text-foreground">Этаж</label>
                                         <input
                                             type="number"
                                             value={formData.floor || ''}
@@ -510,7 +525,7 @@ export default function EditApartmentPage() {
                                         />
                                     </div>
                                     <div className="mb-4 flex flex-col gap-1.5">
-                                        <label className="text-sm font-medium text-white">Санузлы</label>
+                                        <label className="text-sm font-medium text-foreground">Санузлы</label>
                                         <input
                                             type="number"
                                             min={0}
@@ -523,18 +538,18 @@ export default function EditApartmentPage() {
                             </section>
 
                             {/* АДРЕС */}
-                            <section className="mb-10 text-[#d0c0d0]">
-                                <div className="mt-[35px] mb-[15px] border-b border-[#3a2a4a] pb-2 text-xl font-semibold text-white">
+                            <section className="mb-10 text-muted-foreground">
+                                <div className="mt-[35px] mb-[15px] border-b border-border pb-2 text-xl font-semibold text-foreground">
                                     Адрес
                                 </div>
                                 {!canEditAddress && (
-                                    <p className="mb-4 rounded-lg border border-[#3a2a4a] bg-[#2a1a3a] px-4 py-3 text-sm text-[#c9b3e1]">
+                                    <p className="mb-4 rounded-lg border border-border bg-background px-4 py-3 text-sm text-muted-foreground">
                                         Адрес опубликованного объекта может изменить только администратор.
                                     </p>
                                 )}
                                 <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
                                     <div className="mb-4 flex flex-col gap-1.5">
-                                        <label className="text-sm font-medium text-white">Город *</label>
+                                        <label className="text-sm font-medium text-foreground">Город *</label>
                                         <input
                                             type="text"
                                             value={formData.city}
@@ -545,7 +560,7 @@ export default function EditApartmentPage() {
                                         />
                                     </div>
                                     <div className="mb-4 flex flex-col gap-1.5">
-                                        <label className="text-sm font-medium text-white">Район</label>
+                                        <label className="text-sm font-medium text-foreground">Район</label>
                                         <input
                                             type="text"
                                             value={formData.district}
@@ -557,7 +572,7 @@ export default function EditApartmentPage() {
                                 </div>
                                 <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
                                     <div className="relative mb-4 flex flex-col gap-1.5">
-                                        <label className="text-sm font-medium text-white">Улица *</label>
+                                        <label className="text-sm font-medium text-foreground">Улица *</label>
                                         <input
                                             type="text"
                                             value={formData.street}
@@ -573,7 +588,7 @@ export default function EditApartmentPage() {
                                             className={`${EDIT_INPUT_CLASS} disabled:cursor-not-allowed disabled:opacity-50`}
                                         />
                                         {streetOpen && streetSuggestions.length > 0 && (
-                                            <ul className="absolute top-full right-0 left-0 z-50 mt-1 max-h-[240px] overflow-y-auto rounded-xl border-2 border-[#3a2a4a] bg-[#1a0a2a] shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
+                                            <ul className="absolute top-full right-0 left-0 z-50 mt-1 max-h-[240px] overflow-y-auto rounded-xl border-2 border-border bg-card shadow-[0_8px_30px_rgba(0,0,0,0.25)]">
                                                 {streetSuggestions.map((s) => (
                                                     <li key={s}>
                                                         <button
@@ -584,7 +599,7 @@ export default function EditApartmentPage() {
                                                                 updateField('street', s);
                                                                 setStreetOpen(false);
                                                             }}
-                                                            className="block w-full cursor-pointer px-4 py-3 text-left text-sm text-white transition-colors hover:bg-[rgba(107,33,168,0.2)]"
+                                                            className="block w-full cursor-pointer px-4 py-3 text-left text-sm text-foreground transition-colors hover:bg-primary/20"
                                                         >
                                                             {s}
                                                         </button>
@@ -594,7 +609,7 @@ export default function EditApartmentPage() {
                                         )}
                                     </div>
                                     <div className="mb-4 flex flex-col gap-1.5">
-                                        <label className="text-sm font-medium text-white">Номер дома *</label>
+                                        <label className="text-sm font-medium text-foreground">Номер дома *</label>
                                         <input
                                             type="text"
                                             value={formData.numberHome}
@@ -607,7 +622,7 @@ export default function EditApartmentPage() {
                                 </div>
                                 <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
                                     <div className="mb-4 flex flex-col gap-1.5">
-                                        <label className="text-sm font-medium text-white">Корпус</label>
+                                        <label className="text-sm font-medium text-foreground">Корпус</label>
                                         <input
                                             type="text"
                                             value={formData.building}
@@ -617,8 +632,8 @@ export default function EditApartmentPage() {
                                         />
                                     </div>
                                     <div className="mb-4 flex flex-col gap-1.5">
-                                        <label className="text-sm font-medium text-white">
-                                            Микрорайон <span className="text-[#888]">(необязательно)</span>
+                                        <label className="text-sm font-medium text-foreground">
+                                            Микрорайон <span className="text-muted-foreground">(необязательно)</span>
                                         </label>
                                         <input
                                             type="text"
@@ -632,12 +647,12 @@ export default function EditApartmentPage() {
                                 </div>
                             </section>
                             {/*ЮРИДИЧЕСКАЯ ИНФОРМАЦИЯ/РЕКВИЗИТЫ ПЛАТЕЛЬЩИКА*/}
-                            <section className="mb-10 text-[#d0c0d0]">
-                                <div className="mt-[35px] mb-[15px] border-b border-[#3a2a4a] pb-2 text-xl font-semibold text-white">
+                            <section className="mb-10 text-muted-foreground">
+                                <div className="mt-[35px] mb-[15px] border-b border-border pb-2 text-xl font-semibold text-foreground">
                                     Реквизиты плательщика
                                 </div>
                                 <div className="flex flex-col gap-4">
-                                    <label className="text-medium text-sm text-white">Плательщик</label>
+                                    <label className="text-medium text-sm text-foreground">Плательщик</label>
                                     <select
                                         value={formData.payerType}
                                         onChange={(e) => updateField('payerType', e.target.value)}
@@ -652,7 +667,9 @@ export default function EditApartmentPage() {
                                             </option>
                                         ))}
                                     </select>
-                                    <label className="text-medium text-sm text-white">Учетный номер плательщика</label>
+                                    <label className="text-medium text-sm text-foreground">
+                                        Учетный номер плательщика
+                                    </label>
 
                                     <input
                                         type="text"
@@ -664,7 +681,9 @@ export default function EditApartmentPage() {
                                         className={`${EDIT_INPUT_CLASS} w-full max-w-[300px]`}
                                         maxLength={9}
                                     />
-                                    <label className="text-medium text-sm text-white">Наименование организации</label>
+                                    <label className="text-medium text-sm text-foreground">
+                                        Наименование организации
+                                    </label>
                                     <input
                                         type="text"
                                         value={formData.payerName ?? ''}
@@ -676,15 +695,15 @@ export default function EditApartmentPage() {
                             </section>
 
                             {/* УДОБСТВА */}
-                            <section className="mb-10 text-[#d0c0d0]">
-                                <div className="mt-[35px] mb-[15px] border-b border-[#3a2a4a] pb-2 text-xl font-semibold text-white">
+                            <section className="mb-10 text-muted-foreground">
+                                <div className="mt-[35px] mb-[15px] border-b border-border pb-2 text-xl font-semibold text-foreground">
                                     Удобства
                                 </div>
                                 <div className="mb-4 grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-2 max-[480px]:grid-cols-1 max-md:grid-cols-2">
                                     {AMENITIES.map((amenity) => (
                                         <label
                                             key={amenity.id}
-                                            className="flex cursor-pointer items-center gap-2 text-xs text-white"
+                                            className="flex cursor-pointer items-center gap-2 text-xs text-foreground"
                                         >
                                             <input
                                                 type="checkbox"
@@ -695,14 +714,14 @@ export default function EditApartmentPage() {
                                                         toggleAmenity(formData.amenities, amenity.id, e.target.checked),
                                                     )
                                                 }
-                                                className="h-[18px] min-h-[18px] w-[18px] min-w-[18px] shrink-0 cursor-pointer accent-[#6b21a8]"
+                                                className="h-[18px] min-h-[18px] w-[18px] min-w-[18px] shrink-0 cursor-pointer accent-primary"
                                             />
                                             {amenity.label}
                                         </label>
                                     ))}
                                 </div>
                                 <div className="mb-4 flex flex-col gap-1.5">
-                                    <label className="text-sm font-medium text-white">Парковка</label>
+                                    <label className="text-sm font-medium text-foreground">Парковка</label>
                                     <select
                                         value={formData.parking}
                                         onChange={(e) => updateField('parking', e.target.value)}
@@ -721,17 +740,17 @@ export default function EditApartmentPage() {
                             </section>
 
                             {/* КНОПКИ */}
-                            <div className="mt-[30px] flex gap-4 border-t border-[#3a2a4a] pt-5 max-md:flex-col">
+                            <div className="mt-[30px] flex gap-4 border-t border-border pt-5 max-md:flex-col">
                                 <button
                                     type="submit"
-                                    className="cursor-pointer rounded-[30px] bg-[#5d2d66] px-8 py-3 text-base font-semibold text-white transition-colors duration-200 hover:bg-[#9a3fb0] max-md:w-full max-md:text-center"
+                                    className="cursor-pointer rounded-[30px] bg-primary px-8 py-3 text-base font-semibold text-primary-foreground transition-colors duration-200 hover:bg-primary/90 max-md:w-full max-md:text-center"
                                     disabled={isSubmitting}
                                 >
                                     {isSubmitting ? 'Сохранение...' : 'Сохранить'}
                                 </button>
                                 <Link
                                     href="/my-apartments"
-                                    className="cursor-pointer rounded-[30px] bg-[#3a2a4a] px-8 py-3 text-center text-base font-semibold text-white no-underline transition-colors duration-200 hover:bg-[#4a3a5a] max-md:w-full"
+                                    className="cursor-pointer rounded-[30px] bg-muted px-8 py-3 text-center text-base font-semibold text-foreground no-underline transition-colors duration-200 hover:bg-border max-md:w-full"
                                 >
                                     Отмена
                                 </Link>

@@ -82,7 +82,7 @@ export function ChatWindow({
                 ref={listRef}
                 className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto py-8"
             >
-                {messages?.length === 0 && <p className="py-8 text-center text-[#888]">Нет сообщений.</p>}
+                {messages?.length === 0 && <p className="py-8 text-center text-muted-foreground">Нет сообщений.</p>}
                 {messages?.map((m) => {
                     const isMine = m.senderId === myUserId;
                     return (
@@ -101,7 +101,7 @@ export function ChatWindow({
             {/* Поле ввода + кнопка отправки */}
             {/* Поле ввода + кнопка отправки */}
             {/* items-end — чтобы кнопка НЕ растягивалась по высоте textarea */}
-            <div className="flex shrink-0 items-end gap-2 border-t border-gray-300 pt-3">
+            <div className="flex shrink-0 items-end gap-2 border-t border-border pt-3">
                 <textarea
                     rows={1}
                     value={text}
@@ -130,14 +130,14 @@ export function ChatWindow({
                     placeholder="Сообщение..."
                     // maxLength — жёсткий лимит символов. Меняй тут (300–350 норм для чата).
                     maxLength={300}
-                    className="min-w-0 flex-1 resize-none overflow-hidden rounded-2xl border border-[#e0e0e0] px-4 py-2.5 pr-5 text-[15px] text-[#222] outline-none focus:border-[#6b21a8]"
+                    className="min-w-0 flex-1 resize-none overflow-hidden rounded-2xl border border-border px-4 py-2.5 pr-5 text-[15px] text-foreground outline-none focus:border-primary"
                 />
                 <button
                     type="button"
                     onClick={handleSend}
                     disabled={!text.trim() || isSending}
                     // self-end — страховка, чтобы кнопка всегда была снизу и не тянулась
-                    className="shrink-0 cursor-pointer self-end rounded-full bg-[#6b21a8] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#5a1a8f] disabled:cursor-not-allowed disabled:bg-[#c4b5fd]"
+                    className="shrink-0 cursor-pointer self-end rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-primary/40"
                 >
                     Отправить
                 </button>

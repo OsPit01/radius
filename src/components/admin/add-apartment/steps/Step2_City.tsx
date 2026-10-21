@@ -49,11 +49,11 @@ export function Step2_City({ formData, updateField, error }: StepProps) {
     };
 
     return (
-        <fieldset className="animate-[fadeIn_0.3s_ease] text-white">
-            <legend className="mb-2.5 text-[17px] text-white">Шаг 2: выберите расположение</legend>
+        <fieldset className="animate-[fadeIn_0.3s_ease] text-foreground">
+            <legend className="mb-2.5 text-[17px] text-foreground">Шаг 2: выберите расположение</legend>
 
             <div className="mt-2.5 flex flex-col gap-2">
-                <label className="pt-[5px] text-sm font-semibold text-white">Город / область</label>
+                <label className="pt-[5px] text-sm font-semibold text-foreground">Город / область</label>
                 <CustomSelect
                     options={regionOptions}
                     value={formData.region}
@@ -63,7 +63,7 @@ export function Step2_City({ formData, updateField, error }: StepProps) {
             </div>
 
             <div className="mt-2.5 flex flex-col gap-2">
-                <label className="pt-[5px] text-sm font-semibold text-white">
+                <label className="pt-[5px] text-sm font-semibold text-foreground">
                     {isCityRegion ? 'Район города' : 'Район'}
                 </label>
                 <CustomSelect
@@ -89,7 +89,7 @@ export function Step2_City({ formData, updateField, error }: StepProps) {
 
             {showLocalitySelect && (
                 <div className="mt-2.5 flex flex-col gap-2">
-                    <label className="pt-[5px] text-sm font-semibold text-white">Населённый пункт</label>
+                    <label className="pt-[5px] text-sm font-semibold text-foreground">Населённый пункт</label>
                     <CustomSelect
                         options={localities.map((l) => ({
                             value: l.name,
@@ -102,9 +102,9 @@ export function Step2_City({ formData, updateField, error }: StepProps) {
                 </div>
             )}
 
-            {error && <div className="mt-1 text-[13px] text-[#ee7272]"> {error} </div>}
+            {error && <div className="mt-1 text-[13px] text-destructive"> {error} </div>}
 
-            <div className="mt-5 p-[5px] text-[13px] text-[rgba(216,214,214,0.911)]">{getTypeLabel(formData.type)}</div>
+            <div className="mt-5 p-[5px] text-[13px] text-muted-foreground">{getTypeLabel(formData.type)}</div>
         </fieldset>
     );
 }

@@ -32,12 +32,12 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
     };
 
     return (
-        <fieldset className="animate-[fadeIn_0.3s_ease] text-white">
-            <legend className="mb-2.5 text-[17px] text-white">Шаг 4: Детали объекта</legend>
+        <fieldset className="animate-[fadeIn_0.3s_ease] text-foreground">
+            <legend className="mb-2.5 text-[17px] text-foreground">Шаг 4: Детали объекта</legend>
 
             {error && (
                 <div
-                    className="rounded-xl bg-[rgba(239,68,68,0.1)] p-3 text-center text-[#ef4444]"
+                    className="rounded-xl bg-destructive/10 p-3 text-center text-destructive"
                     role="alert"
                 >
                     {error}
@@ -48,7 +48,7 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
             <div className="flex flex-col gap-2">
                 <label
                     htmlFor="title-field"
-                    className="pt-[5px] text-sm font-semibold text-white"
+                    className="pt-[5px] text-sm font-semibold text-foreground"
                 >
                     Напишите заголовок <span className="required">*</span>
                 </label>
@@ -57,24 +57,24 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
                     type="text"
                     value={formData.title}
                     onChange={(e) => updateField('title', e.target.value)}
-                    className={`${INPUT_CLASS} ${hasError('title') ? '!border-[#ef4444]' : ''}`}
+                    className={`${INPUT_CLASS} ${hasError('title') ? '!border-destructive' : ''}`}
                     placeholder="Например: Уютная студия в центре города"
                 />
             </div>
 
             {/* ========== РАЗДЕЛИТЕЛЬ ========== */}
-            <div className="mt-7 mb-5 border-t border-[rgba(255,255,255,0.12)]" />
+            <div className="mt-7 mb-5 border-t border-border" />
 
             {/* ===== СЕКЦИЯ: ЦЕНА ===== */}
             <div className="mb-5 flex items-center gap-2">
                 <span className="text-base">💰</span>
-                <h3 className="text-base font-semibold tracking-wide text-[#c4deeb] uppercase">Цена и валюта</h3>
+                <h3 className="text-base font-semibold tracking-wide text-primary uppercase">Цена и валюта</h3>
             </div>
             <div className="grid grid-cols-2 gap-5 max-[640px]:grid-cols-1">
                 <div className="flex flex-col gap-2">
                     <label
                         htmlFor="price-field"
-                        className="pt-[5px] text-sm font-semibold text-white"
+                        className="pt-[5px] text-sm font-semibold text-foreground"
                     >
                         Цена за сутки <span className="required">*</span>
                     </label>
@@ -83,7 +83,7 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
                         type="number"
                         value={formData.price || ''}
                         onChange={(e) => updateField('price', Number(e.target.value))}
-                        className={`${INPUT_CLASS} ${hasError('price') ? '!border-[#ef4444]' : ''}`}
+                        className={`${INPUT_CLASS} ${hasError('price') ? '!border-destructive' : ''}`}
                         placeholder="100"
                         min="30"
                     />
@@ -91,7 +91,7 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
                 <div className="flex flex-col gap-2">
                     <label
                         htmlFor="currency-field"
-                        className="pt-[5px] text-sm font-semibold text-white"
+                        className="pt-[5px] text-sm font-semibold text-foreground"
                     >
                         Валюта
                     </label>
@@ -104,18 +104,18 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
             </div>
 
             {/* ========== РАЗДЕЛИТЕЛЬ ========== */}
-            <div className="mt-7 mb-5 border-t border-[rgba(255,255,255,0.12)]" />
+            <div className="mt-7 mb-5 border-t border-border" />
 
             {/* ===== СЕКЦИЯ: ВМЕСТИМОСТЬ ===== */}
             <div className="mb-5 flex items-center gap-2">
                 <span className="text-base">🛋️</span>
-                <h3 className="text-base font-semibold tracking-wide text-[#c4deeb] uppercase">Вместимость</h3>
+                <h3 className="text-base font-semibold tracking-wide text-primary uppercase">Вместимость</h3>
             </div>
             <div className="grid grid-cols-2 gap-5 max-[640px]:grid-cols-1">
                 <div className="flex flex-col gap-2">
                     <label
                         htmlFor="rooms-field"
-                        className="pt-[5px] text-sm font-semibold text-white"
+                        className="pt-[5px] text-sm font-semibold text-foreground"
                     >
                         Количество комнат <span className="required">*</span>
                     </label>
@@ -124,7 +124,7 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
                         type="number"
                         value={formData.rooms || ''}
                         onChange={(e) => updateField('rooms', Number(e.target.value))}
-                        className={`${INPUT_CLASS} ${hasError('rooms') ? '!border-[#ef4444]' : ''}`}
+                        className={`${INPUT_CLASS} ${hasError('rooms') ? '!border-destructive' : ''}`}
                         placeholder="1"
                         min="1"
                         max="20"
@@ -133,7 +133,7 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
                 <div className="flex flex-col gap-2">
                     <label
                         htmlFor="capacity-field"
-                        className="pt-[5px] text-sm font-semibold text-white"
+                        className="pt-[5px] text-sm font-semibold text-foreground"
                     >
                         Вместимость (человек) <span className="required">*</span>
                     </label>
@@ -142,7 +142,7 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
                         type="number"
                         value={formData.capacity || ''}
                         onChange={(e) => updateField('capacity', Number(e.target.value))}
-                        className={`${INPUT_CLASS} ${hasError('capacity') ? '!border-[#ef4444]' : ''}`}
+                        className={`${INPUT_CLASS} ${hasError('capacity') ? '!border-destructive' : ''}`}
                         placeholder="2"
                         min="1"
                         max="35"
@@ -152,13 +152,13 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
 
             {/* ===== Подблок: МЕСТА ДЛЯ СНА ===== */}
             <div className="mt-4">
-                <p className="mb-3 text-sm font-semibold tracking-wide text-white/70 uppercase">Места для сна</p>
+                <p className="mb-3 text-sm font-semibold tracking-wide text-foreground/70 uppercase">Места для сна</p>
                 {/* 2 селекта сверху горизонтально */}
                 <div className="grid grid-cols-2 gap-5 max-[640px]:grid-cols-1">
                     <div className="flex flex-col gap-2">
                         <label
                             htmlFor="beds-field"
-                            className="text-sm font-medium text-white/80"
+                            className="text-sm font-medium text-foreground/80"
                         >
                             Двуспальные кровати
                         </label>
@@ -171,7 +171,7 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
                     <div className="flex flex-col gap-2">
                         <label
                             htmlFor="singlebeds-field"
-                            className="text-sm font-medium text-white/80"
+                            className="text-sm font-medium text-foreground/80"
                         >
                             Односпальные кровати
                         </label>
@@ -187,7 +187,7 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
                     <div className="flex flex-col gap-2">
                         <label
                             htmlFor="doublesofas-field"
-                            className="text-sm font-medium text-white/80"
+                            className="text-sm font-medium text-foreground/80"
                         >
                             Двуспальные диваны
                         </label>
@@ -200,7 +200,7 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
                     <div className="flex flex-col gap-2">
                         <label
                             htmlFor="singlesofas-field"
-                            className="text-sm font-medium text-white/80"
+                            className="text-sm font-medium text-foreground/80"
                         >
                             Односпальные диваны
                         </label>
@@ -214,17 +214,17 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
             </div>
 
             {/* ========== РАЗДЕЛИТЕЛЬ ========== */}
-            <div className="mt-7 mb-5 border-t border-[rgba(255,255,255,0.12)]" />
+            <div className="mt-7 mb-5 border-t border-border" />
 
             {/* ===== СЕКЦИЯ: РАСПОЛОЖЕНИЕ ===== */}
             <div className="mb-5 flex items-center gap-2">
                 <span className="text-base">🚇</span>
-                <h3 className="text-base font-semibold tracking-wide text-[#c4deeb] uppercase">Расположение</h3>
+                <h3 className="text-base font-semibold tracking-wide text-primary uppercase">Расположение</h3>
             </div>
             <div className="flex flex-col gap-2">
                 <label
                     htmlFor="metro-field"
-                    className="pt-[5px] text-sm font-semibold text-white"
+                    className="pt-[5px] text-sm font-semibold text-foreground"
                 >
                     Метро (минут пешком)
                 </label>
@@ -244,7 +244,7 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
                 <div className="flex flex-col gap-2">
                     <label
                         htmlFor="area-field"
-                        className="text-sm font-medium text-white/80"
+                        className="text-sm font-medium text-foreground/80"
                     >
                         Площадь, м²
                     </label>
@@ -261,7 +261,7 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
                 <div className="flex flex-col gap-2">
                     <label
                         htmlFor="floor-field"
-                        className="text-sm font-medium text-white/80"
+                        className="text-sm font-medium text-foreground/80"
                     >
                         Этаж
                     </label>
@@ -277,7 +277,7 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
                 <div className="flex flex-col gap-2">
                     <label
                         htmlFor="bathrooms-field"
-                        className="text-sm font-medium text-white/80"
+                        className="text-sm font-medium text-foreground/80"
                     >
                         Санузлы
                     </label>
@@ -294,25 +294,25 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
             </div>
 
             {/* ========== РАЗДЕЛИТЕЛЬ ========== */}
-            <div className="mt-7 mb-5 border-t border-[rgba(255,255,255,0.12)]" />
+            <div className="mt-7 mb-5 border-t border-border" />
 
             {/* ===== СЕКЦИЯ: УДОБСТВА ===== */}
             <div className="mb-5 flex items-center gap-2">
                 <span className="text-base">✨</span>
-                <h3 className="text-base font-semibold tracking-wide text-[#c4deeb] uppercase">Удобства</h3>
+                <h3 className="text-base font-semibold tracking-wide text-primary uppercase">Удобства</h3>
             </div>
             <div className="flex flex-col gap-2">
                 <div className="grid grid-cols-3 gap-[8px_16px] py-2 max-[480px]:grid-cols-1 max-md:grid-cols-2">
                     {AMENITIES.map((amenity) => (
                         <label
                             key={amenity.id}
-                            className="flex cursor-pointer items-center gap-2.5 py-1.5 text-sm text-white transition-colors duration-200 hover:text-[#6b21a8]"
+                            className="flex cursor-pointer items-center gap-2.5 py-1.5 text-sm text-foreground transition-colors duration-200 hover:text-primary"
                         >
                             <input
                                 type="checkbox"
                                 checked={formData.amenities?.includes(amenity.id) || false}
                                 onChange={(e) => handleAmenityToggle(amenity.id, e.target.checked)}
-                                className="h-[18px] min-h-[18px] w-[18px] min-w-[18px] shrink-0 cursor-pointer accent-[#6b21a8]"
+                                className="h-[18px] min-h-[18px] w-[18px] min-w-[18px] shrink-0 cursor-pointer accent-primary"
                             />
                             {amenity.label}
                         </label>
@@ -321,18 +321,18 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
             </div>
 
             {/* ========== РАЗДЕЛИТЕЛЬ ========== */}
-            <div className="mt-7 mb-5 border-t border-[rgba(255,255,255,0.12)]" />
+            <div className="mt-7 mb-5 border-t border-border" />
 
             {/* ===== СЕКЦИЯ: ПАРКОВКА ===== */}
             <div className="mb-5 flex items-center gap-2">
                 <span className="text-base">🚗</span>
-                <h3 className="text-base font-semibold tracking-wide text-[#c4deeb] uppercase">Парковка</h3>
+                <h3 className="text-base font-semibold tracking-wide text-primary uppercase">Парковка</h3>
             </div>
             <div className="radio-group flex flex-wrap gap-x-6 gap-y-2">
                 {PARKING_TYPES.map((type) => (
                     <label
                         key={type.id}
-                        className="flex cursor-pointer items-center gap-2 py-2.5 text-sm text-white transition-colors duration-200 hover:text-[#6b21a8]"
+                        className="flex cursor-pointer items-center gap-2 py-2.5 text-sm text-foreground transition-colors duration-200 hover:text-primary"
                     >
                         <input
                             type="radio"
@@ -340,7 +340,7 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
                             value={type.id}
                             checked={formData.parking === type.id}
                             onChange={() => handleParkingChange(type.id)}
-                            className="h-[18px] min-h-[18px] w-[18px] min-w-[18px] shrink-0 cursor-pointer accent-[#6b21a8]"
+                            className="h-[18px] min-h-[18px] w-[18px] min-w-[18px] shrink-0 cursor-pointer accent-primary"
                         />
                         {type.label}
                     </label>
@@ -348,12 +348,12 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
             </div>
 
             {/* ========== РАЗДЕЛИТЕЛЬ ========== */}
-            <div className="mt-7 mb-5 border-t border-[rgba(255,255,255,0.12)]" />
+            <div className="mt-7 mb-5 border-t border-border" />
 
             {/* ===== СЕКЦИЯ: ОПИСАНИЕ ===== */}
             <div className="mb-5 flex items-center gap-2">
                 <span className="text-base">📝</span>
-                <h3 className="text-base font-semibold tracking-wide text-[#c4deeb] uppercase">Описание</h3>
+                <h3 className="text-base font-semibold tracking-wide text-primary uppercase">Описание</h3>
             </div>
             <div className="flex flex-col gap-2">
                 <textarea
@@ -367,12 +367,12 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
             </div>
 
             {/* ========== РАЗДЕЛИТЕЛЬ ========== */}
-            <div className="mt-7 mb-5 border-t border-[rgba(255,255,255,0.12)]" />
+            <div className="mt-7 mb-5 border-t border-border" />
 
             {/* ===== СЕКЦИЯ: ПРАВИЛА ===== */}
             <div className="mb-5 flex items-center gap-2">
                 <span className="text-base">📋</span>
-                <h3 className="text-base font-semibold tracking-wide text-[#c4deeb] uppercase">Правила проживания</h3>
+                <h3 className="text-base font-semibold tracking-wide text-primary uppercase">Правила проживания</h3>
             </div>
             <div className="flex flex-col gap-2">
                 <textarea
@@ -386,20 +386,18 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
             </div>
 
             {/* ========== РАЗДЕЛИТЕЛЬ ========== */}
-            <div className="mt-7 mb-5 border-t border-[rgba(255,255,255,0.12)]" />
+            <div className="mt-7 mb-5 border-t border-border" />
 
             {/* ===== СЕКЦИЯ: ВРЕМЯ ЗАЕЗДА/ВЫЕЗДА ===== */}
             <div className="mb-5 flex items-center gap-2">
                 <span className="text-base">🕒</span>
-                <h3 className="text-base font-semibold tracking-wide text-[#c4deeb] uppercase">
-                    Время заезда и выезда
-                </h3>
+                <h3 className="text-base font-semibold tracking-wide text-primary uppercase">Время заезда и выезда</h3>
             </div>
             <div className="grid grid-cols-2 gap-5 max-[640px]:grid-cols-1">
                 <div className="flex flex-col gap-2">
                     <label
                         htmlFor="checkin-field"
-                        className="text-sm font-medium text-white/80"
+                        className="text-sm font-medium text-foreground/80"
                     >
                         Заселение
                     </label>
@@ -412,7 +410,7 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
                 <div className="flex flex-col gap-2">
                     <label
                         htmlFor="checkout-field"
-                        className="text-sm font-medium text-white/80"
+                        className="text-sm font-medium text-foreground/80"
                     >
                         Выезд
                     </label>
@@ -424,12 +422,12 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
                 </div>
             </div>
             {/*ЮРИДИЧЕСКАЯ ИНФОРМАЦИЯ/РЕКВИЗИТЫ ПЛАТЕЛЬЩИКА*/}
-            <section className="mb-10 text-[#d0c0d0]">
-                <div className="mt-[35px] mb-[15px] border-b border-[#3a2a4a] pb-2 text-xl font-semibold text-white">
+            <section className="mb-10 text-muted-foreground">
+                <div className="mt-[35px] mb-[15px] border-b border-border pb-2 text-xl font-semibold text-foreground">
                     Реквизиты плательщика
                 </div>
                 <div className="flex flex-col gap-4">
-                    <label className="text-medium text-sm text-white">Плательщик</label>
+                    <label className="text-medium text-sm text-foreground">Плательщик</label>
                     <select
                         value={formData.payerType}
                         onChange={(e) => updateField('payerType', e.target.value)}
@@ -444,17 +442,17 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
                             </option>
                         ))}
                     </select>
-                    <label className="text-medium text-sm text-white">Учетный номер плательщика</label>
+                    <label className="text-medium text-sm text-foreground">Учетный номер плательщика</label>
 
                     <input
                         type="text"
                         value={formData.unp ?? ''}
                         onChange={(e) => updateField('unp', e.target.value.replace(/\D/g, '').slice(0, 9))}
                         placeholder="Введите УНП"
-                        className={`${INPUT_CLASS} w-full max-w-[300px] ${hasError('unp') ? '!border-[#ef4444]' : ''}`}
+                        className={`${INPUT_CLASS} w-full max-w-[300px] ${hasError('unp') ? '!border-destructive' : ''}`}
                         maxLength={9}
                     />
-                    <label className="text-medium text-sm text-white">Наименование организации</label>
+                    <label className="text-medium text-sm text-foreground">Наименование организации</label>
                     <input
                         type="text"
                         value={formData.payerName ?? ''}
@@ -467,7 +465,7 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
 
             {/* ===== ПАНЕЛЬ С ИНФОРМАЦИЕЙ ===== */}
             <div
-                className="mt-5 border-t border-[rgba(255,255,255,0.12)] p-[5px] pt-3 text-[13px] text-[rgba(216,214,214,0.911)]"
+                className="mt-5 border-t border-border p-[5px] pt-3 text-[13px] text-muted-foreground"
                 aria-live="polite"
             >
                 <p>{getTypeLabel(formData.type)}</p>

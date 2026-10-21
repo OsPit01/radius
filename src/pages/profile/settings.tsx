@@ -9,9 +9,11 @@ import { useSession } from 'next-auth/react';
 
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { ClientHeader } from '@/components/layout/ClientHeader';
+import { AppearanceSettings } from '@/components/settings/AppearanceSettings';
 import { Modal } from '@/components/ui/Modal';
 import { readFileAsDataURL } from '@/lib/file';
 import { getCountryCodePrefixFromNumber, isValidPhoneNumber, toE164 } from '@/lib/phone';
+import { canCustomizeTheme } from '@/lib/theme';
 import { requireAuth } from '@/server/auth/require-auth';
 import { api } from '@/trpc/react';
 
@@ -156,8 +158,10 @@ export default function SettingsPage() {
             <AuthGuard>
                 <ClientHeader />
                 <div className="mx-auto max-w-[900px] rounded-[25px] px-5 py-10 max-[480px]:px-2.5 max-[480px]:py-5">
-                    <div className="relative rounded-[15px] bg-gray-900 p-10 shadow-[0_2px_8px_rgba(0,0,0,0.08)] max-[480px]:p-4 max-md:p-5">
-                        <h1 className="text-[28px] font-bold text-white max-md:text-[22px]">Редактирование профиля</h1>
+                    <div className="relative rounded-[15px] bg-card p-10 shadow-[0_2px_8px_rgba(0,0,0,0.08)] max-[480px]:p-4 max-md:p-5">
+                        <h1 className="text-[28px] font-bold text-foreground max-md:text-[22px]">
+                            Редактирование профиля
+                        </h1>
                         <button
                             type="button"
                             onClick={() => setModalOpen(true)}
@@ -165,7 +169,7 @@ export default function SettingsPage() {
                             aria-label="Изменить фото профиля"
                         >
                             {form.image === '' ? (
-                                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#3a2a4a] text-[28px]">
+                                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted text-[28px]">
                                     👤
                                 </div>
                             ) : (
@@ -181,46 +185,46 @@ export default function SettingsPage() {
                         {/*ФОРМА*/}
 
                         <form
-                            className="autofill-dark mt-10 px-5 pt-5 text-[20px] text-white"
+                            className="mt-10 px-5 pt-5 text-[20px] text-foreground"
                             onSubmit={handleSubmit}
                         >
                             {/* Имя */}
                             <div className="mb-5">
                                 <label className="pr-5 text-[17px]">Имя:</label>
                                 <input
-                                    className="cursor-pointer border-b border-white/30 bg-transparent p-1 pl-2 text-[15px] text-white outline-none focus:border-[#b552c7]"
+                                    className="cursor-pointer border-b border-border bg-transparent p-1 pl-2 text-[15px] text-foreground outline-none focus:border-primary"
                                     type="text"
                                     value={form.firstName}
                                     onChange={(e) => setForm({ ...form, firstName: e.target.value })}
                                 ></input>
                                 {form.firstName !== (user?.firstName ?? '') && (
-                                    <span className="ml-2 inline-block h-2.5 w-2.5 rounded-full bg-green-500"></span>
+                                    <span className="ml-2 inline-block h-2.5 w-2.5 rounded-full bg-success"></span>
                                 )}
                             </div>
                             {/* фамилия */}
                             <div className="mb-5">
                                 <label className="pr-5 text-[17px]">Фамилия:</label>
                                 <input
-                                    className="cursor-pointer border-b border-white/30 bg-transparent p-1 pl-2 text-[15px] text-white outline-none focus:border-[#b552c7]"
+                                    className="cursor-pointer border-b border-border bg-transparent p-1 pl-2 text-[15px] text-foreground outline-none focus:border-primary"
                                     type="text"
                                     value={form.lastName}
                                     onChange={(e) => setForm({ ...form, lastName: e.target.value })}
                                 ></input>
                                 {form.lastName !== (user?.lastName ?? '') && (
-                                    <span className="ml-2 inline-block h-2.5 w-2.5 rounded-full bg-green-500"></span>
+                                    <span className="ml-2 inline-block h-2.5 w-2.5 rounded-full bg-success"></span>
                                 )}
                             </div>
 
                             <div className="mb-5 text-[17px]">
                                 <label className="pr-5">Отчество:</label>
                                 <input
-                                    className="cursor-pointer border-b border-white/30 bg-transparent p-1 pl-2 text-[15px] text-white outline-none focus:border-[#b552c7]"
+                                    className="cursor-pointer border-b border-border bg-transparent p-1 pl-2 text-[15px] text-foreground outline-none focus:border-primary"
                                     type="text"
                                     value={form.patronymic}
                                     onChange={(e) => setForm({ ...form, patronymic: e.target.value })}
                                 ></input>
                                 {form.patronymic !== (user?.patronymic ?? '') && (
-                                    <span className="ml-2 inline-block h-2.5 w-2.5 rounded-full bg-green-500"></span>
+                                    <span className="ml-2 inline-block h-2.5 w-2.5 rounded-full bg-success"></span>
                                 )}
                             </div>
                             <div className="mb-5 text-[17px]">
@@ -231,10 +235,10 @@ export default function SettingsPage() {
                                     limitMaxLength
                                     value={form.phone}
                                     onChange={handlePhoneChange}
-                                    className="w-full border-b border-white/30 bg-transparent p-1 pl-2 text-[15px] md:w-1/2"
+                                    className="w-full border-b border-border bg-transparent p-1 pl-2 text-[15px] md:w-1/2"
                                 />
                                 {form.phone !== toE164(user?.phone) && (
-                                    <span className="ml-2 inline-block h-2.5 w-2.5 rounded-full bg-green-500"></span>
+                                    <span className="ml-2 inline-block h-2.5 w-2.5 rounded-full bg-success"></span>
                                 )}
                             </div>
                             {/* Telegram уведомления о бронированиях */}
@@ -242,13 +246,13 @@ export default function SettingsPage() {
                                 <p className="text-[17px]">Telegram-уведомления о бронированиях:</p>
                                 {user?.telegramChatId ? (
                                     <div className="mt-2 flex items-center gap-3">
-                                        <span className="inline-flex items-center gap-1 rounded-full bg-green-500/20 px-3 py-1 text-[13px] text-green-300">
+                                        <span className="inline-flex items-center gap-1 rounded-full bg-success/20 px-3 py-1 text-[13px] text-success">
                                             Подключено
                                         </span>
                                         <button
                                             type="button"
                                             onClick={() => clearTelegramLink.mutate()}
-                                            className="cursor-pointer rounded-full border border-white/20 px-4 py-1.5 text-[13px] text-white/80 hover:text-white"
+                                            className="cursor-pointer rounded-full border border-border px-4 py-1.5 text-[13px] text-foreground/80 hover:text-foreground"
                                         >
                                             Отвязать
                                         </button>
@@ -258,18 +262,18 @@ export default function SettingsPage() {
                                         type="button"
                                         onClick={() => startTelegramLink.mutate()}
                                         disabled={startTelegramLink.isPending}
-                                        className="mt-2 cursor-pointer rounded-[30px] bg-[#3a2a4a] px-6 py-2.5 text-base font-semibold text-white hover:bg-[#4a3a5a] disabled:opacity-60"
+                                        className="mt-2 cursor-pointer rounded-[30px] bg-muted px-6 py-2.5 text-base font-semibold text-foreground hover:bg-border disabled:opacity-60"
                                     >
                                         {startTelegramLink.isPending ? 'Подключаем...' : 'Подключить Telegram'}
                                     </button>
                                 )}
-                                <p className="pt-2 text-[13px] text-white/60">
+                                <p className="pt-2 text-[13px] text-foreground/60">
                                     Новые заявки с сайта будут приходить вам в Telegram бот{' '}
-                                    <span className="text-white/80">@radius_booking_bot</span>
+                                    <span className="text-foreground/80">@radius_booking_bot</span>
                                 </p>
                             </div>
                             <button
-                                className="mt-10 cursor-pointer rounded-[30px] bg-gray-700 px-8 py-3 text-base font-semibold text-gray-100 hover:bg-gray-600"
+                                className="mt-10 cursor-pointer rounded-[30px] bg-primary px-8 py-3 text-base font-semibold text-primary-foreground hover:bg-primary/90"
                                 type="submit"
                                 disabled={updateMutation.isPending}
                             >
@@ -277,6 +281,8 @@ export default function SettingsPage() {
                             </button>
                         </form>
                     </div>
+                    {/* Внешний вид — пока только для суперадминов */}
+                    {canCustomizeTheme(session?.user?.role) && <AppearanceSettings />}
                 </div>
 
                 <input
@@ -292,19 +298,19 @@ export default function SettingsPage() {
                     onClose={() => setModalOpen(false)}
                 >
                     <div className="text-center">
-                        <p className="text-lg text-[#1a1a2e]">Хотите поменять фотографию профиля?</p>
+                        <p className="text-lg text-foreground">Хотите поменять фотографию профиля?</p>
                         <div className="mt-6 flex justify-center gap-3">
                             <button
                                 type="button"
                                 onClick={() => fileInputRef.current?.click()}
-                                className="cursor-pointer rounded-[30px] bg-[#b552c7] px-6 py-2.5 text-base font-semibold text-white hover:bg-[#a244b2]"
+                                className="cursor-pointer rounded-[30px] bg-primary px-6 py-2.5 text-base font-semibold text-primary-foreground hover:bg-primary/90"
                             >
                                 Выбрать фото
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setModalOpen(false)}
-                                className="cursor-pointer rounded-[30px] border border-[#ddd] px-6 py-2.5 text-base font-semibold text-[#1a1a2e] hover:bg-gray-100"
+                                className="cursor-pointer rounded-[30px] border border-border px-6 py-2.5 text-base font-semibold text-foreground hover:bg-muted"
                             >
                                 Отмена
                             </button>
@@ -320,8 +326,8 @@ export default function SettingsPage() {
                     {confirmTelegramLink.isSuccess ? (
                         <div className="flex flex-col items-center gap-3 py-4 text-center">
                             <p className="text-4xl">✅</p>
-                            <p className="text-lg font-semibold text-[#1a1a2e]">Telegram подключен!</p>
-                            <p className="text-sm text-[#555]">
+                            <p className="text-lg font-semibold text-foreground">Telegram подключен!</p>
+                            <p className="text-sm text-muted-foreground">
                                 Теперь заявки на ваши квартиры будут приходить вам в бот @radius_booking_bot
                             </p>
                             <button
@@ -330,29 +336,31 @@ export default function SettingsPage() {
                                     confirmTelegramLink.reset();
                                     setLinkCode('');
                                 }}
-                                className="mt-2 cursor-pointer rounded-[30px] bg-[#b552c7] px-6 py-2.5 text-base font-semibold text-white hover:bg-[#a244b2]"
+                                className="mt-2 cursor-pointer rounded-[30px] bg-primary px-6 py-2.5 text-base font-semibold text-primary-foreground hover:bg-primary/90"
                             >
                                 Готово
                             </button>
                         </div>
                     ) : (
                         <div className="text-center">
-                            <p className="text-[17px] font-semibold text-[#1a1a2e]">Подключение Telegram</p>
-                            <p className="mt-3 text-sm text-[#555]">
-                                1. Мы открыли бота{' '}
-                                <span className="font-medium text-[#6b21a8]">@radius_booking_bot</span> в Telegram
+                            <p className="text-[17px] font-semibold text-foreground">Подключение Telegram</p>
+                            <p className="mt-3 text-sm text-muted-foreground">
+                                1. Мы открыли бота <span className="font-medium text-primary">@radius_booking_bot</span>{' '}
+                                в Telegram
                             </p>
-                            <p className="mt-1 text-sm text-[#555]">2. Нажмите в нём кнопку «Запустить» (Start)</p>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                2. Нажмите в нём кнопку «Запустить» (Start)
+                            </p>
                             <button
                                 type="button"
                                 onClick={() => confirmTelegramLink.mutate()}
                                 disabled={confirmTelegramLink.isPending}
-                                className="mt-5 cursor-pointer rounded-[30px] bg-[#b552c7] px-6 py-2.5 text-base font-semibold text-white hover:bg-[#a244b2] disabled:opacity-60"
+                                className="mt-5 cursor-pointer rounded-[30px] bg-primary px-6 py-2.5 text-base font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
                             >
                                 {confirmTelegramLink.isPending ? 'Проверяем...' : 'Я нажал «Запустить» — проверить'}
                             </button>
                             {confirmTelegramLink.error && (
-                                <p className="mx-auto mt-3 max-w-xs text-sm text-red-600">
+                                <p className="mx-auto mt-3 max-w-xs text-sm text-destructive">
                                     {confirmTelegramLink.error.message}
                                 </p>
                             )}

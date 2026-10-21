@@ -34,12 +34,12 @@ export default function MyNotifications() {
             <AuthGuard>
                 <ClientHeader />
                 <div className="mt-auto flex w-full flex-wrap items-center justify-between gap-2 px-5 py-10 max-md:py-5">
-                    <span className="text-2xl font-bold text-[#222] max-md:text-xl">Мои уведомления</span>
+                    <span className="text-2xl font-bold text-foreground max-md:text-xl">Мои уведомления</span>
                     {notifications?.some((n) => !n.isRead) ? (
                         <button
                             type="button"
                             onClick={() => markAllAsRead.mutate()}
-                            className="rounded-xl bg-gray-800 px-4 py-2 text-sm font-medium whitespace-nowrap text-white transition-colors hover:bg-gray-700"
+                            className="rounded-xl bg-foreground px-4 py-2 text-sm font-medium whitespace-nowrap text-background transition-colors hover:bg-foreground/85"
                         >
                             Отметить все
                         </button>
@@ -60,10 +60,12 @@ export default function MyNotifications() {
                         />
                     ))}
                     {notifications?.length === 0 && (
-                        <div className="col-span-full rounded-xl border border-dashed border-[#c9b3e1] bg-[#faf7ff] p-10 text-center">
-                            <Bell className="mx-auto mb-3 h-10 w-10 text-[#c9b3e1]" />
-                            <p className="font-semibold text-[#6b21a8]">Уведомлений пока нет</p>
-                            <p className="mt-1 text-sm text-gray-500">Здесь появятся события по вашим объектам</p>
+                        <div className="col-span-full rounded-xl border border-dashed border-border bg-muted p-10 text-center">
+                            <Bell className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
+                            <p className="font-semibold text-primary">Уведомлений пока нет</p>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                Здесь появятся события по вашим объектам
+                            </p>
                         </div>
                     )}
                 </div>
@@ -75,18 +77,18 @@ export default function MyNotifications() {
                     >
                         <div className="space-y-4">
                             {!selected.isRead && (
-                                <div className="inline-flex items-center gap-2 rounded-full bg-[#6b21a8] px-3 py-1 text-xs font-medium text-white">
-                                    <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                                <div className="inline-flex items-center gap-2 rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-primary-foreground" />
                                     Новое
                                 </div>
                             )}
                             <div>
-                                <p className="text-xs font-medium tracking-wide text-[#6b21a8] uppercase">
+                                <p className="text-xs font-medium tracking-wide text-primary uppercase">
                                     {selected.type}
                                 </p>
-                                <h3 className="mt-1 text-lg font-bold text-[#2d2137]">{selected.title}</h3>
+                                <h3 className="mt-1 text-lg font-bold text-foreground">{selected.title}</h3>
                             </div>
-                            <div className="flex items-center gap-2 text-xs text-gray-400">
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                 <CalendarDays className="h-4 w-4" />
                                 {new Date(selected.createdAt).toLocaleDateString('ru-RU', {
                                     day: 'numeric',
@@ -94,10 +96,10 @@ export default function MyNotifications() {
                                     year: 'numeric',
                                 })}
                             </div>
-                            <p className="rounded-lg bg-[#faf7ff] p-4 text-sm leading-relaxed text-[#4a4a55]">
+                            <p className="rounded-lg bg-muted p-4 text-sm leading-relaxed text-foreground/80">
                                 {selected.text}
                             </p>
-                            <p className="flex items-start gap-2 text-xs text-gray-400">
+                            <p className="flex items-start gap-2 text-xs text-muted-foreground">
                                 <Info className="mt-0.5 h-4 w-4 shrink-0" />
                                 Нажмите на уведомление, чтобы открыть связанный объект
                             </p>
@@ -105,7 +107,7 @@ export default function MyNotifications() {
                                 <Link
                                     href={selected.link}
                                     onClick={() => setSelected(null)}
-                                    className="flex items-center justify-center gap-2 rounded-xl bg-gray-800 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-gray-700"
+                                    className="flex items-center justify-center gap-2 rounded-xl bg-foreground px-4 py-3 text-sm font-medium text-background transition-colors hover:bg-foreground/85"
                                 >
                                     Открыть объект
                                     <ArrowRight className="h-4 w-4" />

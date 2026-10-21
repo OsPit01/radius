@@ -179,44 +179,44 @@ export default function BookingsPage() {
                     onChange={setTab}
                 />
 
-                <h1 className="mb-1 pt-10 text-2xl font-bold text-[#222]">Мои брони</h1>
-                <p className="mb-6 text-sm text-[#888]">Заявки, которые оставляют гости на ваших квартирах</p>
+                <h1 className="mb-1 pt-10 text-2xl font-bold text-foreground">Мои брони</h1>
+                <p className="mb-6 text-sm text-muted-foreground">Заявки, которые оставляют гости на ваших квартирах</p>
 
-                {currentPending && <p className="py-8 text-center text-[#888]">Загрузка заявок...</p>}
+                {currentPending && <p className="py-8 text-center text-muted-foreground">Загрузка заявок...</p>}
 
                 {currentError && (
-                    <p className="py-8 text-center text-red-600">Не удалось загрузить заявки. Попробуйте позже.</p>
+                    <p className="py-8 text-center text-destructive">Не удалось загрузить заявки. Попробуйте позже.</p>
                 )}
 
                 {!currentPending && !currentError && currentData?.length === 0 && (
-                    <p className="py-8 text-center text-[#888]">Пока нет ни одной заявки на бронирование.</p>
+                    <p className="py-8 text-center text-muted-foreground">Пока нет ни одной заявки на бронирование.</p>
                 )}
 
                 {!currentPending && !currentError && (currentData?.length ?? 0) > 0 && (
                     <>
                         {filtered.length === 0 ? (
-                            <p className="py-8 text-center text-[#888]">В этом разделе пока нет заявок</p>
+                            <p className="py-8 text-center text-muted-foreground">В этом разделе пока нет заявок</p>
                         ) : (
                             <ul className="flex flex-col gap-4">
                                 {filtered.map(({ booking, apartment, owner }) => (
                                     <li
                                         key={booking.id}
-                                        className="rounded-2xl border border-[#eee5f4] bg-white p-5 shadow-sm"
+                                        className="rounded-2xl border border-border bg-card p-5 shadow-sm"
                                     >
                                         <div className="mb-3 flex items-start justify-between gap-3">
-                                            <p className="font-semibold text-[#222]">{apartment.title}</p>
-                                            <span className="shrink-0 rounded-full bg-[#f6eefe] px-3 py-1 text-xs font-medium text-[#6b21a8]">
+                                            <p className="font-semibold text-foreground">{apartment.title}</p>
+                                            <span className="shrink-0 rounded-full bg-muted px-3 py-1 text-xs font-medium text-primary">
                                                 {BOOKING_STATUS_LABELS[booking.status] ?? booking.status}
                                             </span>
                                         </div>
 
-                                        <div className="grid grid-cols-1 gap-1 text-sm text-[#555]">
+                                        <div className="grid grid-cols-1 gap-1 text-sm text-muted-foreground">
                                             {/* Данные различаются: владелец видит гостя, гость — собственника */}
                                             {currentMode === 'owner' ? (
                                                 <>
                                                     <p>
                                                         Гость:{' '}
-                                                        <span className="font-medium text-[#222]">
+                                                        <span className="font-medium text-foreground">
                                                             {booking.guestName}
                                                         </span>
                                                     </p>
@@ -224,7 +224,7 @@ export default function BookingsPage() {
                                                         Телефон:{' '}
                                                         <a
                                                             href={`tel:${booking.guestPhone}`}
-                                                            className="font-medium text-[#6b21a8]"
+                                                            className="font-medium text-primary"
                                                         >
                                                             {formatPhoneForDisplay(booking.guestPhone)}
                                                         </a>
@@ -234,7 +234,7 @@ export default function BookingsPage() {
                                                 <>
                                                     <p>
                                                         Собственник:{' '}
-                                                        <span className="font-medium text-[#222]">
+                                                        <span className="font-medium text-foreground">
                                                             {ownerDisplayName(owner)}
                                                         </span>
                                                     </p>
@@ -243,7 +243,7 @@ export default function BookingsPage() {
                                                             Телефон:{' '}
                                                             <a
                                                                 href={`tel:${owner.phone}`}
-                                                                className="font-medium text-[#6b21a8]"
+                                                                className="font-medium text-primary"
                                                             >
                                                                 {formatPhoneForDisplay(owner.phone)}
                                                             </a>
@@ -259,10 +259,12 @@ export default function BookingsPage() {
                                                 Заезд: {formatDate(booking.checkInDate)} — выезд:{' '}
                                                 {formatDate(booking.checkOutDate)}
                                             </p>
-                                            {booking.message && <p className="pt-1 text-[#888]">«{booking.message}»</p>}
+                                            {booking.message && (
+                                                <p className="pt-1 text-muted-foreground">«{booking.message}»</p>
+                                            )}
                                         </div>
 
-                                        <p className="mt-3 text-xs text-[#aaa]">
+                                        <p className="mt-3 text-xs text-muted-foreground">
                                             Создана {formatDate(booking.createdAt)}
                                         </p>
 
@@ -276,7 +278,7 @@ export default function BookingsPage() {
                                                             status: 'approved',
                                                         })
                                                     }
-                                                    className="mt-5 cursor-pointer rounded-[25px] border border-green-900 px-4 py-2 text-black transition-all duration-300 hover:bg-green-700 hover:text-white"
+                                                    className="mt-5 cursor-pointer rounded-[25px] border border-success px-4 py-2 text-foreground transition-all duration-300 hover:bg-success/90 hover:text-success-foreground"
                                                 >
                                                     Одобрить
                                                 </button>
@@ -287,7 +289,7 @@ export default function BookingsPage() {
                                                             status: 'rejected',
                                                         })
                                                     }
-                                                    className="mt-5 cursor-pointer rounded-[25px] border border-red-900 px-4 py-2 text-black transition-all duration-300 hover:bg-red-700 hover:text-white"
+                                                    className="mt-5 cursor-pointer rounded-[25px] border border-destructive px-4 py-2 text-foreground transition-all duration-300 hover:bg-destructive/90 hover:text-destructive-foreground"
                                                 >
                                                     Отклонить
                                                 </button>
@@ -297,7 +299,7 @@ export default function BookingsPage() {
                                             (booking.status === 'new' || booking.status === 'approved') && (
                                                 <button
                                                     onClick={() => cancelBooking.mutate({ bookingId: booking.id })}
-                                                    className="mt-5 cursor-pointer rounded-[25px] border border-red-900 px-4 py-2 text-black transition-all duration-300 hover:bg-red-700 hover:text-white"
+                                                    className="mt-5 cursor-pointer rounded-[25px] border border-destructive px-4 py-2 text-foreground transition-all duration-300 hover:bg-destructive/90 hover:text-destructive-foreground"
                                                 >
                                                     Отменить бронирование
                                                 </button>
@@ -325,13 +327,13 @@ export default function BookingsPage() {
                                 setConfirm(null);
                             }
                         }}
-                        className="cursor-pointer rounded-[25px] border border-green-900 px-10 py-2.5 text-black transition-all duration-300 hover:bg-green-900 hover:text-white"
+                        className="cursor-pointer rounded-[25px] border border-success px-10 py-2.5 text-foreground transition-all duration-300 hover:bg-success/90 hover:text-success-foreground"
                     >
                         Да
                     </button>
                     <button
                         onClick={() => setConfirm(null)}
-                        className="cursor-pointer rounded-[25px] border border-red-900 px-10 py-2.5 text-black transition-all duration-300 hover:bg-red-700 hover:text-white"
+                        className="cursor-pointer rounded-[25px] border border-destructive px-10 py-2.5 text-foreground transition-all duration-300 hover:bg-destructive/90 hover:text-destructive-foreground"
                     >
                         Отмена
                     </button>

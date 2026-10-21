@@ -82,31 +82,31 @@ export function UserDropdown({ user }: UserDropdownProps) {
                         className="h-[30px] w-[30px] rounded-[50px] object-cover"
                     />
                 ) : (
-                    <FaUserCircle className="h-[30px] w-[30px] text-[#666]" />
+                    <FaUserCircle className="h-[30px] w-[30px] text-muted-foreground" />
                 )}
                 <span className="p-[3px] text-[13px] font-medium">{displayName}</span>
             </button>
             {/*      */}
             {isOpen && (
-                <div className="absolute top-[calc(100%+10px)] left-1/2 z-[1000] min-w-[250px] -translate-x-1/2 overflow-hidden rounded-xl border border-[#e0e0e0] bg-white p-[5px] shadow-[0_10px_30px_rgba(0,0,0,0.15)]">
+                <div className="absolute top-[calc(100%+10px)] left-1/2 z-[1000] min-w-[250px] -translate-x-1/2 overflow-hidden rounded-xl border border-border bg-card p-[5px] shadow-[0_10px_30px_rgba(0,0,0,0.15)]">
                     {menuItems.map((item) => (
                         <Link
                             key={item.href}
                             href={item.href}
-                            className="flex items-center justify-between p-[5px] text-[15px] transition-colors duration-200 hover:w-full hover:rounded-[5px] hover:bg-[#f9f9fd] hover:p-2.5"
+                            className="flex items-center justify-between rounded-lg px-2.5 py-2 text-[15px] transition-colors duration-200 hover:bg-muted"
                         >
                             <span>{item.label}</span>
                             {item.href === '/profile/chat' && (unreadCount ?? 0) > 0 && (
-                                <span className="rounded-full bg-red-500 px-2 py-0.5 text-xs font-semibold text-white">
+                                <span className="rounded-full bg-destructive px-2 py-0.5 text-xs font-semibold text-destructive-foreground">
                                     {unreadCount}
                                 </span>
                             )}
                         </Link>
                     ))}
 
-                    <hr />
+                    <hr className="my-1" />
                     <button
-                        className="block w-full cursor-pointer p-[5px] text-left text-[15px] transition-colors duration-200 hover:w-full hover:rounded-[5px] hover:bg-[#f9f9fd] hover:p-2.5"
+                        className="block w-full cursor-pointer rounded-lg px-2.5 py-2 text-left text-[15px] transition-colors duration-200 hover:bg-muted"
                         onClick={() => signOut()}
                     >
                         Выйти

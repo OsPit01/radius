@@ -43,7 +43,7 @@ export function CustomSelect({
         >
             <button
                 type="button"
-                className="flex w-full cursor-pointer items-center justify-between rounded-xl border-2 border-[#2a1a3a] bg-[#1a0a2a] px-4 py-3 text-base text-white transition-all duration-300 outline-none hover:border-[#3a2a4a] focus:border-[#6b21a8] focus:shadow-[0_0_0_3px_rgba(107,33,168,0.2)]"
+                className="flex w-full cursor-pointer items-center justify-between rounded-xl border-2 border-border bg-background px-4 py-3 text-base text-foreground transition-all duration-300 outline-none hover:border-muted-foreground/50 focus:border-primary focus:ring-[3px] focus:ring-primary/20"
                 onClick={() => setIsOpen(!isOpen)}
             >
                 <span>{selectedOption?.label ?? placeholder}</span>
@@ -53,12 +53,12 @@ export function CustomSelect({
             </button>
 
             {isOpen && (
-                <div className="absolute top-[calc(100%+4px)] right-0 left-0 z-[100] max-h-[200px] overflow-hidden overflow-y-auto rounded-xl border-2 border-[#2a1a3a] bg-[#1a0a2a]">
+                <div className="absolute top-[calc(100%+4px)] right-0 left-0 z-[100] max-h-[200px] overflow-hidden overflow-y-auto rounded-xl border-2 border-border bg-card shadow-lg">
                     {options.map((option) => (
                         <div
                             key={option.value}
-                            className={`cursor-pointer px-4 py-3 text-base text-white transition-colors duration-200 hover:bg-[rgba(107,33,168,0.2)] ${
-                                option.value === value ? 'bg-[rgba(107,33,168,0.3)] text-white' : ''
+                            className={`cursor-pointer px-4 py-3 text-base text-foreground transition-colors duration-200 hover:bg-primary/20 ${
+                                option.value === value ? 'bg-primary/30 text-foreground' : ''
                             }`}
                             onClick={() => {
                                 onChange(option.value);

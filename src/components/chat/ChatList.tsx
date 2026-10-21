@@ -32,12 +32,12 @@ export function ChatList({ chats, userId, selectedId, onSelect }: ChatListProps)
                         <button
                             type="button"
                             onClick={() => onSelect(c.conversation.id)}
-                            className={`mt-1 flex w-full items-center gap-3 rounded-[15px] border-b border-gray-300 px-2 py-3 text-left transition-colors hover:bg-[#fafafa] ${
-                                isActive ? 'border border-gray-900 duration-700' : ''
+                            className={`mt-1 flex w-full items-center gap-3 rounded-[15px] border-b border-border px-2 py-3 text-left transition-colors hover:bg-muted ${
+                                isActive ? 'border border-foreground duration-700' : ''
                             }`}
                         >
                             {/* Фото квартиры (или заглушка, если фото нет / не загрузилось) */}
-                            <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-[#f0f0f0]">
+                            <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-muted">
                                 {c.apartment.image ? (
                                     <ImageWithFallback
                                         src={c.apartment.image}
@@ -52,8 +52,8 @@ export function ChatList({ chats, userId, selectedId, onSelect }: ChatListProps)
 
                             {/* Название квартиры + имя собеседника */}
                             <div className="min-w-0 flex-1">
-                                <p className="truncate font-semibold text-[#222]">{c.apartment.title}</p>
-                                <p className="truncate text-sm text-[#888]">{displayName(other)}</p>
+                                <p className="truncate font-semibold text-foreground">{c.apartment.title}</p>
+                                <p className="truncate text-sm text-muted-foreground">{displayName(other)}</p>
                             </div>
                         </button>
                     </li>

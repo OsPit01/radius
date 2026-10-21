@@ -24,7 +24,7 @@ export function FilterPanel({ filters, onChange }: { filters: Filters; onChange:
         <div className="flex flex-col gap-6">
             {/* Цена */}
             <div>
-                <p className="mb-3 text-sm font-semibold text-[#222]">Цена за сутки, BYN</p>
+                <p className="mb-3 text-sm font-semibold text-foreground">Цена за сутки, BYN</p>
                 <div className="flex items-center gap-2">
                     <input
                         type="number"
@@ -33,9 +33,9 @@ export function FilterPanel({ filters, onChange }: { filters: Filters; onChange:
                         placeholder="от"
                         value={filters.priceMin}
                         onChange={(e) => onChange({ ...filters, priceMin: e.target.value })}
-                        className="w-full rounded-xl border border-[#e0e0e0] bg-white px-3.5 py-2.5 text-sm text-[#222] transition-colors outline-none focus:border-[#6b21a8]"
+                        className="w-full rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm text-foreground transition-colors outline-none focus:border-primary"
                     />
-                    <span className="shrink-0 text-[#999]">—</span>
+                    <span className="shrink-0 text-muted-foreground">—</span>
                     <input
                         type="number"
                         min={0}
@@ -43,14 +43,14 @@ export function FilterPanel({ filters, onChange }: { filters: Filters; onChange:
                         placeholder="до"
                         value={filters.priceMax}
                         onChange={(e) => onChange({ ...filters, priceMax: e.target.value })}
-                        className="w-full rounded-xl border border-[#e0e0e0] bg-white px-3.5 py-2.5 text-sm text-[#222] transition-colors outline-none focus:border-[#6b21a8]"
+                        className="w-full rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm text-foreground transition-colors outline-none focus:border-primary"
                     />
                 </div>
             </div>
 
             {/* Комнаты */}
             <div>
-                <p className="mb-3 text-sm font-semibold text-[#222]">Количество комнат</p>
+                <p className="mb-3 text-sm font-semibold text-foreground">Количество комнат</p>
                 <div className="flex flex-wrap gap-2">
                     {COUNT_OPTIONS.map((r) => {
                         const active = filters.rooms === r;
@@ -61,8 +61,8 @@ export function FilterPanel({ filters, onChange }: { filters: Filters; onChange:
                                 onClick={() => onChange({ ...filters, rooms: active ? null : r })}
                                 className={`min-w-[44px] cursor-pointer rounded-full border px-4 py-2 text-sm font-medium transition-all duration-200 ${
                                     active
-                                        ? 'border-gray-800 bg-gray-800 text-white shadow-[0_4px_12px_rgba(0,0,0,0.2)]'
-                                        : 'border-[#e0e0e0] bg-white text-[#222] hover:border-gray-800'
+                                        ? 'border-foreground bg-foreground text-background shadow-[0_4px_12px_rgba(0,0,0,0.2)]'
+                                        : 'border-border bg-card text-foreground hover:border-foreground'
                                 }`}
                             >
                                 {r === 4 ? '4+' : r}
@@ -74,7 +74,7 @@ export function FilterPanel({ filters, onChange }: { filters: Filters; onChange:
 
             {/* Кровати (минимум) */}
             <div>
-                <p className="mb-3 text-sm font-semibold text-[#222]">Кроватей не меньше, чем</p>
+                <p className="mb-3 text-sm font-semibold text-foreground">Кроватей не меньше, чем</p>
                 <div className="flex flex-wrap gap-2">
                     {COUNT_OPTIONS.map((n) => {
                         const active = filters.beds === n;
@@ -85,8 +85,8 @@ export function FilterPanel({ filters, onChange }: { filters: Filters; onChange:
                                 onClick={() => onChange({ ...filters, beds: active ? null : n })}
                                 className={`min-w-[44px] cursor-pointer rounded-full border px-4 py-2 text-sm font-medium transition-all duration-200 ${
                                     active
-                                        ? 'border-gray-800 bg-gray-800 text-white shadow-[0_4px_12px_rgba(0,0,0,0.2)]'
-                                        : 'border-[#e0e0e0] bg-white text-[#222] hover:border-gray-800'
+                                        ? 'border-foreground bg-foreground text-background shadow-[0_4px_12px_rgba(0,0,0,0.2)]'
+                                        : 'border-border bg-card text-foreground hover:border-foreground'
                                 }`}
                             >
                                 {n === 4 ? '4+' : n}
@@ -98,7 +98,7 @@ export function FilterPanel({ filters, onChange }: { filters: Filters; onChange:
 
             {/* Диваны (минимум) */}
             <div>
-                <p className="mb-3 text-sm font-semibold text-[#222]">Диванов не меньше, чем</p>
+                <p className="mb-3 text-sm font-semibold text-foreground">Диванов не меньше, чем</p>
                 <div className="flex flex-wrap gap-2">
                     {COUNT_OPTIONS.map((n) => {
                         const active = filters.sofas === n;
@@ -109,8 +109,8 @@ export function FilterPanel({ filters, onChange }: { filters: Filters; onChange:
                                 onClick={() => onChange({ ...filters, sofas: active ? null : n })}
                                 className={`min-w-[44px] cursor-pointer rounded-full border px-4 py-2 text-sm font-medium transition-all duration-200 ${
                                     active
-                                        ? 'border-gray-800 bg-gray-800 text-white shadow-[0_4px_12px_rgba(0,0,0,0.2)]'
-                                        : 'border-[#e0e0e0] bg-white text-[#222] hover:border-gray-800'
+                                        ? 'border-foreground bg-foreground text-background shadow-[0_4px_12px_rgba(0,0,0,0.2)]'
+                                        : 'border-border bg-card text-foreground hover:border-foreground'
                                 }`}
                             >
                                 {n === 4 ? '4+' : n}
@@ -122,7 +122,7 @@ export function FilterPanel({ filters, onChange }: { filters: Filters; onChange:
 
             {/* Метро (до N минут пешком) */}
             <div>
-                <p className="mb-3 text-sm font-semibold text-[#222]">До метро, минут</p>
+                <p className="mb-3 text-sm font-semibold text-foreground">До метро, минут</p>
                 <select
                     value={filters.metro ?? ''}
                     onChange={(e) =>
@@ -131,7 +131,7 @@ export function FilterPanel({ filters, onChange }: { filters: Filters; onChange:
                             metro: e.target.value ? Number(e.target.value) : null,
                         })
                     }
-                    className="w-full cursor-pointer rounded-xl border border-[#e0e0e0] bg-white px-3.5 py-2.5 text-sm text-[#222] transition-colors outline-none focus:border-[#6b21a8]"
+                    className="w-full cursor-pointer rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm text-foreground transition-colors outline-none focus:border-primary"
                 >
                     <option value="">Любое</option>
                     {METRO_OPTIONS.map((m) => (
