@@ -166,6 +166,28 @@ export const apartmentRouter = createTRPCRouter({
                 .limit(input?.limit ?? 50)
                 .offset(input?.offset ?? 0);
         }),
+    getCatalogLocations: publicProcedure.query(async ({ ctx }) => {
+        const rows = await ctx.db
+            .select({ city: apartments.city, microdistrict: apartments.microdistrict })
+            .from(apartments)
+            .where(eq(apartments.status, 'active'));
+
+        // Группируем микрорайоны по городу
+        const byCity = new Map<string, string[]>();
+        for (const row of rows) {
+            if (!row.microdistrict) {
+                continue;
+            } // пустые пропускаем
+            const list = byCity.get(row.city) ?? [];
+            list.push(row.microdistrict);
+            byCity.set(row.city, list);
+        }
+
+        return Array.from(byCity, ([city, microdistricts]) => ({
+            city,
+            microdistricts: Array.from(new Set(microdistricts)),
+        }));
+    }),
 
     // 2. Получить одну квартиру по ID
     getById: protectedProcedure.input(apartmentIdInput).query(async ({ ctx, input }) => {
