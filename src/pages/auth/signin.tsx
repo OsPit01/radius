@@ -1,10 +1,14 @@
-import { useState } from 'react';
+import { type SubmitEvent, useState } from 'react';
 
 import Image from 'next/image';
 import { signIn } from 'next-auth/react';
 
-import { Google } from '@/components/icons';
+import { Google, Mail } from '@/components/icons';
 import { Seo } from '@/components/Seo';
+
+const BUTTON_CLASS =
+    'cursor-pointer transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary enabled:hover:-translate-y-0.5 enabled:active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60';
+
 export default function SignInPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [email, setEmail] = useState('');
@@ -14,7 +18,8 @@ export default function SignInPage() {
         setIsLoading(true);
         await signIn('google', { callbackUrl: '/' });
     };
-    const handleEmailSignIn = async () => {
+    const handleEmailSignIn = async (event: SubmitEvent<HTMLFormElement>) => {
+        event.preventDefault();
         setIsEmailLoading(true);
         await signIn('resend', { email, callbackUrl: '/', redirect: false });
         setIsEmailLoading(false);
@@ -28,13 +33,21 @@ export default function SignInPage() {
                 Radius stay
             </span>
             <div className="flex items-center justify-center px-4">
-                {/* image */}
-
+                {/* Логотип: у светлой и тёмной темы сайта (класс .dark) своя иконка — показываем нужную
+            через dark:-варианты, так нет мигания при гидрации. Скрытая (display: none) не грузится и скринридером не читается. */}
                 <Image
-                    src="/assets/images/authimage.png"
+                    src="/light/icon-512x512.png"
                     alt="radius-stay.by"
                     width={96}
                     height={96}
+                    className="rounded-[20px] dark:hidden"
+                />
+                <Image
+                    src="/web-app-manifest-512x512.png"
+                    alt="radius-stay.by"
+                    width={96}
+                    height={96}
+                    className="hidden rounded-[20px] dark:block"
                 />
             </div>
             {/* Текст вход и регистрация */}
@@ -42,10 +55,10 @@ export default function SignInPage() {
                 <span className="text-[25px] font-[600] max-md:text-[20px]"> Вход и регистрация </span>
             </div>
             {/* действия вход через гугл */}
-            <div className="my-6 flex items-center justify-center px-4">
+            <div className="my-6 flex items-center justify-center">
                 <button
                     type="button"
-                    className="flex w-full items-center justify-center gap-3 rounded-xl border border-border bg-card py-3 font-medium text-foreground transition-colors hover:bg-muted"
+                    className={`${BUTTON_CLASS} flex w-full items-center justify-center gap-3 rounded-xl border border-border bg-card py-3 font-medium text-foreground enabled:hover:border-primary enabled:hover:bg-muted enabled:hover:shadow-[0_8px_25px_color-mix(in_oklab,var(--primary)_18%,transparent)]`}
                     onClick={handleGoogleSignIn}
                     disabled={isLoading}
                 >
@@ -69,18 +82,36 @@ export default function SignInPage() {
                     Проверьте почту — мы отправили ссылку на {email}.
                 </p>
             ) : (
-                <>
-                    <input
-                        type="email"
-                        value={email}
-                        placeholder="you@example.com"
-                        className="w-full rounded-xl border border-border bg-card px-4 py-3 text-foreground outline-none focus:border-primary"
-                        onChange={(e) => setEmail(e.target.value)}
-                    />
+                <form onSubmit={handleEmailSignIn}>
+                    <label
+                        htmlFor="email"
+                        className="sr-only"
+                    >
+                        Электронная почта
+                    </label>
+                    {/* --accent — цвет подсветки поля (рамка, кольцо, иконка в фокусе): акцентный, а у неверного адреса — красный. */}
+                    <div className="group relative [--accent:var(--primary)] has-[input:user-invalid]:[--accent:var(--destructive)]">
+                        <Mail className="pointer-events-none absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 text-muted-foreground transition-colors duration-200 group-focus-within:text-(color:--accent)" />
+                        <input
+                            id="email"
+                            name="email"
+                            type="email"
+                            inputMode="email"
+                            autoComplete="email"
+                            autoCapitalize="none"
+                            spellCheck={false}
+                            required
+                            value={email}
+                            disabled={isEmailLoading}
+                            placeholder="you@example.com"
+                            // user-invalid: красная рамка появляется только после ухода из поля с неверным адресом, не пока человек печатает.
+                            className="w-full rounded-xl border border-border bg-card py-3 pr-4 pl-11 text-foreground outline-hidden transition-[border-color,box-shadow] duration-200 user-invalid:border-destructive focus:border-(color:--accent) focus:ring-4 focus:ring-(color:--accent)/15 disabled:cursor-not-allowed disabled:opacity-60"
+                            onChange={(e) => setEmail(e.target.value)}
+                        />
+                    </div>
                     <button
-                        type="button"
-                        className="mt-3 w-full rounded-xl bg-foreground py-3 font-semibold text-background transition-colors hover:bg-foreground/85"
-                        onClick={handleEmailSignIn}
+                        type="submit"
+                        className={`${BUTTON_CLASS} mt-3 w-full rounded-xl bg-foreground py-3 font-semibold text-background enabled:hover:bg-primary enabled:hover:text-primary-foreground enabled:hover:shadow-[0_8px_25px_color-mix(in_oklab,var(--primary)_35%,transparent)]`}
                         disabled={isEmailLoading}
                         // Пока идёт отправка, внутри только спиннер — имя кнопки должно остаться.
                         aria-label="Получить ссылку для входа"
@@ -91,7 +122,7 @@ export default function SignInPage() {
                             'Получить ссылку для входа'
                         )}
                     </button>
-                </>
+                </form>
             )}
         </div>
     );

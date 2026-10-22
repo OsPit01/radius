@@ -13,7 +13,7 @@ import {
     Minus,
     Plus,
 } from './glyphs';
-import { AlarmClock, Calendar, Clipboard, Clock, Money, Note, Phone } from './info';
+import { AlarmClock, Calendar, Clipboard, Clock, Mail, Money, Note, Phone } from './info';
 import { BarChart, Camera, Chat, Eye, Shield, User, UserCircle, Users } from './people';
 import { Bath, Bed, Building, Car, Home, MapPin, MapView, Metro, Ruler, Sofa, Sparkles } from './property';
 import { Bell, CheckCircle, Heart, Hourglass, Info, Star, Warning } from './status';
@@ -50,6 +50,7 @@ export {
     Hourglass,
     Info,
     Instagram,
+    Mail,
     MapPin,
     MapView,
     Maximize,
@@ -122,6 +123,7 @@ export const ICONS: readonly IconComponent[] = [
     AlarmClock,
     Calendar,
     Phone,
+    Mail,
     // люди и разделы
     Chat,
     User,

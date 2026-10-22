@@ -54,6 +54,7 @@ export const ICON_NAMES = [
     'alarmClock',
     'calendar',
     'phone',
+    'mail',
     // люди и разделы
     'chat',
     'user',
@@ -114,6 +115,7 @@ export const ICON_VARIANTS: Record<IconName, IconVariant> = {
     alarmClock: 2,
     calendar: 2,
     phone: 2,
+    mail: 2,
     chat: 2,
     user: 2,
     userCircle: 2,

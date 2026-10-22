@@ -1,6 +1,6 @@
 // Скрипт сборки картинок превью ссылки (Open Graph) для страниц без своего фото.
 //
-// Берёт логотип из public/light и public/dark и кладёт его по центру холста 1200×630
+// Берёт логотип (тёмный — из корня public, светлый — из public/light) и кладёт его по центру холста 1200×630
 // (формат «большой карточки» в Telegram, WhatsApp, Facebook) на фон своей темы —
 // получаются public/og/default-light.png и public/og/default-dark.png.
 // Исходные иконки непрозрачные (белый / чёрный фон), поэтому со сплошным фоном холста они сливаются без шва.
@@ -18,7 +18,7 @@ const ICON_SIZE = 560;
 
 const THEMES: Record<OgTheme, { background: string; icon: string }> = {
     light: { background: '#ffffff', icon: 'public/light/icon-512x512.png' },
-    dark: { background: '#000000', icon: 'public/dark/icon-512x512-dark.png' },
+    dark: { background: '#000000', icon: 'public/web-app-manifest-512x512.png' },
 };
 
 async function main() {

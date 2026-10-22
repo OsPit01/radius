@@ -21,7 +21,7 @@ export default function Document() {
                 />
                 <link
                     rel="icon"
-                    href="/dark/favicon-96x96-dark.png"
+                    href="/favicon-96x96.png"
                     sizes="96x96"
                     type="image/png"
                     media="(prefers-color-scheme: dark)"
@@ -33,7 +33,7 @@ export default function Document() {
                 />
                 <link
                     rel="shortcut icon"
-                    href="/dark/favicon-dark.ico"
+                    href="/favicon.ico"
                     media="(prefers-color-scheme: dark)"
                 />
                 {/* iOS не учитывает media у apple-touch-icon — иконка на домашнем экране одна. */}
