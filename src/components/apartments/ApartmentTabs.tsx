@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { AlarmClock, Check, Clipboard, Clock, MapView, Note, Sparkles } from '@/components/icons';
+import { SegmentedTabs } from '@/components/ui/SegmentedTabs';
 import { AMENITIES } from '@/lib/constants/amenities';
 
 const TABS = [
@@ -27,24 +28,11 @@ export function ApartmentTabs({
 
     return (
         <div className="mt-10">
-            {/* Вкладки */}
-            <div className="flex flex-wrap justify-center gap-2 rounded-2xl bg-muted p-2 max-sm:gap-1.5">
-                {TABS.map((tab) => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-3 text-[15px] font-medium transition-all duration-200 max-sm:min-w-[45%] ${
-                            activeTab === tab.id
-                                ? 'bg-foreground text-background shadow-[0_4px_12px_rgba(0,0,0,0.2)]'
-                                : 'text-muted-foreground hover:bg-card hover:text-foreground'
-                        }`}
-                    >
-                        <tab.Icon className="h-5 w-5" />
-                        {tab.label}
-                    </button>
-                ))}
-            </div>
-
+            <SegmentedTabs
+                tabs={TABS}
+                active={activeTab}
+                onChange={setActiveTab}
+            />
             <div className="py-8">
                 {activeTab === 0 && (
                     <div className="mx-auto max-w-2xl">

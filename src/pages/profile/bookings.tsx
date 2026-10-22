@@ -4,9 +4,8 @@ import { useSession } from 'next-auth/react';
 
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { ClientHeader } from '@/components/layout/ClientHeader';
-import { ModeSwitch } from '@/components/profile/bookings/BookingModeSwitch';
-import { Tabs } from '@/components/profile/bookings/BookingTabs';
 import { Modal } from '@/components/ui/Modal';
+import { SegmentedTabs } from '@/components/ui/SegmentedTabs';
 import { formatPhoneForDisplay } from '@/lib/phone';
 import { requireAuth } from '@/server/auth/require-auth';
 import { api } from '@/trpc/react';
@@ -152,28 +151,28 @@ export default function BookingsPage() {
     return (
         <AuthGuard>
             <ClientHeader />
-            {/* Переключатель «Сдаю / Снимаю» — только для владельца/админа */}
-            {canHost && (
-                <div className="mx-auto max-w-full px-4 pt-2">
-                    <ModeSwitch
-                        tabs={[
-                            { id: 'owner', label: 'Сдаю' },
-                            { id: 'guest', label: 'Снимаю' },
-                        ]}
-                        active={currentMode}
-                        onChange={(id) => {
-                            setMode(id);
-                            // При смене режима сбрасываем вкладку на дефолтную,
-                            // иначе старый tab может не существовать в новом режиме.
-                            setTab(id === 'owner' ? 'new' : 'approved');
-                        }}
-                    />
-                </div>
-            )}
-
             <div className="mx-auto max-w-3xl px-4 pt-5">
+                {/* Переключатель «Сдаю / Снимаю» — только для владельца/админа */}
+                {canHost && (
+                    <div className="mb-3">
+                        <SegmentedTabs
+                            tabs={[
+                                { id: 'owner', label: 'Сдаю' },
+                                { id: 'guest', label: 'Снимаю' },
+                            ]}
+                            active={currentMode}
+                            onChange={(id) => {
+                                setMode(id);
+                                // При смене режима сбрасываем вкладку на дефолтную,
+                                // иначе старый tab может не существовать в новом режиме.
+                                setTab(id === 'owner' ? 'new' : 'approved');
+                            }}
+                        />
+                    </div>
+                )}
+
                 {/* Вкладки статусов текущего режима */}
-                <Tabs
+                <SegmentedTabs
                     tabs={statusTabs}
                     active={currentTab}
                     onChange={setTab}

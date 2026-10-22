@@ -1,7 +1,7 @@
 import { createIcon } from './core';
 import { circle, polygon, rotate, rrect } from './geometry';
 
-// Справочное: цена, описание, правила, время, даты, телефон.
+// Справочное: цена, описание, правила, время, даты, телефон, почта.
 
 const BAG = 'M9.6 7.4C6 9.4 3.8 12.8 3.8 16.2c0 2.9 2.4 4.6 8.2 4.6s8.2-1.7 8.2-4.6c0-3.4-2.2-6.8-5.8-8.8z';
 const DOLLAR =
@@ -131,4 +131,14 @@ export const Phone = createIcon({
     extras:
         `<path d="M14 3.6a6.4 6.4 0 0 1 6.4 6.4M14 7.2a2.8 2.8 0 0 1 2.8 2.8" ` +
         `stroke="$fg" stroke-width="1.8" stroke-linecap="round" fill="none"/>`,
+});
+
+export const Mail = createIcon({
+    name: 'mail',
+    label: 'Почта',
+    usage: 'Поле e-mail на странице входа',
+    shapes: [rrect(2.6, 4.8, 18.8, 14.4, 3.2)],
+    strokes: ['M3.6 7.8l8.4 5.8 8.4-5.8'],
+    cut: 1.8,
+    labels: ['Заливка', 'Контур', 'Дуотон'],
 });

@@ -52,7 +52,6 @@ export default function App({ Component, pageProps }: AppProps) {
     const router = useRouter();
     const isApartmentLoading = useIsApartmentLoading();
 
-    // Закрытые разделы (личный кабинет, админка, вход) не индексируем.
     const noindex = NOINDEX_PATHS.some((path) => router.pathname === path || router.pathname.startsWith(`${path}/`));
 
     return (
@@ -63,7 +62,6 @@ export default function App({ Component, pageProps }: AppProps) {
                     name="viewport"
                     content="width=device-width, initial-scale=1"
                 />
-                {/* Шрифт доступен Tailwind через --font-geist-sans (см. globals.css) */}
                 <style
                     key="font-vars"
                     dangerouslySetInnerHTML={{
@@ -71,12 +69,13 @@ export default function App({ Component, pageProps }: AppProps) {
                     }}
                 />
             </Head>
-            {/* Значения по умолчанию; страницы переопределяют их своим <Seo> */}
+
             <Seo noindex={noindex} />
 
             <ThemeProvider>
                 <div className="flex min-h-screen flex-col">
                     <GoogleAnalytics />
+
                     <SessionProvider>
                         <TRPCReactProvider>
                             <div className="flex-1">
