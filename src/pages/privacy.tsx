@@ -2,7 +2,7 @@ import { ClientHeader } from '@/components/layout/ClientHeader';
 import { Seo } from '@/components/Seo';
 
 const DESCRIPTION =
-    'Политика обработки персональных данных сайта radius-stay.by — какие данные мы собираем и как их защищаем.';
+    'Политика обработки персональных данных сайта naradare.by — какие данные мы собираем и как их защищаем.';
 
 export default function PrivacyPage() {
     return (
@@ -21,7 +21,7 @@ export default function PrivacyPage() {
                     <Section title="1. Общие положения">
                         <p>
                             1.1. Настоящая Политика определяет порядок обработки и защиты персональных данных
-                            пользователей сайта <strong>radius-stay.by</strong> (далее — «Сайт»).
+                            пользователей сайта <strong>naradare.by</strong> (далее — «Сайт»).
                         </p>
                         <p>
                             1.2. Оператором персональных данных является Администрация Сайта: Осипов Игорь Вячеславович

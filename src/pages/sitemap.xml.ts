@@ -10,7 +10,6 @@ type SitemapEntry = {
     lastModified: Date;
     changeFrequency: 'daily' | 'weekly' | 'yearly';
     priority: number;
-    images?: string[];
 };
 
 function escapeXml(value: string): string {
@@ -24,34 +23,26 @@ function escapeXml(value: string): string {
 
 function renderSitemap(entries: SitemapEntry[]): string {
     const urls = entries.map((e) => {
-        const images = (e.images ?? [])
-            .map((src) => `<image:image><image:loc>${escapeXml(src)}</image:loc></image:image>`)
-            .join('');
-
         return (
             `<url><loc>${escapeXml(e.url)}</loc>` +
             `<lastmod>${e.lastModified.toISOString()}</lastmod>` +
             `<changefreq>${e.changeFrequency}</changefreq>` +
-            `<priority>${e.priority}</priority>${images}</url>`
+            `<priority>${e.priority}</priority></url>`
         );
     });
 
     return (
         `<?xml version="1.0" encoding="UTF-8"?>\n` +
-        `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" ` +
-        `xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n` +
+        `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
         `${urls.join('\n')}\n</urlset>\n`
     );
 }
 
 async function buildEntries(): Promise<SitemapEntry[]> {
-    // Публичный справочник: id + город + все фотографии (для image sitemap).
     const rows = await db
         .select({
             id: apartments.id,
             city: apartments.city,
-            image: apartments.image,
-            images: apartments.images,
             updatedAt: apartments.updatedAt,
             microdistrict: apartments.microdistrict,
         })
@@ -63,9 +54,6 @@ async function buildEntries(): Promise<SitemapEntry[]> {
         lastModified: a.updatedAt ?? new Date(),
         changeFrequency: 'weekly',
         priority: 0.8,
-        // Все фотографии квартиры — чтобы Google индексировал изображения.
-        // Если массива нет — берём главное фото.
-        images: (a.images?.length ? a.images : [a.image]).filter(Boolean),
     }));
 
     // Страницы городов /rent/flat/{город}.

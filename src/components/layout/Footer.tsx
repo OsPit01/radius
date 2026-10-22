@@ -6,12 +6,12 @@ import { Instagram, Telegram } from '@/components/icons';
 // Ссылки на соцсети. Подставь реальные профили, когда будут готовы.
 const SOCIALS = [
     {
-        href: 'https://t.me/radius_booking_bot',
+        href: 'https://t.me/FlatOfMinsk',
         label: 'Telegram',
         icon: <Telegram className="h-5 w-5" />,
     },
     {
-        href: 'https://www.instagram.com/',
+        href: 'https://www.instagram.com/radius_stay/',
         label: 'Instagram',
         icon: <Instagram className="h-5 w-5" />,
     },
@@ -142,7 +142,7 @@ export function Footer() {
             {/* Нижняя часть — копирайт + платёжный сервис */}
             <div>
                 <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-5 py-4 text-sm text-muted-foreground md:flex-row">
-                    <span>© {year} radius-stay.by — аренда жилья посуточно</span>
+                    <span>© {year} naradare.by — аренда жилья посуточно</span>
                     <a
                         href="https://express-pay.by"
                         target="_blank"

@@ -56,7 +56,7 @@ export const authConfig = {
         }),
         Resend({
             apiKey: process.env.RESEND_API_KEY,
-            from: 'Radius <no-reply@radius-stay.by>',
+            from: 'NaRadare <no-reply@naradare.by>',
         }),
     ],
     adapter: DrizzleAdapter(db, {

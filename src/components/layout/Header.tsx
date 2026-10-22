@@ -59,7 +59,7 @@ export function Header() {
                     href="/"
                     className="shrink-0 text-2xl font-bold whitespace-nowrap text-foreground no-underline"
                 >
-                    Radius
+                    NaRadare
                 </Link>
 
                 {/* УПРАВЛЕНИЕ (десктоп) */}

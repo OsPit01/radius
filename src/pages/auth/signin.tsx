@@ -30,21 +30,21 @@ export default function SignInPage() {
             <Seo title="Вход и регистрация" />
             <span className="bg-gradient-to-r from-primary to-foreground bg-clip-text text-[12px] font-normal tracking-[0.2em] text-transparent">
                 {' '}
-                Radius stay
+                NaRadare
             </span>
             <div className="flex items-center justify-center px-4">
                 {/* Логотип: у светлой и тёмной темы сайта (класс .dark) своя иконка — показываем нужную
             через dark:-варианты, так нет мигания при гидрации. Скрытая (display: none) не грузится и скринридером не читается. */}
                 <Image
                     src="/light/icon-512x512.png"
-                    alt="radius-stay.by"
+                    alt="naradare.by"
                     width={96}
                     height={96}
                     className="rounded-[20px] dark:hidden"
                 />
                 <Image
                     src="/web-app-manifest-512x512.png"
-                    alt="radius-stay.by"
+                    alt="naradare.by"
                     width={96}
                     height={96}
                     className="hidden rounded-[20px] dark:block"
