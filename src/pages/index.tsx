@@ -1,10 +1,9 @@
-import { MicrodistrictTiles } from '@/components/catalog/MicrodistrictTiles';
+import { CityTiles } from '@/components/catalog/CityTiles';
 import { RadarHero } from '@/components/home/RadarHero';
 import { TypewriterTagline } from '@/components/home/TypewriterTagline';
 import { JsonLd } from '@/components/JsonLd';
 import { ClientHeader } from '@/components/layout/ClientHeader';
 import { Seo } from '@/components/Seo';
-import { CitySlug } from '@/lib/constants/catalog';
 import { HOME_TAGLINE_SEO_TEXT, HOME_TAGLINES } from '@/lib/constants/home-taglines';
 import { HOME_DESCRIPTION, HOME_TITLE, SITE_NAME, SITE_URL } from '@/lib/seo';
 
@@ -45,7 +44,7 @@ export default function Home() {
                     />
                 </div>
 
-                <MicrodistrictTiles city={CitySlug.Minsk} />
+                <CityTiles />
 
                 <section className="mx-auto mt-12 max-w-3xl text-center text-[0.95rem] leading-relaxed text-muted-foreground max-md:mt-8 max-md:text-sm">
                     <p className="mb-4">

@@ -1,7 +1,6 @@
 import { eq } from 'drizzle-orm';
 import type { GetServerSideProps } from 'next';
 
-import { findMicrodistrictSlug, getMicrodistrictPath, MICRODISTRICT_SLUGS } from '@/lib/constants/catalog';
 import { SITE_URL } from '@/lib/seo';
 import { db } from '@/server/db';
 import { apartments } from '@/server/db/schema';
@@ -69,17 +68,34 @@ async function buildEntries(): Promise<SitemapEntry[]> {
         images: (a.images?.length ? a.images : [a.image]).filter(Boolean),
     }));
 
-    // Страницы каталога /rent/flat/{город}/microdistrict/{микрорайон}.
-    // Только те, где есть хотя бы одна активная квартира: пустые страницы закрыты noindex.
-    const filledSlugs = new Set(rows.map((a) => findMicrodistrictSlug(a.microdistrict, a.city)));
-    const microdistrictUrls: SitemapEntry[] = MICRODISTRICT_SLUGS.filter((slug) => filledSlugs.has(slug)).map(
-        (slug) => ({
-            url: `${SITE_URL}${getMicrodistrictPath(slug)}`,
+    // Страницы городов /rent/flat/{город}.
+    const cities = Array.from(new Set(rows.map((a) => a.city)));
+    const cityUrls: SitemapEntry[] = cities.map((city) => ({
+        url: `${SITE_URL}/rent/flat/${encodeURIComponent(city)}`,
+        lastModified: new Date(),
+        changeFrequency: 'daily',
+        priority: 0.9,
+    }));
+
+    // Страницы микрорайонов /rent/flat/{город}/microdistrict/{район} — только непустые районы активных квартир.
+    const seen = new Set<string>();
+    const microdistrictUrls: SitemapEntry[] = [];
+    for (const a of rows) {
+        if (!a.microdistrict) {
+            continue;
+        }
+        const key = `${a.city}::${a.microdistrict}`;
+        if (seen.has(key)) {
+            continue;
+        }
+        seen.add(key);
+        microdistrictUrls.push({
+            url: `${SITE_URL}/rent/flat/${encodeURIComponent(a.city)}/microdistrict/${encodeURIComponent(a.microdistrict)}`,
             lastModified: new Date(),
             changeFrequency: 'daily',
             priority: 0.9,
-        }),
-    );
+        });
+    }
 
     return [
         {
@@ -88,6 +104,7 @@ async function buildEntries(): Promise<SitemapEntry[]> {
             changeFrequency: 'daily',
             priority: 1,
         },
+        ...cityUrls,
         ...microdistrictUrls,
         {
             url: `${SITE_URL}/privacy`,

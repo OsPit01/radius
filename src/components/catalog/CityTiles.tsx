@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import Link from 'next/link';
 
+import { MapPin } from '@/components/icons';
 import { api } from '@/trpc/react';
 
 export function CityTiles() {
@@ -24,57 +25,103 @@ export function CityTiles() {
     const activeMicrodistricts = locations.find((l) => l.city === activeCity)?.microdistricts ?? [];
     const visibleMicrodistricts = showAllMicrodistricts ? activeMicrodistricts : activeMicrodistricts.slice(0, 4);
 
+    const scrollRow =
+        'mx-auto flex w-fit max-w-full snap-x  gap-3 overflow-x-auto pb-1 max-md:-mx-5 max-md:w-auto max-md:max-w-none max-md:scroll-px-5 max-md:px-5';
+
     return (
         <section>
             <h2 className="text-center text-[1.4rem] font-semibold text-foreground">Города</h2>
-            <div className="mt-3 flex flex-wrap justify-center gap-2 px-3">
+            <p className="mb-3 text-center text-base text-balance text-muted-foreground max-md:text-sm">
+                Выберите город
+            </p>
+
+            <ul className={scrollRow}>
                 {visibleCities.map((city) => {
                     const isActive = city === activeCity;
                     return (
-                        <button
+                        <li
                             key={city}
-                            type="button"
-                            onClick={() => setSelectedCity(city)}
-                            className={`cursor-pointer rounded-2xl border bg-card px-5 py-2.5 text-sm font-semibold transition-colors duration-200 hover:border-primary ${
-                                isActive ? 'border-primary text-primary' : 'border-border text-foreground'
-                            }`}
+                            className="flex shrink-0 snap-start"
                         >
-                            {city}
-                        </button>
+                            <button
+                                type="button"
+                                onClick={() => setSelectedCity(city)}
+                                className={`flex w-[230px] flex-col gap-1 rounded-2xl border bg-card px-3 py-3 text-left transition-colors duration-200 hover:border-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none ${
+                                    isActive ? 'border-primary' : 'border-border'
+                                }`}
+                            >
+                                <span className="flex items-center gap-2">
+                                    <MapPin className="h-6 w-6 shrink-0 text-primary" />
+                                    <span className="text-base font-semibold text-foreground">{city}</span>
+                                </span>
+                                <span className="block text-sm text-balance text-muted-foreground">
+                                    Квартиры на сутки в {city}
+                                </span>
+                            </button>
+                        </li>
                     );
                 })}
                 {cities.length > 3 && (
-                    <button
-                        type="button"
-                        onClick={() => setShowAllCities((v) => !v)}
-                        className="cursor-pointer rounded-2xl border border-border bg-card px-5 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary"
-                    >
-                        {showAllCities ? 'Скрыть' : 'Показать ещё'}
-                    </button>
-                )}
-            </div>
-
-            {activeMicrodistricts.length > 0 && (
-                <div className="mt-3 flex flex-wrap justify-center gap-2 px-3">
-                    {visibleMicrodistricts.map((name) => (
-                        <Link
-                            key={name}
-                            href={`/rent/flat/${encodeURIComponent(activeCity)}/microdistrict/${encodeURIComponent(name)}`}
-                            className="cursor-pointer rounded-2xl border border-border bg-card px-5 py-2.5 text-sm font-semibold text-foreground no-underline transition-colors duration-200 hover:border-primary hover:text-primary"
-                        >
-                            {name}
-                        </Link>
-                    ))}
-                    {activeMicrodistricts.length > 4 && (
+                    <li className="flex shrink-0 snap-start">
                         <button
                             type="button"
-                            onClick={() => setShowAllMicrodistricts((v) => !v)}
-                            className="cursor-pointer rounded-2xl border border-border bg-card px-5 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                            onClick={() => setShowAllCities((v) => !v)}
+                            className="flex w-[230px] flex-col gap-1 rounded-2xl border border-border bg-card px-3 py-3 text-left transition-colors duration-200 hover:border-primary"
                         >
-                            {showAllMicrodistricts ? 'Скрыть' : 'Показать ещё'}
+                            <span className="flex items-center gap-2">
+                                <span className="text-base font-semibold text-muted-foreground">
+                                    {showAllCities ? 'Скрыть' : 'Показать ещё'}
+                                </span>
+                            </span>
                         </button>
-                    )}
-                </div>
+                    </li>
+                )}
+            </ul>
+
+            {activeMicrodistricts.length > 0 && (
+                <>
+                    <h2 className="mt-8 text-center text-[1.4rem] font-semibold text-foreground">
+                        Районы {activeCity}
+                    </h2>
+                    <p className="mb-3 text-center text-base text-balance text-muted-foreground max-md:text-sm">
+                        Выберите район
+                    </p>
+
+                    <ul className={scrollRow}>
+                        {visibleMicrodistricts.map((name) => (
+                            <li
+                                key={name}
+                                className="flex shrink-0 snap-start"
+                            >
+                                <Link
+                                    href={`/rent/flat/${encodeURIComponent(activeCity)}/microdistrict/${encodeURIComponent(name)}`}
+                                    className="flex w-[230px] flex-col gap-1 rounded-2xl border border-border bg-card px-3 py-3 text-left no-underline transition-colors duration-200 hover:border-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                                >
+                                    <span className="flex items-center gap-2">
+                                        <MapPin className="h-6 w-6 shrink-0 text-primary" />
+                                        <span className="text-base font-semibold text-foreground">{name}</span>
+                                    </span>
+                                    <span className="block text-sm text-balance text-muted-foreground">
+                                        Квартиры на сутки в {name}
+                                    </span>
+                                </Link>
+                            </li>
+                        ))}
+                        {activeMicrodistricts.length > 4 && (
+                            <li className="flex shrink-0 snap-start">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowAllMicrodistricts((v) => !v)}
+                                    className="flex w-[230px] flex-col gap-1 rounded-2xl border border-border bg-card px-3 py-3 text-left transition-colors duration-200 hover:border-primary"
+                                >
+                                    <span className="text-base font-semibold text-muted-foreground">
+                                        {showAllMicrodistricts ? 'Скрыть' : 'Показать ещё'}
+                                    </span>
+                                </button>
+                            </li>
+                        )}
+                    </ul>
+                </>
             )}
         </section>
     );
