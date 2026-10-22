@@ -1,8 +1,12 @@
 'use client';
 
+import 'swiper/css';
+
 import { useState } from 'react';
 
 import Link from 'next/link';
+import { FreeMode } from 'swiper/modules';
+import { Swiper, SwiperSlide } from 'swiper/react';
 
 import { MapPin } from '@/components/icons';
 import { api } from '@/trpc/react';
@@ -25,8 +29,41 @@ export function CityTiles() {
     const activeMicrodistricts = locations.find((l) => l.city === activeCity)?.microdistricts ?? [];
     const visibleMicrodistricts = showAllMicrodistricts ? activeMicrodistricts : activeMicrodistricts.slice(0, 4);
 
-    const scrollRow =
-        'mx-auto flex w-fit max-w-full snap-x  gap-3 overflow-x-auto pb-1 max-md:-mx-5 max-md:w-auto max-md:max-w-none max-md:scroll-px-5 max-md:px-5';
+    const tileClass =
+        'flex w-[230px] flex-col gap-1 rounded-2xl border bg-card px-3 py-3 text-left transition-colors duration-200 hover:border-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none';
+
+    const showMoreClass =
+        'flex w-[230px] flex-col gap-1 rounded-2xl border border-border bg-card px-3 py-3 text-left transition-colors duration-200 hover:border-primary';
+
+    const cityButton = (city: string) => {
+        const isActive = city === activeCity;
+        return (
+            <button
+                type="button"
+                onClick={() => setSelectedCity(city)}
+                className={`${tileClass} ${isActive ? 'border-primary' : 'border-border'}`}
+            >
+                <span className="flex items-center gap-2">
+                    <MapPin className="h-6 w-6 shrink-0 text-primary" />
+                    <span className="min-w-0 truncate text-base font-semibold text-foreground">{city}</span>
+                </span>
+                <span className="block truncate text-sm text-muted-foreground">Квартиры на сутки {city}</span>
+            </button>
+        );
+    };
+
+    const microdistrictLink = (name: string) => (
+        <Link
+            href={`/rent/flat/${encodeURIComponent(activeCity)}/microdistrict/${encodeURIComponent(name)}`}
+            className={`${tileClass} border-border no-underline`}
+        >
+            <span className="flex items-center gap-2">
+                <MapPin className="h-6 w-6 shrink-0 text-primary" />
+                <span className="min-w-0 truncate text-base font-semibold text-foreground">{name}</span>
+            </span>
+            <span className="block truncate text-sm text-muted-foreground">Квартиры на сутки {name}</span>
+        </Link>
+    );
 
     return (
         <section>
@@ -35,48 +72,41 @@ export function CityTiles() {
                 Выберите город
             </p>
 
-            <ul className={scrollRow}>
-                {visibleCities.map((city) => {
-                    const isActive = city === activeCity;
-                    return (
-                        <li
+            {cities.length === 1 ? (
+                <div className="flex justify-center">{cityButton(cities[0]!)}</div>
+            ) : (
+                <Swiper
+                    modules={[FreeMode]}
+                    slidesPerView="auto"
+                    spaceBetween={12}
+                    freeMode={{ enabled: true, momentum: true, momentumRatio: 0.6 }}
+                    className="!px-5"
+                >
+                    {visibleCities.map((city) => (
+                        <SwiperSlide
                             key={city}
-                            className="flex shrink-0 snap-start"
+                            className="!w-[230px]"
                         >
+                            {cityButton(city)}
+                        </SwiperSlide>
+                    ))}
+                    {cities.length > 3 && (
+                        <SwiperSlide className="!w-[230px]">
                             <button
                                 type="button"
-                                onClick={() => setSelectedCity(city)}
-                                className={`flex w-[230px] flex-col gap-1 rounded-2xl border bg-card px-3 py-3 text-left transition-colors duration-200 hover:border-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none ${
-                                    isActive ? 'border-primary' : 'border-border'
-                                }`}
+                                onClick={() => setShowAllCities((v) => !v)}
+                                className={showMoreClass}
                             >
                                 <span className="flex items-center gap-2">
-                                    <MapPin className="h-6 w-6 shrink-0 text-primary" />
-                                    <span className="text-base font-semibold text-foreground">{city}</span>
-                                </span>
-                                <span className="block text-sm text-balance text-muted-foreground">
-                                    Квартиры на сутки в {city}
+                                    <span className="text-base font-semibold text-muted-foreground">
+                                        {showAllCities ? 'Скрыть' : 'Показать ещё'}
+                                    </span>
                                 </span>
                             </button>
-                        </li>
-                    );
-                })}
-                {cities.length > 3 && (
-                    <li className="flex shrink-0 snap-start">
-                        <button
-                            type="button"
-                            onClick={() => setShowAllCities((v) => !v)}
-                            className="flex w-[230px] flex-col gap-1 rounded-2xl border border-border bg-card px-3 py-3 text-left transition-colors duration-200 hover:border-primary"
-                        >
-                            <span className="flex items-center gap-2">
-                                <span className="text-base font-semibold text-muted-foreground">
-                                    {showAllCities ? 'Скрыть' : 'Показать ещё'}
-                                </span>
-                            </span>
-                        </button>
-                    </li>
-                )}
-            </ul>
+                        </SwiperSlide>
+                    )}
+                </Swiper>
+            )}
 
             {activeMicrodistricts.length > 0 && (
                 <>
@@ -87,40 +117,41 @@ export function CityTiles() {
                         Выберите район
                     </p>
 
-                    <ul className={scrollRow}>
-                        {visibleMicrodistricts.map((name) => (
-                            <li
-                                key={name}
-                                className="flex shrink-0 snap-start"
-                            >
-                                <Link
-                                    href={`/rent/flat/${encodeURIComponent(activeCity)}/microdistrict/${encodeURIComponent(name)}`}
-                                    className="flex w-[230px] flex-col gap-1 rounded-2xl border border-border bg-card px-3 py-3 text-left no-underline transition-colors duration-200 hover:border-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                    {activeMicrodistricts.length === 1 ? (
+                        <div className="flex justify-center">{microdistrictLink(activeMicrodistricts[0]!)}</div>
+                    ) : (
+                        <Swiper
+                            modules={[FreeMode]}
+                            slidesPerView="auto"
+                            spaceBetween={12}
+                            freeMode={{ enabled: true, momentum: true, momentumRatio: 0.6 }}
+                            className="!px-5"
+                        >
+                            {visibleMicrodistricts.map((name) => (
+                                <SwiperSlide
+                                    key={name}
+                                    className="!w-[230px]"
                                 >
-                                    <span className="flex items-center gap-2">
-                                        <MapPin className="h-6 w-6 shrink-0 text-primary" />
-                                        <span className="text-base font-semibold text-foreground">{name}</span>
-                                    </span>
-                                    <span className="block text-sm text-balance text-muted-foreground">
-                                        Квартиры на сутки в {name}
-                                    </span>
-                                </Link>
-                            </li>
-                        ))}
-                        {activeMicrodistricts.length > 4 && (
-                            <li className="flex shrink-0 snap-start">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowAllMicrodistricts((v) => !v)}
-                                    className="flex w-[230px] flex-col gap-1 rounded-2xl border border-border bg-card px-3 py-3 text-left transition-colors duration-200 hover:border-primary"
-                                >
-                                    <span className="text-base font-semibold text-muted-foreground">
-                                        {showAllMicrodistricts ? 'Скрыть' : 'Показать ещё'}
-                                    </span>
-                                </button>
-                            </li>
-                        )}
-                    </ul>
+                                    {microdistrictLink(name)}
+                                </SwiperSlide>
+                            ))}
+                            {activeMicrodistricts.length > 4 && (
+                                <SwiperSlide className="!w-[230px]">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowAllMicrodistricts((v) => !v)}
+                                        className={showMoreClass}
+                                    >
+                                        <span className="flex items-center gap-2">
+                                            <span className="text-base font-semibold text-muted-foreground">
+                                                {showAllMicrodistricts ? 'Скрыть' : 'Показать ещё'}
+                                            </span>
+                                        </span>
+                                    </button>
+                                </SwiperSlide>
+                            )}
+                        </Swiper>
+                    )}
                 </>
             )}
         </section>
