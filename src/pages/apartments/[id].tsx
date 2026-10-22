@@ -6,6 +6,7 @@ import { ApartmentTabs } from '@/components/apartments/ApartmentTabs';
 import { BookingButton } from '@/components/apartments/BookingButton';
 import { OwnerPhone } from '@/components/apartments/OwnerPhone';
 import { PhotoGallery } from '@/components/apartments/PhotoGallery';
+import { Bath, Bed, Building, Clock, MapPin, Metro, Ruler } from '@/components/icons';
 import { JsonLd } from '@/components/JsonLd';
 import { ClientHeader } from '@/components/layout/ClientHeader';
 import { Seo } from '@/components/Seo';
@@ -114,7 +115,7 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
                     <div className="flex flex-col rounded-2xl border border-border bg-card p-6 shadow-sm">
                         {/* Адрес + метро (одной строкой с иконками) */}
                         <div className="flex flex-wrap items-start gap-x-2 gap-y-1">
-                            <span>📍</span>
+                            <MapPin className="h-5 w-5" />
                             <p className="flex-1 text-base text-foreground">
                                 г. {apartment.apartment.city}
                                 {apartment.apartment.microdistrict && (
@@ -131,7 +132,7 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
                         </div>
 
                         <div className="mt-2 flex flex-wrap items-center gap-x-2">
-                            <span>🚇</span>
+                            <Metro className="h-5 w-5" />
                             <p className="text-sm text-foreground">
                                 {apartment.apartment.metro
                                     ? `${apartment.apartment.metro} минут до метро`
@@ -140,7 +141,7 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
                         </div>
                         {sleepText && (
                             <div className="mt-2 flex flex-wrap items-center gap-x-2">
-                                <span>🛏️</span>
+                                <Bed className="h-5 w-5" />
                                 <p className="text-sm text-foreground">{sleepText}</p>
                             </div>
                         )}
@@ -148,15 +149,30 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
                         {/* Доп. характеристики: площадь, этаж, санузлы */}
                         {hasExtras && (
                             <div className="mt-2 flex flex-wrap items-center gap-x-3 text-sm text-foreground">
-                                {a.area ? <span>📐 {a.area} м²</span> : null}
-                                {a.floor ? <span>🏢 {a.floor} этаж</span> : null}
-                                {a.bathrooms ? <span>🛁 {a.bathrooms} санузел(а)</span> : null}
+                                {a.area ? (
+                                    <span className="inline-flex items-center gap-1.5">
+                                        <Ruler className="h-5 w-5" />
+                                        {a.area} м²
+                                    </span>
+                                ) : null}
+                                {a.floor ? (
+                                    <span className="inline-flex items-center gap-1.5">
+                                        <Building className="h-5 w-5" />
+                                        {a.floor} этаж
+                                    </span>
+                                ) : null}
+                                {a.bathrooms ? (
+                                    <span className="inline-flex items-center gap-1.5">
+                                        <Bath className="h-5 w-5" />
+                                        {a.bathrooms} санузел(а)
+                                    </span>
+                                ) : null}
                             </div>
                         )}
 
                         {/* Время заезда/выезда */}
                         <div className="mt-2 flex flex-wrap items-center gap-x-2">
-                            <span>🕒</span>
+                            <Clock className="h-5 w-5" />
                             <p className="text-sm text-foreground">
                                 Заселение после{' '}
                                 <span className="border-b-[1px] px-2 py-0.5 text-[13px] font-medium text-foreground">

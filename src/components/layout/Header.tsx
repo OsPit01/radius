@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { FaRegHeart } from 'react-icons/fa';
 
 import Link from 'next/link';
 import { signOut, useSession } from 'next-auth/react';
 
 import { UserDropdown } from '@/components/auth/UserDropdown';
+import { Close, Heart, Menu } from '@/components/icons';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
+import { HEADER_ICON_BUTTON } from '@/lib/constants/ui';
 
 const mobileLinks = [
     { href: '/profile', label: 'Личный кабинет' },
@@ -33,7 +34,10 @@ function useScrolled() {
 /** Сердце «Избранное»: тот же значок, что на карточке, размером и цветом как колокольчик. */
 function FavoritesIcon() {
     return (
-        <FaRegHeart className="h-5 w-5 text-muted-foreground transition-colors duration-200 group-hover:text-primary/60" />
+        <Heart
+            muted
+            className="h-6 w-6 text-muted-foreground transition-colors duration-200 group-hover:text-primary/60"
+        />
     );
 }
 
@@ -72,10 +76,10 @@ export function Header() {
                     )}
                     {/* иконка сердца */}
                     {session?.user && (
-                        <div className="relative flex flex-1">
+                        <div className="relative flex flex-1 items-center gap-1">
                             <Link
                                 href="/profile/favorites"
-                                className="group cursor-pointer rounded-lg p-2 text-[1.1rem] no-underline transition-all duration-200 hover:bg-muted"
+                                className={`group rounded-lg ${HEADER_ICON_BUTTON}`}
                                 aria-label="Избранное"
                             >
                                 <FavoritesIcon />
@@ -83,7 +87,8 @@ export function Header() {
                             {/* иконка колокольчик */}
                             <Link
                                 href="/my-notifications"
-                                className="cursor-pointer rounded-lg p-2 text-[1.1rem] no-underline transition-all duration-200 hover:bg-muted"
+                                className={`rounded-lg ${HEADER_ICON_BUTTON}`}
+                                aria-label="Уведомления"
                             >
                                 <NotificationBell />
                             </Link>
@@ -97,14 +102,14 @@ export function Header() {
                         <>
                             <Link
                                 href="/profile/favorites"
-                                className="group cursor-pointer rounded-lg p-2 text-[1.1rem] no-underline transition-colors hover:bg-muted"
+                                className={`group rounded-lg ${HEADER_ICON_BUTTON}`}
                                 aria-label="Избранное"
                             >
                                 <FavoritesIcon />
                             </Link>
                             <Link
                                 href="/my-notifications"
-                                className="cursor-pointer rounded-lg p-2 no-underline transition-colors hover:bg-muted"
+                                className={`rounded-lg ${HEADER_ICON_BUTTON}`}
                                 aria-label="Уведомления"
                             >
                                 <NotificationBell />
@@ -112,12 +117,12 @@ export function Header() {
                         </>
                     )}
                     <button
-                        className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg text-2xl text-foreground transition-colors hover:bg-muted"
+                        className={`rounded-lg text-foreground ${HEADER_ICON_BUTTON}`}
                         onClick={() => setMenuOpen((prev) => !prev)}
                         aria-label={menuOpen ? 'Закрыть меню' : 'Открыть меню'}
                         aria-expanded={menuOpen}
                     >
-                        {menuOpen ? '✕' : '☰'}
+                        {menuOpen ? <Close className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
                     </button>
                 </div>
             </div>

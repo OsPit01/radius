@@ -1,19 +1,19 @@
-import { FaInstagram, FaTelegramPlane } from 'react-icons/fa';
-
 import Image from 'next/image';
 import Link from 'next/link';
+
+import { Instagram, Telegram } from '@/components/icons';
 
 // Ссылки на соцсети. Подставь реальные профили, когда будут готовы.
 const SOCIALS = [
     {
         href: 'https://t.me/radius_booking_bot',
         label: 'Telegram',
-        icon: <FaTelegramPlane className="h-5 w-5" />,
+        icon: <Telegram className="h-5 w-5" />,
     },
     {
         href: 'https://www.instagram.com/',
         label: 'Instagram',
-        icon: <FaInstagram className="h-5 w-5" />,
+        icon: <Instagram className="h-5 w-5" />,
     },
 ] as const;
 

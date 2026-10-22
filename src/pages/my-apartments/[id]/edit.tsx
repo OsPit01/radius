@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 
+import { Bed, Camera, Clock, Close, Home, Hourglass, MapPin, Money, Plus, Sofa, Star } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { ClientHeader } from '@/components/layout/ClientHeader';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -230,8 +231,9 @@ export default function EditApartmentPage() {
                                                         className="object-cover"
                                                     />
                                                     {isMain && (
-                                                        <div className="absolute top-1 left-1 z-[5] rounded bg-warning px-2 py-0.5 text-[10px] font-semibold text-warning-foreground max-[480px]:px-1.5 max-[480px]:py-0.5 max-[480px]:text-[8px]">
-                                                            ⭐ Заглавная
+                                                        <div className="absolute top-1 left-1 z-[5] inline-flex items-center gap-1 rounded bg-warning px-2 py-0.5 text-[10px] font-semibold text-warning-foreground max-[480px]:px-1.5 max-[480px]:py-0.5 max-[480px]:text-[8px]">
+                                                            <Star className="h-3 w-3" />
+                                                            Заглавная
                                                         </div>
                                                     )}
                                                 </div>
@@ -246,7 +248,10 @@ export default function EditApartmentPage() {
                                                         onClick={() => setMainImage(index)}
                                                         title={isMain ? 'Заглавная' : 'Сделать заглавной'}
                                                     >
-                                                        ⭐
+                                                        <Star
+                                                            muted={!isMain}
+                                                            className="h-4 w-4"
+                                                        />
                                                     </button>
                                                     <button
                                                         type="button"
@@ -254,7 +259,7 @@ export default function EditApartmentPage() {
                                                         onClick={() => removeImage(index)}
                                                         title="Удалить"
                                                     >
-                                                        ✕
+                                                        <Close className="h-3.5 w-3.5" />
                                                     </button>
                                                 </div>
                                             </div>
@@ -262,8 +267,17 @@ export default function EditApartmentPage() {
                                     })}
                                     <label className="flex aspect-square cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-border bg-background transition-all duration-200 hover:border-primary hover:bg-primary/5">
                                         <span className="flex cursor-pointer flex-col items-center gap-1 border-none bg-transparent text-[13px] text-muted-foreground">
-                                            {isUploading ? '⏳' : '📸'}
-                                            <span className="text-[28px]">{isUploading ? 'Загрузка...' : '+'}</span>
+                                            {isUploading ? (
+                                                <>
+                                                    <Hourglass className="h-8 w-8" />
+                                                    Загрузка...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Camera className="h-8 w-8" />
+                                                    <Plus className="h-6 w-6" />
+                                                </>
+                                            )}
                                         </span>
                                         <input
                                             type="file"
@@ -278,13 +292,15 @@ export default function EditApartmentPage() {
 
                             {/* ИНФОРМАЦИЯ */}
                             <section className="mb-10 text-muted-foreground">
-                                <div className="mt-[35px] mb-[15px] border-b border-border pb-2 text-xl font-semibold text-foreground">
-                                    🏠 Информация
+                                <div className="mt-[35px] mb-[15px] flex items-center gap-2 border-b border-border pb-2 text-xl font-semibold text-foreground">
+                                    <Home className="h-7 w-7" />
+                                    Информация
                                 </div>
 
                                 {/* Подраздел: Название и цена */}
-                                <div className="mt-[30px] mb-7 border-b border-border pb-2 text-lg font-semibold text-primary">
-                                    💰 Название и цена
+                                <div className="mt-[30px] mb-7 flex items-center gap-2 border-b border-border pb-2 text-lg font-semibold text-primary">
+                                    <Money className="h-6 w-6" />
+                                    Название и цена
                                 </div>
                                 <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
                                     <div className="mb-4 flex flex-col gap-1.5">
@@ -327,8 +343,9 @@ export default function EditApartmentPage() {
                                 </div>
 
                                 {/* Подраздел: Вместимость */}
-                                <div className="mt-[30px] mb-7 border-b border-border pb-2 text-lg font-semibold text-primary">
-                                    🛋️ Вместимость
+                                <div className="mt-[30px] mb-7 flex items-center gap-2 border-b border-border pb-2 text-lg font-semibold text-primary">
+                                    <Sofa className="h-6 w-6" />
+                                    Вместимость
                                 </div>
                                 <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
                                     <div className="mb-4 flex flex-col gap-1.5">
@@ -361,8 +378,9 @@ export default function EditApartmentPage() {
                                 </div>
 
                                 {/* Подраздел: Места для сна (2 сверху, 2 снизу) */}
-                                <div className="mt-[30px] mb-7 border-b border-border pb-2 text-lg font-semibold text-primary">
-                                    🛏️ Места для сна
+                                <div className="mt-[30px] mb-7 flex items-center gap-2 border-b border-border pb-2 text-lg font-semibold text-primary">
+                                    <Bed className="h-6 w-6" />
+                                    Места для сна
                                 </div>
                                 <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
                                     <div className="mb-4 flex flex-col gap-1.5">
@@ -422,8 +440,9 @@ export default function EditApartmentPage() {
                                 </div>
 
                                 {/* Подраздел: Время заезда и выезда */}
-                                <div className="mt-[30px] mb-7 border-b border-border pb-2 text-lg font-semibold text-primary">
-                                    🕒 Время заезда и выезда
+                                <div className="mt-[30px] mb-7 flex items-center gap-2 border-b border-border pb-2 text-lg font-semibold text-primary">
+                                    <Clock className="h-6 w-6" />
+                                    Время заезда и выезда
                                 </div>
                                 <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
                                     <div className="mb-4 flex flex-col gap-1.5">
@@ -463,8 +482,9 @@ export default function EditApartmentPage() {
                                 </div>
 
                                 {/* Подраздел: Расположение, описание, правила */}
-                                <div className="mt-[30px] mb-7 border-b border-border pb-2 text-lg font-semibold text-primary">
-                                    📍 Расположение и описание
+                                <div className="mt-[30px] mb-7 flex items-center gap-2 border-b border-border pb-2 text-lg font-semibold text-primary">
+                                    <MapPin className="h-6 w-6" />
+                                    Расположение и описание
                                 </div>
                                 <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
                                     <div className="mb-4 flex flex-col gap-1.5">

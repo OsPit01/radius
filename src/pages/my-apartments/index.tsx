@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 
+import { Plus } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { ClientHeader } from '@/components/layout/ClientHeader';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -132,9 +133,10 @@ export default function MyApartmentsPage() {
                             <p className="mb-5 text-lg text-muted-foreground">У вас пока нет добавленных объектов</p>
                             <Link
                                 href="/admin/add-apartment"
-                                className="inline-block cursor-pointer rounded-[30px] border-none bg-primary px-8 py-3 text-base font-semibold text-primary-foreground no-underline transition-colors duration-200 hover:bg-primary/90 max-[480px]:w-full max-[480px]:text-center"
+                                className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-[30px] border-none bg-primary px-8 py-3 text-base font-semibold text-primary-foreground no-underline transition-colors duration-200 hover:bg-primary/90 max-[480px]:w-full max-[480px]:text-center"
                             >
-                                ➕ Добавить квартиру
+                                <Plus className="h-5 w-5" />
+                                Добавить квартиру
                             </Link>
                         </div>
                     )}

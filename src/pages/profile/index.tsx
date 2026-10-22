@@ -2,9 +2,21 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 
+import {
+    ArrowRight,
+    BarChart,
+    Calendar,
+    Chat,
+    Heart,
+    Home,
+    Settings,
+    Shield,
+    Sparkles,
+    Users,
+} from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { ClientHeader } from '@/components/layout/ClientHeader';
-import { getRoleInfo, isAdminRole } from '@/lib/constants/roles';
+import { getRoleInfo, hasPermission, isAdminRole } from '@/lib/constants/roles';
 import { requireAuth } from '@/server/auth/require-auth';
 import { api } from '@/trpc/react';
 
@@ -138,51 +150,44 @@ export default function ProfilePage() {
                                 href="/profile/settings"
                                 className="group flex cursor-pointer items-center gap-4 rounded-[14px] p-3.5 font-medium text-foreground no-underline transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] hover:translate-x-1.5 hover:bg-card max-[480px]:p-3 max-[480px]:text-sm"
                             >
-                                <span className="w-8 shrink-0 text-center text-xl">⚙️</span>
+                                <Settings className="h-8 w-8 shrink-0" />
                                 Настройки профиля
-                                <span className="ml-auto text-xl font-bold text-foreground transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:translate-x-1">
-                                    →
-                                </span>
+                                <ArrowRight className="ml-auto h-6 w-6 transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:translate-x-1" />
                             </Link>
                             <Link
                                 href="/my-apartments"
                                 className="group flex cursor-pointer items-center gap-4 rounded-[14px] p-3.5 font-medium text-foreground no-underline transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] hover:translate-x-1.5 hover:bg-card max-[480px]:p-3 max-[480px]:text-sm"
                             >
-                                <span className="w-8 shrink-0 text-center text-xl">🏠</span>
+                                <Home className="h-8 w-8 shrink-0" />
                                 Мои объекты
-                                <span className="ml-auto text-xl font-bold text-foreground transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:translate-x-1">
-                                    →
-                                </span>
+                                <ArrowRight className="ml-auto h-6 w-6 transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:translate-x-1" />
                             </Link>
                             <Link
                                 href="/profile/bookings"
                                 className="group flex cursor-pointer items-center gap-4 rounded-[14px] p-3.5 font-medium text-foreground no-underline transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] hover:translate-x-1.5 hover:bg-card max-[480px]:p-3 max-[480px]:text-sm"
                             >
-                                <span className="w-8 shrink-0 text-center text-xl">📅</span>
+                                <Calendar className="h-8 w-8 shrink-0" />
                                 Мои бронирования
-                                <span className="ml-auto text-xl font-bold text-foreground transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:translate-x-1">
-                                    →
-                                </span>
+                                <ArrowRight className="ml-auto h-6 w-6 transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:translate-x-1" />
                             </Link>
                             <Link
                                 href="/profile/chat"
                                 className="group flex cursor-pointer items-center gap-4 rounded-[14px] p-3.5 font-medium text-foreground no-underline transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] hover:translate-x-1.5 hover:bg-card max-[480px]:p-3 max-[480px]:text-sm"
                             >
-                                <span className="w-8 shrink-0 text-center text-xl">💬</span>
+                                <Chat className="h-8 w-8 shrink-0" />
                                 Мои сообщения
-                                <span className="ml-auto text-xl font-bold text-foreground transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:translate-x-1">
-                                    →
-                                </span>
+                                <ArrowRight className="ml-auto h-6 w-6 transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:translate-x-1" />
                             </Link>
                             <Link
                                 href="/profile/favorites"
                                 className="group flex cursor-pointer items-center gap-4 rounded-[14px] p-3.5 font-medium text-foreground no-underline transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] hover:translate-x-1.5 hover:bg-card max-[480px]:p-3 max-[480px]:text-sm"
                             >
-                                <span className="w-8 shrink-0 text-center text-xl">❤️</span>
+                                <Heart
+                                    muted
+                                    className="h-8 w-8 shrink-0"
+                                />
                                 Избранное
-                                <span className="ml-auto text-xl font-bold text-foreground transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:translate-x-1">
-                                    →
-                                </span>
+                                <ArrowRight className="ml-auto h-6 w-6 transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:translate-x-1" />
                             </Link>
                             {/* Статистику видят только те, кто сдаёт жильё (роль не "user"). */}
                             {user.role !== 'user' && (
@@ -190,11 +195,9 @@ export default function ProfilePage() {
                                     href="/profile/statistics"
                                     className="group flex cursor-pointer items-center gap-4 rounded-[14px] p-3.5 font-medium text-foreground no-underline transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] hover:translate-x-1.5 hover:bg-card max-[480px]:p-3 max-[480px]:text-sm"
                                 >
-                                    <span className="w-8 shrink-0 text-center text-xl">📊</span>
+                                    <BarChart className="h-8 w-8 shrink-0" />
                                     Статистика
-                                    <span className="ml-auto text-xl font-bold text-foreground transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:translate-x-1">
-                                        →
-                                    </span>
+                                    <ArrowRight className="ml-auto h-6 w-6 transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:translate-x-1" />
                                 </Link>
                             )}
                             {isAdminRole(user.role) && (
@@ -206,32 +209,37 @@ export default function ProfilePage() {
                                         href="/admin/users"
                                         className="group flex cursor-pointer items-center gap-4 rounded-[14px] p-3.5 font-medium text-foreground no-underline transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] hover:translate-x-1.5 hover:bg-destructive/10 max-[480px]:p-3 max-[480px]:text-sm"
                                     >
-                                        <span className="w-8 shrink-0 text-center text-xl">👥</span>
+                                        <Users className="h-8 w-8 shrink-0" />
                                         Управление пользователями
-                                        <span className="ml-auto text-xl font-bold text-foreground transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:translate-x-1">
-                                            →
-                                        </span>
+                                        <ArrowRight className="ml-auto h-6 w-6 transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:translate-x-1" />
                                     </Link>
                                     <Link
                                         href="/admin/moderation"
                                         className="group flex cursor-pointer items-center gap-4 rounded-[14px] p-3.5 font-medium text-foreground no-underline transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] hover:translate-x-1.5 hover:bg-destructive/10 max-[480px]:p-3 max-[480px]:text-sm"
                                     >
-                                        <span className="w-8 shrink-0 text-center text-xl">🛡️</span>
+                                        <Shield className="h-8 w-8 shrink-0" />
                                         Модерация объектов
-                                        <span className="ml-auto text-xl font-bold text-foreground transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:translate-x-1">
-                                            →
-                                        </span>
+                                        <ArrowRight className="ml-auto h-6 w-6 transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:translate-x-1" />
                                     </Link>
                                     <Link
                                         href="/admin/statistics"
                                         className="group flex cursor-pointer items-center gap-4 rounded-[14px] p-3.5 font-medium text-foreground no-underline transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] hover:translate-x-1.5 hover:bg-destructive/10 max-[480px]:p-3 max-[480px]:text-sm"
                                     >
-                                        <span className="w-8 shrink-0 text-center text-xl">📊</span>
+                                        <BarChart className="h-8 w-8 shrink-0" />
                                         Общая статистика
-                                        <span className="ml-auto text-xl font-bold text-foreground transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:translate-x-1">
-                                            →
-                                        </span>
+                                        <ArrowRight className="ml-auto h-6 w-6 transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:translate-x-1" />
                                     </Link>
+                                    {/* Каталог иконок — только суперадмину (страница тоже проверяет роль на сервере). */}
+                                    {hasPermission(user.role, 'superadmin') && (
+                                        <Link
+                                            href="/profile/icons"
+                                            className="group flex cursor-pointer items-center gap-4 rounded-[14px] p-3.5 font-medium text-foreground no-underline transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] hover:translate-x-1.5 hover:bg-destructive/10 max-[480px]:p-3 max-[480px]:text-sm"
+                                        >
+                                            <Sparkles className="h-8 w-8 shrink-0" />
+                                            Все иконки на проекте
+                                            <ArrowRight className="ml-auto h-6 w-6 transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:translate-x-1" />
+                                        </Link>
+                                    )}
                                 </>
                             )}
                         </div>

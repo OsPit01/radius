@@ -3,6 +3,8 @@ import { type CSSProperties, useEffect, useState, useSyncExternalStore } from 'r
 import { useTheme } from 'next-themes';
 
 import {
+    DEFAULT_THEME_COLORS,
+    DEFAULT_THEME_LABEL,
     normalizeHex,
     setThemeOverrides,
     THEME_MODES,
@@ -73,8 +75,14 @@ function useAppliedTheme(overrides: ThemeOverrides) {
 
 /** Какая готовая тема сейчас выбрана: по умолчанию / одна из списка / свои цвета. */
 function detectPreset(overrides: ThemeOverrides): string {
-    const isEmpty = THEME_MODES.every((mode) => Object.keys(overrides[mode] ?? {}).length === 0);
-    if (isEmpty) {
+    // Тема по умолчанию — это и «ничего не переопределено», и «переопределено теми же цветами».
+    const isDefault = THEME_MODES.every((mode) =>
+        THEME_SEED_KEYS.every((key) => {
+            const value = overrides[mode]?.[key];
+            return value === undefined || value === DEFAULT_THEME_COLORS[mode][key];
+        }),
+    );
+    if (isDefault) {
         return DEFAULT_PRESET;
     }
     const match = THEME_PRESETS.find((preset) =>
@@ -265,7 +273,7 @@ export function AppearanceSettings() {
                         onChange={(e) => applyPreset(e.target.value)}
                         className="cursor-pointer rounded-full border bg-background px-4 py-2 text-sm outline-none focus:border-primary"
                     >
-                        <option value={DEFAULT_PRESET}>Radius (по умолчанию)</option>
+                        <option value={DEFAULT_PRESET}>{DEFAULT_THEME_LABEL}</option>
                         {THEME_PRESETS.map((item) => (
                             <option
                                 key={item.id}

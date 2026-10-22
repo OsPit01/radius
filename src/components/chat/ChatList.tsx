@@ -1,3 +1,4 @@
+import { Home } from '@/components/icons';
 import { ImageWithFallback } from '@/components/ui/ImageWithFallback';
 import { displayName } from '@/lib/chat';
 import type { RouterOutputs } from '@/trpc/react';
@@ -46,7 +47,9 @@ export function ChatList({ chats, userId, selectedId, onSelect }: ChatListProps)
                                         className="object-cover"
                                     />
                                 ) : (
-                                    <div className="flex h-full w-full items-center justify-center text-lg">🏠</div>
+                                    <div className="flex h-full w-full items-center justify-center">
+                                        <Home className="h-7 w-7 text-muted-foreground" />
+                                    </div>
                                 )}
                             </div>
 

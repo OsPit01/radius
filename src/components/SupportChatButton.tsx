@@ -1,7 +1,6 @@
 import { useState } from 'react';
 
-import { MessageCircle, Send } from 'lucide-react';
-
+import { Chat, Send } from '@/components/icons';
 import { api } from '@/trpc/react';
 export function SupportChatButton() {
     const [open, setOpen] = useState(false);
@@ -48,8 +47,9 @@ export function SupportChatButton() {
                             type="button"
                             onClick={handleSend}
                             aria-label="Отправить"
+                            className="cursor-pointer transition-transform hover:scale-110"
                         >
-                            <Send className="h-5 w-5" />
+                            <Send className="h-7 w-7" />
                         </button>
                     </div>
                 </div>
@@ -61,7 +61,7 @@ export function SupportChatButton() {
                 className="fixed right-5 bottom-5 z-50 flex h-14 w-14 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90"
                 aria-label="Поддержка"
             >
-                <MessageCircle className="h-6 w-6" />
+                <Chat className="h-7 w-7" />
             </button>
         </>
     );

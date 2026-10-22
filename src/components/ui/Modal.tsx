@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
 import { useEffect } from 'react';
 
+import { Close } from '@/components/icons';
+
 type ModalProps = {
     open: boolean;
     onClose: () => void;
@@ -41,10 +43,10 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
                         <button
                             type="button"
                             onClick={onClose}
-                            className="cursor-pointer rounded-full p-1 text-[35px] leading-none text-muted-foreground hover:text-foreground"
+                            className="cursor-pointer rounded-full p-1 text-muted-foreground transition-colors hover:text-foreground"
                             aria-label="Закрыть"
                         >
-                            ×
+                            <Close className="h-7 w-7" />
                         </button>
                     </div>
                 )}

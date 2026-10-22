@@ -1,5 +1,6 @@
 import Link from 'next/link';
 
+import { Phone } from '@/components/icons';
 import { formatPhoneForDisplay } from '@/lib/phone';
 
 type OwnerPhoneProps = {
@@ -27,7 +28,7 @@ export function OwnerPhone({ phone, canViewPhone }: OwnerPhoneProps) {
                 href={`tel:${phone}`}
                 className={`${BASE_CLASS} bg-foreground text-background hover:bg-foreground/85`}
             >
-                <span>📞</span>
+                <Phone className="h-5 w-5" />
                 {formatPhoneForDisplay(phone)}
             </a>
         );
@@ -49,7 +50,7 @@ export function OwnerPhone({ phone, canViewPhone }: OwnerPhoneProps) {
             href="/auth/signin"
             className={`${BASE_CLASS} border border-border bg-card text-foreground hover:border-primary hover:text-primary`}
         >
-            <span>📞</span>
+            <Phone className="h-5 w-5" />
             Войдите, чтобы увидеть номер
         </Link>
     );

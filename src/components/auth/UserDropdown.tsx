@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { FaUserCircle } from 'react-icons/fa';
 
 import Image from 'next/image';
 import Link from 'next/link';
 import { signOut } from 'next-auth/react';
 
+import { UserCircle } from '@/components/icons';
+import { HEADER_ICON_BUTTON } from '@/lib/constants/ui';
 import { api } from '@/trpc/react';
 // Тип для пропсов (данные пользователя)
 type UserDropdownProps = {
@@ -64,28 +65,28 @@ export function UserDropdown({ user }: UserDropdownProps) {
 
     return (
         <div
-            className="relative inline-block"
+            className="relative inline-flex items-center gap-2"
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
         >
             {/* иконка профиля с функцией dropdown */}
             <button
-                className="flex cursor-pointer items-center justify-center p-2 transition-colors duration-200"
+                className={`overflow-hidden rounded-full ${HEADER_ICON_BUTTON}`}
                 aria-label="Профиль"
             >
                 {avatar ? (
                     <Image
                         src={avatar}
                         alt="avatar"
-                        width={32}
-                        height={32}
-                        className="h-[30px] w-[30px] rounded-[50px] object-cover"
+                        width={40}
+                        height={40}
+                        className="h-10 w-10 rounded-full object-cover"
                     />
                 ) : (
-                    <FaUserCircle className="h-[30px] w-[30px] text-muted-foreground" />
+                    <UserCircle className="h-10 w-10 text-muted-foreground" />
                 )}
-                <span className="p-[3px] text-[13px] font-medium">{displayName}</span>
             </button>
+            <span className="text-[13px] font-medium">{displayName}</span>
             {/*      */}
             {isOpen && (
                 <div className="absolute top-[calc(100%+10px)] left-1/2 z-[1000] min-w-[250px] -translate-x-1/2 overflow-hidden rounded-xl border border-border bg-card p-[5px] shadow-[0_10px_30px_rgba(0,0,0,0.15)]">

@@ -1,3 +1,4 @@
+import { Car, Clipboard, Clock, Metro, Money, Note, Sofa, Sparkles } from '@/components/icons';
 import { AMENITIES, CURRENCIES, getTypeLabel, PARKING_TYPES } from '@/lib/constants';
 import { PAYERTYPE } from '@/lib/constants/info-company';
 import type { FormData, StepProps } from '@/lib/utils';
@@ -67,7 +68,7 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
 
             {/* ===== СЕКЦИЯ: ЦЕНА ===== */}
             <div className="mb-5 flex items-center gap-2">
-                <span className="text-base">💰</span>
+                <Money className="h-6 w-6 text-primary" />
                 <h3 className="text-base font-semibold tracking-wide text-primary uppercase">Цена и валюта</h3>
             </div>
             <div className="grid grid-cols-2 gap-5 max-[640px]:grid-cols-1">
@@ -108,7 +109,7 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
 
             {/* ===== СЕКЦИЯ: ВМЕСТИМОСТЬ ===== */}
             <div className="mb-5 flex items-center gap-2">
-                <span className="text-base">🛋️</span>
+                <Sofa className="h-6 w-6 text-primary" />
                 <h3 className="text-base font-semibold tracking-wide text-primary uppercase">Вместимость</h3>
             </div>
             <div className="grid grid-cols-2 gap-5 max-[640px]:grid-cols-1">
@@ -218,7 +219,7 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
 
             {/* ===== СЕКЦИЯ: РАСПОЛОЖЕНИЕ ===== */}
             <div className="mb-5 flex items-center gap-2">
-                <span className="text-base">🚇</span>
+                <Metro className="h-6 w-6 text-primary" />
                 <h3 className="text-base font-semibold tracking-wide text-primary uppercase">Расположение</h3>
             </div>
             <div className="flex flex-col gap-2">
@@ -298,7 +299,7 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
 
             {/* ===== СЕКЦИЯ: УДОБСТВА ===== */}
             <div className="mb-5 flex items-center gap-2">
-                <span className="text-base">✨</span>
+                <Sparkles className="h-6 w-6 text-primary" />
                 <h3 className="text-base font-semibold tracking-wide text-primary uppercase">Удобства</h3>
             </div>
             <div className="flex flex-col gap-2">
@@ -325,7 +326,7 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
 
             {/* ===== СЕКЦИЯ: ПАРКОВКА ===== */}
             <div className="mb-5 flex items-center gap-2">
-                <span className="text-base">🚗</span>
+                <Car className="h-6 w-6 text-primary" />
                 <h3 className="text-base font-semibold tracking-wide text-primary uppercase">Парковка</h3>
             </div>
             <div className="radio-group flex flex-wrap gap-x-6 gap-y-2">
@@ -352,7 +353,7 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
 
             {/* ===== СЕКЦИЯ: ОПИСАНИЕ ===== */}
             <div className="mb-5 flex items-center gap-2">
-                <span className="text-base">📝</span>
+                <Note className="h-6 w-6 text-primary" />
                 <h3 className="text-base font-semibold tracking-wide text-primary uppercase">Описание</h3>
             </div>
             <div className="flex flex-col gap-2">
@@ -371,7 +372,7 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
 
             {/* ===== СЕКЦИЯ: ПРАВИЛА ===== */}
             <div className="mb-5 flex items-center gap-2">
-                <span className="text-base">📋</span>
+                <Clipboard className="h-6 w-6 text-primary" />
                 <h3 className="text-base font-semibold tracking-wide text-primary uppercase">Правила проживания</h3>
             </div>
             <div className="flex flex-col gap-2">
@@ -390,7 +391,7 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
 
             {/* ===== СЕКЦИЯ: ВРЕМЯ ЗАЕЗДА/ВЫЕЗДА ===== */}
             <div className="mb-5 flex items-center gap-2">
-                <span className="text-base">🕒</span>
+                <Clock className="h-6 w-6 text-primary" />
                 <h3 className="text-base font-semibold tracking-wide text-primary uppercase">Время заезда и выезда</h3>
             </div>
             <div className="grid grid-cols-2 gap-5 max-[640px]:grid-cols-1">

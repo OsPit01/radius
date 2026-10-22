@@ -1,3 +1,5 @@
+import { Close } from '@/components/icons';
+
 import type { Filters } from './FilterPanel';
 
 export type ChipKey = 'priceMin' | 'priceMax' | 'rooms' | 'beds' | 'sofas' | 'metro';
@@ -61,7 +63,7 @@ export function FilterChips({
                         className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-full text-primary transition-colors hover:bg-primary/90 hover:text-primary-foreground"
                         aria-label={`Убрать фильтр ${chip.label}`}
                     >
-                        ×
+                        <Close className="h-3.5 w-3.5" />
                     </button>
                 </span>
             ))}

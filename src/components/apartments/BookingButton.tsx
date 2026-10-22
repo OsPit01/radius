@@ -6,6 +6,7 @@ import PhoneInput from 'react-phone-number-input';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 
+import { CheckCircle, Minus, Plus } from '@/components/icons';
 import { Modal } from '@/components/ui/Modal';
 import { reportConversion } from '@/lib/analytics';
 import { DEFAULT_BOOKING_GUESTS, MAX_BOOKING_GUESTS, MIN_BOOKING_GUESTS } from '@/lib/constants/booking';
@@ -166,7 +167,7 @@ export function BookingButton({
             >
                 {createBooking.isSuccess ? (
                     <div className="flex flex-col items-center gap-3 py-6 text-center">
-                        <div className="text-4xl">✅</div>
+                        <CheckCircle className="h-16 w-16 text-success" />
                         <p className="text-lg font-semibold text-foreground">Заявка отправлена!</p>
                         <p className="text-sm text-muted-foreground">
                             Владелец увидит вашу заявку в Telegram и свяжется с вами.
@@ -223,7 +224,7 @@ export function BookingButton({
                                         disabled={adults <= MIN_BOOKING_GUESTS}
                                         className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-xl font-bold text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
                                     >
-                                        −
+                                        <Minus className="h-5 w-5" />
                                     </button>
                                     <span className="min-w-8 text-center text-lg font-semibold text-foreground">
                                         {adults}
@@ -234,7 +235,7 @@ export function BookingButton({
                                         disabled={adults + children >= maxGuests}
                                         className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-xl font-bold text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
                                     >
-                                        +
+                                        <Plus className="h-5 w-5" />
                                     </button>
                                 </div>
                             </div>
@@ -248,7 +249,7 @@ export function BookingButton({
                                         disabled={children <= 0}
                                         className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-xl font-bold text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
                                     >
-                                        −
+                                        <Minus className="h-5 w-5" />
                                     </button>
                                     <span className="min-w-8 text-center text-lg font-semibold text-foreground">
                                         {children}
@@ -259,7 +260,7 @@ export function BookingButton({
                                         disabled={adults + children >= maxGuests}
                                         className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-xl font-bold text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
                                     >
-                                        +
+                                        <Plus className="h-5 w-5" />
                                     </button>
                                 </div>
                             </div>

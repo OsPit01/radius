@@ -1,8 +1,7 @@
-import { FaRegHeart } from 'react-icons/fa';
-
 import Link from 'next/link';
 
 import { ApartmentCard } from '@/components/apartments/ApartmentCard';
+import { Heart } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { ClientHeader } from '@/components/layout/ClientHeader';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -27,7 +26,10 @@ export default function FavoritesPage() {
                         <LoadingSpinner label="Загрузка..." />
                     ) : !favorites || favorites.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-16 text-center">
-                            <FaRegHeart className="text-[64px] text-primary" />
+                            <Heart
+                                muted
+                                className="h-16 w-16 text-primary"
+                            />
                             <p className="mt-6 text-xl font-semibold text-foreground">
                                 У вас пока нет избранных квартир
                             </p>

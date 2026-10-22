@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 
+import { ChevronLeft, ChevronRight } from '@/components/icons';
 import type { ApartmentCardData } from '@/lib/apartment-format';
 import { api } from '@/trpc/react';
 
@@ -118,7 +118,7 @@ export function ApartmentsList({
                     disabled={currentPage === 1}
                     className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-muted disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                    <ChevronLeft className="h-6 w-6"></ChevronLeft>
+                    <ChevronLeft className="h-6 w-6" />
                 </button>
 
                 <div>
@@ -143,7 +143,7 @@ export function ApartmentsList({
                     disabled={currentPage === totalPages}
                     className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-muted disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                    <ChevronRight className="h-6 w-6"></ChevronRight>
+                    <ChevronRight className="h-6 w-6" />
                 </button>
             </div>
         </div>

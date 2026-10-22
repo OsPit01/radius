@@ -1,12 +1,13 @@
 import { useState } from 'react';
 
+import { AlarmClock, Check, Clipboard, Clock, MapView, Note, Sparkles } from '@/components/icons';
 import { AMENITIES } from '@/lib/constants/amenities';
 
 const TABS = [
-    { id: 0, label: 'Описание', emoji: '📝' },
-    { id: 1, label: 'Удобства', emoji: '✨' },
-    { id: 2, label: 'Правила', emoji: '📋' },
-    { id: 3, label: 'Карта', emoji: '🗺️' },
+    { id: 0, label: 'Описание', Icon: Note },
+    { id: 1, label: 'Удобства', Icon: Sparkles },
+    { id: 2, label: 'Правила', Icon: Clipboard },
+    { id: 3, label: 'Карта', Icon: MapView },
 ] as const;
 
 export function ApartmentTabs({
@@ -38,7 +39,7 @@ export function ApartmentTabs({
                                 : 'text-muted-foreground hover:bg-card hover:text-foreground'
                         }`}
                     >
-                        <span className="text-base">{tab.emoji}</span>
+                        <tab.Icon className="h-5 w-5" />
                         {tab.label}
                     </button>
                 ))}
@@ -66,8 +67,8 @@ export function ApartmentTabs({
                                             key={id}
                                             className="flex items-center gap-3 rounded-xl border border-border bg-muted px-4 py-3 text-sm text-foreground"
                                         >
-                                            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
-                                                ✓
+                                            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                                                <Check className="h-4 w-4" />
                                             </span>
                                             {found?.label ?? id}
                                         </div>
@@ -85,19 +86,19 @@ export function ApartmentTabs({
                         {(checkInTime ?? checkOutTime) && (
                             <div className="mb-6 rounded-2xl border border-border bg-card p-4 shadow-sm">
                                 <p className="mb-4 flex items-center gap-2 text-sm font-semibold text-primary">
-                                    <span className="text-base">⏰</span>
+                                    <AlarmClock className="h-5 w-5" />
                                     Режим работы
                                 </p>
                                 <div className="flex flex-col gap-3">
                                     <div className="flex items-center gap-2.5 rounded-xl bg-muted px-3.5 py-3 text-sm text-foreground">
-                                        <span className="text-base">🕒</span>
+                                        <Clock className="h-5 w-5" />
                                         <span>Заселение после</span>
                                         <span className="ml-auto rounded-lg bg-primary px-2.5 py-1 text-sm font-semibold text-primary-foreground">
                                             {checkInTime ?? '14:00'}
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2.5 rounded-xl bg-muted px-3.5 py-3 text-sm text-foreground">
-                                        <span className="text-base">🕒</span>
+                                        <Clock className="h-5 w-5" />
                                         <span>Выезд до</span>
                                         <span className="ml-auto rounded-lg bg-primary px-2.5 py-1 text-sm font-semibold text-primary-foreground">
                                             {checkOutTime ?? '12:00'}

@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
+import { ChevronDown } from '@/components/icons';
+
 type Option = {
     value: string;
     label: string;
@@ -47,9 +49,9 @@ export function CustomSelect({
                 onClick={() => setIsOpen(!isOpen)}
             >
                 <span>{selectedOption?.label ?? placeholder}</span>
-                <span className={`ml-2 text-xs transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
-                    ▾
-                </span>
+                <ChevronDown
+                    className={`ml-2 h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                />
             </button>
 
             {isOpen && (

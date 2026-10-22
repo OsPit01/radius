@@ -1,5 +1,6 @@
 import { useSession } from 'next-auth/react';
 
+import { BarChart, Calendar, Eye, Heart } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { ClientHeader } from '@/components/layout/ClientHeader';
 import { requireAuth } from '@/server/auth/require-auth';
@@ -42,8 +43,9 @@ export default function StatisticsPage() {
                 <ClientHeader />
                 <div className="min-h-screen bg-background px-5 py-10 max-md:px-3 max-md:py-4">
                     <div className="mx-auto max-w-[900px] rounded-[24px] bg-muted p-12 shadow-[0_20px_60px_rgba(0,0,0,0.08)] max-[480px]:rounded-2xl max-[480px]:p-4 max-md:rounded-[20px] max-md:p-6">
-                        <h1 className="mb-6 text-[28px] font-bold text-foreground max-md:text-[22px]">
-                            📊 Статистика моих объектов
+                        <h1 className="mb-6 flex items-center gap-3 text-[28px] font-bold text-foreground max-md:text-[22px]">
+                            <BarChart className="h-9 w-9" />
+                            Статистика моих объектов
                         </h1>
 
                         <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
@@ -78,14 +80,20 @@ export default function StatisticsPage() {
                                             {a.title}
                                         </span>
                                         <div className="flex flex-wrap gap-2">
-                                            <span className="rounded-full bg-muted px-3 py-1 text-sm font-semibold text-primary">
-                                                {a.views} 👁 просмотров
+                                            <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-sm font-semibold text-primary">
+                                                <Eye className="h-4 w-4" />
+                                                {a.views} просмотров
                                             </span>
-                                            <span className="rounded-full bg-destructive/10 px-3 py-1 text-sm font-semibold text-destructive">
-                                                {a.favorites} ❤ в избранном
+                                            <span className="inline-flex items-center gap-1.5 rounded-full bg-destructive/10 px-3 py-1 text-sm font-semibold text-destructive">
+                                                <Heart
+                                                    muted
+                                                    className="h-4 w-4"
+                                                />
+                                                {a.favorites} в избранном
                                             </span>
-                                            <span className="rounded-full bg-success/10 px-3 py-1 text-sm font-semibold text-success">
-                                                {a.bookings} 📅 броней
+                                            <span className="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-3 py-1 text-sm font-semibold text-success">
+                                                <Calendar className="h-4 w-4" />
+                                                {a.bookings} броней
                                             </span>
                                         </div>
                                     </li>

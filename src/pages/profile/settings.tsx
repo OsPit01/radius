@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 
+import { CheckCircle, User } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { ClientHeader } from '@/components/layout/ClientHeader';
 import { AppearanceSettings } from '@/components/settings/AppearanceSettings';
@@ -169,8 +170,8 @@ export default function SettingsPage() {
                             aria-label="Изменить фото профиля"
                         >
                             {form.image === '' ? (
-                                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted text-[28px]">
-                                    👤
+                                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
+                                    <User className="h-8 w-8 text-muted-foreground" />
                                 </div>
                             ) : (
                                 <Image
@@ -325,7 +326,7 @@ export default function SettingsPage() {
                 >
                     {confirmTelegramLink.isSuccess ? (
                         <div className="flex flex-col items-center gap-3 py-4 text-center">
-                            <p className="text-4xl">✅</p>
+                            <CheckCircle className="h-16 w-16 text-success" />
                             <p className="text-lg font-semibold text-foreground">Telegram подключен!</p>
                             <p className="text-sm text-muted-foreground">
                                 Теперь заявки на ваши квартиры будут приходить вам в бот @radius_booking_bot

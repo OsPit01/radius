@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { ChevronDown, Filters, Minus, Plus, Search } from '@/components/icons';
 import { MAX_BOOKING_GUESTS, MIN_BOOKING_GUESTS } from '@/lib/constants/booking';
 
 type SearchFormProps = {
@@ -129,28 +130,7 @@ export function SearchForm({
                         aria-label="Поиск"
                         className="absolute right-2.5 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-foreground text-background transition-transform duration-200 hover:scale-105 max-md:right-2 max-md:h-8 max-md:w-8"
                     >
-                        <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        >
-                            <circle
-                                cx="11"
-                                cy="11"
-                                r="8"
-                            ></circle>
-                            <line
-                                x1="21"
-                                y1="21"
-                                x2="16.65"
-                                y2="16.65"
-                            ></line>
-                        </svg>
+                        <Search className="h-5 w-5" />
                     </button>
                 </div>
 
@@ -164,18 +144,7 @@ export function SearchForm({
                         <span>
                             {tempAdults} {adultsText}, {childrenText}
                         </span>
-                        <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        >
-                            <polyline points="6 9 12 15 18 9" />
-                        </svg>
+                        <ChevronDown className="h-4 w-4" />
                     </button>
 
                     {/* ПОПАП */}
@@ -199,7 +168,7 @@ export function SearchForm({
                                             onClick={() => decrease('adults')}
                                             disabled={tempAdults <= MIN_BOOKING_GUESTS}
                                         >
-                                            -
+                                            <Minus className="h-4 w-4" />
                                         </button>
                                         <span className="p-[15px] max-[480px]:px-2.5 max-[480px]:py-1.5 max-[480px]:text-sm max-md:px-3.5 max-md:py-2 max-md:text-base">
                                             {tempAdults}
@@ -209,7 +178,7 @@ export function SearchForm({
                                             onClick={() => increase('adults')}
                                             disabled={tempAdults >= MAX_BOOKING_GUESTS}
                                         >
-                                            +
+                                            <Plus className="h-4 w-4" />
                                         </button>
                                     </div>
                                 </div>
@@ -223,7 +192,7 @@ export function SearchForm({
                                             onClick={() => decrease('children')}
                                             disabled={tempChildren <= 0}
                                         >
-                                            -
+                                            <Minus className="h-4 w-4" />
                                         </button>
                                         <span className="p-[15px] max-[480px]:px-2.5 max-[480px]:py-1.5 max-[480px]:text-sm max-md:px-3.5 max-md:py-2 max-md:text-base">
                                             {tempChildren}
@@ -233,7 +202,7 @@ export function SearchForm({
                                             onClick={() => increase('children')}
                                             disabled={tempChildren >= MAX_BOOKING_GUESTS}
                                         >
-                                            +
+                                            <Plus className="h-4 w-4" />
                                         </button>
                                     </div>
                                 </div>
@@ -287,36 +256,7 @@ export function SearchForm({
                     onClick={onFilterClick}
                     className="flex cursor-pointer items-center gap-2 rounded-r-2xl border-l border-border bg-transparent px-5 py-4 text-sm font-medium whitespace-nowrap text-foreground transition-colors duration-200 hover:bg-muted max-md:w-full max-md:justify-center max-md:rounded-r-none max-md:rounded-b-2xl max-md:border-l-0 max-md:py-3.5"
                 >
-                    <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="shrink-0"
-                    >
-                        <line
-                            x1="4"
-                            y1="6"
-                            x2="20"
-                            y2="6"
-                        />
-                        <line
-                            x1="7"
-                            y1="12"
-                            x2="17"
-                            y2="12"
-                        />
-                        <line
-                            x1="10"
-                            y1="18"
-                            x2="14"
-                            y2="18"
-                        />
-                    </svg>
+                    <Filters className="h-5 w-5" />
                     <span>Фильтр</span>
                 </button>
             </div>

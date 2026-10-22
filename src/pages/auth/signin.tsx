@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { FcGoogle } from 'react-icons/fc';
 
 import Image from 'next/image';
 import { signIn } from 'next-auth/react';
 
+import { Google } from '@/components/icons';
 import { Seo } from '@/components/Seo';
 export default function SignInPage() {
     const [isLoading, setIsLoading] = useState(false);
@@ -52,7 +52,7 @@ export default function SignInPage() {
                     {isLoading ? (
                         <div className="h-5 w-5 animate-spin rounded-full border-2 border-border border-t-foreground" />
                     ) : (
-                        <FcGoogle size={20} />
+                        <Google className="h-6 w-6" />
                     )}
                     {isLoading ? 'Загрузка...' : 'Войти через Google'}
                 </button>

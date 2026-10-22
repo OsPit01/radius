@@ -1,0 +1,138 @@
+import { Filters, Maximize, Search, Send, Settings } from './actions';
+import { Google, Instagram, Telegram } from './brands';
+import type { IconComponent } from './core';
+import {
+    ArrowLeft,
+    ArrowRight,
+    Check,
+    ChevronDown,
+    ChevronLeft,
+    ChevronRight,
+    Close,
+    Menu,
+    Minus,
+    Plus,
+} from './glyphs';
+import { AlarmClock, Calendar, Clipboard, Clock, Money, Note, Phone } from './info';
+import { BarChart, Camera, Chat, Eye, Shield, User, UserCircle, Users } from './people';
+import { Bath, Bed, Building, Car, Home, MapPin, MapView, Metro, Ruler, Sofa, Sparkles } from './property';
+import { Bell, CheckCircle, Heart, Hourglass, Info, Star, Warning } from './status';
+
+export { ICON_NAMES, ICON_VARIANTS, type IconName, type IconVariant } from './config';
+export type { IconComponent, IconMeta, IconProps } from './core';
+
+export {
+    AlarmClock,
+    ArrowLeft,
+    ArrowRight,
+    BarChart,
+    Bath,
+    Bed,
+    Bell,
+    Building,
+    Calendar,
+    Camera,
+    Car,
+    Chat,
+    Check,
+    CheckCircle,
+    ChevronDown,
+    ChevronLeft,
+    ChevronRight,
+    Clipboard,
+    Clock,
+    Close,
+    Eye,
+    Filters,
+    Google,
+    Heart,
+    Home,
+    Hourglass,
+    Info,
+    Instagram,
+    MapPin,
+    MapView,
+    Maximize,
+    Menu,
+    Metro,
+    Minus,
+    Money,
+    Note,
+    Phone,
+    Plus,
+    Ruler,
+    Search,
+    Send,
+    Settings,
+    Shield,
+    Sofa,
+    Sparkles,
+    Star,
+    Telegram,
+    User,
+    UserCircle,
+    Users,
+    Warning,
+};
+
+/** Все иконки набора (в порядке показа в галерее /icons). */
+export const ICONS: readonly IconComponent[] = [
+    // навигация
+    ArrowLeft,
+    ArrowRight,
+    ChevronLeft,
+    ChevronRight,
+    ChevronDown,
+    // действия
+    Close,
+    Menu,
+    Plus,
+    Minus,
+    Check,
+    Search,
+    Filters,
+    Maximize,
+    Send,
+    Settings,
+    // статусы
+    CheckCircle,
+    Warning,
+    Info,
+    Hourglass,
+    Star,
+    Heart,
+    Bell,
+    // жильё
+    Home,
+    Building,
+    Bed,
+    Sofa,
+    Bath,
+    Ruler,
+    Car,
+    Metro,
+    MapPin,
+    MapView,
+    Sparkles,
+    // справка
+    Money,
+    Note,
+    Clipboard,
+    Clock,
+    AlarmClock,
+    Calendar,
+    Phone,
+    // люди и разделы
+    Chat,
+    User,
+    UserCircle,
+    Users,
+    Shield,
+    Eye,
+    BarChart,
+    Camera,
+    // бренды
+    Telegram,
+    Instagram,
+    Google,
+];

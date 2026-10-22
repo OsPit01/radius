@@ -2,7 +2,6 @@ import 'swiper/css';
 import 'yet-another-react-lightbox/styles.css';
 
 import { useRef, useState } from 'react';
-import { FiMaximize2 } from 'react-icons/fi';
 
 import type { Swiper as SwiperType } from 'swiper';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -10,6 +9,7 @@ import Lightbox from 'yet-another-react-lightbox';
 import Counter from 'yet-another-react-lightbox/plugins/counter';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
 
+import { ArrowLeft, ArrowRight, Maximize } from '@/components/icons';
 import { ImageWithFallback } from '@/components/ui/ImageWithFallback';
 
 function GalleryImage({ src, alt }: { src: string; alt: string }) {
@@ -62,7 +62,7 @@ export function PhotoGallery({ photos, title }: { photos: string[]; title: strin
                                     alt={`${title} — фото ${i + 1}`}
                                 />
                                 <div className="pointer-events-none absolute right-3 bottom-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100">
-                                    <FiMaximize2 size={18} />
+                                    <Maximize className="h-5 w-5" />
                                 </div>
                             </div>
                         </SwiperSlide>
@@ -76,7 +76,7 @@ export function PhotoGallery({ photos, title }: { photos: string[]; title: strin
                     onClick={() => swiperRef.current?.slidePrev()}
                     disabled={activeIndex === 0}
                 >
-                    ←
+                    <ArrowLeft className="h-5 w-5" />
                 </button>
                 <p className="text-sm text-muted-foreground">
                     {activeIndex + 1} из {photos.length}
@@ -86,7 +86,7 @@ export function PhotoGallery({ photos, title }: { photos: string[]; title: strin
                     onClick={() => swiperRef.current?.slideNext()}
                     disabled={activeIndex === photos.length - 1}
                 >
-                    →
+                    <ArrowRight className="h-5 w-5" />
                 </button>
             </div>
 

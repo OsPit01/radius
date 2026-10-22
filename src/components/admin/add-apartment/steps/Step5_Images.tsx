@@ -1,5 +1,6 @@
 import Image from 'next/image';
 
+import { Camera, Close, Hourglass, Star, Warning } from '@/components/icons';
 import { useImageManager } from '@/hooks/useImageManager';
 import type { FormData, StepProps } from '@/lib/utils';
 
@@ -67,12 +68,12 @@ export function Step5_Images({ formData, updateField, error, errorFields }: Step
                     <div className="flex flex-col items-center">
                         {isUploading ? (
                             <>
-                                <span className="text-3xl">⏳</span>
+                                <Hourglass className="h-10 w-10" />
                                 <p>Загрузка...</p>
                             </>
                         ) : (
                             <>
-                                <span className="text-3xl">📸</span>
+                                <Camera className="h-10 w-10" />
                                 <p>Нажмите или перетащите фотографии</p>
                                 <small className="text-xs text-muted-foreground">Можно выбрать несколько файлов</small>
                             </>
@@ -91,8 +92,9 @@ export function Step5_Images({ formData, updateField, error, errorFields }: Step
                         <label className="pt-[5px] text-sm font-semibold text-foreground">
                             Фотографии ({images.length})
                             {mainImage && (
-                                <span className="ml-2 rounded bg-warning px-2 py-0.5 text-[10px] font-semibold text-warning-foreground">
-                                    ⭐ Заглавная выбрана
+                                <span className="ml-2 inline-flex items-center gap-1 rounded bg-warning px-2 py-0.5 text-[10px] font-semibold text-warning-foreground">
+                                    <Star className="h-3 w-3" />
+                                    Заглавная выбрана
                                 </span>
                             )}
                         </label>
@@ -125,8 +127,9 @@ export function Step5_Images({ formData, updateField, error, errorFields }: Step
                                             priority={index === 0}
                                         />
                                         {isMain && (
-                                            <div className="pointer-events-none absolute top-2 left-2 z-[5] rounded bg-warning px-2 py-0.5 text-[10px] font-semibold text-warning-foreground">
-                                                ⭐ Заглавная
+                                            <div className="pointer-events-none absolute top-2 left-2 z-[5] inline-flex items-center gap-1 rounded bg-warning px-2 py-0.5 text-[10px] font-semibold text-warning-foreground">
+                                                <Star className="h-3 w-3" />
+                                                Заглавная
                                             </div>
                                         )}
                                     </div>
@@ -139,7 +142,7 @@ export function Step5_Images({ formData, updateField, error, errorFields }: Step
                                             onClick={() => removeImage(index)}
                                             title="Удалить"
                                         >
-                                            ✕
+                                            <Close className="h-3.5 w-3.5" />
                                         </button>
 
                                         {/* ЗВЁЗДОЧКА - ВТОРАЯ (СНИЗУ) */}
@@ -150,7 +153,10 @@ export function Step5_Images({ formData, updateField, error, errorFields }: Step
                                                 onClick={() => setMainImage(index)}
                                                 title="Сделать заглавной"
                                             >
-                                                ⭐
+                                                <Star
+                                                    muted
+                                                    className="h-4 w-4"
+                                                />
                                             </button>
                                         )}
                                     </div>
@@ -162,10 +168,25 @@ export function Step5_Images({ formData, updateField, error, errorFields }: Step
             )}
 
             <div className="mt-5 p-[5px] text-[13px] text-muted-foreground">
-                <p>📸 Загружено: {images.length} фото</p>
-                {mainImage && <p>⭐ Заглавное фото: выбрано</p>}
+                <p className="flex items-center gap-1.5">
+                    <Camera className="h-4 w-4" />
+                    Загружено: {images.length} фото
+                </p>
+                {mainImage && (
+                    <p className="flex items-center gap-1.5">
+                        <Star className="h-4 w-4" />
+                        Заглавное фото: выбрано
+                    </p>
+                )}
                 {!mainImage && images.length > 0 && (
-                    <p className="text-[13px] text-destructive">⚠️ Выберите заглавное фото (⭐)</p>
+                    <p className="flex items-center gap-1.5 text-[13px] text-destructive">
+                        <Warning className="h-4 w-4" />
+                        Выберите заглавное фото
+                        <Star
+                            muted
+                            className="h-3.5 w-3.5"
+                        />
+                    </p>
                 )}
             </div>
         </fieldset>

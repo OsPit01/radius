@@ -37,42 +37,49 @@ export type ThemePreset = {
     colors: Record<ThemeMode, ThemeSeeds>;
 };
 
+/** Название темы по умолчанию (она же — «нет переопределений»: цвета берутся из globals.css). */
+export const DEFAULT_THEME_LABEL = 'По умолчанию';
+
+/**
+ * Цвета темы по умолчанию (в стиле ChatGPT) — копия :root / .dark из globals.css.
+ * Нужна только затем, чтобы узнать, что сохранённые цвета совпадают с темой по умолчанию
+ * (например, их записала прошлая версия «ChatGPT»). Меняя globals.css, меняйте и это.
+ */
+export const DEFAULT_THEME_COLORS: Record<ThemeMode, ThemeSeeds> = {
+    light: { background: '#ffffff', foreground: '#0d0d0d', primary: '#ff6200' },
+    dark: { background: '#000000', foreground: '#ffffff', primary: '#ff6200' },
+};
+
+// Остальные темы — с характером. id нигде не хранится (в localStorage лежат только цвета),
+// так что переименовывать их безопасно.
 export const THEME_PRESETS: readonly ThemePreset[] = [
     {
-        id: 'chatgpt',
-        label: 'ChatGPT',
-        colors: {
-            light: { background: '#ffffff', foreground: '#0d0d0d', primary: '#ff6200' },
-            dark: { background: '#000000', foreground: '#ffffff', primary: '#ff6200' },
-        },
-    },
-    {
-        id: 'ocean',
-        label: 'Океан',
+        id: 'blue-whale',
+        label: 'Синий кит',
         colors: {
             light: { background: '#f0f7ff', foreground: '#0f2942', primary: '#0369a1' },
             dark: { background: '#07111c', foreground: '#e6f1fb', primary: '#38bdf8' },
         },
     },
     {
-        id: 'forest',
-        label: 'Лес',
+        id: 'mojito',
+        label: 'Мохито',
         colors: {
             light: { background: '#f3f7f2', foreground: '#1c2b1f', primary: '#15803d' },
             dark: { background: '#0a110c', foreground: '#e8f1e9', primary: '#4ade80' },
         },
     },
     {
-        id: 'rose',
-        label: 'Роза',
+        id: 'flamingo',
+        label: 'Фламинго',
         colors: {
             light: { background: '#fff5f7', foreground: '#3b1220', primary: '#e11d48' },
             dark: { background: '#140a0d', foreground: '#fbe9ee', primary: '#fb7185' },
         },
     },
     {
-        id: 'mono',
-        label: 'Монохром',
+        id: 'penguin',
+        label: 'Пингвин',
         colors: {
             light: { background: '#ffffff', foreground: '#111111', primary: '#111111' },
             dark: { background: '#0a0a0a', foreground: '#fafafa', primary: '#fafafa' },

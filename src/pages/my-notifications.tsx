@@ -1,8 +1,8 @@
 import { useState } from 'react';
 
-import { ArrowRight, Bell, CalendarDays, Info } from 'lucide-react';
 import Link from 'next/link';
 
+import { ArrowRight, Bell, Calendar, Info } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { ClientHeader } from '@/components/layout/ClientHeader';
 import { NotificationCard } from '@/components/notifications/NotificationCard';
@@ -89,7 +89,7 @@ export default function MyNotifications() {
                                 <h3 className="mt-1 text-lg font-bold text-foreground">{selected.title}</h3>
                             </div>
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                <CalendarDays className="h-4 w-4" />
+                                <Calendar className="h-5 w-5" />
                                 {new Date(selected.createdAt).toLocaleDateString('ru-RU', {
                                     day: 'numeric',
                                     month: 'long',
@@ -100,7 +100,7 @@ export default function MyNotifications() {
                                 {selected.text}
                             </p>
                             <p className="flex items-start gap-2 text-xs text-muted-foreground">
-                                <Info className="mt-0.5 h-4 w-4 shrink-0" />
+                                <Info className="h-5 w-5 shrink-0" />
                                 Нажмите на уведомление, чтобы открыть связанный объект
                             </p>
                             {selected.link && (

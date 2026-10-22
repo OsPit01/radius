@@ -1,8 +1,7 @@
-import { FaHeart, FaRegHeart } from 'react-icons/fa';
-
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 
+import { Heart } from '@/components/icons';
 import { ImageWithFallback } from '@/components/ui/ImageWithFallback';
 import type { ApartmentCardData } from '@/lib/apartment-format';
 import { DEFAULT_BOOKING_GUESTS } from '@/lib/constants/booking';
@@ -76,7 +75,7 @@ export function ApartmentCard({
         <>
             <Link
                 href={href}
-                className="overflow-hidden rounded-2xl border border-border bg-card p-0.5 transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_15px_24px_rgba(0,0,0,0.1)]"
+                className="overflow-hidden rounded-2xl border border-border bg-card p-0.5"
             >
                 <div className="relative h-[350px] w-full overflow-hidden max-md:h-[250px]">
                     <ImageWithFallback
@@ -90,15 +89,16 @@ export function ApartmentCard({
                         onClick={handleToggle}
                         className="group absolute top-3 right-3 z-10 flex h-10 w-10 cursor-pointer items-center justify-center"
                     >
-                        <div className="relative h-7 w-7 transition-transform duration-200 group-hover:scale-125">
+                        <div className="relative h-7 w-7">
                             {/* контурное — видно когда НЕ в избранном */}
-                            <FaRegHeart
+                            <Heart
+                                muted
                                 className={`absolute top-0 left-0 h-7 w-7 text-card drop-shadow-[0_0_2px_color-mix(in_oklab,var(--foreground)_55%,transparent)] transition-all duration-300 group-hover:text-primary/60 ${
                                     isFavorite ? 'scale-0 opacity-0' : 'scale-100 opacity-100'
                                 }`}
                             />
                             {/* залитое — видно когда В избранном */}
-                            <FaHeart
+                            <Heart
                                 className={`absolute top-0 left-0 h-7 w-7 text-primary drop-shadow-[0_0_2px_color-mix(in_oklab,var(--foreground)_35%,transparent)] transition-all duration-300 ${
                                     isFavorite ? 'scale-100 opacity-100' : 'scale-0 opacity-0'
                                 }`}
