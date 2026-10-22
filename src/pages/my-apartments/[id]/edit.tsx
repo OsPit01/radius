@@ -247,6 +247,9 @@ export default function EditApartmentPage() {
                                                         }`}
                                                         onClick={() => setMainImage(index)}
                                                         title={isMain ? 'Заглавная' : 'Сделать заглавной'}
+                                                        aria-label={
+                                                            isMain ? 'Заглавное фото' : 'Сделать фото заглавным'
+                                                        }
                                                     >
                                                         <Star
                                                             muted={!isMain}
@@ -258,6 +261,7 @@ export default function EditApartmentPage() {
                                                         className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-none bg-black/60 p-0 text-[13px] leading-none text-white/50 transition-all duration-200 hover:scale-110 hover:bg-destructive/90 hover:text-destructive-foreground max-[480px]:h-[22px] max-[480px]:w-[22px] max-[480px]:text-[10px]"
                                                         onClick={() => removeImage(index)}
                                                         title="Удалить"
+                                                        aria-label="Удалить фото"
                                                     >
                                                         <Close className="h-3.5 w-3.5" />
                                                     </button>

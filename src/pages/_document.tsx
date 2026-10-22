@@ -9,19 +9,37 @@ export default function Document() {
     return (
         <Html lang="ru">
             <Head>
+                {/* Фавиконка под цветовую схему браузера/системы (prefers-color-scheme):
+            у каждого размера по две ссылки — для светлой и для тёмной темы, срабатывает
+            одна. Это не переключатель темы сайта (.dark), а именно тема браузера. */}
                 <link
                     rel="icon"
-                    href="/favicon-96x96.png"
+                    href="/light/favicon-96x96.png"
                     sizes="96x96"
                     type="image/png"
+                    media="(prefers-color-scheme: light)"
+                />
+                <link
+                    rel="icon"
+                    href="/dark/favicon-96x96-dark.png"
+                    sizes="96x96"
+                    type="image/png"
+                    media="(prefers-color-scheme: dark)"
                 />
                 <link
                     rel="shortcut icon"
-                    href="/favicon.ico"
+                    href="/light/favicon.ico"
+                    media="(prefers-color-scheme: light)"
                 />
                 <link
+                    rel="shortcut icon"
+                    href="/dark/favicon-dark.ico"
+                    media="(prefers-color-scheme: dark)"
+                />
+                {/* iOS не учитывает media у apple-touch-icon — иконка на домашнем экране одна. */}
+                <link
                     rel="apple-touch-icon"
-                    href="/apple-touch-icon.png"
+                    href="/light/apple-touch-icon.png"
                 />
                 <link
                     rel="manifest"

@@ -36,7 +36,7 @@ export const ChevronRight = createGlyphIcon({
 export const ChevronDown = createGlyphIcon({
     name: 'chevronDown',
     label: 'Шеврон вниз',
-    usage: 'Выпадающие списки («кто едет?», выбор значения в форме), «Показать ещё» у микрорайонов (повёрнутый — «Скрыть»)',
+    usage: 'Выпадающие списки в форме добавления квартиры',
     d: 'M5.5 9.5 12 16l6.5-6.5',
     w: 3.4,
 });
@@ -65,7 +65,7 @@ export const Plus = createGlyphIcon({
 export const Minus = createGlyphIcon({
     name: 'minus',
     label: 'Минус',
-    usage: 'Степперы гостей в поиске и в форме бронирования',
+    usage: 'Степперы гостей в форме бронирования',
     d: 'M4.8 12h14.4',
 });
 

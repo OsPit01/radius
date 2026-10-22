@@ -69,13 +69,14 @@ export function ApartmentsList({
     const foundCount = filteredApartments.length;
 
     const totalPages = Math.ceil(filteredApartments.length / APARTMENTS_PAGE_SIZE);
-    //Состояние страниц
+
     const [currentPage, setCurrentPage] = useState(1);
 
     const visibleApartments = filteredApartments.slice(
         (currentPage - 1) * APARTMENTS_PAGE_SIZE,
         currentPage * APARTMENTS_PAGE_SIZE,
     );
+
     useEffect(() => {
         setCurrentPage(1);
     }, [searchQuery, totalGuests, filters]);
@@ -85,7 +86,7 @@ export function ApartmentsList({
             <div className="my-[50px] w-full">
                 <h2 className="mb-10 text-center text-2xl font-bold text-foreground">Варианты для проживания: 0</h2>
                 <div className="p-[60px_20px] text-center">
-                    <p className="text-xl font-semibold text-foreground">Ничего не найдено!</p>
+                    <p className="text-xl font-semibold text-foreground">Ничего не найдено (</p>
                     <p className="text-base text-muted-foreground">Попробуйте изменить параметры поиска</p>
                 </div>
             </div>
@@ -93,14 +94,13 @@ export function ApartmentsList({
     }
 
     return (
-        <div className="my-[50px] w-full">
+        <div className="w-full">
             <h2 className="mb-10 text-center text-2xl font-bold text-foreground">
-                Варианты для проживания: {foundCount}
                 {searchQuery && <p className="text-lg font-semibold">Город: {searchQuery}</p>}
                 {totalGuests > 1 && <p className="text-base font-normal">Количество человек: {totalGuests}</p>}
             </h2>
 
-            <div className="mx-auto grid max-w-[1400px] grid-cols-2 gap-[50px] px-5 max-md:grid-cols-1 max-md:gap-5 max-md:px-4">
+            <div className="mx-auto grid max-w-[1400px] grid-cols-2 gap-[50px] px-5 max-md:grid-cols-1 max-md:gap-5 max-md:px-0">
                 {visibleApartments.map((apartment) => (
                     <ApartmentCard
                         key={apartment.id}
@@ -116,6 +116,7 @@ export function ApartmentsList({
                     type="button"
                     onClick={() => setCurrentPage(currentPage - 1)}
                     disabled={currentPage === 1}
+                    aria-label="Предыдущая страница"
                     className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-muted disabled:cursor-not-allowed disabled:opacity-40"
                 >
                     <ChevronLeft className="h-6 w-6" />
@@ -141,6 +142,7 @@ export function ApartmentsList({
                     type="button"
                     onClick={() => setCurrentPage(currentPage + 1)}
                     disabled={currentPage === totalPages}
+                    aria-label="Следующая страница"
                     className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-muted disabled:cursor-not-allowed disabled:opacity-40"
                 >
                     <ChevronRight className="h-6 w-6" />

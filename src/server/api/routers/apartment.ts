@@ -92,7 +92,12 @@ export const apartmentRouter = createTRPCRouter({
         .input(
             z
                 .object({
+                    // Свободный поиск: город, улица или микрорайон содержит строку.
                     city: z.string().trim().min(1).optional(),
+                    // Точное название города (apartments.city) — для страниц каталога /rent/flat/{город}/...
+                    exactCity: z.string().trim().min(1).optional(),
+                    // Точное название микрорайона, без учёта регистра: в БД оно набрано руками
+                    // («Новая боровая»), а на сайте пишется «Новая Боровая».
                     microdistrict: z.string().trim().min(1).optional(),
                     guests: z.number().int().min(1).optional(),
                     priceMin: z.number().int().min(0).optional(),
@@ -118,8 +123,11 @@ export const apartmentRouter = createTRPCRouter({
                     ),
                 );
             }
+            if (input?.exactCity) {
+                conditions.push(eq(apartments.city, input.exactCity));
+            }
             if (input?.microdistrict) {
-                conditions.push(eq(apartments.microdistrict, input.microdistrict));
+                conditions.push(sql`lower(trim(${apartments.microdistrict})) = lower(${input.microdistrict})`);
             }
             if (input?.guests && input.guests > 1) {
                 conditions.push(gte(apartments.capacity, input.guests));

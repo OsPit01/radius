@@ -1,5 +1,4 @@
 import { DEFAULT_BOOKING_GUESTS, MAX_BOOKING_GUESTS } from '@/lib/constants/booking';
-import { HOME_DESCRIPTION, HOME_TITLE } from '@/lib/seo';
 
 // ===== ЕДИНЫЙ ИСТОЧНИК ПРАВДЫ ДЛЯ URL-ФИЛЬТРОВ ПОИСКА =====
 export type SearchFilters = {
@@ -13,20 +12,6 @@ export type SearchFilters = {
     sofas?: number;
     metro?: number;
 };
-
-// Фиксированный порядок ключей в строке запроса:
-// делает URL стабильным и защищает от дублей (?rooms=2&city=X === ?city=X&rooms=2)
-const QUERY_KEY_ORDER = [
-    'city',
-    'guests',
-    'children',
-    'priceMin',
-    'priceMax',
-    'rooms',
-    'beds',
-    'sofas',
-    'metro',
-] as const;
 
 function toPositiveInt(value: string | string[] | undefined): number | undefined {
     if (Array.isArray(value)) {
@@ -53,23 +38,6 @@ export function parseSearchParams(searchParams: Record<string, string | string[]
     };
 }
 
-export function buildQueryString(filters: SearchFilters): string {
-    const params = new URLSearchParams();
-    for (const key of QUERY_KEY_ORDER) {
-        const value = filters[key];
-        if (value === undefined || value === '' || value === null) {
-            continue;
-        }
-        params.set(key, String(value));
-    }
-    return params.toString();
-}
-
-export function buildSearchUrl(filters: SearchFilters): string {
-    const qs = buildQueryString(filters);
-    return qs ? `/?${qs}` : '/';
-}
-
 /**
  * Сколько гостей подставить в форму бронирования, пришедших из URL.
  * Разбор — единый (через parseSearchParams), здесь только политика:
@@ -94,40 +62,4 @@ export function parseBookingChildren(searchParams: Record<string, string | strin
         return 0;
     }
     return Math.min(children, MAX_BOOKING_GUESTS);
-}
-
-// ===== SEO-ЗАГОЛОВКИ ДЛЯ ОТФИЛЬТРОВАННЫХ СТРАНИЦ =====
-export function buildSearchTitle(filters: SearchFilters): string {
-    if (!filters.city && !filters.rooms && !filters.guests) {
-        return HOME_TITLE;
-    }
-
-    const subject = filters.rooms
-        ? filters.rooms === 1
-            ? '1-комнатная квартира на сутки'
-            : `${filters.rooms}-комнатные квартиры на сутки`
-        : 'Квартиры на сутки';
-
-    const withCity = filters.city ? `${subject} в ${filters.city}` : subject;
-
-    if (filters.guests && filters.guests > 1) {
-        return `${withCity} — снять на сутки на ${filters.guests} человек | Radius`;
-    }
-    return `${withCity} — снять на сутки | Radius`;
-}
-
-export function buildSearchDescription(filters: SearchFilters): string {
-    if (!filters.city && !filters.rooms && !filters.guests) {
-        return HOME_DESCRIPTION;
-    }
-
-    const subject = filters.rooms
-        ? filters.rooms === 1
-            ? 'Снять 1-комнатную квартиру'
-            : `Снять ${filters.rooms}-комнатные квартиры`
-        : 'Снять квартиру';
-
-    const withCity = filters.city ? `${subject} в ${filters.city}` : subject;
-
-    return `${withCity} на сутки. Актуальные фото, честные цены, бронирование онлайн напрямую от собственников.`;
 }

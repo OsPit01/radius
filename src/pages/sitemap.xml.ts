@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm';
 import type { GetServerSideProps } from 'next';
 
-import { buildQueryString } from '@/lib/search-params';
+import { findMicrodistrictSlug, getMicrodistrictPath, MICRODISTRICT_SLUGS } from '@/lib/constants/catalog';
 import { SITE_URL } from '@/lib/seo';
 import { db } from '@/server/db';
 import { apartments } from '@/server/db/schema';
@@ -69,33 +69,16 @@ async function buildEntries(): Promise<SitemapEntry[]> {
         images: (a.images?.length ? a.images : [a.image]).filter(Boolean),
     }));
 
-    // Популярные города из активных объявлений — для SEO-страниц каталога
-    const popularCities = Array.from(new Set(rows.map((a) => a.city)));
-    const catCityUrls: SitemapEntry[] = popularCities.map((city) => ({
-        url: `${SITE_URL}/?${buildQueryString({ city })}`,
-        lastModified: new Date(),
-        changeFrequency: 'daily',
-        priority: 0.7,
-    }));
-    // Популярные микрорайоны из активных объявлений — для SEO-страниц каталога
-    const popularMicrodistrict = Array.from(
-        new Set(rows.map((a) => a.microdistrict).filter((d): d is string => d !== null)),
-    );
-    const microdistrictUrls: SitemapEntry[] = popularMicrodistrict.map((microdistrict) => ({
-        url: `${SITE_URL}/microdistrict/${encodeURIComponent(microdistrict)}`,
-        lastModified: new Date(),
-        changeFrequency: 'daily',
-        priority: 0.9,
-    }));
-
-    // Популярные комбинации «город + количество комнат»
-    const roomCombos: SitemapEntry[] = popularCities.flatMap((city) =>
-        [1, 2, 3].map((rooms) => ({
-            url: `${SITE_URL}/?${buildQueryString({ city, rooms })}`,
+    // Страницы каталога /rent/flat/{город}/microdistrict/{микрорайон}.
+    // Только те, где есть хотя бы одна активная квартира: пустые страницы закрыты noindex.
+    const filledSlugs = new Set(rows.map((a) => findMicrodistrictSlug(a.microdistrict, a.city)));
+    const microdistrictUrls: SitemapEntry[] = MICRODISTRICT_SLUGS.filter((slug) => filledSlugs.has(slug)).map(
+        (slug) => ({
+            url: `${SITE_URL}${getMicrodistrictPath(slug)}`,
             lastModified: new Date(),
-            changeFrequency: 'daily' as const,
-            priority: 0.6,
-        })),
+            changeFrequency: 'daily',
+            priority: 0.9,
+        }),
     );
 
     return [
@@ -105,8 +88,6 @@ async function buildEntries(): Promise<SitemapEntry[]> {
             changeFrequency: 'daily',
             priority: 1,
         },
-        ...catCityUrls,
-        ...roomCombos,
         ...microdistrictUrls,
         {
             url: `${SITE_URL}/privacy`,

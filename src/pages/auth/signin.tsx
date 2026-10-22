@@ -82,6 +82,8 @@ export default function SignInPage() {
                         className="mt-3 w-full rounded-xl bg-foreground py-3 font-semibold text-background transition-colors hover:bg-foreground/85"
                         onClick={handleEmailSignIn}
                         disabled={isEmailLoading}
+                        // Пока идёт отправка, внутри только спиннер — имя кнопки должно остаться.
+                        aria-label="Получить ссылку для входа"
                     >
                         {isEmailLoading ? (
                             <div className="mx-auto h-5 w-5 animate-spin rounded-full border-2 border-border border-t-background"></div>

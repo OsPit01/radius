@@ -87,6 +87,7 @@ export function ApartmentCard({
                     <button
                         type="button"
                         onClick={handleToggle}
+                        aria-label={isFavorite ? 'Убрать из избранного' : 'Добавить в избранное'}
                         className="group absolute top-3 right-3 z-10 flex h-10 w-10 cursor-pointer items-center justify-center"
                     >
                         <div className="relative h-7 w-7">

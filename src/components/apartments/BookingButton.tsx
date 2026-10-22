@@ -222,6 +222,7 @@ export function BookingButton({
                                         type="button"
                                         onClick={() => setAdults((a) => Math.max(MIN_BOOKING_GUESTS, a - 1))}
                                         disabled={adults <= MIN_BOOKING_GUESTS}
+                                        aria-label="Уменьшить число взрослых"
                                         className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-xl font-bold text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
                                     >
                                         <Minus className="h-5 w-5" />
@@ -233,6 +234,7 @@ export function BookingButton({
                                         type="button"
                                         onClick={() => setAdults((a) => Math.min(maxGuests - children, a + 1))}
                                         disabled={adults + children >= maxGuests}
+                                        aria-label="Увеличить число взрослых"
                                         className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-xl font-bold text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
                                     >
                                         <Plus className="h-5 w-5" />
@@ -247,6 +249,7 @@ export function BookingButton({
                                         type="button"
                                         onClick={() => setChildren((c) => Math.max(0, c - 1))}
                                         disabled={children <= 0}
+                                        aria-label="Уменьшить число детей"
                                         className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-xl font-bold text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
                                     >
                                         <Minus className="h-5 w-5" />
@@ -258,6 +261,7 @@ export function BookingButton({
                                         type="button"
                                         onClick={() => setChildren((c) => Math.min(maxGuests - adults, c + 1))}
                                         disabled={adults + children >= maxGuests}
+                                        aria-label="Увеличить число детей"
                                         className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-xl font-bold text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
                                     >
                                         <Plus className="h-5 w-5" />

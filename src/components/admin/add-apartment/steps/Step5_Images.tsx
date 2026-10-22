@@ -141,6 +141,7 @@ export function Step5_Images({ formData, updateField, error, errorFields }: Step
                                             className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-none bg-black/70 text-xs text-white shadow-[0_2px_8px_rgba(0,0,0,0.3)] transition-all duration-200 hover:scale-110 hover:bg-destructive/90"
                                             onClick={() => removeImage(index)}
                                             title="Удалить"
+                                            aria-label="Удалить фото"
                                         >
                                             <Close className="h-3.5 w-3.5" />
                                         </button>
@@ -152,6 +153,7 @@ export function Step5_Images({ formData, updateField, error, errorFields }: Step
                                                 className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-none bg-black/70 text-xs text-white shadow-[0_2px_8px_rgba(0,0,0,0.3)] transition-all duration-200 hover:scale-110 hover:bg-warning hover:text-warning-foreground"
                                                 onClick={() => setMainImage(index)}
                                                 title="Сделать заглавной"
+                                                aria-label="Сделать фото заглавным"
                                             >
                                                 <Star
                                                     muted

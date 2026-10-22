@@ -75,6 +75,7 @@ export function PhotoGallery({ photos, title }: { photos: string[]; title: strin
                     className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-border bg-card text-xl shadow-sm transition-colors hover:bg-muted disabled:opacity-40"
                     onClick={() => swiperRef.current?.slidePrev()}
                     disabled={activeIndex === 0}
+                    aria-label="Предыдущее фото"
                 >
                     <ArrowLeft className="h-5 w-5" />
                 </button>
@@ -85,6 +86,7 @@ export function PhotoGallery({ photos, title }: { photos: string[]; title: strin
                     className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-border bg-card text-xl shadow-sm transition-colors hover:bg-muted disabled:opacity-40"
                     onClick={() => swiperRef.current?.slideNext()}
                     disabled={activeIndex === photos.length - 1}
+                    aria-label="Следующее фото"
                 >
                     <ArrowRight className="h-5 w-5" />
                 </button>

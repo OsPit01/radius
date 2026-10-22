@@ -6,7 +6,7 @@ import { circle, gear } from './geometry';
 export const Search = createIcon({
     name: 'search',
     label: 'Поиск',
-    usage: 'Круглая кнопка-лупа в строке поиска на главной',
+    usage: 'Пока не используется: раньше — кнопка-лупа в строке поиска на главной',
     shapes: [circle(10.4, 10.4, 7)],
     strokes: ['M6.8 9.4a4 4 0 0 1 3-3'],
     cut: 1.6,
@@ -16,7 +16,7 @@ export const Search = createIcon({
 export const Filters = createIcon({
     name: 'filters',
     label: 'Фильтры',
-    usage: 'Кнопка «Фильтр» рядом с поиском, панель фильтров',
+    usage: 'Пока не используется: раньше — кнопка «Фильтр» рядом с поиском на главной',
     shapes: [circle(15.5, 6, 2.6), circle(8, 12, 2.6), circle(14, 18, 2.6)],
     extras:
         `<path d="M3.5 6h9.4M18.1 6h2.4M3.5 12h2M10.6 12h9.9M3.5 18h7.9M16.6 18h3.9" ` +
