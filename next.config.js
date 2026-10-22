@@ -40,6 +40,11 @@ const config = {
     images: {
         remotePatterns: buildRemotePatterns(),
     },
+    // Превью квартиры для соцсетей. Публичный адрес — вне /api/, потому что /api/ закрыт в robots.txt
+    // и краулеры Twitter/Facebook картинку оттуда не берут. См. src/pages/api/og/apartment/[id].ts
+    async rewrites() {
+        return [{ source: '/og/apartments/:id.jpg', destination: '/api/og/apartment/:id' }];
+    },
     // Отключи кэш в разработке (чтобы избежать проблем с кешированием)
     generateEtags: process.env.NODE_ENV === 'development' ? false : true,
 };

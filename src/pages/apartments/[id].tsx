@@ -14,7 +14,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { parseApartmentId } from '@/lib/apartment-id';
 import { getCurrencySymbol } from '@/lib/constants/currencies';
 import { parseBookingChildren, parseBookingGuests } from '@/lib/search-params';
-import { SITE_URL } from '@/lib/seo';
+import { getApartmentOgImagePath, SITE_URL } from '@/lib/seo';
 import type { RouterOutputs } from '@/trpc/react';
 import { createServerCaller } from '@/trpc/server';
 
@@ -63,6 +63,8 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
         `${a.title} — посуточная аренда${a.district ? ` в р-не ${a.district}` : ''} в г. ${a.city}. Снять квартиру на сутки недорого.`;
 
     const photos = a.images?.length ? a.images : [a.image];
+    // Превью ссылки — первое фото галереи. Заглушку (не http) в превью не показываем — там будет логотип сайта.
+    const cover = photos[0];
 
     const hasExtras = (a.area ?? 0) > 0 || (a.floor ?? 0) > 0 || (a.bathrooms ?? 0) > 0;
     const sleepParts = [
@@ -80,7 +82,7 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
         '@type': 'LodgingBusiness',
         name: a.title,
         description: a.description ?? '',
-        image: a.image,
+        image: cover,
         url: `${SITE_URL}/apartments/${id}`,
         address: {
             '@type': 'PostalAddress',
@@ -97,7 +99,7 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
                 title={`${a.title} — снять на сутки в ${a.city ?? 'Минске'}`}
                 description={metaDescription}
                 canonical={`/apartments/${rawId}`}
-                image={a.image?.startsWith('http') ? a.image : undefined}
+                image={cover?.startsWith('http') ? getApartmentOgImagePath(a.id, cover) : undefined}
             />
             <JsonLd data={lodgingSchema} />
             <ClientHeader />

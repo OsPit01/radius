@@ -7,12 +7,46 @@ export const HOME_TITLE = 'Посуточная аренда квартир — 
 export const HOME_DESCRIPTION =
     'Посуточная аренда квартир напрямую от собственников. Актуальные фото, честные цены, бронирование онлайн. Снимите квартиру на сутки недорого и удобно в любом городе.';
 
-/** Фото по умолчанию для превью ссылки (Open Graph), если у страницы нет своего. */
-export const SITE_OG_IMAGE = {
-    url: '/apple-touch-icon.png',
-    width: 180,
-    height: 180,
+// ===== ПРЕВЬЮ ССЫЛКИ (Open Graph) =====
+
+/** Размер всех картинок превью: 1.91:1 — так Telegram, WhatsApp, Facebook рисуют «большую карточку». */
+export const OG_IMAGE_SIZE = { width: 1200, height: 630 } as const;
+
+export type OgTheme = 'light' | 'dark';
+
+/** Логотип по центру на фоне темы. Файлы лежат в public/og и собираются скриптом `npm run og:generate`. */
+export const SITE_OG_IMAGES: Record<OgTheme, string> = {
+    light: '/og/default-light.png',
+    dark: '/og/default-dark.png',
 };
+
+/**
+ * Краулер (Telegram, WhatsApp...) не знает тему посетителя: у него нет ни localStorage,
+ * ни prefers-color-scheme — на один адрес он получает одну картинку. Поэтому для страниц
+ * без своего фото выбираем одну тему; светлая версия остаётся в public/og на случай, если понадобится.
+ */
+export const DEFAULT_OG_THEME: OgTheme = 'dark';
+
+/** Картинка превью по умолчанию — для страниц без своего фото. */
+export const DEFAULT_OG_IMAGE = SITE_OG_IMAGES[DEFAULT_OG_THEME];
+
+/** Короткий хеш строки: ключ для сброса кэша превью, когда у квартиры меняется главное фото. */
+function shortHash(value: string): string {
+    let hash = 5381;
+    for (let i = 0; i < value.length; i += 1) {
+        hash = (hash * 33) ^ value.charCodeAt(i);
+    }
+    return (hash >>> 0).toString(36);
+}
+
+/**
+ * Адрес превью квартиры — её первое фото, обрезанное до 1200×630 (отдаёт src/pages/api/og/apartment/[id].ts).
+ * Лежит не в /api/, потому что /api/ закрыт в robots.txt — Twitter и Facebook такую картинку бы не взяли
+ * (маршрут → /api/ переписывается в next.config.js). `v` меняется вместе с фото и сбрасывает кэш.
+ */
+export function getApartmentOgImagePath(apartmentId: number, firstPhoto: string): string {
+    return `/og/apartments/${apartmentId}.jpg?v=${shortHash(firstPhoto)}`;
+}
 
 /**
  * Закрытые разделы: они и в robots.txt (Disallow), и мета-тегом noindex.

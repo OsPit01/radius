@@ -1,6 +1,6 @@
 import Head from 'next/head';
 
-import { absoluteUrl, HOME_TITLE, SITE_DESCRIPTION, SITE_NAME, SITE_OG_IMAGE } from '@/lib/seo';
+import { absoluteUrl, DEFAULT_OG_IMAGE, HOME_TITLE, OG_IMAGE_SIZE, SITE_DESCRIPTION, SITE_NAME } from '@/lib/seo';
 
 type SeoProps = {
     /** Короткий заголовок: в <title> получит суффикс « | Radius», в og:title — нет. */
@@ -10,7 +10,7 @@ type SeoProps = {
     description?: string;
     /** Канонический адрес: путь («/privacy») или полный URL. */
     canonical?: string;
-    /** Картинка для превью ссылки (полный URL); по умолчанию — логотип сайта. */
+    /** Картинка для превью ссылки 1200×630 (путь или полный URL); по умолчанию — логотип сайта на фоне темы. */
     image?: string;
     /** Закрыть страницу от индексации. */
     noindex?: boolean;
@@ -26,7 +26,7 @@ type SeoProps = {
 export function Seo({ title, absoluteTitle, description = SITE_DESCRIPTION, canonical, image, noindex }: SeoProps) {
     const ogTitle = title ?? absoluteTitle ?? HOME_TITLE;
     const documentTitle = title ? `${title} | ${SITE_NAME}` : ogTitle;
-    const ogImage = image ?? absoluteUrl(SITE_OG_IMAGE.url);
+    const ogImage = absoluteUrl(image ?? DEFAULT_OG_IMAGE);
     const canonicalUrl = canonical ? absoluteUrl(canonical) : undefined;
 
     return (
@@ -89,21 +89,23 @@ export function Seo({ title, absoluteTitle, description = SITE_DESCRIPTION, cano
                 property="og:image"
                 content={ogImage}
             />
-            {/* Размеры известны только у картинки по умолчанию */}
-            {!image && (
-                <>
-                    <meta
-                        key="og:image:width"
-                        property="og:image:width"
-                        content={String(SITE_OG_IMAGE.width)}
-                    />
-                    <meta
-                        key="og:image:height"
-                        property="og:image:height"
-                        content={String(SITE_OG_IMAGE.height)}
-                    />
-                </>
-            )}
+            {/* Все картинки превью — 1200×630, поэтому размеры известны заранее: краулер
+                сразу рисует «большую карточку», не скачивая файл ради измерения. */}
+            <meta
+                key="og:image:width"
+                property="og:image:width"
+                content={String(OG_IMAGE_SIZE.width)}
+            />
+            <meta
+                key="og:image:height"
+                property="og:image:height"
+                content={String(OG_IMAGE_SIZE.height)}
+            />
+            <meta
+                key="og:image:alt"
+                property="og:image:alt"
+                content={ogTitle}
+            />
 
             <meta
                 key="twitter:card"
@@ -119,6 +121,11 @@ export function Seo({ title, absoluteTitle, description = SITE_DESCRIPTION, cano
                 key="twitter:description"
                 name="twitter:description"
                 content={description}
+            />
+            <meta
+                key="twitter:image"
+                name="twitter:image"
+                content={ogImage}
             />
         </Head>
     );
