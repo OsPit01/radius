@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 
-import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useRouter } from 'next/router';
 
 import { ApartmentsList } from '@/components/apartments/ApartmentsList';
+import { ChevronDown } from '@/components/icons';
 import { type ChipKey, FilterChips } from '@/components/search/FilterChips';
 import { EMPTY_FILTERS, FilterPanel, type Filters } from '@/components/search/FilterPanel';
 import { SearchForm } from '@/components/search/SearchForm';
@@ -181,11 +181,9 @@ export function ClientSearchWrapper({ initialFilters, initialApartments }: Clien
                             className="flex cursor-pointer items-center gap-1 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary"
                         >
                             {showAllMicrodistricts ? 'Скрыть' : 'Показать ещё'}
-                            {showAllMicrodistricts ? (
-                                <ChevronUp className="h-4 w-4" />
-                            ) : (
-                                <ChevronDown className="h-4 w-4" />
-                            )}
+                            <ChevronDown
+                                className={`h-4 w-4 transition-transform duration-200 ${showAllMicrodistricts ? 'rotate-180' : ''}`}
+                            />
                         </button>
                     )}
                 </div>

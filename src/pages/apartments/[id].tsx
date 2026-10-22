@@ -119,13 +119,17 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
                             <p className="flex-1 text-base text-foreground">
                                 г. {apartment.apartment.city}
                                 {apartment.apartment.microdistrict && (
-                                    <Link
-                                        href={`/microdistrict/${encodeURIComponent(apartment.apartment.microdistrict)}`}
-                                        className="text-foreground underline underline-offset-2 transition-colors hover:text-primary"
-                                    >
-                                        ,{apartment.apartment.microdistrict}
-                                    </Link>
+                                    <>
+                                        {', '}
+                                        <Link
+                                            href={`/microdistrict/${encodeURIComponent(apartment.apartment.microdistrict)}`}
+                                            className="text-foreground underline underline-offset-2 transition-colors hover:text-primary"
+                                        >
+                                            {apartment.apartment.microdistrict}
+                                        </Link>
+                                    </>
                                 )}
+                                {', '}
                                 {apartment.apartment.street}, {apartment.apartment.numberHome}
                                 {apartment.apartment.building ? `, к. ${apartment.apartment.building}` : ''}
                             </p>

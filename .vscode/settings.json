@@ -3,5 +3,7 @@
   "editor.codeActionsOnSave": {
     "source.organizeImports": "never",
     "source.fixAll": "never"
-  }
+  },
+  "css.lint.unknownAtRules": "ignore",
+  "json.schemaDownload.enable": true
 }
