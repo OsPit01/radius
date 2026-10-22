@@ -2,14 +2,19 @@
 
 import 'swiper/css';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { FreeMode } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
+import { ScanOverlay } from '@/components/home/ScanOverlay';
 import { MapPin } from '@/components/icons';
 import { api } from '@/trpc/react';
+
+/** Минимум, сколько оверлей сканирования остаётся на экране, чтобы анимация была заметна. */
+const MIN_SCAN_MS = 1200;
 
 export function CityTiles() {
     const { data: locations } = api.apartment.getCatalogLocations.useQuery();
@@ -17,6 +22,40 @@ export function CityTiles() {
     const [selectedCity, setSelectedCity] = useState<string | null>(null);
     const [showAllCities, setShowAllCities] = useState(false);
     const [showAllMicrodistricts, setShowAllMicrodistricts] = useState(false);
+    const [scanningDistrict, setScanningDistrict] = useState<string | null>(null);
+
+    const router = useRouter();
+    const scanStartedAtRef = useRef(0);
+    const hideTimerRef = useRef<number | null>(null);
+
+    // Оверлей показывается в момент клика, а прячется, когда роутер закончил переход
+    // (или упал с ошибкой), но не раньше MIN_SCAN_MS после клика.
+    useEffect(() => {
+        const finish = () => {
+            const rest = Math.max(0, MIN_SCAN_MS - (Date.now() - scanStartedAtRef.current));
+            if (hideTimerRef.current !== null) {
+                window.clearTimeout(hideTimerRef.current);
+            }
+            hideTimerRef.current = window.setTimeout(() => {
+                setScanningDistrict(null);
+                hideTimerRef.current = null;
+            }, rest);
+        };
+        router.events.on('routeChangeComplete', finish);
+        router.events.on('routeChangeError', finish);
+        return () => {
+            router.events.off('routeChangeComplete', finish);
+            router.events.off('routeChangeError', finish);
+            if (hideTimerRef.current !== null) {
+                window.clearTimeout(hideTimerRef.current);
+            }
+        };
+    }, [router.events]);
+
+    const startScan = (name: string) => {
+        scanStartedAtRef.current = Date.now();
+        setScanningDistrict(name);
+    };
 
     if (!locations || locations.length === 0) {
         return null;
@@ -56,6 +95,14 @@ export function CityTiles() {
         <Link
             href={`/rent/flat/${encodeURIComponent(activeCity)}/microdistrict/${encodeURIComponent(name)}`}
             className={`${tileClass} border-border no-underline`}
+            onClick={(e) => {
+                // Сканирование показываем только при обычном клике левой кнопкой:
+                // новая вкладка / middle-click / модификаторы не задерживают пользователя оверлеем.
+                if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) {
+                    return;
+                }
+                startScan(name);
+            }}
         >
             <span className="flex items-center gap-2">
                 <MapPin className="h-6 w-6 shrink-0 text-primary" />
@@ -154,6 +201,8 @@ export function CityTiles() {
                     )}
                 </>
             )}
+
+            {scanningDistrict && <ScanOverlay district={scanningDistrict} />}
         </section>
     );
 }

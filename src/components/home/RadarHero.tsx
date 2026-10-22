@@ -4,8 +4,18 @@ import { Home } from '@/components/icons';
 
 import styles from './RadarHero.module.css';
 
-/** Секунд на полный оборот луча. */
+/** Секунд на полный оборот луча по умолчанию. */
 const PERIOD = 9;
+
+/** Размеры по умолчанию: на телефоне компактнее, на десктопе — крупнее. */
+const DEFAULT_CLASSNAME = 'mx-auto w-[min(70vw,16rem)] md:w-[min(26rem,50vh)] xl:w-[min(34rem,56vh)]';
+
+type RadarHeroProps = {
+    /** Секунд на полный оборот луча. Передай меньшее значение для «активного сканирования». */
+    period?: number;
+    /** Переопределение размеров (например, в оверлеях). */
+    className?: string;
+};
 
 type RadarHouse = {
     /** Угол от «12 часов» по часовой стрелке, градусы. */
@@ -40,33 +50,35 @@ const RINGS = [
  * Через сколько секунд после старта луч дойдёт до дома. Отрицательный animation-delay сдвигает
  * анимацию дома так, чтобы её «пик» (0% в keyframes) пришёлся ровно на этот момент.
  */
-function houseDelay(house: RadarHouse): number {
+function houseDelay(house: RadarHouse, period: number): number {
     const turn = (((house.angle - MAIN_HOUSE.angle) % 360) + 360) % 360;
-    return (turn / 360) * PERIOD - PERIOD;
+    return (turn / 360) * period - period;
 }
 
-function houseStyle(house: RadarHouse): CSSProperties {
+function houseStyle(house: RadarHouse, period: number): CSSProperties {
     const rad = (house.angle * Math.PI) / 180;
     return {
         '--x': `${(50 + house.radius * 50 * Math.sin(rad)).toFixed(2)}%`,
         '--y': `${(50 - house.radius * 50 * Math.cos(rad)).toFixed(2)}%`,
         '--size': `${house.size}%`,
-        '--delay': `${houseDelay(house).toFixed(3)}s`,
+        '--delay': `${houseDelay(house, period).toFixed(3)}s`,
     } as CSSProperties;
 }
 
-const ROOT_STYLE = {
-    '--period': `${PERIOD}s`,
-    // в момент загрузки луч стоит на главном доме
-    '--beam-delay': `${((-MAIN_HOUSE.angle / 360) * PERIOD).toFixed(3)}s`,
-} as CSSProperties;
+function rootStyle(period: number): CSSProperties {
+    return {
+        '--period': `${period}s`,
+        // в момент загрузки луч стоит на главном доме
+        '--beam-delay': `${((-MAIN_HOUSE.angle / 360) * period).toFixed(3)}s`,
+    } as CSSProperties;
+}
 
 /**
  * Радар из фавикона: луч идёт по кругу и подсвечивает дома — чем ближе луч, тем ярче дом.
  * Чисто декоративный. Анимация целиком на CSS (см. RadarHero.module.css), здесь только раскладка
  * и пауза, когда радар ушёл за край экрана. Размер задаётся шириной: на телефоне компактнее.
  */
-export function RadarHero() {
+export function RadarHero({ period = PERIOD, className = DEFAULT_CLASSNAME }: RadarHeroProps) {
     const rootRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -86,8 +98,8 @@ export function RadarHero() {
         <div
             ref={rootRef}
             aria-hidden="true"
-            className={`${styles.root} mx-auto w-[min(70vw,16rem)] md:w-[min(26rem,50vh)] xl:w-[min(34rem,56vh)]`}
-            style={ROOT_STYLE}
+            className={`${styles.root} ${className}`}
+            style={rootStyle(period)}
         >
             {/* Статичные кольца: рисуются один раз. */}
             <svg
@@ -126,7 +138,7 @@ export function RadarHero() {
                 <div
                     key={house.angle}
                     className={styles.house}
-                    style={houseStyle(house)}
+                    style={houseStyle(house, period)}
                 >
                     <Home
                         variant={1}
