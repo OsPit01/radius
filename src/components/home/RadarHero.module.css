@@ -1,0 +1,174 @@
+/*
+ * Радар на главной (src/components/home/RadarHero.tsx).
+ *
+ * Луч-сектор крутится по кругу, а каждый дом светится тем ярче, чем ближе к нему луч.
+ *
+ * Почему это не тормозит на слабых устройствах: на каждый кадр нет НИ строчки JS, а из свойств
+ * анимируются только transform (луч) и opacity (дома) — их целиком ведёт компоситор на GPU, без
+ * layout и paint. Градиент луча растеризуется один раз и потом просто поворачивается как картинка.
+ *
+ * Как луч и дома попадают в такт: у всех один и тот же период (--period), а у каждого дома свой
+ * отрицательный animation-delay (--delay), посчитанный в RadarHero.tsx так, чтобы его «пик» наступал
+ * ровно тогда, когда луч смотрит на дом. Поэтому яркость дома равна яркости сектора в его точке.
+ *
+ * Форма свечения (одна и та же у сектора и у домов):
+ *   — позади луча «шлейф» 90° (в % оборота — 25%): яркость падает как (1 − φ/90°)², то есть быстро
+ *     у самого луча и долго-долго угасает дальше, как послесвечение на экране радара;
+ *   — впереди луча мягкий край 12° (3.33% оборота): дом начинает светиться чуть раньше, чем луч
+ *     точно на него упал.
+ * Меняя форму — правьте оба места: градиент `.beam::before` и keyframes `glow`.
+ */
+
+.root {
+    position: relative;
+    aspect-ratio: 1;
+    contain: layout paint;
+    pointer-events: none;
+    user-select: none;
+
+    /* сила сектора: на светлом фоне тёмное свечение тяжелее, поэтому слабее */
+    --wedge-opacity: 0.14;
+}
+
+:global(.dark) .root {
+    --wedge-opacity: 0.32;
+}
+
+/* ----- Луч ----- */
+
+.beam {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    /* к центру и к краю сектор растворяется; маска симметрична, поэтому вращение её не «выдаёт» */
+    -webkit-mask-image: radial-gradient(closest-side, rgb(0 0 0 / 0.25), #000 30%, #000 80%, transparent);
+    mask-image: radial-gradient(closest-side, rgb(0 0 0 / 0.25), #000 30%, #000 80%, transparent);
+    will-change: transform;
+    animation: sweep var(--period) linear infinite;
+    animation-delay: var(--beam-delay);
+}
+
+/* Сам сектор: яркий край у линии луча (на 90° градиента = «12 часов») и шлейф за ним. */
+.beam::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: var(--wedge-opacity);
+    background: conic-gradient(
+        from -90deg,
+        transparent 0deg,
+        color-mix(in srgb, var(--foreground) 9%, transparent) 27deg,
+        color-mix(in srgb, var(--foreground) 25%, transparent) 45deg,
+        color-mix(in srgb, var(--foreground) 42%, transparent) 58.5deg,
+        color-mix(in srgb, var(--foreground) 64%, transparent) 72deg,
+        color-mix(in srgb, var(--foreground) 81%, transparent) 81deg,
+        var(--foreground) 90deg,
+        color-mix(in srgb, var(--foreground) 84%, transparent) 93deg,
+        color-mix(in srgb, var(--foreground) 50%, transparent) 96deg,
+        color-mix(in srgb, var(--foreground) 16%, transparent) 99deg,
+        transparent 102deg
+    );
+}
+
+/* Яркая линия луча (как на фавиконе), акцентным цветом темы; к центру гаснет. */
+.beam::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: max(1.5px, 0.45%);
+    height: 50%;
+    translate: -50% 0;
+    border-radius: 999px;
+    background: linear-gradient(to top, transparent, var(--primary) 70%);
+}
+
+@keyframes sweep {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ----- Дома ----- */
+
+.house {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    width: var(--size);
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    color: var(--foreground);
+    /* «не освещён» — почти не виден (но и не пропал совсем, чтобы не мигала раскладка) */
+    opacity: 0.05;
+    will-change: opacity;
+    animation: glow var(--period) linear infinite;
+    animation-delay: var(--delay);
+}
+
+/* Ореол вокруг освещённого дома — обычный статичный градиент (не filter: blur — он считался бы
+   каждый кадр); гаснет и разгорается вместе с домом, потому что это его часть. Только в тёмной теме. */
+:global(.dark) .house::before {
+    content: "";
+    position: absolute;
+    inset: -55%;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, color-mix(in srgb, var(--foreground) 22%, transparent), transparent);
+}
+
+/* 0% — луч точно на доме. Значения = 0.05 + 0.95 · I(φ), где I — форма свечения из шапки файла. */
+@keyframes glow {
+    0% {
+        opacity: 1;
+    }
+    2.5% {
+        opacity: 0.82;
+    }
+    5% {
+        opacity: 0.66;
+    }
+    8.75% {
+        opacity: 0.45;
+    }
+    12.5% {
+        opacity: 0.29;
+    }
+    17.5% {
+        opacity: 0.14;
+    }
+    25% {
+        opacity: 0.05;
+    }
+    96.67% {
+        opacity: 0.05;
+    }
+    97.5% {
+        opacity: 0.2;
+    }
+    98.33% {
+        opacity: 0.53;
+    }
+    99.17% {
+        opacity: 0.85;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+/* ----- Паузы ----- */
+
+/* Радар вне экрана (RadarHero ставит data-paused) — не тратим на него GPU. Пауза у всех
+   анимаций одновременно, поэтому после возобновления луч и дома остаются в такт. */
+.root[data-paused="true"] .beam,
+.root[data-paused="true"] .house {
+    animation-play-state: paused;
+}
+
+/* «Меньше движения»: кадр замирает в начальной позе — луч смотрит на главный дом, как на фавиконе. */
+@media (prefers-reduced-motion: reduce) {
+    .beam,
+    .house {
+        animation-play-state: paused;
+    }
+}

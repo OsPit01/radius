@@ -95,11 +95,6 @@ export function ApartmentsList({
 
     return (
         <div className="w-full">
-            <h2 className="mb-10 text-center text-2xl font-bold text-foreground">
-                {searchQuery && <p className="text-lg font-semibold">Город: {searchQuery}</p>}
-                {totalGuests > 1 && <p className="text-base font-normal">Количество человек: {totalGuests}</p>}
-            </h2>
-
             <div className="mx-auto grid max-w-[1400px] grid-cols-2 gap-[50px] px-5 max-md:grid-cols-1 max-md:gap-5 max-md:px-0">
                 {visibleApartments.map((apartment) => (
                     <ApartmentCard

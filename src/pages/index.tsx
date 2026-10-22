@@ -1,8 +1,11 @@
 import { MicrodistrictTiles } from '@/components/catalog/MicrodistrictTiles';
+import { RadarHero } from '@/components/home/RadarHero';
+import { TypewriterTagline } from '@/components/home/TypewriterTagline';
 import { JsonLd } from '@/components/JsonLd';
 import { ClientHeader } from '@/components/layout/ClientHeader';
 import { Seo } from '@/components/Seo';
 import { CitySlug } from '@/lib/constants/catalog';
+import { HOME_TAGLINE_SEO_TEXT, HOME_TAGLINES } from '@/lib/constants/home-taglines';
 import { HOME_DESCRIPTION, HOME_TITLE, SITE_NAME, SITE_URL } from '@/lib/seo';
 
 // Структурированные данные: сайт. Поля поиска на главной больше нет,
@@ -26,14 +29,20 @@ export default function Home() {
             <ClientHeader />
 
             <main className="mx-auto min-h-screen max-w-[1400px] px-20 pt-5 pb-[60px] max-lg:px-10 max-lg:pb-10 max-md:px-5 max-md:py-[30px]">
-                <div className="mx-auto max-w-[1400px] py-10 text-center">
+                <RadarHero />
+
+                <div className="mx-auto max-w-[1400px] pt-6 pb-10 text-center">
                     <h1 className="text-[2rem] leading-[1.2] font-bold text-foreground max-md:text-[2rem]">
                         Посуточная аренда квартир
                     </h1>
 
-                    <h2 className="text-[1.2rem] leading-[1.5] text-muted-foreground max-md:text-base">
-                        квартиры на сутки напрямую от собственников
-                    </h2>
+                    {/* min-h резервирует место под самую длинную фразу (на телефоне — 2 строки),
+                        чтобы при смене фраз страница под ней не прыгала. Фразы — HOME_TAGLINES. */}
+                    <TypewriterTagline
+                        seoText={HOME_TAGLINE_SEO_TEXT}
+                        phrases={HOME_TAGLINES}
+                        className="min-h-[3em] text-[1.2rem] leading-[1.5] text-muted-foreground max-md:text-base md:min-h-[1.5em]"
+                    />
                 </div>
 
                 <MicrodistrictTiles city={CitySlug.Minsk} />

@@ -111,7 +111,7 @@ export function ApartmentCard({
                     </span>
                 </div>
                 <div className="px-2.5 pt-3 pb-1">
-                    <span className="text-[18px] font-semibold break-words max-md:text-base">{apartment.title}</span>
+                    <h3 className="text-[18px] font-semibold break-words max-md:text-base">{apartment.title}</h3>
                 </div>
                 <div className="flex px-3.5 pt-1 pt-4 pb-2 text-sm font-normal break-words">
                     {apartment.city}

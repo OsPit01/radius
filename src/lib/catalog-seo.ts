@@ -14,6 +14,9 @@ export function getMicrodistrictSeo(slug: MicrodistrictSlug, apartments: Apartme
     const place = label.includes(cityLabel) ? `в микрорайоне ${label}` : `в микрорайоне ${label}, ${cityLabel}`;
     const count = apartments.length;
     const countText = `${count} ${pluralRu(count, 'квартира', 'квартиры', 'квартир')}`;
+    // Глагол согласуется с числом: «Найдена 1 квартира», «Найдено 2 квартиры», «Найдено 5 квартир».
+    const foundText = `${pluralRu(count, 'Найдена', 'Найдено', 'Найдено')} ${countText}`;
+    const availableText = `${pluralRu(count, 'доступна', 'доступно', 'доступно')} ${countText}`;
 
     // Самая дешёвая квартира ЦЕЛИКОМ (цена + валюта — пара, их нельзя разрывать).
     const cheapest = apartments.reduce<ApartmentCardData | undefined>(
@@ -25,10 +28,16 @@ export function getMicrodistrictSeo(slug: MicrodistrictSlug, apartments: Apartme
     return {
         title: `Квартиры на сутки ${place} | ${SITE_NAME}`,
         heading: `Квартиры на сутки ${place}`,
+        // h2 над карточками: счётчик и цена «от» — короткий заголовок раздела с выдачей.
+        listHeading: `${foundText}${priceText ? ` ${priceText}` : ''}`,
+        // h2 над SEO-текстом: другая формулировка, чем в h1 («посуточная аренда» вместо «на сутки»),
+        // чтобы не повторять один и тот же заголовок дважды на странице.
+        aboutHeading: `Посуточная аренда квартир ${place}`,
         description: cheapest
             ? `Снять квартиру на сутки ${place}: ${countText} ${priceText}. Актуальные фото, честные цены, бронирование онлайн напрямую от собственников.`
             : `Снять квартиру на сутки ${place}. Актуальные фото, честные цены, бронирование онлайн напрямую от собственников.`,
         countText,
+        availableText,
         priceText,
     };
 }

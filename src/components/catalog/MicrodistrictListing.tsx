@@ -21,7 +21,7 @@ export function MicrodistrictListing({ slug, apartments }: MicrodistrictListingP
             <div className="mb-6 text-center">
                 <h1 className="text-[2rem] font-bold max-md:text-[1.5rem]">{seo.heading}</h1>
                 {apartments.length > 0 && (
-                    <p className="text-[1.1rem] text-muted-foreground max-md:text-base">Найдено {seo.countText}</p>
+                    <h2 className="text-[1.1rem] text-muted-foreground max-md:text-base">{seo.listHeading}</h2>
                 )}
             </div>
 
@@ -38,9 +38,9 @@ export function MicrodistrictListing({ slug, apartments }: MicrodistrictListingP
 
             {apartments.length > 0 && (
                 <section className="mx-auto mt-12 max-w-3xl text-center text-[0.95rem] leading-relaxed text-muted-foreground max-md:mt-8 max-md:text-sm">
-                    <h2 className="mb-4 text-[1.4rem] font-semibold text-foreground">{seo.heading}</h2>
+                    <h2 className="mb-4 text-[1.4rem] font-semibold text-foreground">{seo.aboutHeading}</h2>
                     <p>
-                        В микрорайоне {label} доступно {seo.countText} на сутки — {seo.priceText}. Все объекты сдаются
+                        В микрорайоне {label} {seo.availableText} на сутки — {seo.priceText}. Все объекты сдаются
                         напрямую от собственников: актуальные фотографии, честные цены, онлайн-бронирование без
                         посредников и скрытых комиссий.
                     </p>
