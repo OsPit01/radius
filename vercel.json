@@ -4,5 +4,19 @@
       "path": "/api/cron/expire-bookings",
       "schedule": "0 3 * * *"
     }
+  ],
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "radius-stay.by" }],
+      "destination": "https://naradare.by/$1",
+      "permanent": true
+    },
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "www.radius-stay.by" }],
+      "destination": "https://naradare.by/$1",
+      "permanent": true
+    }
   ]
 }
