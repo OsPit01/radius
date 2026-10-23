@@ -8,7 +8,7 @@ import { MessageBubble } from './MessageBubble';
 
 type ChatWindowProps = {
     /** Название квартиры (для шапки). */
-    apartmentTitle: string;
+    fullAddress: string;
     /** Собеседник (для шапки и аватара чужих сообщений). */
     companion: ChatPerson;
     /** Диапазон дат брони. */
@@ -33,7 +33,7 @@ type ChatWindowProps = {
  * чтобы родитель (страница) не знал о внутреннем состоянии ввода.
  */
 export function ChatWindow({
-    apartmentTitle,
+    fullAddress,
     companion,
     bookingDates,
     messages,
@@ -71,7 +71,7 @@ export function ChatWindow({
         <div className="flex h-full min-h-0 flex-col">
             {/* Шапка с деталями бронирования */}
             <ChatHeader
-                apartmentTitle={apartmentTitle}
+                formattedAddress={fullAddress}
                 companion={companion}
                 bookingDates={bookingDates}
                 onBack={onBack}

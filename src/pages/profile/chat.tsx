@@ -111,7 +111,7 @@ export default function ChatPage() {
             </div>
         ) : (
             <ChatWindow
-                apartmentTitle={selected?.apartment.title ?? ''}
+                fullAddress={selected?.apartment.formattedAddress ?? ''}
                 companion={companion}
                 bookingDates={
                     selected ? formatBookingDates(selected.booking.checkInDate, selected.booking.checkOutDate) : ''

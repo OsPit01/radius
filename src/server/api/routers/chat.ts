@@ -50,6 +50,8 @@ export const chatRouter = createTRPCRouter({
                     apartment: {
                         title: apartments.title,
                         image: apartments.image,
+                        street: apartments.street,
+                        formattedAddress: apartments.formattedAddress,
                     },
                     // Даты брони — для шапки чата (детали бронирования).
                     booking: {

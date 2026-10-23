@@ -55,8 +55,12 @@ export function ChatList({ chats, userId, selectedId, onSelect }: ChatListProps)
 
                             {/* Название квартиры + имя собеседника */}
                             <div className="min-w-0 flex-1">
-                                <p className="truncate font-semibold text-foreground">{c.apartment.title}</p>
-                                <p className="truncate text-sm text-muted-foreground">{displayName(other)}</p>
+                                <p className="truncate text-[12px] font-semibold text-foreground">
+                                    {c.apartment.formattedAddress}
+                                </p>
+                                <p className="truncate text-sm text-[10px] text-muted-foreground">
+                                    {displayName(other)}
+                                </p>
                             </div>
                         </button>
                     </li>
