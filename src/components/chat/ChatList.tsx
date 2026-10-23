@@ -1,7 +1,7 @@
 import { Home } from '@/components/icons';
 import { ImageWithFallback } from '@/components/ui/ImageWithFallback';
 import { displayName } from '@/lib/chat';
-import type { RouterOutputs } from '@/trpc/react';
+import { type RouterOutputs } from '@/trpc/react';
 
 // Тип элемента списка — это ровно то, что возвращает процедура chat.list.
 type ChatListItem = RouterOutputs['chat']['list'][number];
@@ -17,8 +17,9 @@ type ChatListProps = {
 /**
  * Список бесед. Каждая карточка показывает:
  *  - фото квартиры (а не аватар собеседника — так понятнее, о каком объекте речь);
- *  - название квартиры;
- *  - имя собеседника.
+ *  - адрес квартиры;
+ *  - имя собеседника;
+ *  - счётчик непрочитанных сообщений (свой для каждой беседы).
  */
 export function ChatList({ chats, userId, selectedId, onSelect }: ChatListProps) {
     return (
@@ -53,15 +54,22 @@ export function ChatList({ chats, userId, selectedId, onSelect }: ChatListProps)
                                 )}
                             </div>
 
-                            {/* Название квартиры + имя собеседника */}
+                            {/* Адрес квартиры + имя собеседника */}
                             <div className="min-w-0 flex-1">
-                                <p className="truncate text-[12px] font-semibold text-foreground">
+                                <p className="truncate text-[13px] font-semibold text-foreground">
                                     {c.apartment.formattedAddress}
                                 </p>
-                                <p className="truncate text-sm text-[10px] text-muted-foreground">
+                                <p className="truncate text-sm text-[12px] text-muted-foreground">
                                     {displayName(other)}
                                 </p>
                             </div>
+
+                            {/* Счётчик непрочитанных — свой для каждой беседы */}
+                            {c.unreadCount > 0 && (
+                                <span className="ml-auto flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-destructive px-1.5 text-[11px] font-semibold text-destructive-foreground">
+                                    {c.unreadCount}
+                                </span>
+                            )}
                         </button>
                     </li>
                 );

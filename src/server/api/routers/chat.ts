@@ -25,51 +25,74 @@ export const chatRouter = createTRPCRouter({
     list: protectedProcedure.query(async ({ ctx }) => {
         const userId = ctx.session.user.id;
 
-        return (
-            ctx.db
-                .select({
-                    // Сам диалог (id, bookingId, guestId, ownerId, createdAt).
-                    conversation: conversation,
-                    // Кто гость (имя и аватар — чтобы показать в списке бесед).
-                    guest: {
-                        id: guestUser.id,
-                        name: guestUser.name,
-                        firstName: guestUser.firstName,
-                        lastName: guestUser.lastName,
-                        image: guestUser.image,
-                    },
-                    // Кто владелец.
-                    owner: {
-                        id: ownerUser.id,
-                        name: ownerUser.name,
-                        firstName: ownerUser.firstName,
-                        lastName: ownerUser.lastName,
-                        image: ownerUser.image,
-                    },
-                    // Какую квартиру бронировали (фото и название для карточки беседы).
-                    apartment: {
-                        title: apartments.title,
-                        image: apartments.image,
-                        street: apartments.street,
-                        formattedAddress: apartments.formattedAddress,
-                    },
-                    // Даты брони — для шапки чата (детали бронирования).
-                    booking: {
-                        checkInDate: booking.checkInDate,
-                        checkOutDate: booking.checkOutDate,
-                    },
-                })
-                .from(conversation)
-                // Гостя и владельца присоединяем через leftJoin: даже если пользователь
-                // удалён, диалог не пропадёт из списка — просто имя будет null.
-                .leftJoin(guestUser, eq(conversation.guestId, guestUser.id))
-                .leftJoin(ownerUser, eq(conversation.ownerId, ownerUser.id))
-                // Идём по цепочке до квартиры: диалог → бронь → квартира.
-                .innerJoin(booking, eq(conversation.bookingId, booking.id))
-                .innerJoin(apartments, eq(booking.apartmentId, apartments.id))
-                // Только мои диалоги (я гость ИЛИ владелец).
-                .where(or(eq(conversation.guestId, userId), eq(conversation.ownerId, userId)))
-        );
+        const chats = await ctx.db
+            .select({
+                // Сам диалог (id, bookingId, guestId, ownerId, createdAt).
+                conversation: conversation,
+                // Кто гость (имя и аватар — чтобы показать в списке бесед).
+                guest: {
+                    id: guestUser.id,
+                    name: guestUser.name,
+                    firstName: guestUser.firstName,
+                    lastName: guestUser.lastName,
+                    image: guestUser.image,
+                },
+                // Кто владелец.
+                owner: {
+                    id: ownerUser.id,
+                    name: ownerUser.name,
+                    firstName: ownerUser.firstName,
+                    lastName: ownerUser.lastName,
+                    image: ownerUser.image,
+                },
+                // Какую квартиру бронировали (фото и название для карточки беседы).
+                apartment: {
+                    title: apartments.title,
+                    image: apartments.image,
+                    street: apartments.street,
+                    formattedAddress: apartments.formattedAddress,
+                },
+                // Даты брони — для шапки чата (детали бронирования).
+                booking: {
+                    checkInDate: booking.checkInDate,
+                    checkOutDate: booking.checkOutDate,
+                },
+            })
+            .from(conversation)
+            // Гостя и владельца присоединяем через leftJoin: даже если пользователь
+            // удалён, диалог не пропадёт из списка — просто имя будет null.
+            .leftJoin(guestUser, eq(conversation.guestId, guestUser.id))
+            .leftJoin(ownerUser, eq(conversation.ownerId, ownerUser.id))
+            // Идём по цепочке до квартиры: диалог → бронь → квартира.
+            .innerJoin(booking, eq(conversation.bookingId, booking.id))
+            .innerJoin(apartments, eq(booking.apartmentId, apartments.id))
+            // Только мои диалоги (я гость ИЛИ владелец).
+            .where(or(eq(conversation.guestId, userId), eq(conversation.ownerId, userId)));
+
+        // Непрочитанные сообщения, сгруппированные по диалогу: сколько в КАЖДОМ диалоге
+        // сообщений, написанных не мной и ещё не прочитанных.
+        const unreadRows = await ctx.db
+            .select({
+                conversationId: message.conversationId,
+                unread: count(),
+            })
+            .from(message)
+            .innerJoin(conversation, eq(message.conversationId, conversation.id))
+            .where(
+                and(
+                    or(eq(conversation.guestId, userId), eq(conversation.ownerId, userId)),
+                    ne(message.senderId, userId),
+                    eq(message.isRead, false),
+                ),
+            )
+            .groupBy(message.conversationId);
+
+        const unreadByConversation = new Map(unreadRows.map((r) => [r.conversationId, r.unread]));
+
+        return chats.map((c) => ({
+            ...c,
+            unreadCount: unreadByConversation.get(c.conversation.id) ?? 0,
+        }));
     }),
 
     // ============================================================

@@ -28,7 +28,10 @@ export default function ChatPage() {
     };
 
     // ===== Список бесед и выбор активной =====
-    const { data: chats } = api.chat.list.useQuery();
+    const { data: chats } = api.chat.list.useQuery(undefined, {
+        refetchInterval: 5000,
+        refetchIntervalInBackground: true,
+    });
     const [selectedId, setSelectedId] = useState<number | null>(null);
 
     // ===== Сообщения выбранного диалога =====
@@ -40,10 +43,14 @@ export default function ChatPage() {
     const utils = api.useUtils();
 
     // ===== Счётчик непрочитанных + отметка «прочитано» =====
-    const { data: unreadCount } = api.chat.unreadCount.useQuery();
+    const { data: unreadCount } = api.chat.unreadCount.useQuery(undefined, {
+        refetchInterval: 5000,
+        refetchIntervalInBackground: true,
+    });
     const markRead = api.chat.markRead.useMutation({
         onSuccess: () => {
             void utils.chat.unreadCount.invalidate();
+            void utils.chat.list.invalidate();
         },
     });
 
@@ -51,6 +58,8 @@ export default function ChatPage() {
     const sendMessage = api.chat.send.useMutation({
         onSuccess: () => {
             void utils.chat.messages.invalidate();
+            void utils.chat.list.invalidate();
+            void utils.chat.unreadCount.invalidate();
         },
     });
 
