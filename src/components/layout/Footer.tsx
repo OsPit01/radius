@@ -31,7 +31,7 @@ export function Footer() {
                             href="/"
                             className="text-xl font-bold text-foreground no-underline"
                         >
-                            Radius
+                            NaRadare
                         </Link>
                         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                             Посуточная аренда квартир напрямую от собственников. Без посредников и переплат.

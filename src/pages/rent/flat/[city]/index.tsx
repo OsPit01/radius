@@ -43,7 +43,7 @@ export default function CityPage({ city, apartments }: CityPageProps) {
     return (
         <>
             <Seo
-                absoluteTitle={`Квартиры на сутки в ${city} — снять | Radius`}
+                absoluteTitle={`Квартиры на сутки в ${city} — снять | NaRadare`}
                 description={`Снять квартиру на сутки в ${city}. Актуальные фото, цены, бронирование онлайн напрямую от собственников.`}
                 canonical={`${SITE_URL}/rent/flat/${encodeURIComponent(city)}`}
             />

@@ -3,7 +3,7 @@ import Head from 'next/head';
 import { absoluteUrl, DEFAULT_OG_IMAGE, HOME_TITLE, OG_IMAGE_SIZE, SITE_DESCRIPTION, SITE_NAME } from '@/lib/seo';
 
 type SeoProps = {
-    /** Короткий заголовок: в <title> получит суффикс « | Radius», в og:title — нет. */
+    /** Короткий заголовок: в <title> получит суффикс « | NaRadare», в og:title — нет. */
     title?: string;
     /** Полный заголовок, который идёт в <title> и og:title как есть (без суффикса). */
     absoluteTitle?: string;

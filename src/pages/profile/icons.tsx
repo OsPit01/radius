@@ -147,7 +147,7 @@ export default function IconsGallery() {
                 />
                 <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold text-foreground">Иконки Radius</h1>
+                        <h1 className="text-3xl font-bold text-foreground">Иконки NaRadare</h1>
                         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
                             {ICONS.length} иконок × 3 варианта. Рамкой отмечен вариант, который сейчас стоит на сайте.
                             Чтобы заменить — поменяйте цифру в <code>src/components/icons/config.ts</code> или передайте{' '}
