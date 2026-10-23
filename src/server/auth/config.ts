@@ -65,6 +65,10 @@ export const authConfig = {
         sessionsTable: sessions,
         verificationTokensTable: verificationTokens,
     }),
+    // Самостоятельный хостинг (не Vercel) за nginx: разрешаем Auth.js доверять
+    // переданному Host/X-Forwarded-Proto, чтобы callback-URL собирались с
+    // реального домена (naradare.by), а не с внутреннего адреса приложения.
+    trustHost: true,
     callbacks: {
         session: ({ session, user }) => {
             return {
