@@ -55,8 +55,9 @@ export function UserDropdown({ user }: UserDropdownProps) {
 
     // Актуальное фото из БД (источник правды) + приоритет показа
     const { data: dbUser } = api.user.getById.useQuery({ id: user.id ?? '' }, { enabled: !!user.id });
-    // Счётчик непрочитанных сообщений (для бейджа у пункта «Сообщения»).
-    const { data: unreadCount } = api.chat.unreadCount.useQuery();
+    // Счётчик непрочитанных сообщений (бейдж на аватарке и у пункта «Сообщения»).
+    // Периодический рефетч держит бейдж свежим, даже если сообщение пришло, пока мы на другой странице.
+    const { data: unreadCount } = api.chat.unreadCount.useQuery(undefined, { refetchInterval: 30000 });
     const avatar = dbUser?.image ?? user.image ?? null;
     const displayName =
         dbUser?.firstName || dbUser?.lastName
@@ -69,23 +70,32 @@ export function UserDropdown({ user }: UserDropdownProps) {
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
         >
-            {/* иконка профиля с функцией dropdown */}
-            <button
-                className={`overflow-hidden rounded-full ${HEADER_ICON_BUTTON}`}
-                aria-label="Профиль"
-            >
-                {avatar ? (
-                    <Image
-                        src={avatar}
-                        alt="avatar"
-                        width={40}
-                        height={40}
-                        className="h-10 w-10 rounded-full object-cover"
-                    />
-                ) : (
-                    <UserCircle className="h-10 w-10 text-muted-foreground" />
+            {/* иконка профиля с функцией dropdown.
+                Бейдж непрочитанных сообщений лежит СНАРУЖИ кнопки (у неё overflow-hidden —
+                внутри он бы обрезался) в отдельном relative-контейнере. */}
+            <div className="relative shrink-0">
+                <button
+                    className={`overflow-hidden rounded-full ${HEADER_ICON_BUTTON}`}
+                    aria-label="Профиль"
+                >
+                    {avatar ? (
+                        <Image
+                            src={avatar}
+                            alt="avatar"
+                            width={40}
+                            height={40}
+                            className="h-10 w-10 rounded-full object-cover"
+                        />
+                    ) : (
+                        <UserCircle className="h-10 w-10 text-muted-foreground" />
+                    )}
+                </button>
+                {(unreadCount ?? 0) > 0 && (
+                    <span className="absolute right-0 bottom-0 flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[11px] leading-none font-semibold text-destructive-foreground ring-2 ring-background">
+                        {unreadCount}
+                    </span>
                 )}
-            </button>
+            </div>
             <span className="text-[13px] font-medium">{displayName}</span>
             {/*      */}
             {isOpen && (

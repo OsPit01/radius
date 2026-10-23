@@ -7,6 +7,7 @@ import { UserDropdown } from '@/components/auth/UserDropdown';
 import { Close, Heart, Menu } from '@/components/icons';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { HEADER_ICON_BUTTON } from '@/lib/constants/ui';
+import { api } from '@/trpc/react';
 
 const mobileLinks = [
     { href: '/profile', label: 'Личный кабинет' },
@@ -45,6 +46,12 @@ export function Header() {
     const { data: session } = useSession();
     const [menuOpen, setMenuOpen] = useState(false);
     const scrolled = useScrolled();
+    // Непрочитанные сообщения — для бейджа у пункта «Сообщения» в мобильном меню
+    // (на десктопе этот же счётчик показывает UserDropdown на аватарке).
+    const { data: chatUnread } = api.chat.unreadCount.useQuery(undefined, {
+        enabled: !!session?.user,
+        refetchInterval: 30000,
+    });
 
     return (
         <header
@@ -136,9 +143,14 @@ export function Header() {
                                 key={link.href}
                                 href={link.href}
                                 onClick={() => setMenuOpen(false)}
-                                className="border-b border-border px-5 py-4 text-base font-medium text-foreground no-underline transition-colors hover:bg-muted"
+                                className="flex items-center justify-between border-b border-border px-5 py-4 text-base font-medium text-foreground no-underline transition-colors hover:bg-muted"
                             >
                                 {link.label}
+                                {link.href === '/profile/chat' && (chatUnread ?? 0) > 0 && (
+                                    <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-xs leading-none font-semibold text-destructive-foreground">
+                                        {chatUnread}
+                                    </span>
+                                )}
                             </Link>
                         ))}
                     </nav>
