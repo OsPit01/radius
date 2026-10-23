@@ -76,6 +76,19 @@
         "typescript": "^5.8.2",
         "typescript-eslint": "^8.27.0"
     },
+    "browserslist": {
+        "production": [
+            "chrome >= 100",
+            "edge >= 100",
+            "firefox >= 100",
+            "safari >= 15.4"
+        ],
+        "development": [
+            "last 1 chrome version",
+            "last 1 firefox version",
+            "last 1 safari version"
+        ]
+    },
     "ct3aMetadata": {
         "initVersion": "7.40.0"
     },

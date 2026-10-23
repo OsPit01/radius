@@ -24,7 +24,7 @@ export function GoogleAnalytics() {
             {/* 2. Загрузка gtag.js. */}
             <Script
                 src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
-                strategy="afterInteractive"
+                strategy="lazyOnload"
             />
 
             {/* 3. Инициализация GA (данные не пишутся, пока consent = denied). */}
