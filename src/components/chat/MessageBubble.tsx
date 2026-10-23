@@ -1,3 +1,4 @@
+import { Close } from '@/components/icons';
 import { Avatar } from '@/components/ui/Avatar';
 import { avatarInitial, type ChatPerson, displayName, formatChatDate } from '@/lib/chat';
 
@@ -10,13 +11,15 @@ type MessageBubbleProps = {
     sender: ChatPerson;
     /** Когда отправлено. */
     createdAt: Date;
+    /** Если задано — показывает маленькую кнопку удаления (видна админу). */
+    onDelete?: () => void;
 };
 
 /**
  * Один пузырь сообщения с аватаром отправителя.
  * Мои — справа (пурпурные), чужие — слева (серые).
  */
-export function MessageBubble({ text, isMine, sender, createdAt }: MessageBubbleProps) {
+export function MessageBubble({ text, isMine, sender, createdAt, onDelete }: MessageBubbleProps) {
     return (
         <div className={`flex items-end gap-2 ${isMine ? 'flex-row-reverse' : ''}`}>
             {/* Аватар отправителя: фото или буква, если фото нет / не загрузилось. */}
@@ -43,7 +46,23 @@ export function MessageBubble({ text, isMine, sender, createdAt }: MessageBubble
                     {text}
                 </div>
 
-                <span className="mt-0.5 px-1 text-[11px] text-muted-foreground">{formatChatDate(createdAt)}</span>
+                <span
+                    className={`mt-0.5 flex items-center gap-1 px-1 text-[11px] text-muted-foreground ${
+                        isMine ? 'flex-row-reverse' : ''
+                    }`}
+                >
+                    {formatChatDate(createdAt)}
+                    {onDelete && (
+                        <button
+                            type="button"
+                            onClick={onDelete}
+                            aria-label="Удалить сообщение"
+                            className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                        >
+                            <Close className="h-3.5 w-3.5" />
+                        </button>
+                    )}
+                </span>
             </div>
         </div>
     );

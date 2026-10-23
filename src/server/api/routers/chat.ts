@@ -1,8 +1,9 @@
 import { TRPCError } from '@trpc/server';
-import { and, asc, count, eq, ne, or } from 'drizzle-orm';
+import { and, asc, count, eq, max, ne, or } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import z from 'zod';
 
+import { isAdminRole } from '@/lib/constants/roles';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import { apartments, booking, conversation, message, users } from '@/server/db/schema';
 import { enforceRateLimit } from '@/server/rate-limit';
@@ -145,6 +146,73 @@ export const chatRouter = createTRPCRouter({
     }),
 
     // ============================================================
+    // adminList — ВСЕ беседы сайта (только для админа).
+    // Для модерации переписки: кто с кем общается, сколько сообщений,
+    // когда была последняя активность и активна ли беседа.
+    // ============================================================
+    adminList: protectedProcedure.query(async ({ ctx }) => {
+        if (!isAdminRole(ctx.session.user.role)) {
+            throw new TRPCError({
+                code: 'FORBIDDEN',
+                message: 'Нет доступа к списку бесед',
+            });
+        }
+
+        const chats = await ctx.db
+            .select({
+                conversation: conversation,
+                guest: {
+                    id: guestUser.id,
+                    name: guestUser.name,
+                    firstName: guestUser.firstName,
+                    lastName: guestUser.lastName,
+                    image: guestUser.image,
+                },
+                owner: {
+                    id: ownerUser.id,
+                    name: ownerUser.name,
+                    firstName: ownerUser.firstName,
+                    lastName: ownerUser.lastName,
+                    image: ownerUser.image,
+                },
+                apartment: {
+                    title: apartments.title,
+                    image: apartments.image,
+                    formattedAddress: apartments.formattedAddress,
+                },
+                booking: {
+                    checkInDate: booking.checkInDate,
+                    checkOutDate: booking.checkOutDate,
+                },
+            })
+            .from(conversation)
+            .leftJoin(guestUser, eq(conversation.guestId, guestUser.id))
+            .leftJoin(ownerUser, eq(conversation.ownerId, ownerUser.id))
+            .innerJoin(booking, eq(conversation.bookingId, booking.id))
+            .innerJoin(apartments, eq(booking.apartmentId, apartments.id));
+
+        // Сколько сообщений в каждой беседе.
+        const countRows = await ctx.db
+            .select({ conversationId: message.conversationId, total: count() })
+            .from(message)
+            .groupBy(message.conversationId);
+        const countByConversation = new Map(countRows.map((r) => [r.conversationId, r.total]));
+
+        // Когда была последняя активность в каждой беседе.
+        const lastRows = await ctx.db
+            .select({ conversationId: message.conversationId, lastAt: max(message.createdAt) })
+            .from(message)
+            .groupBy(message.conversationId);
+        const lastByConversation = new Map(lastRows.map((r) => [r.conversationId, r.lastAt]));
+
+        return chats.map((c) => ({
+            ...c,
+            messageCount: countByConversation.get(c.conversation.id) ?? 0,
+            lastActivity: lastByConversation.get(c.conversation.id) ?? c.conversation.createdAt,
+        }));
+    }),
+
+    // ============================================================
     // markRead — отметить сообщения собеседника прочитанными при открытии чата.
     // ============================================================
     markRead: protectedProcedure.input(z.object({ conversationId: z.number() })).mutation(async ({ ctx, input }) => {
@@ -171,6 +239,67 @@ export const chatRouter = createTRPCRouter({
     }),
 
     // ============================================================
+    // setConversationActive — заблокировать / разблокировать беседу (только админ).
+    // ============================================================
+    setConversationActive: protectedProcedure
+        .input(z.object({ conversationId: z.number(), isActive: z.boolean() }))
+        .mutation(async ({ ctx, input }) => {
+            if (!isAdminRole(ctx.session.user.role)) {
+                throw new TRPCError({
+                    code: 'FORBIDDEN',
+                    message: 'Нет прав на изменение беседы',
+                });
+            }
+
+            const [target] = await ctx.db
+                .select({ id: conversation.id })
+                .from(conversation)
+                .where(eq(conversation.id, input.conversationId));
+            if (!target) {
+                throw new TRPCError({ code: 'NOT_FOUND', message: 'Беседа не найдена' });
+            }
+
+            await ctx.db
+                .update(conversation)
+                .set({ isActive: input.isActive })
+                .where(eq(conversation.id, input.conversationId));
+            return { ok: true };
+        }),
+
+    // ============================================================
+    // deleteConversation — удалить беседу целиком (только админ).
+    // Сообщения удаляются каскадом (FK onDelete: cascade).
+    // ============================================================
+    deleteConversation: protectedProcedure
+        .input(z.object({ conversationId: z.number() }))
+        .mutation(async ({ ctx, input }) => {
+            if (!isAdminRole(ctx.session.user.role)) {
+                throw new TRPCError({
+                    code: 'FORBIDDEN',
+                    message: 'Нет прав на удаление беседы',
+                });
+            }
+
+            await ctx.db.delete(conversation).where(eq(conversation.id, input.conversationId));
+            return { ok: true };
+        }),
+
+    // ============================================================
+    // deleteMessage — удалить одно сообщение (только админ).
+    // ============================================================
+    deleteMessage: protectedProcedure.input(z.object({ messageId: z.number() })).mutation(async ({ ctx, input }) => {
+        if (!isAdminRole(ctx.session.user.role)) {
+            throw new TRPCError({
+                code: 'FORBIDDEN',
+                message: 'Нет прав на удаление сообщения',
+            });
+        }
+
+        await ctx.db.delete(message).where(eq(message.id, input.messageId));
+        return { ok: true };
+    }),
+
+    // ============================================================
     // send — отправить сообщение в диалог (с защитой от флуда).
     // ============================================================
     send: protectedProcedure
@@ -192,10 +321,19 @@ export const chatRouter = createTRPCRouter({
             }
 
             const isParticipant = target.guestId === userId || target.ownerId === userId;
-            if (!isParticipant) {
+            // Администратор может читать любой диалог (для модерации в админке).
+            if (!isParticipant && !isAdminRole(ctx.session.user.role)) {
                 throw new TRPCError({
                     code: 'FORBIDDEN',
                     message: 'Нет доступа к этому чату',
+                });
+            }
+
+            // В заблокированную администратором беседу писать нельзя.
+            if (!target.isActive) {
+                throw new TRPCError({
+                    code: 'FORBIDDEN',
+                    message: 'Беседа заблокирована администратором',
                 });
             }
 

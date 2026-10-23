@@ -10,11 +10,45 @@ import { FreeMode } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
 import { ScanOverlay } from '@/components/home/ScanOverlay';
-import { MapPin } from '@/components/icons';
+import { ArrowLeft, MapPin } from '@/components/icons';
 import { api } from '@/trpc/react';
 
 /** Минимум, сколько оверлей сканирования остаётся на экране, чтобы анимация была заметна. */
 const MIN_SCAN_MS = 1200;
+
+/**
+ * Расставляет города «от центра»: Минск (или первый город, если Минска нет) в середине,
+ * остальные поочерёдно слева и справа — так ряд расширяется от центра наружу.
+ */
+function orderCitiesFromCenter(cities: string[]): string[] {
+    if (cities.length === 0) {
+        return [];
+    }
+
+    const center = cities.includes('Минск') ? 'Минск' : cities[0]!;
+    const rest = cities.filter((c) => c !== center);
+
+    const result = [center];
+    rest.forEach((city, i) => {
+        if (i % 2 === 0) {
+            result.unshift(city);
+        } else {
+            result.push(city);
+        }
+    });
+
+    return result;
+}
+
+/** Берёт `count` элементов по центру массива — чтобы свёрнутый список тоже шёл «от центра». */
+function centeredSlice<T>(arr: T[], count: number): T[] {
+    if (arr.length <= count) {
+        return arr;
+    }
+    const center = Math.floor(arr.length / 2);
+    const half = Math.floor(count / 2);
+    return arr.slice(center - half, center - half + count);
+}
 
 export function CityTiles() {
     const { data: locations } = api.apartment.getCatalogLocations.useQuery();
@@ -61,9 +95,9 @@ export function CityTiles() {
         return null;
     }
 
-    const cities = locations.map((l) => l.city);
+    const cities = orderCitiesFromCenter(locations.map((l) => l.city));
     const activeCity = selectedCity ?? (cities.includes('Минск') ? 'Минск' : cities[0]!);
-    const visibleCities = showAllCities ? cities : cities.slice(0, 3);
+    const visibleCities = showAllCities ? cities : centeredSlice(cities, 3);
 
     const activeMicrodistricts = locations.find((l) => l.city === activeCity)?.microdistricts ?? [];
     const visibleMicrodistricts = showAllMicrodistricts ? activeMicrodistricts : activeMicrodistricts.slice(0, 4);
@@ -76,16 +110,28 @@ export function CityTiles() {
 
     const cityButton = (city: string) => {
         const isActive = city === activeCity;
+
         return (
             <button
-                type="button"
-                onClick={() => setSelectedCity(city)}
-                className={`${tileClass} ${isActive ? 'border-primary' : 'border-border'}`}
+                onClick={() => {
+                    if (isActive) {
+                        // город уже выбран — переходим на страницу
+                        void router.push(`/rent/flat/${encodeURIComponent(city)}`);
+                    } else {
+                        // ещё не выбран — выбираем (показываем районы)
+                        setSelectedCity(city);
+                    }
+                }}
+                className={`group ${tileClass} ${isActive ? 'border-primary' : 'border-border'}`}
             >
                 <span className="flex items-center gap-2">
                     <MapPin className="h-6 w-6 shrink-0 text-primary" />
                     <span className="min-w-0 truncate text-base font-semibold text-foreground">{city}</span>
+                    {isActive && (
+                        <ArrowLeft className="h-5 w-5 shrink-0 text-primary transition-transform duration-300 ease-out group-hover:-translate-x-1.5" />
+                    )}
                 </span>
+
                 <span className="block truncate text-sm text-muted-foreground">Квартиры на сутки {city}</span>
             </button>
         );
@@ -122,37 +168,24 @@ export function CityTiles() {
             {cities.length === 1 ? (
                 <div className="flex justify-center">{cityButton(cities[0]!)}</div>
             ) : (
-                <Swiper
-                    modules={[FreeMode]}
-                    slidesPerView="auto"
-                    spaceBetween={12}
-                    freeMode={{ enabled: true, momentum: true, momentumRatio: 0.6 }}
-                    className="!px-5"
-                >
+                <div className="flex flex-wrap justify-center gap-3 px-5">
                     {visibleCities.map((city) => (
-                        <SwiperSlide
-                            key={city}
-                            className="!w-[230px]"
-                        >
-                            {cityButton(city)}
-                        </SwiperSlide>
+                        <div key={city}>{cityButton(city)}</div>
                     ))}
                     {cities.length > 3 && (
-                        <SwiperSlide className="!w-[230px]">
-                            <button
-                                type="button"
-                                onClick={() => setShowAllCities((v) => !v)}
-                                className={showMoreClass}
-                            >
-                                <span className="flex items-center gap-2">
-                                    <span className="text-base font-semibold text-muted-foreground">
-                                        {showAllCities ? 'Скрыть' : 'Показать ещё'}
-                                    </span>
+                        <button
+                            type="button"
+                            onClick={() => setShowAllCities((v) => !v)}
+                            className={showMoreClass}
+                        >
+                            <span className="flex items-center gap-2">
+                                <span className="text-base font-semibold text-muted-foreground">
+                                    {showAllCities ? 'Скрыть' : 'Показать ещё'}
                                 </span>
-                            </button>
-                        </SwiperSlide>
+                            </span>
+                        </button>
                     )}
-                </Swiper>
+                </div>
             )}
 
             {activeMicrodistricts.length > 0 && (

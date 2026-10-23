@@ -91,7 +91,7 @@ export function UserDropdown({ user }: UserDropdownProps) {
                     )}
                 </button>
                 {(unreadCount ?? 0) > 0 && (
-                    <span className="absolute right-0 bottom-0 flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[11px] leading-none font-semibold text-destructive-foreground ring-2 ring-background">
+                    <span className="absolute right-0 bottom-0 flex h-3 min-w-3 items-center justify-center rounded-full bg-destructive px-1 text-[10px] leading-none font-semibold text-destructive-foreground ring-1 ring-background">
                         {unreadCount}
                     </span>
                 )}

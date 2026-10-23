@@ -6,7 +6,8 @@ import { ChatList } from '@/components/chat/ChatList';
 import { ChatWindow } from '@/components/chat/ChatWindow';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { ClientHeader } from '@/components/layout/ClientHeader';
-import { type ChatPerson, formatBookingDates } from '@/lib/chat';
+import { type ChatPerson } from '@/lib/chat';
+import { isAdminRole } from '@/lib/constants/roles';
 import { requireAuth } from '@/server/auth/require-auth';
 import { api } from '@/trpc/react';
 
@@ -17,6 +18,7 @@ export default function ChatPage() {
     // ===== Данные текущего пользователя =====
     const { data: session } = useSession();
     const userId = session?.user?.id ?? '';
+    const isAdmin = isAdminRole(session?.user?.role);
     // Мои данные (для аватара собственных сообщений). firstName/lastName
     // в сессии нет — используем только name и image.
     const myPerson: ChatPerson = {
@@ -63,6 +65,21 @@ export default function ChatPage() {
         },
     });
 
+    // ===== Удаление (только админ) =====
+    const deleteMessage = api.chat.deleteMessage.useMutation({
+        onSuccess: () => {
+            void utils.chat.messages.invalidate();
+            void utils.chat.list.invalidate();
+        },
+    });
+    const deleteConversation = api.chat.deleteConversation.useMutation({
+        onSuccess: () => {
+            setSelectedId(null);
+            void utils.chat.list.invalidate();
+            void utils.chat.unreadCount.invalidate();
+        },
+    });
+
     // ===== Выбранный диалог и его собеседник =====
     const selected = chats?.find((c) => c.conversation.id === selectedId);
     const companion: ChatPerson = selected
@@ -83,6 +100,19 @@ export default function ChatPage() {
             return;
         }
         sendMessage.mutate({ conversationId: selectedId, text });
+    };
+
+    // Удалить одно сообщение (админ).
+    const handleDeleteMessage = (messageId: number) => {
+        deleteMessage.mutate({ messageId });
+    };
+
+    // Удалить беседу целиком (админ).
+    const handleDeleteConversation = () => {
+        if (selectedId === null) {
+            return;
+        }
+        deleteConversation.mutate({ conversationId: selectedId });
     };
 
     // ===== Блок списка бесед (общий для мобилки и десктопа) =====
@@ -122,15 +152,16 @@ export default function ChatPage() {
             <ChatWindow
                 fullAddress={selected?.apartment.formattedAddress ?? ''}
                 companion={companion}
-                bookingDates={
-                    selected ? formatBookingDates(selected.booking.checkInDate, selected.booking.checkOutDate) : ''
-                }
                 messages={messages ?? []}
                 myUserId={userId}
                 myPerson={myPerson}
                 onBack={() => setSelectedId(null)}
                 onSend={handleSend}
                 isSending={sendMessage.isPending}
+                isAdmin={isAdmin}
+                conversationActive={selected?.conversation.isActive !== false}
+                onDeleteMessage={handleDeleteMessage}
+                onDeleteConversation={handleDeleteConversation}
             />
         );
 

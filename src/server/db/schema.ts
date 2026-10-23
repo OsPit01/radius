@@ -1,6 +1,6 @@
+import { type AdapterAccount } from '@auth/core/adapters';
 import { relations } from 'drizzle-orm';
 import { index, pgTableCreator, primaryKey, uniqueIndex } from 'drizzle-orm/pg-core';
-import { type AdapterAccount } from 'next-auth/adapters';
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -230,6 +230,9 @@ export const conversation = createTable('conversation', (d) => ({
         .varchar({ length: 255 })
         .notNull()
         .references(() => users.id),
+    // true = переписка активна; false = заблокирована администратором
+    // (участники видят беседу, но не могут отправлять сообщения).
+    isActive: d.boolean().notNull().default(true),
     createdAt: d
         .timestamp({ withTimezone: true })
         .$defaultFn(() => new Date())

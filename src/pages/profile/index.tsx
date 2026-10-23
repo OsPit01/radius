@@ -222,6 +222,14 @@ export default function ProfilePage() {
                                         <ArrowRight className="ml-auto h-6 w-6 transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:translate-x-1" />
                                     </Link>
                                     <Link
+                                        href="/admin/conversations"
+                                        className="group flex cursor-pointer items-center gap-4 rounded-[14px] p-3.5 font-medium text-foreground no-underline transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] hover:translate-x-1.5 hover:bg-destructive/10 max-[480px]:p-3 max-[480px]:text-sm"
+                                    >
+                                        <Chat className="h-8 w-8 shrink-0" />
+                                        Все беседы
+                                        <ArrowRight className="ml-auto h-6 w-6 transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:translate-x-1" />
+                                    </Link>
+                                    <Link
                                         href="/admin/statistics"
                                         className="group flex cursor-pointer items-center gap-4 rounded-[14px] p-3.5 font-medium text-foreground no-underline transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] hover:translate-x-1.5 hover:bg-destructive/10 max-[480px]:p-3 max-[480px]:text-sm"
                                     >

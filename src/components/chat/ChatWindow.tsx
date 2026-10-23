@@ -11,8 +11,6 @@ type ChatWindowProps = {
     fullAddress: string;
     /** Собеседник (для шапки и аватара чужих сообщений). */
     companion: ChatPerson;
-    /** Диапазон дат брони. */
-    bookingDates: string;
     /** Все сообщения диалога. */
     messages: RouterOutputs['chat']['messages'];
     /** Мой id — чтобы отличать свои сообщения от чужих. */
@@ -25,6 +23,14 @@ type ChatWindowProps = {
     onSend: (text: string) => void;
     /** Идёт ли отправка прямо сейчас (для блокировки кнопки). */
     isSending: boolean;
+    /** true — текущий пользователь администратор (видит кнопки удаления). */
+    isAdmin: boolean;
+    /** true — беседа активна, можно писать. false — заблокирована админом. */
+    conversationActive: boolean;
+    /** Удалить одно сообщение по id (админ). */
+    onDeleteMessage: (messageId: number) => void;
+    /** Удалить беседу целиком (админ). */
+    onDeleteConversation: () => void;
 };
 
 /**
@@ -35,13 +41,16 @@ type ChatWindowProps = {
 export function ChatWindow({
     fullAddress,
     companion,
-    bookingDates,
     messages,
     myUserId,
     myPerson,
     onBack,
     onSend,
     isSending,
+    isAdmin,
+    conversationActive,
+    onDeleteMessage,
+    onDeleteConversation,
 }: ChatWindowProps) {
     // Текст в поле ввода — локальное состояние окна чата.
     const [text, setText] = useState('');
@@ -73,8 +82,8 @@ export function ChatWindow({
             <ChatHeader
                 formattedAddress={fullAddress}
                 companion={companion}
-                bookingDates={bookingDates}
                 onBack={onBack}
+                onDeleteConversation={isAdmin ? onDeleteConversation : undefined}
             />
 
             {/* Лента сообщений скроллится только она  */}
@@ -92,6 +101,7 @@ export function ChatWindow({
                             isMine={isMine}
                             sender={isMine ? myPerson : companion}
                             createdAt={m.createdAt}
+                            onDelete={isAdmin ? () => onDeleteMessage(m.id) : undefined}
                         />
                     );
                 })}
@@ -127,15 +137,16 @@ export function ChatWindow({
                             handleSend();
                         }
                     }}
-                    placeholder="Сообщение..."
+                    placeholder={conversationActive ? 'Сообщение...' : 'Беседа заблокирована'}
+                    disabled={!conversationActive}
                     // maxLength — жёсткий лимит символов. Меняй тут (300–350 норм для чата).
                     maxLength={300}
-                    className="min-w-0 flex-1 resize-none overflow-hidden rounded-2xl border border-border px-4 py-2.5 pr-5 text-[15px] text-foreground outline-none focus:border-primary"
+                    className="min-w-0 flex-1 resize-none overflow-hidden rounded-2xl border border-border px-4 py-2.5 pr-5 text-[15px] text-foreground outline-none focus:border-primary disabled:cursor-not-allowed disabled:opacity-60"
                 />
                 <button
                     type="button"
                     onClick={handleSend}
-                    disabled={!text.trim() || isSending}
+                    disabled={!text.trim() || isSending || !conversationActive}
                     // self-end — страховка, чтобы кнопка всегда была снизу и не тянулась
                     className="shrink-0 cursor-pointer self-end rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-primary/40"
                 >
