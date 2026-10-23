@@ -11,7 +11,7 @@ const SOCIALS = [
         icon: <Telegram className="h-5 w-5" />,
     },
     {
-        href: 'https://www.instagram.com/radius_stay/',
+        href: 'https://www.instagram.com/naradare.by',
         label: 'Instagram',
         icon: <Instagram className="h-5 w-5" />,
     },
