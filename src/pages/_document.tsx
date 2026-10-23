@@ -14,26 +14,26 @@ export default function Document() {
             одна. Это не переключатель темы сайта (.dark), а именно тема браузера. */}
                 <link
                     rel="icon"
-                    href="/light/favicon-96x96.png"
+                    href="/light/favicon-96x96.png?v=2"
                     sizes="96x96"
                     type="image/png"
                     media="(prefers-color-scheme: light)"
                 />
                 <link
                     rel="icon"
-                    href="/favicon-96x96.png"
+                    href="/favicon-96x96.png?v=2"
                     sizes="96x96"
                     type="image/png"
                     media="(prefers-color-scheme: dark)"
                 />
                 <link
                     rel="shortcut icon"
-                    href="/light/favicon.ico"
+                    href="/light/favicon.ico?v=2"
                     media="(prefers-color-scheme: light)"
                 />
                 <link
                     rel="shortcut icon"
-                    href="/favicon.ico"
+                    href="/favicon.ico?v=2"
                     media="(prefers-color-scheme: dark)"
                 />
                 {/* iOS не учитывает media у apple-touch-icon — иконка на домашнем экране одна. */}
@@ -51,7 +51,7 @@ export default function Document() {
                 />
                 <meta
                     name="apple-mobile-web-app-title"
-                    content="Radius"
+                    content="NaRadare"
                 />
                 <meta
                     name="google-site-verification"
