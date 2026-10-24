@@ -6,10 +6,10 @@ import { createTRPCContext } from '@/server/api/trpc';
 
 /**
  * Лимит тела запроса. В Pages Router он по умолчанию 1 МБ, а картинки
- * (до 5 МБ) уходят сюда как base64 data-URL (+~33%), поэтому поднимаем его.
+ * (до 15 МБ) уходят сюда как base64 data-URL (+~33% = ~20 МБ), поэтому поднимаем его.
  */
 export const config = {
-    api: { bodyParser: { sizeLimit: '8mb' } },
+    api: { bodyParser: { sizeLimit: '25mb' } },
 };
 
 /**
