@@ -31,6 +31,10 @@ function readFilesAsDataURL(files: FileList): Promise<string[]> {
     );
 }
 
+// Форматы, которые умеет обрабатывать sharp на сервере. HEIC (iPhone) сюда НЕ входит —
+// его браузер не может прочитать как обычное изображение, поэтому проверяем до загрузки.
+const SUPPORTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/tiff', 'image/avif'];
+
 // Неавторизованных отправляем на вход ещё на сервере
 export const getServerSideProps = requireAuth;
 
@@ -98,6 +102,14 @@ export default function EditApartmentPage() {
             if (!files || files.length === 0) {
                 return;
             }
+
+            const fileList = Array.from(files);
+            const unsupported = fileList.find((f) => !SUPPORTED_IMAGE_TYPES.includes(f.type));
+            if (unsupported) {
+                alert(`Формат файла «${unsupported.name}» не поддерживается. Загрузите JPEG, PNG или WebP.`);
+                return;
+            }
+
             setIsUploading(true);
             try {
                 const dataUrls = await readFilesAsDataURL(files);
@@ -111,8 +123,8 @@ export default function EditApartmentPage() {
                 if (!mainImage) {
                     updateField('image', urls[0] ?? '');
                 }
-            } catch {
-                alert('Ошибка загрузки');
+            } catch (error) {
+                alert(error instanceof Error ? error.message : 'Ошибка загрузки');
             } finally {
                 setIsUploading(false);
             }
