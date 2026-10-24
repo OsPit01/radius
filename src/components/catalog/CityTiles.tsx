@@ -128,7 +128,7 @@ export function CityTiles() {
                     <MapPin className="h-6 w-6 shrink-0 text-primary" />
                     <span className="min-w-0 truncate text-base font-semibold text-foreground">{city}</span>
                     {isActive && (
-                        <ArrowLeft className="h-5 w-5 shrink-0 text-primary transition-transform duration-300 ease-out group-hover:-translate-x-1.5" />
+                        <ArrowLeft className="h-5 w-5 shrink-0 animate-[nudgeX_2s_ease-in-out_infinite] text-primary" />
                     )}
                 </span>
 

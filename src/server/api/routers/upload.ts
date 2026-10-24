@@ -10,7 +10,8 @@ import { getSupabaseAdmin } from '@/server/supabase';
 const MAX_IMAGE_SIZE_BYTES = 15 * 1024 * 1024;
 
 // Защита от флуда: сколько изображений один пользователь может загрузить за час.
-const UPLOAD_RATE_LIMIT = 20;
+// 100 — хватает на несколько альбомов (одна квартира ~10–20 фото), но не даёт флудить.
+const UPLOAD_RATE_LIMIT = 100;
 const UPLOAD_RATE_WINDOW_MS = 60 * 60 * 1000;
 
 export const uploadRouter = createTRPCRouter({
