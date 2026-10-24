@@ -217,12 +217,10 @@ input:-webkit-autofill:active {
 @keyframes nudgeX {
   0%,
   100% {
-    transform: translateX(0);
+    transform: translateX(5px);
   }
   30% {
-    transform: translateX(-12px);
+    transform: translateX(-5px);
   }
-  70% {
-    transform: translateX(12px);
-  }
+ 
 }
