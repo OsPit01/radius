@@ -23,6 +23,18 @@ export const getServerSideProps: GetServerSideProps<MicrodistrictPageProps> = as
         return { notFound: true };
     }
 
+    // Если город или район пришли кириллицей (или в другом регистре) — 301-редирект на канонический слаг.
+    const normalizedCity = transliterate(citySlug);
+    const normalizedName = transliterate(nameSlug);
+    if (normalizedCity !== citySlug || normalizedName !== nameSlug) {
+        return {
+            redirect: {
+                destination: `/rent/flat/${normalizedCity}/microdistrict/${normalizedName}`,
+                permanent: true,
+            },
+        };
+    }
+
     const api = await createServerCaller(ctx);
     const locations = await api.apartment.getCatalogLocations();
     const cityMatch = locations.find((l) => transliterate(l.city) === citySlug);

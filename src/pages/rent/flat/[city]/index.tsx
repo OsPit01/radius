@@ -20,7 +20,11 @@ export const getServerSideProps: GetServerSideProps<CityPageProps> = async (ctx)
     if (typeof city !== 'string') {
         return { notFound: true };
     }
-    const slug = city;
+    const slug = transliterate(city);
+    // Если пришёл кириллический город (или в другом регистре) — 301-редирект на канонический слаг.
+    if (slug !== city) {
+        return { redirect: { destination: `/rent/flat/${slug}`, permanent: true } };
+    }
     const api = await createServerCaller(ctx);
     // Берём список всех городов и ищем тот, чей транслит совпадает со слагом.
     const locations = await api.apartment.getCatalogLocations();
