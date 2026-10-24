@@ -2,6 +2,7 @@ import { eq } from 'drizzle-orm';
 import type { GetServerSideProps } from 'next';
 
 import { SITE_URL } from '@/lib/seo';
+import { transliterate } from '@/lib/transliterate';
 import { db } from '@/server/db';
 import { apartments } from '@/server/db/schema';
 
@@ -59,7 +60,7 @@ async function buildEntries(): Promise<SitemapEntry[]> {
     // Страницы городов /rent/flat/{город}.
     const cities = Array.from(new Set(rows.map((a) => a.city)));
     const cityUrls: SitemapEntry[] = cities.map((city) => ({
-        url: `${SITE_URL}/rent/flat/${encodeURIComponent(city)}`,
+        url: `${SITE_URL}/rent/flat/${transliterate(city)}`,
         lastModified: new Date(),
         changeFrequency: 'daily',
         priority: 0.9,
@@ -78,7 +79,7 @@ async function buildEntries(): Promise<SitemapEntry[]> {
         }
         seen.add(key);
         microdistrictUrls.push({
-            url: `${SITE_URL}/rent/flat/${encodeURIComponent(a.city)}/microdistrict/${encodeURIComponent(a.microdistrict)}`,
+            url: `${SITE_URL}/rent/flat/${transliterate(a.city)}/microdistrict/${transliterate(a.microdistrict)}`,
             lastModified: new Date(),
             changeFrequency: 'daily',
             priority: 0.9,

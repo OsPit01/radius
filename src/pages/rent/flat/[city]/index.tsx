@@ -7,6 +7,7 @@ import { type ApartmentCardData, getApartmentCardData } from '@/lib/apartment-fo
 import { getCurrencySymbol } from '@/lib/constants/currencies';
 import { pluralRu } from '@/lib/plural';
 import { SITE_URL } from '@/lib/seo';
+import { transliterate } from '@/lib/transliterate';
 import { createServerCaller } from '@/trpc/server';
 
 type CityPageProps = {
@@ -19,10 +20,15 @@ export const getServerSideProps: GetServerSideProps<CityPageProps> = async (ctx)
     if (typeof city !== 'string') {
         return { notFound: true };
     }
-
-    const decodedCity = decodeURIComponent(city);
-
+    const slug = city;
     const api = await createServerCaller(ctx);
+    // Берём список всех городов и ищем тот, чей транслит совпадает со слагом.
+    const locations = await api.apartment.getCatalogLocations();
+    const match = locations.find((l) => transliterate(l.city) === slug);
+    if (!match) {
+        return { notFound: true }; // слаг не найден → 404
+    }
+    const decodedCity = match.city; // "Минск - настоящее имя для запроса"
     const data = await api.apartment.getAll({ exactCity: decodedCity });
 
     if (data.length === 0) {
@@ -45,7 +51,7 @@ export default function CityPage({ city, apartments }: CityPageProps) {
             <Seo
                 absoluteTitle={`Квартиры на сутки в ${city} — снять | NaRadare`}
                 description={`Снять квартиру на сутки в ${city}. Актуальные фото, цены, бронирование онлайн напрямую от собственников.`}
-                canonical={`${SITE_URL}/rent/flat/${encodeURIComponent(city)}`}
+                canonical={`${SITE_URL}/rent/flat/${transliterate(city)}`}
             />
             <ClientHeader />
 

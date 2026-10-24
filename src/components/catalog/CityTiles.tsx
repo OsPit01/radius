@@ -11,6 +11,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 
 import { ScanOverlay } from '@/components/home/ScanOverlay';
 import { ArrowLeft, MapPin } from '@/components/icons';
+import { transliterate } from '@/lib/transliterate';
 import { api } from '@/trpc/react';
 
 /** Минимум, сколько оверлей сканирования остаётся на экране, чтобы анимация была заметна. */
@@ -116,7 +117,7 @@ export function CityTiles() {
                 onClick={() => {
                     if (isActive) {
                         // город уже выбран — переходим на страницу
-                        void router.push(`/rent/flat/${encodeURIComponent(city)}`);
+                        void router.push(`/rent/flat/${transliterate(city)}`);
                     } else {
                         // ещё не выбран — выбираем (показываем районы)
                         setSelectedCity(city);
@@ -139,7 +140,7 @@ export function CityTiles() {
 
     const microdistrictLink = (name: string) => (
         <Link
-            href={`/rent/flat/${encodeURIComponent(activeCity)}/microdistrict/${encodeURIComponent(name)}`}
+            href={`/rent/flat/${transliterate(activeCity)}/microdistrict/${transliterate(name)}`}
             className={`${tileClass} border-border no-underline`}
             onClick={(e) => {
                 // Сканирование показываем только при обычном клике левой кнопкой:

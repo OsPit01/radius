@@ -7,6 +7,7 @@ import { type ApartmentCardData, getApartmentCardData } from '@/lib/apartment-fo
 import { getCurrencySymbol } from '@/lib/constants/currencies';
 import { pluralRu } from '@/lib/plural';
 import { SITE_URL } from '@/lib/seo';
+import { transliterate } from '@/lib/transliterate';
 import { createServerCaller } from '@/trpc/server';
 
 type MicrodistrictPageProps = {
@@ -16,18 +17,29 @@ type MicrodistrictPageProps = {
 };
 
 export const getServerSideProps: GetServerSideProps<MicrodistrictPageProps> = async (ctx) => {
-    const city = ctx.params?.city;
-    const name = ctx.params?.name;
-    if (typeof city !== 'string' || typeof name !== 'string') {
+    const citySlug = ctx.params?.city;
+    const nameSlug = ctx.params?.name;
+    if (typeof citySlug !== 'string' || typeof nameSlug !== 'string') {
         return { notFound: true };
     }
 
-    const decodedName = decodeURIComponent(name);
-
     const api = await createServerCaller(ctx);
+    const locations = await api.apartment.getCatalogLocations();
+    const cityMatch = locations.find((l) => transliterate(l.city) === citySlug);
+    if (!cityMatch) {
+        return { notFound: true };
+    }
+    const city = cityMatch.city;
+    // 2. Обратный поиск РАЙОНА: внутри районов этого города ищем по слагу.
+    const nameMatch = cityMatch.microdistricts.find((m) => transliterate(m) === nameSlug);
+    if (!nameMatch) {
+        return { notFound: true };
+    }
+    const name = nameMatch;
+
     const data = await api.apartment.getAll({
         exactCity: city,
-        microdistrict: decodedName,
+        microdistrict: name,
     });
 
     if (data.length === 0) {
@@ -36,8 +48,8 @@ export const getServerSideProps: GetServerSideProps<MicrodistrictPageProps> = as
 
     return {
         props: {
-            city,
-            name: decodedName,
+            city: city,
+            name: name,
             apartments: data.map((apartment) => getApartmentCardData(apartment)),
         },
     };
@@ -51,7 +63,7 @@ export default function MicrodistrictPage({ city, name, apartments }: Microdistr
             <Seo
                 absoluteTitle={`Квартиры на сутки в микрорайоне ${name} — ${city} | NaRadare`}
                 description={`Снять квартиру на сутки в микрорайоне ${name} (${city}). Актуальные фото, цены, бронирование онлайн напрямую от собственников.`}
-                canonical={`${SITE_URL}/rent/flat/${city}/microdistrict/${encodeURIComponent(name)}`}
+                canonical={`${SITE_URL}/rent/flat/${transliterate(city)}/microdistrict/${transliterate(name)}`}
             />
             <ClientHeader />
 
