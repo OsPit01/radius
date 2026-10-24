@@ -16,7 +16,6 @@ export function NavigationButtons({ currentStep, onNext, onPrev, isSubmitting, i
 
     return (
         <div className="mt-[30px] flex justify-between gap-4 max-[640px]:flex-col">
-            {/* Кнопка "Назад" - появляется начиная со 2-го шага */}
             {currentStep > 1 && (
                 <button
                     type="button"
@@ -28,7 +27,6 @@ export function NavigationButtons({ currentStep, onNext, onPrev, isSubmitting, i
                 </button>
             )}
 
-            {/* Если шаг НЕ последний, рендерится обычная кнопка перехода вперед */}
             {!isLastStep ? (
                 <button
                     type="button"
@@ -39,7 +37,6 @@ export function NavigationButtons({ currentStep, onNext, onPrev, isSubmitting, i
                     <ArrowRight className="h-5 w-5" />
                 </button>
             ) : (
-                // Если шаг ПОСЛЕДНИЙ (5-й), рендерится кнопка отправки формы на сервер
                 <button
                     type="button"
                     onClick={onNext}

@@ -7,6 +7,7 @@ import { api } from '@/trpc/react';
 
 export function Step3_Address({ formData, updateField, error, errorFields }: StepProps) {
     const utils = api.useUtils();
+
     const [streetSuggestions, setStreetSuggestions] = useState<string[]>([]);
     const [streetOpen, setStreetOpen] = useState(false);
 

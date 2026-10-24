@@ -106,7 +106,6 @@ export default function AddApartmentPage() {
         }
     };
 
-    // ===== ПЕРЕХОД МЕЖДУ ШАГАМИ =====
     const goToNextStep = async () => {
         const validation = validateStep(currentStep, formData);
         if (!validation.isValid) {
@@ -129,8 +128,6 @@ export default function AddApartmentPage() {
         setCurrentStep(currentStep - 1);
     };
 
-    // ЧТО И ЗАЧЕМ ТУТ МЕНЯТЬ: Динамический метод рендеринга.
-    // Благодаря ему пропсы внутри шагов всегда свежие, и TypeScript больше не падает.
     const renderCurrentStep = () => {
         switch (currentStep) {
             case 1:
@@ -192,7 +189,6 @@ export default function AddApartmentPage() {
             <ClientHeader />
             <div className="add-apartment-page">
                 <div className="mx-auto my-6 max-w-[800px] rounded-[24px] border border-border bg-card p-10 shadow-[0_10px_30px_rgba(0,0,0,0.08)] max-[640px]:p-5">
-                    {/* Восстановлен ваш оригинальный h1 */}
                     <h1
                         className="mb-[30px] text-center text-[28px] text-primary"
                         onClick={() => null}
@@ -201,14 +197,12 @@ export default function AddApartmentPage() {
                         Создание объекта{' '}
                     </h1>
 
-                    {/* Восстановлена ваша РОДНАЯ форма, CSS будет работать идеально */}
                     <form
                         className="flex flex-col gap-5"
                         onSubmit={(e) => {
                             e.preventDefault();
                         }}
                     >
-                        {/* Вызываем функцию динамического рендера вместо старого спреда компонентов */}
                         {renderCurrentStep()}
 
                         <NavigationButtons
