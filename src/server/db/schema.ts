@@ -9,6 +9,22 @@ import { index, pgEnum, pgTableCreator, primaryKey, uniqueIndex } from 'drizzle-
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
 export const createTable = pgTableCreator((name) => `radius_${name}`);
+// ===== ENUM-ТИПЫ =====
+// Объявляем их ПЕРЕД таблицами: таблица apartments ссылается на apartmentStatusEnum,
+// а booking — на bookingStatusEnum. Если объявить enum после таблицы — будет ошибка
+// «Cannot access before initialization» (временная мёртвая зона JavaScript).
+export const bookingStatusEnum = pgEnum('booking_status', [
+    'new', // только что создана, ждёт ответа владельца
+    'approved', // владелец подтвердил
+    'rejected', // владелец отклонил
+    'cancelled', // отменена (гостем или владельцем)
+    'expired', // просрочена — владелец не ответил вовремя (ставит cron в booking-expiry.ts)
+]);
+export const apartmentStatusEnum = pgEnum('apartment_status', [
+    'moderation', // ждёт проверки админом
+    'active', // опубликована, видна всем
+    'inactive', // отклонена (причина в rejectionReason)
+]);
 // ===== ТАБЛИЦА КВАРТИР =====
 export const apartments = createTable(
     'apartment',
@@ -194,18 +210,6 @@ export const notification = createTable('notification', (d) => ({
         .$defaultFn(() => new Date())
         .notNull(),
 }));
-export const bookingStatusEnum = pgEnum('booking_status', [
-    'new', // только что создана, ждёт ответа владельца
-    'approved', // владелец подтвердил
-    'rejected', // владелец отклонил
-    'cancelled', // отменена (гостем или владельцем)
-    'expired', // просрочена — владелец не ответил вовремя (ставит cron в booking-expiry.ts)
-]);
-export const apartmentStatusEnum = pgEnum('apartment_status', [
-    'moderation', // ждёт проверки админом
-    'active', // опубликована, видна всем
-    'inactive', // отклонена (причина в rejectionReason)
-]);
 export const booking = createTable('booking', (d) => ({
     id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
     apartmentId: d
