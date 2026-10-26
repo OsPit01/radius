@@ -18,6 +18,6 @@ jobs:
           script: |
             cd /var/www/radius
             git pull
-            npm install
+           npm ci
             npm run build
             pm2 restart radius
