@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 
-import { Bed, Camera, Clock, Close, Home, Hourglass, MapPin, Money, Plus, Sofa, Star } from '@/components/icons';
+import { SortableImageGrid } from '@/components/apartments/SortableImageGrid';
+import { Bed, Camera, Clock, Home, Hourglass, MapPin, Money, Sofa } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { ClientHeader } from '@/components/layout/ClientHeader';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -52,7 +52,7 @@ export default function EditApartmentPage() {
     const canEditAddress = !isPublished || isAdmin;
 
     const [isUploading, setIsUploading] = useState(false);
-    const [dragIdx, setDragIdx] = useState<number | null>(null);
+
     const [streetSuggestions, setStreetSuggestions] = useState<string[]>([]);
     const [streetOpen, setStreetOpen] = useState(false);
     // Флаг «пользователь печатает улицу прямо сейчас».
@@ -144,44 +144,20 @@ export default function EditApartmentPage() {
         [images, mainImage, updateField],
     );
 
-    const setMainImage = useCallback(
-        (index: number) => {
-            if (index === 0) {
-                return;
-            }
-            const img = images[index];
-            if (!img) {
-                return;
-            }
-            const next = [img, ...images.filter((_, i) => i !== index)];
-            updateField('images', next);
-            updateField('image', img);
-        },
-        [images, updateField],
-    );
-
-    const handleDragStart = useCallback((index: number) => setDragIdx(index), []);
-    const handleDragEnd = useCallback(() => setDragIdx(null), []);
-
-    const handleDragOver = useCallback(
-        (e: React.DragEvent, toIdx: number) => {
-            e.preventDefault();
-            if (dragIdx === null || dragIdx === toIdx) {
-                return;
-            }
+    const reorderImages = useCallback(
+        (from: number, to: number) => {
             const next = [...images];
-            const [item] = next.splice(dragIdx, 1);
-            if (!item) {
+            const [moved] = next.splice(from, 1);
+            if (!moved) {
                 return;
             }
-            next.splice(toIdx, 0, item);
+            next.splice(to, 0, moved);
             updateField('images', next);
             if (next[0] && next[0] !== mainImage) {
                 updateField('image', next[0]);
             }
-            setDragIdx(toIdx);
         },
-        [images, dragIdx, updateField, mainImage],
+        [images, mainImage, updateField],
     );
 
     const handleFileChange = useCallback(
@@ -221,78 +197,18 @@ export default function EditApartmentPage() {
                         >
                             {/* ФОТО */}
                             <div className="edit-drop-zone">
-                                <div className="grid grid-cols-4 gap-3 max-[480px]:grid-cols-2 max-lg:grid-cols-3 max-md:grid-cols-3">
-                                    {images.map((src, index) => {
-                                        const isMain = mainImage === src;
-                                        return (
-                                            <div
-                                                key={index}
-                                                className={`relative aspect-square cursor-grab overflow-hidden rounded-lg border-2 border-border bg-background transition-colors duration-200 hover:border-primary ${
-                                                    isMain ? 'border-warning' : ''
-                                                }`}
-                                                draggable={!isMain}
-                                                onDragStart={() => !isMain && handleDragStart(index)}
-                                                onDragOver={(e) => handleDragOver(e, index)}
-                                                onDragEnd={handleDragEnd}
-                                            >
-                                                <div className="relative h-full w-full">
-                                                    <Image
-                                                        src={src}
-                                                        alt={`Фото ${index + 1}`}
-                                                        fill
-                                                        className="object-cover"
-                                                    />
-                                                    {isMain && (
-                                                        <div className="absolute top-1 left-1 z-[5] inline-flex items-center gap-1 rounded bg-warning px-2 py-0.5 text-[10px] font-semibold text-warning-foreground max-[480px]:px-1.5 max-[480px]:py-0.5 max-[480px]:text-[8px]">
-                                                            <Star className="h-3 w-3" />
-                                                            Заглавная
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div className="absolute top-1 right-1 z-10 flex flex-col gap-1">
-                                                    <button
-                                                        type="button"
-                                                        className={`flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-none p-0 text-[13px] leading-none transition-all duration-200 hover:scale-110 max-[480px]:h-[22px] max-[480px]:w-[22px] max-[480px]:text-[10px] ${
-                                                            isMain
-                                                                ? 'bg-warning/20 text-warning shadow-[0_0_12px_color-mix(in_oklab,var(--warning)_30%,transparent)] hover:bg-warning/30'
-                                                                : 'bg-black/60 text-white/30 hover:bg-black/80 hover:text-white/80'
-                                                        }`}
-                                                        onClick={() => setMainImage(index)}
-                                                        title={isMain ? 'Заглавная' : 'Сделать заглавной'}
-                                                        aria-label={
-                                                            isMain ? 'Заглавное фото' : 'Сделать фото заглавным'
-                                                        }
-                                                    >
-                                                        <Star
-                                                            muted={!isMain}
-                                                            className="h-4 w-4"
-                                                        />
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-none bg-black/60 p-0 text-[13px] leading-none text-white/50 transition-all duration-200 hover:scale-110 hover:bg-destructive/90 hover:text-destructive-foreground max-[480px]:h-[22px] max-[480px]:w-[22px] max-[480px]:text-[10px]"
-                                                        onClick={() => removeImage(index)}
-                                                        title="Удалить"
-                                                        aria-label="Удалить фото"
-                                                    >
-                                                        <Close className="h-3.5 w-3.5" />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                    <label className="flex aspect-square cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-border bg-background transition-all duration-200 hover:border-primary hover:bg-primary/5">
-                                        <span className="flex cursor-pointer flex-col items-center gap-1 border-none bg-transparent text-[13px] text-muted-foreground">
+                                <SortableImageGrid
+                                    images={images}
+                                    mainImage={mainImage}
+                                    onReorder={reorderImages}
+                                    onRemove={removeImage}
+                                >
+                                    <label className="flex aspect-square cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-border bg-background hover:border-primary">
+                                        <span className="flex cursor-pointer flex-col items-center gap-1 text-[13px] text-muted-foreground">
                                             {isUploading ? (
-                                                <>
-                                                    <Hourglass className="h-8 w-8" />
-                                                    Загрузка...
-                                                </>
+                                                <Hourglass className="h-8 w-8" />
                                             ) : (
-                                                <>
-                                                    <Camera className="h-8 w-8" />
-                                                    <Plus className="h-6 w-6" />
-                                                </>
+                                                <Camera className="h-8 w-8" />
                                             )}
                                         </span>
                                         <input
@@ -303,9 +219,8 @@ export default function EditApartmentPage() {
                                             className="hidden"
                                         />
                                     </label>
-                                </div>
+                                </SortableImageGrid>
                             </div>
-
                             {/* ИНФОРМАЦИЯ */}
                             <section className="mb-10 text-muted-foreground">
                                 <div className="mt-[35px] mb-[15px] flex items-center gap-2 border-b border-border pb-2 text-xl font-semibold text-foreground">
