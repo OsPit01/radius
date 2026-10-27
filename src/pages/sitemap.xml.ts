@@ -86,6 +86,23 @@ async function buildEntries(): Promise<SitemapEntry[]> {
         });
     }
 
+    // ===== Статические страницы =====
+    //
+    // Дата обновления юридических документов и информационных страниц —
+    // фиксированная (совпадает с updatedAt в src/lib/legal/*.tsx),
+    // а не «сегодня»: карта сайта не должна врать поисковикам о свежести.
+    const staticPagesUpdatedAt = new Date('2026-10-27T00:00:00Z');
+
+    // Информационные страницы (О компании, Контакты, FAQ) — приоритет выше:
+    // они полезны по брендовым и общим запросам.
+    // Юридические документы — низкий приоритет: люди приходят по ссылкам, не из поиска.
+    const staticPage = (path: string, priority: number): SitemapEntry => ({
+        url: `${SITE_URL}${path}`,
+        lastModified: staticPagesUpdatedAt,
+        changeFrequency: 'yearly',
+        priority,
+    });
+
     return [
         {
             url: `${SITE_URL}/`,
@@ -95,18 +112,14 @@ async function buildEntries(): Promise<SitemapEntry[]> {
         },
         ...cityUrls,
         ...microdistrictUrls,
-        {
-            url: `${SITE_URL}/privacy`,
-            lastModified: new Date(),
-            changeFrequency: 'yearly',
-            priority: 0.1,
-        },
-        {
-            url: `${SITE_URL}/terms`,
-            lastModified: new Date(),
-            changeFrequency: 'yearly',
-            priority: 0.1,
-        },
+        // Информационные страницы
+        staticPage('/about', 0.3),
+        staticPage('/contacts', 0.3),
+        staticPage('/faq', 0.3),
+        // Юридические документы (/consent не включён: страница закрыта от индексации)
+        staticPage('/privacy', 0.1),
+        staticPage('/cookies', 0.1),
+        staticPage('/terms', 0.1),
         ...apartmentUrls,
     ];
 }

@@ -61,7 +61,7 @@ function SortableImageItem({
                 <button
                     type="button"
                     onClick={() => onRemove(index)}
-                    className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-none bg-black/60 p-0 text-white/80"
+                    className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border-none bg-black/60 p-0 text-[15px] text-white/80 max-md:h-4 max-md:w-4 max-md:text-[8px]"
                     aria-label="Удалить фото"
                 >
                     ✕

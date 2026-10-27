@@ -1,7 +1,27 @@
-import Image from 'next/image';
+// ============================================================
+// src/components/layout/Footer.tsx — ФУТЕР САЙТА
+// ============================================================
+//
+// Структура (по образцу крупных площадок недвижимости):
+//   Бренд+соцсети | Сервис | Арендодателям | Компания | Документы
+//   Низ: ©, реквизиты оператора, почта, ссылка на «Контакты».
+//
+// Откуда берутся данные:
+// - реквизиты и почта — из src/lib/legal/operator.ts (один источник);
+// - список документов — из src/lib/legal/documents.ts (один источник);
+// добавить/убрать документ = изменить один массив, футер подтянется сам.
+//
+// Мобильная версия (mobile-first):
+// - бренд занимает всю ширину, группы ссылок — сетка 2×2;
+// - ссылки min-h-11 (44px) — удобно попадать пальцем;
+// - нижний блок переносится по строкам, ничего не вылезает на 360px.
+// ============================================================
+
 import Link from 'next/link';
 
 import { Instagram, Telegram } from '@/components/icons';
+import { LEGAL_DOCUMENTS } from '@/lib/legal/documents';
+import { ADD_APARTMENT_URL, OPERATOR } from '@/lib/legal/operator';
 
 // Ссылки на соцсети. Подставь реальные профили, когда будут готовы.
 const SOCIALS = [
@@ -17,21 +37,48 @@ const SOCIALS = [
     },
 ] as const;
 
+// ===== Раздел «Сервис» — главные сценарии гостя =====
+const SERVICE_LINKS = [
+    { href: '/', label: 'Главная' },
+    { href: '/rent/flat/minsk', label: 'Квартиры в Минске' },
+    { href: '/faq', label: 'Вопросы и ответы' },
+] as const;
+
+// ===== Раздел «Арендодателям» — всё про размещение объекта =====
+const LANDLORD_LINKS = [
+    { href: ADD_APARTMENT_URL, label: 'Сдать квартиру' },
+    { href: '/my-apartments', label: 'Мои объекты' },
+    { href: '/terms#landlord', label: 'Правила размещения' },
+] as const;
+
+// ===== Раздел «Компания» =====
+const COMPANY_LINKS = [
+    { href: '/about', label: 'О компании' },
+    { href: '/contacts', label: 'Контакты и реквизиты' },
+] as const;
+
+// Общий стиль ссылки: строка 44px+ — тапабельно на телефоне.
+const FOOTER_LINK =
+    'flex min-h-11 items-center text-sm text-muted-foreground no-underline transition-colors hover:text-primary';
+
+// Заголовок колонки.
+const COLUMN_TITLE = 'mb-3 text-sm font-semibold text-foreground';
+
 export function Footer() {
     const year = new Date().getFullYear();
 
     return (
-        <footer>
-            {/* Верхняя часть — колонки с ссылками */}
-            <div className="mx-auto max-w-6xl px-5 py-12">
-                <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
+        <footer className="border-t border-border bg-background">
+            {/* ===== Верх: колонки с ссылками ===== */}
+            <div className="mx-auto max-w-6xl px-5 py-12 max-md:px-4 max-md:py-8">
+                <div className="grid grid-cols-2 gap-8 md:grid-cols-4 lg:grid-cols-5">
                     {/* Бренд + описание + соцсети */}
-                    <div className="col-span-2 md:col-span-1">
+                    <div className="col-span-2 md:col-span-4 lg:col-span-1">
                         <Link
                             href="/"
                             className="text-xl font-bold text-foreground no-underline"
                         >
-                            NaRadare
+                            {OPERATOR.siteName}
                         </Link>
                         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                             Посуточная аренда квартир напрямую от собственников. Без посредников и переплат.
@@ -52,116 +99,109 @@ export function Footer() {
                         </div>
                     </div>
 
-                    {/* Разделы */}
-                    <div>
-                        <h3 className="mb-4 text-sm font-semibold text-foreground">Разделы</h3>
-                        <ul className="flex flex-col gap-2 text-sm text-muted-foreground">
-                            <li>
-                                <Link
-                                    href="/"
-                                    className="hover:text-primary"
-                                >
-                                    Главная
-                                </Link>
-                            </li>
-                            <li>
-                                <Link
-                                    href="/profile/favorites"
-                                    className="hover:text-primary"
-                                >
-                                    Избранное
-                                </Link>
-                            </li>
-                            <li>
-                                <Link
-                                    href="/admin/add-apartment"
-                                    className="hover:text-primary"
-                                >
-                                    Сдать квартиру
-                                </Link>
-                            </li>
+                    {/* Сервис */}
+                    <nav aria-label="Сервис">
+                        <h3 className={COLUMN_TITLE}>Сервис</h3>
+                        <ul className="flex flex-col">
+                            {SERVICE_LINKS.map((link) => (
+                                <li key={link.href}>
+                                    <Link
+                                        href={link.href}
+                                        className={FOOTER_LINK}
+                                    >
+                                        {link.label}
+                                    </Link>
+                                </li>
+                            ))}
                         </ul>
-                    </div>
+                    </nav>
 
-                    {/* Арендаторам */}
-                    <div>
-                        <h3 className="mb-4 text-sm font-semibold text-foreground">Арендаторам</h3>
-                        <ul className="flex flex-col gap-2 text-sm text-muted-foreground">
-                            <li>
-                                <Link
-                                    href="/profile/bookings"
-                                    className="hover:text-primary"
-                                >
-                                    Мои бронирования
-                                </Link>
-                            </li>
-                            <li>
-                                <Link
-                                    href="/profile/chat"
-                                    className="hover:text-primary"
-                                >
-                                    Сообщения
-                                </Link>
-                            </li>
-                            <li>
-                                <Link
-                                    href="/my-apartments"
-                                    className="hover:text-primary"
-                                >
-                                    Мои объекты
-                                </Link>
-                            </li>
+                    {/* Арендодателям */}
+                    <nav aria-label="Арендодателям">
+                        <h3 className={COLUMN_TITLE}>Арендодателям</h3>
+                        <ul className="flex flex-col">
+                            {LANDLORD_LINKS.map((link) => (
+                                <li key={link.href}>
+                                    <Link
+                                        href={link.href}
+                                        className={FOOTER_LINK}
+                                    >
+                                        {link.label}
+                                    </Link>
+                                </li>
+                            ))}
                         </ul>
-                    </div>
+                    </nav>
 
                     {/* Компания */}
-                    <div>
-                        <h3 className="mb-4 text-sm font-semibold text-foreground">Компания</h3>
-                        <ul className="flex flex-col gap-2 text-sm text-muted-foreground">
-                            <li>
-                                <Link
-                                    href="/privacy"
-                                    className="hover:text-primary"
-                                >
-                                    Политика конфиденциальности
-                                </Link>
-                            </li>
-                            <li>
-                                <Link
-                                    href="/terms"
-                                    className="hover:text-primary"
-                                >
-                                    Условия использования
-                                </Link>
-                            </li>
+                    <nav aria-label="Компания">
+                        <h3 className={COLUMN_TITLE}>Компания</h3>
+                        <ul className="flex flex-col">
+                            {COMPANY_LINKS.map((link) => (
+                                <li key={link.href}>
+                                    <Link
+                                        href={link.href}
+                                        className={FOOTER_LINK}
+                                    >
+                                        {link.label}
+                                    </Link>
+                                </li>
+                            ))}
                         </ul>
-                    </div>
+                    </nav>
+
+                    {/* Документы — из единого реестра юридических документов */}
+                    <nav aria-label="Документы">
+                        <h3 className={COLUMN_TITLE}>Документы</h3>
+                        <ul className="flex flex-col">
+                            {LEGAL_DOCUMENTS.map((doc) => (
+                                <li key={doc.slug}>
+                                    <Link
+                                        href={doc.slug}
+                                        className={FOOTER_LINK}
+                                    >
+                                        {doc.navTitle}
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+                    </nav>
                 </div>
             </div>
 
-            {/* Нижняя часть — копирайт + платёжный сервис */}
-            <div>
-                <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-5 py-4 text-sm text-muted-foreground md:flex-row">
-                    <span>© {year} naradare.by — аренда жилья посуточно</span>
-                    <a
-                        href="https://express-pay.by"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label="Платёжный сервис «Экспресс Платежи»"
-                        className="group inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 transition-colors hover:bg-muted"
-                    >
-                        <Image
-                            src="https://express-pay.by/brandbook/logo.png"
-                            alt="Экспресс Платежи"
-                            title="Экспресс Платежи"
-                            width={72}
-                            height={28}
-                            className="h-auto w-auto rounded bg-white p-1"
-                        />
-                        <span className="text-[11px] whitespace-nowrap text-muted-foreground transition-colors group-hover:text-foreground">
-                            онлайн-оплата
-                        </span>
-                    </a>
+            {/* ===== Низ: копирайт + реквизиты оператора ===== */}
+            <div className="border-t border-border">
+                <div className="mx-auto flex max-w-6xl flex-col gap-1.5 px-5 py-6 text-sm text-muted-foreground max-md:px-4">
+                    <p>
+                        © {year} {OPERATOR.siteName}
+                    </p>
+                    <p className="break-words">
+                        {OPERATOR.legalName} · УНП {OPERATOR.unp}
+                    </p>
+                    <p className="break-words">Юридический адрес: {OPERATOR.legalAddress}</p>
+                    <p className="break-all">
+                        <a
+                            href={`mailto:${OPERATOR.footerEmails.privacy}`}
+                            className="underline transition-colors hover:text-primary"
+                        >
+                            {OPERATOR.footerEmails.privacy}
+                        </a>
+                        {' / '}
+                        <a
+                            href={`mailto:${OPERATOR.footerEmails.support}`}
+                            className="underline transition-colors hover:text-primary"
+                        >
+                            {OPERATOR.footerEmails.support}
+                        </a>
+                    </p>
+                    <p className="mt-2">
+                        <Link
+                            href="/contacts"
+                            className="font-medium text-foreground underline transition-colors hover:text-primary"
+                        >
+                            Реквизиты и контакты
+                        </Link>
+                    </p>
                 </div>
             </div>
         </footer>
