@@ -84,22 +84,25 @@ export const supportRouter = createTRPCRouter({
                     text: input.text,
                 })
                 .returning();
-            // Находим всех админов
+            // Находим всех админов одним запросом
             const admins = await ctx.db
                 .select({ id: users.id })
                 .from(users)
                 .where(inArray(users.role, [...ADMIN_ROLES]));
 
-            // Каждому админу — уведомление о новом сообщении
-            for (const admin of admins) {
-                await ctx.db.insert(notification).values({
-                    userId: admin.id,
-
-                    type: 'support_new_message',
-                    title: 'Новое сообшение в поддержку',
-                    text: `Пользователь написал в поддержку. Заявка #${input.id}`,
-                    link: '/admin/support',
-                });
+            // Каждому админу — уведомление о новом сообщении.
+            // Batch-вставка: ОДИН запрос с массивом значений вместо N запросов в цикле
+            // (N поездок в БД — это медленно и нагружает базу).
+            if (admins.length > 0) {
+                await ctx.db.insert(notification).values(
+                    admins.map((admin) => ({
+                        userId: admin.id,
+                        type: 'support_new_message',
+                        title: 'Новое сообщение в поддержку',
+                        text: `Пользователь написал в поддержку. Заявка #${input.id}`,
+                        link: '/admin/support',
+                    })),
+                );
             }
 
             return created;
