@@ -41,7 +41,7 @@ export const apartmentCardColumns = {
     singleBeds: apartments.singleBeds,
     doubleSofas: apartments.doubleSofas,
     singleSofas: apartments.singleSofas,
-    metro: apartments.metro,
+    minsToMetro: apartments.minsToMetro,
     amenities: apartments.amenities,
 };
 

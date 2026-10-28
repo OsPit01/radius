@@ -45,6 +45,11 @@ const config = {
     async rewrites() {
         return [{ source: '/og/apartments/:id.jpg', destination: '/api/og/apartment/:id' }];
     },
+    // Старый мастер добавления квартиры заменён на /admin/add-object — сохраняем старые ссылки и закладки.
+    // permanent: true отдаёт 308, поэтому браузеры и поисковики запоминают новый адрес.
+    async redirects() {
+        return [{ source: '/admin/add-apartment', destination: '/admin/add-object', permanent: true }];
+    },
     // Отключи кэш в разработке (чтобы избежать проблем с кешированием)
     generateEtags: process.env.NODE_ENV === 'development' ? false : true,
 };

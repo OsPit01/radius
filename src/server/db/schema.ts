@@ -19,12 +19,13 @@ export const apartments = createTable(
         city: d.varchar({ length: 100 }).notNull(),
         street: d.varchar({ length: 100 }).notNull(),
         numberHome: d.varchar({ length: 50 }).notNull(),
+        region: d.varchar({ length: 100 }), // область: value из BELARUS_REGIONS («minsk-region»); у старых объектов пусто
         district: d.varchar({ length: 200 }),
-        // Жилой массив / микрорайон (Уручье, Новая Боровая и т.п.) —
-        // то, что реально ищут люди, в отличие от административного района.
         microdistrict: d.varchar({ length: 200 }),
         building: d.varchar({ length: 50 }),
         formattedAddress: d.text('formattedAddress'),
+        lat: d.doublePrecision(),
+        lon: d.doublePrecision(),
         capacity: d.integer().notNull(),
         price: d.integer().notNull(),
         image: d.text().notNull(),
@@ -40,12 +41,12 @@ export const apartments = createTable(
         doubleSofas: d.integer().notNull().default(0),
         singleSofas: d.integer().notNull().default(0),
         metro: d.varchar({ length: 100 }),
-        // ===== Доп. характеристики объекта (для удобства арендатора) =====
+        minsToMetro: d.integer(), // расстояние до ближайшего метро (при < 60минут)
+        metroStation: d.varchar({ length: 50 }), // ближайшая станция метро (при < 60мин)
         area: d.integer(), // площадь, м²
         floor: d.integer(), // этаж
         bathrooms: d.integer(), // количество санузлов
         isAvailable: d.boolean().default(true),
-        //////////////////////////////////////////
         currency: d.varchar({ length: 10 }).notNull().default('BYN'),
         amenities: d.varchar('amenities').array().default([]),
         parking: d.varchar({ length: 50 }).default(''),
@@ -53,12 +54,8 @@ export const apartments = createTable(
         createdById: d.varchar({ length: 255 }).references(() => users.id),
         status: d.varchar({ length: 20 }).notNull().default('moderation'),
         rejectionReason: d.text(),
-        // ===== Юридические данные для официальной сдачи (РБ) =====
-        // Кто сдаёт: individual | ip | company — выбор владельца
         payerType: d.varchar({ length: 20 }).default('individual'),
-        // УНП — 9 цифр, у физлица может отсутствовать
         unp: d.varchar({ length: 9 }),
-        // Наименование организации или ФИО для ИП
         payerName: d.varchar({ length: 255 }),
         createdAt: d
             .timestamp({ withTimezone: true })

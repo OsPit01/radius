@@ -22,7 +22,7 @@ const menuItems = [
     { href: '/my-apartments', label: 'Мои объекты' },
     { href: '/profile/bookings', label: 'Мои бронирования' },
     { href: '/profile/chat', label: 'Мои Сообщения' },
-    { href: '/admin/add-apartment', label: 'Добавить квартиру' },
+    { href: '/admin/add-object', label: 'Добавить квартиру' },
     { href: '/profile/settings', label: 'Настройки' },
 ] as const;
 

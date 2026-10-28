@@ -2,9 +2,9 @@ import Image from 'next/image';
 
 import { Camera, Close, Hourglass, Star, Warning } from '@/components/icons';
 import { useImageManager } from '@/hooks/useImageManager';
-import type { FormData, StepProps } from '@/lib/utils';
+import type { StepProps } from '@/lib/utils';
 
-export function Step5_Images({ formData, updateField, error, errorFields }: StepProps) {
+export function Step4_Images({ formData, updateField, error, errors }: StepProps) {
     const {
         images,
         mainImage,
@@ -25,11 +25,9 @@ export function Step5_Images({ formData, updateField, error, errorFields }: Step
         onMainImageChange: (newMain) => updateField('image', newMain),
     });
 
-    const hasError = (field: keyof FormData) => errorFields.includes(field);
-
     return (
         <fieldset className="animate-[fadeIn_0.3s_ease] text-foreground">
-            <legend className="mb-2.5 text-[17px] text-foreground">Шаг 5: Фотографии объекта</legend>
+            <legend className="mb-2.5 text-[17px] text-foreground">Шаг 4: Фотографии объекта</legend>
 
             {error && (
                 <div
@@ -81,7 +79,7 @@ export function Step5_Images({ formData, updateField, error, errorFields }: Step
                     </div>
                 </div>
 
-                {hasError('images') && (
+                {errors.includes('images') && (
                     <div className="mt-1 text-[13px] text-destructive">Добавьте хотя бы одну фотографию</div>
                 )}
             </div>

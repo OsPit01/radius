@@ -25,7 +25,7 @@ export type ApartmentFormData = {
     singleSofas: number;
     description: string;
     rules: string;
-    metro: string;
+    minsToMetro: number;
     area: number;
     floor: number;
     bathrooms: number;
@@ -59,7 +59,7 @@ const defaultFormData: ApartmentFormData = {
     singleSofas: 0,
     description: '',
     rules: '',
-    metro: '',
+    minsToMetro: 0,
     area: 0,
     floor: 0,
     bathrooms: 0,
@@ -116,7 +116,7 @@ export function useApartmentForm(apartmentId: string) {
                 singleSofas: apt.singleSofas ?? 0,
                 description: apt.description ?? '',
                 rules: apt.rules ?? '',
-                metro: apt.metro ?? '',
+                minsToMetro: apt.minsToMetro ?? 0,
                 area: apt.area ?? 0,
                 floor: apt.floor ?? 0,
                 bathrooms: apt.bathrooms ?? 0,
@@ -163,6 +163,8 @@ export function useApartmentForm(apartmentId: string) {
                 singleBeds: Number(formData.singleBeds),
                 doubleSofas: Number(formData.doubleSofas),
                 singleSofas: Number(formData.singleSofas),
+                // 0 в поле — «не знаю»: в базу уходит null, а не 0
+                minsToMetro: formData.minsToMetro > 0 ? formData.minsToMetro : null,
             };
 
             await updateApartment.mutateAsync({ id: Number(apartmentId), ...data });

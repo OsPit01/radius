@@ -74,7 +74,7 @@ export function Footer() {
                             </li>
                             <li>
                                 <Link
-                                    href="/admin/add-apartment"
+                                    href="/admin/add-object"
                                     className="hover:text-primary"
                                 >
                                     Сдать квартиру

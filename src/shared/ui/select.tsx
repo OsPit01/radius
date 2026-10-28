@@ -3,15 +3,26 @@ import { createPortal } from 'react-dom';
 
 import { Check, ChevronDown } from '@/components/icons';
 import { cn } from '@/shared/lib/utils';
+import { useFieldControl } from '@/shared/ui/field';
 
 /*
- * Select без сторонних библиотек (раньше был Radix). API как у shadcn:
+ * Select без сторонних библиотек:
  *   <Select> <SelectTrigger><SelectValue /></SelectTrigger>
  *            <SelectContent><SelectGroup><SelectLabel /><SelectItem /></SelectGroup></SelectContent> </Select>
  *
+ * Почему не нативный <select> с appearance: base-select: он стилизуется только в Chrome/Edge 135+ и Safari 27,
+ * в Firefox остаётся системный список, а в browserslist проекта Chrome/Edge ≥100, Safari ≥15.4, Firefox ≥100.
+ * Когда base-select появится у всех целевых браузеров, этот компонент стоит заменить на него.
+ *
  * Доступность — паттерн «select-only combobox»: фокус всегда остаётся на кнопке, подсвеченный пункт
- * указывается через aria-activedescendant. Список открывается в портале (position: fixed), поэтому его
- * не обрезают overflow-родители (модалки и т.п.).
+ * указывается через aria-activedescendant (role=combobox + aria-haspopup=listbox обязывают к этой клавиатуре целиком).
+ *
+ * Список:
+ *  - в браузерах с Popover API (Chrome/Edge 116+, Safari 17+, Firefox 125+) — popover="manual": попадает в верхний слой,
+ *    поэтому не зависит от z-index и overflow родителей и работает внутри нативного модального <dialog>
+ *    (рисуется на месте, без портала — иначе <dialog> сделал бы его inert);
+ *  - в остальных — портал в body и position: fixed с высоким z-index.
+ * Положение считаем в JS (getBoundingClientRect), потому что CSS anchor positioning пока есть только в Safari 27.
  *
  * Ограничение: подписи пунктов (value → label) собираются обходом children у <Select>, поэтому <SelectItem>
  * должен стоять прямо в JSX (можно внутри map / Fragment / SelectGroup), а не внутри своего компонента-обёртки.
@@ -348,15 +359,19 @@ function SelectTrigger({
     size = 'default',
     children,
     ref,
+    id,
     disabled,
     onClick,
     onKeyDown,
     onKeyUp,
+    'aria-invalid': ariaInvalid,
+    'aria-describedby': describedBy,
     ...props
 }: React.ComponentProps<'button'> & {
     size?: 'sm' | 'default';
 }) {
     const context = useSelect();
+    const field = useFieldControl();
     const hasValue = context.value !== undefined && context.value !== '';
     const activeIndex = context.open ? context.items.findIndex((item) => item.value === context.activeValue) : -1;
 
@@ -372,12 +387,15 @@ function SelectTrigger({
     return (
         <button
             ref={setRefs}
+            id={id ?? field?.id}
             type="button"
             role="combobox"
             aria-haspopup="listbox"
             aria-expanded={context.open}
             aria-controls={context.open ? context.contentId : undefined}
             aria-activedescendant={activeIndex >= 0 ? context.optionId(activeIndex) : undefined}
+            aria-describedby={cn(describedBy, field?.describedBy) || undefined}
+            aria-invalid={ariaInvalid ?? (field?.invalid ? true : undefined)}
             data-slot="select-trigger"
             data-size={size}
             data-state={context.open ? 'open' : 'closed'}
@@ -400,7 +418,9 @@ function SelectTrigger({
                 context.handleKeyUp(event);
             }}
             className={cn(
-                "flex w-fit cursor-pointer items-center justify-between gap-2 rounded-md border border-input bg-transparent px-3 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 data-[placeholder]:text-muted-foreground data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 dark:bg-input/30 dark:hover:bg-input/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground",
+                "flex w-fit cursor-pointer items-center justify-between gap-2 rounded-md border border-input bg-transparent px-3 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,background-color,border-color] disabled:cursor-not-allowed disabled:opacity-50 data-[placeholder]:text-muted-foreground data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 pointer-coarse:min-h-12 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground",
+                'focus-visible:border-ring focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
+                'aria-invalid:border-destructive focus-visible:aria-invalid:border-destructive focus-visible:aria-invalid:outline-destructive',
                 className,
             )}
             {...props}
@@ -423,15 +443,19 @@ type Placement = {
 function SelectContent({ className, children, style, ref, ...props }: React.ComponentProps<'div'>) {
     const { open, triggerRef, contentRef, contentId } = useSelect();
     const [placement, setPlacement] = React.useState<Placement>();
+    const nativePopover = typeof HTMLElement !== 'undefined' && 'popover' in HTMLElement.prototype;
 
     // Ставим список под кнопкой (или над ней, если снизу не хватает места) и держим там при скролле/ресайзе.
     React.useLayoutEffect(() => {
         if (!open) {
             return;
         }
+        const content = contentRef.current;
+        if (nativePopover && content && !content.matches(':popover-open')) {
+            content.showPopover();
+        }
         const update = () => {
             const trigger = triggerRef.current;
-            const content = contentRef.current;
             if (!trigger || !content) {
                 return;
             }
@@ -449,7 +473,7 @@ function SelectContent({ className, children, style, ref, ...props }: React.Comp
         };
         const onScroll = (event: Event) => {
             // прокрутка самого списка не двигает его
-            if (!contentRef.current?.contains(event.target as Node)) {
+            if (!content?.contains(event.target as Node)) {
                 update();
             }
         };
@@ -461,7 +485,17 @@ function SelectContent({ className, children, style, ref, ...props }: React.Comp
             window.removeEventListener('scroll', onScroll, true);
             setPlacement(undefined);
         };
-    }, [open, triggerRef, contentRef]);
+    }, [open, nativePopover, triggerRef, contentRef]);
+
+    // Когда положение первый раз посчитано (и применён max-height), ставим выбранный пункт по центру видимой области.
+    const positioned = placement !== undefined;
+    React.useLayoutEffect(() => {
+        const content = contentRef.current;
+        const selected = content?.querySelector<HTMLElement>('[role=option][aria-selected=true]');
+        if (positioned && content && selected) {
+            scrollItemIntoView(content, selected, true);
+        }
+    }, [positioned, contentRef]);
 
     if (!open || typeof document === 'undefined') {
         return null;
@@ -476,39 +510,45 @@ function SelectContent({ className, children, style, ref, ...props }: React.Comp
         }
     };
 
-    return createPortal(
+    const listbox = (
         <div
             ref={setRefs}
             id={contentId}
             role="listbox"
+            popover={nativePopover ? 'manual' : undefined}
             data-slot="select-content"
             data-state="open"
             data-side={placement?.side ?? 'bottom'}
+            data-positioned={positioned ? '' : undefined}
             // Клик по любой части списка (метка, разделитель, отступ, полоса прокрутки) фокусирует сам список —
             // сразу возвращаем фокус кнопке, иначе клавиатура перестанет работать.
             tabIndex={-1}
-            onFocus={() => triggerRef.current?.focus({ preventScroll: true })}
-            style={{
-                position: 'fixed',
-                top: placement ? placement.top : 0,
-                bottom: placement?.bottom,
-                left: placement?.left ?? 0,
-                minWidth: placement?.minWidth,
-                maxHeight: placement?.maxHeight,
-                // до первого замера положения не показываем, чтобы список не мигнул в углу
-                visibility: placement ? undefined : 'hidden',
-                ...style,
-            }}
+            onFocus={() => triggerRef.current?.focus()}
+            // Координаты передаём в CSS через переменные, а стили остаются в классах.
+            style={
+                {
+                    '--select-left': placement && `${placement.left}px`,
+                    '--select-top': placement?.top !== undefined ? `${placement.top}px` : undefined,
+                    '--select-bottom': placement?.bottom !== undefined ? `${placement.bottom}px` : undefined,
+                    '--select-min-width': placement && `${placement.minWidth}px`,
+                    '--select-max-height': placement && `${placement.maxHeight}px`,
+                    ...style,
+                } as React.CSSProperties
+            }
             className={cn(
-                'z-[1100] max-h-80 min-w-32 origin-top overflow-x-hidden overflow-y-auto rounded-md border bg-popover text-popover-foreground shadow-md outline-hidden data-[side=top]:origin-bottom motion-safe:animate-popover-in',
+                // inset-auto, m-0, p-0 сбрасывают стили браузера для [popover]; w-max! перебивает возможное `[&>*]:w-full` у родителя
+                'invisible fixed inset-auto z-[1100] m-0 w-max! origin-top animate-popover-in overflow-x-hidden overflow-y-auto rounded-md border bg-popover p-0 text-popover-foreground shadow-md data-[positioned]:visible data-[side=top]:origin-bottom',
+                'top-[var(--select-top,auto)] bottom-[var(--select-bottom,auto)] left-[var(--select-left,0px)]',
+                'max-h-[min(20rem,var(--select-max-height,20rem))] max-w-[calc(100vw-1rem)] min-w-[max(8rem,var(--select-min-width,0px))]',
                 className,
             )}
             {...props}
         >
             <div className="p-1">{children}</div>
-        </div>,
-        document.body,
+        </div>
     );
+
+    return nativePopover ? listbox : createPortal(listbox, document.body);
 }
 
 function SelectLabel({ className, ...props }: React.ComponentProps<'div'>) {
@@ -531,20 +571,9 @@ function SelectItem({
     const context = useSelect();
     const selected = context.value === value;
     const active = context.activeValue === value;
-    const ref = React.useRef<HTMLDivElement>(null);
-
-    // Пункты монтируются только при открытии списка: выбранный сразу ставим по центру видимой области.
-    React.useLayoutEffect(() => {
-        if (selected && ref.current && context.contentRef.current) {
-            scrollItemIntoView(context.contentRef.current, ref.current, true);
-        }
-        // только при монтировании
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     return (
         <div
-            ref={ref}
             id={context.optionId(context.items.findIndex((item) => item.value === value))}
             role="option"
             aria-selected={selected}
@@ -564,14 +593,15 @@ function SelectItem({
                 }
             }}
             className={cn(
-                "relative flex w-full cursor-pointer items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
+                // forced-colors: фон перекрашивается, поэтому подсвеченный пункт обводим системным цветом Highlight (outline, а не фон)
+                "relative flex min-h-8 w-full cursor-pointer items-center gap-2 rounded-sm py-1.5 ps-2 pe-8 text-sm select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground forced-colors:data-[highlighted]:outline-2 forced-colors:data-[highlighted]:-outline-offset-2 forced-colors:data-[highlighted]:outline-[color:Highlight] pointer-coarse:min-h-11 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
                 className,
             )}
             {...props}
         >
             <span
                 data-slot="select-item-indicator"
-                className="absolute right-2 flex size-3.5 items-center justify-center"
+                className="absolute end-2 flex size-3.5 items-center justify-center"
             >
                 {selected ? <Check className="size-4" /> : null}
             </span>
@@ -585,7 +615,8 @@ function SelectSeparator({ className, ...props }: React.ComponentProps<'div'>) {
         <div
             role="separator"
             data-slot="select-separator"
-            className={cn('pointer-events-none -mx-1 my-1 h-px bg-border', className)}
+            // border, а не фон: в режиме высокой контрастности фон перекрашивается и линия пропадает
+            className={cn('pointer-events-none -mx-1 my-1 h-0 border-t', className)}
             {...props}
         />
     );

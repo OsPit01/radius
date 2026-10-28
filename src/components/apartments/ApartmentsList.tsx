@@ -53,7 +53,7 @@ export function ApartmentsList({
         const matchesSofas = filters?.sofas == null || totalSofas >= filters.sofas;
 
         const matchesMetro =
-            filters?.metro == null || (apartment.metro !== '' && Number(apartment.metro) <= filters.metro);
+            filters?.metro == null || (apartment.minsToMetro > 0 && apartment.minsToMetro <= filters.metro);
 
         return (
             matchesSearch &&

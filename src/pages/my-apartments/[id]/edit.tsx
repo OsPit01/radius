@@ -498,8 +498,10 @@ export default function EditApartmentPage() {
                                         <input
                                             type="text"
                                             inputMode="numeric"
-                                            value={formData.metro}
-                                            onChange={(e) => updateField('metro', e.target.value.replace(/\D/g, ''))}
+                                            value={formData.minsToMetro || ''}
+                                            onChange={(e) =>
+                                                updateField('minsToMetro', Number(e.target.value.replace(/\D/g, '')))
+                                            }
                                             className={EDIT_INPUT_CLASS}
                                         />
                                     </div>

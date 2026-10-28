@@ -137,14 +137,14 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
                             </p>
                         </div>
 
-                        <div className="mt-2 flex flex-wrap items-center gap-x-2">
-                            <Metro className="h-5 w-5" />
-                            <p className="text-sm text-foreground">
-                                {apartment.apartment.metro
-                                    ? `${apartment.apartment.metro} минут до метро`
-                                    : 'Метро нет в шаговой доступности'}
-                            </p>
-                        </div>
+                        {!!apartment.apartment.minsToMetro && (
+                            <div className="mt-2 flex flex-wrap items-center gap-x-2">
+                                <Metro className="h-5 w-5" />
+                                <p className="text-sm text-foreground">
+                                    {apartment.apartment.minsToMetro} минут до метро
+                                </p>
+                            </div>
+                        )}
                         {sleepText && (
                             <div className="mt-2 flex flex-wrap items-center gap-x-2">
                                 <Bed className="h-5 w-5" />

@@ -1,17 +1,56 @@
-'use client';
+import * as React from 'react';
 
-import { useMemo } from 'react';
-
+import { Warning } from '@/components/icons';
 import { cn } from '@/shared/lib/utils';
 import { Label } from '@/shared/ui/label';
 import { Separator } from '@/shared/ui/separator';
+
+/*
+ * Field связывает подпись, подсказку и ошибку с полем без ручных id:
+ *   <Field invalid={…}> <FieldLabel>Город</FieldLabel> <Input /> <FieldDescription /> <FieldError /> </Field>
+ * - FieldLabel получает htmlFor, а Input / SelectTrigger — id поля;
+ * - у поля появляется aria-describedby на FieldDescription и FieldError (только пока они на странице);
+ * - invalid → aria-invalid у поля.
+ * Явные id / aria-describedby / aria-invalid, переданные полю, имеют приоритет.
+ * Если внутри Field несколько полей (например, радио-кнопки), задавайте им свои id; группе можно дать
+ * role="group" и aria-labelledby, а для группы с общей подписью лучше взять FieldSet + FieldLegend.
+ */
+
+type FieldContextValue = {
+    controlId: string;
+    descriptionId: string;
+    errorId: string;
+    describedBy: string | undefined;
+    invalid: boolean;
+    setHasDescription: (has: boolean) => void;
+    setHasError: (has: boolean) => void;
+};
+
+const FieldContext = React.createContext<FieldContextValue | null>(null);
+
+/** Свойства для поля ввода внутри <Field>; вне Field — null. */
+function useFieldControl() {
+    const context = React.useContext(FieldContext);
+    return context ? { id: context.controlId, describedBy: context.describedBy, invalid: context.invalid } : null;
+}
+
+/** Сообщает Field, что подсказка/ошибка сейчас отрисована, чтобы поле ссылалось только на существующие элементы. */
+function useRegister(present: boolean, setPresent: ((present: boolean) => void) | undefined) {
+    React.useLayoutEffect(() => {
+        if (!present || !setPresent) {
+            return;
+        }
+        setPresent(true);
+        return () => setPresent(false);
+    }, [present, setPresent]);
+}
 
 function FieldSet({ className, ...props }: React.ComponentProps<'fieldset'>) {
     return (
         <fieldset
             data-slot="field-set"
             className={cn(
-                'flex flex-col gap-6',
+                'flex flex-col gap-3',
                 'has-[>[data-slot=checkbox-group]]:gap-3 has-[>[data-slot=radio-group]]:gap-3',
                 className,
             )}
@@ -70,20 +109,43 @@ const FIELD_ORIENTATION_CLASS = {
 function Field({
     className,
     orientation = 'vertical',
+    invalid = false,
     ...props
-}: React.ComponentProps<'div'> & { orientation?: keyof typeof FIELD_ORIENTATION_CLASS | null }) {
+}: React.ComponentProps<'div'> & {
+    orientation?: keyof typeof FIELD_ORIENTATION_CLASS | null;
+    /** Поле с ошибкой: подпись краснеет, а полю выставляется aria-invalid. */
+    invalid?: boolean;
+}) {
+    const baseId = React.useId();
+    const [hasDescription, setHasDescription] = React.useState(false);
+    const [hasError, setHasError] = React.useState(false);
+    const descriptionId = `${baseId}-description`;
+    const errorId = `${baseId}-error`;
+
     return (
-        <div
-            role="group"
-            data-slot="field"
-            data-orientation={orientation}
-            className={cn(
-                'group/field flex w-full gap-3 data-[invalid=true]:text-destructive',
-                FIELD_ORIENTATION_CLASS[orientation ?? 'vertical'],
-                className,
-            )}
-            {...props}
-        />
+        <FieldContext.Provider
+            value={{
+                controlId: `${baseId}-control`,
+                descriptionId,
+                errorId,
+                describedBy: cn(hasDescription && descriptionId, hasError && errorId) || undefined,
+                invalid,
+                setHasDescription,
+                setHasError,
+            }}
+        >
+            <div
+                data-slot="field"
+                data-orientation={orientation}
+                data-invalid={invalid}
+                className={cn(
+                    'group/field flex w-full gap-1',
+                    FIELD_ORIENTATION_CLASS[orientation ?? 'vertical'],
+                    className,
+                )}
+                {...props}
+            />
+        </FieldContext.Provider>
     );
 }
 
@@ -97,12 +159,17 @@ function FieldContent({ className, ...props }: React.ComponentProps<'div'>) {
     );
 }
 
-function FieldLabel({ className, ...props }: React.ComponentProps<typeof Label>) {
+function FieldLabel({ className, htmlFor, ...props }: React.ComponentProps<typeof Label>) {
+    const field = useFieldControl();
+
     return (
         <Label
             data-slot="field-label"
+            htmlFor={htmlFor ?? field?.id}
             className={cn(
                 'group/field-label peer/field-label flex w-fit gap-2 leading-snug group-data-[disabled=true]/field:opacity-50',
+                // подпись краснеет и по пропу invalid, и когда браузер (через :user-invalid) выставил aria-invalid полю
+                'group-has-[[aria-invalid=true]]/field:text-destructive group-data-[invalid=true]/field:text-destructive',
                 'has-[>[data-slot=field]]:w-full has-[>[data-slot=field]]:flex-col has-[>[data-slot=field]]:rounded-md has-[>[data-slot=field]]:border [&>*]:data-[slot=field]:p-4',
                 'has-data-[state=checked]:border-primary has-data-[state=checked]:bg-primary/5 dark:has-data-[state=checked]:bg-primary/10',
                 className,
@@ -125,7 +192,10 @@ function FieldTitle({ className, ...props }: React.ComponentProps<'div'>) {
     );
 }
 
-function FieldDescription({ className, ...props }: React.ComponentProps<'p'>) {
+function FieldDescription({ className, id, ...props }: React.ComponentProps<'p'>) {
+    const context = React.useContext(FieldContext);
+    useRegister(true, context?.setHasDescription);
+
     return (
         <p
             data-slot="field-description"
@@ -136,7 +206,22 @@ function FieldDescription({ className, ...props }: React.ComponentProps<'p'>) {
                 className,
             )}
             {...props}
+            id={context?.descriptionId ?? id}
         />
+    );
+}
+
+/** Звёздочка «поле обязательное». Читалкам её не зачитываем: о required им сообщает сам <input required>. */
+function FieldRequired({ className, ...props }: React.ComponentProps<'span'>) {
+    return (
+        <span
+            aria-hidden="true"
+            data-slot="field-required"
+            className={cn('text-primary', className)}
+            {...props}
+        >
+            *
+        </span>
     );
 }
 
@@ -171,11 +256,14 @@ function FieldError({
     className,
     children,
     errors,
+    id,
     ...props
 }: React.ComponentProps<'div'> & {
     errors?: Array<{ message?: string } | undefined>;
 }) {
-    const content = useMemo(() => {
+    const context = React.useContext(FieldContext);
+
+    const content = React.useMemo(() => {
         if (children) {
             return children;
         }
@@ -191,11 +279,13 @@ function FieldError({
         }
 
         return (
-            <ul className="ml-4 flex list-disc flex-col gap-1">
+            <ul className="ms-4 flex list-disc flex-col gap-1">
                 {uniqueErrors.map((error, index) => error?.message && <li key={index}>{error.message}</li>)}
             </ul>
         );
     }, [children, errors]);
+
+    useRegister(Boolean(content), context?.setHasError);
 
     if (!content) {
         return null;
@@ -205,10 +295,13 @@ function FieldError({
         <div
             role="alert"
             data-slot="field-error"
-            className={cn('text-sm font-normal text-destructive', className)}
+            className={cn('flex items-start gap-1.5 text-sm font-normal text-destructive', className)}
             {...props}
+            id={context?.errorId ?? id}
         >
-            {content}
+            {/* значок рядом с текстом: ошибка не должна передаваться одним лишь цветом */}
+            <Warning className="mt-0.5 size-4" />
+            <div>{content}</div>
         </div>
     );
 }
@@ -221,7 +314,9 @@ export {
     FieldGroup,
     FieldLabel,
     FieldLegend,
+    FieldRequired,
     FieldSeparator,
     FieldSet,
     FieldTitle,
+    useFieldControl,
 };

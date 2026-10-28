@@ -1,15 +1,13 @@
-import { Car, Clipboard, Clock, Metro, Money, Note, Sofa, Sparkles } from '@/components/icons';
+import { Car, Clipboard, Clock, Money, Note, Ruler, Sofa, Sparkles } from '@/components/icons';
+import { formatAddressLine } from '@/lib/address';
 import { AMENITIES, CURRENCIES, getTypeLabel, PARKING_TYPES } from '@/lib/constants';
 import { PAYERTYPE } from '@/lib/constants/info-company';
-import type { FormData, StepProps } from '@/lib/utils';
+import type { StepProps } from '@/lib/utils';
 import { EDIT_INPUT_CLASS, INPUT_CLASS, toggleAmenity } from '@/lib/utils';
 
 import { CustomSelect } from '../components/CustomSelect';
 
-export function Step4_Details({ formData, updateField, error, errorFields }: StepProps) {
-    // ===== ФУНКЦИЯ ДЛЯ ПРОВЕРКИ ОШИБОК =====
-    const hasError = (field: keyof FormData) => errorFields.includes(field);
-
+export function Step3_Details({ formData, updateField, error, errors }: StepProps) {
     // ===== ОПЦИИ ДЛЯ ВЫБОРА КОЛИЧЕСТВА МЕСТ ДЛЯ СНА =====
     const SLEEP_OPTIONS = Array.from({ length: 11 }, (_, i) => ({
         value: String(i),
@@ -34,7 +32,7 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
 
     return (
         <fieldset className="animate-[fadeIn_0.3s_ease] text-foreground">
-            <legend className="mb-2.5 text-[17px] text-foreground">Шаг 4: Детали объекта</legend>
+            <legend className="mb-2.5 text-[17px] text-foreground">Шаг 3: Детали объекта</legend>
 
             {error && (
                 <div
@@ -58,7 +56,7 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
                     type="text"
                     value={formData.title}
                     onChange={(e) => updateField('title', e.target.value)}
-                    className={`${INPUT_CLASS} ${hasError('title') ? '!border-destructive' : ''}`}
+                    className={`${INPUT_CLASS} ${errors.includes('title') ? '!border-destructive' : ''}`}
                     placeholder="Например: Уютная студия в центре города"
                 />
             </div>
@@ -84,7 +82,7 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
                         type="number"
                         value={formData.price || ''}
                         onChange={(e) => updateField('price', Number(e.target.value))}
-                        className={`${INPUT_CLASS} ${hasError('price') ? '!border-destructive' : ''}`}
+                        className={`${INPUT_CLASS} ${errors.includes('price') ? '!border-destructive' : ''}`}
                         placeholder="100"
                         min="30"
                     />
@@ -125,7 +123,7 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
                         type="number"
                         value={formData.rooms || ''}
                         onChange={(e) => updateField('rooms', Number(e.target.value))}
-                        className={`${INPUT_CLASS} ${hasError('rooms') ? '!border-destructive' : ''}`}
+                        className={`${INPUT_CLASS} ${errors.includes('rooms') ? '!border-destructive' : ''}`}
                         placeholder="1"
                         min="1"
                         max="20"
@@ -143,7 +141,7 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
                         type="number"
                         value={formData.capacity || ''}
                         onChange={(e) => updateField('capacity', Number(e.target.value))}
-                        className={`${INPUT_CLASS} ${hasError('capacity') ? '!border-destructive' : ''}`}
+                        className={`${INPUT_CLASS} ${errors.includes('capacity') ? '!border-destructive' : ''}`}
                         placeholder="2"
                         min="1"
                         max="35"
@@ -217,31 +215,14 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
             {/* ========== РАЗДЕЛИТЕЛЬ ========== */}
             <div className="mt-7 mb-5 border-t border-border" />
 
-            {/* ===== СЕКЦИЯ: РАСПОЛОЖЕНИЕ ===== */}
+            {/* ===== СЕКЦИЯ: ПАРАМЕТРЫ ОБЪЕКТА ===== */}
             <div className="mb-5 flex items-center gap-2">
-                <Metro className="h-6 w-6 text-primary" />
-                <h3 className="text-base font-semibold tracking-wide text-primary uppercase">Расположение</h3>
-            </div>
-            <div className="flex flex-col gap-2">
-                <label
-                    htmlFor="metro-field"
-                    className="pt-[5px] text-sm font-semibold text-foreground"
-                >
-                    Метро (минут пешком)
-                </label>
-                <input
-                    id="metro-field"
-                    type="text"
-                    inputMode="numeric"
-                    value={formData.metro || ''}
-                    onChange={(e) => updateField('metro', e.target.value.replace(/\D/g, ''))}
-                    className={INPUT_CLASS}
-                    placeholder="5 минут до метро"
-                />
+                <Ruler className="h-6 w-6 text-primary" />
+                <h3 className="text-base font-semibold tracking-wide text-primary uppercase">Параметры объекта</h3>
             </div>
 
             {/* Площадь / этаж / санузлы */}
-            <div className="mt-5 grid grid-cols-3 gap-4 max-[640px]:grid-cols-1">
+            <div className="grid grid-cols-3 gap-4 max-[640px]:grid-cols-1">
                 <div className="flex flex-col gap-2">
                     <label
                         htmlFor="area-field"
@@ -450,7 +431,7 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
                         value={formData.unp ?? ''}
                         onChange={(e) => updateField('unp', e.target.value.replace(/\D/g, '').slice(0, 9))}
                         placeholder="Введите УНП"
-                        className={`${INPUT_CLASS} w-full max-w-[300px] ${hasError('unp') ? '!border-destructive' : ''}`}
+                        className={`${INPUT_CLASS} w-full max-w-[300px] ${errors.includes('unp') ? '!border-destructive' : ''}`}
                         maxLength={9}
                     />
                     <label className="text-medium text-sm text-foreground">Наименование организации</label>
@@ -470,8 +451,7 @@ export function Step4_Details({ formData, updateField, error, errorFields }: Ste
                 aria-live="polite"
             >
                 <p>{getTypeLabel(formData.type)}</p>
-                <p>Адрес: {formData.formattedAddress || 'не указан'}</p>
-                {formData.metro && <p>Метро: {formData.metro}</p>}
+                <p>Адрес: {formatAddressLine(formData) || 'не указан'}</p>
             </div>
         </fieldset>
     );

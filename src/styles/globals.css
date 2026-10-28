@@ -8,13 +8,15 @@
     var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 
-  /* Появление выпадающих списков (Select в shared/ui): `motion-safe:animate-popover-in`. */
+  /* Появление выпадающих списков (Select в shared/ui): `animate-popover-in`.
+     Стартовый масштаб берётся из --popover-scale-from: при prefers-reduced-motion он равен 1,
+     и остаётся только плавное проявление без движения. */
   --animate-popover-in: popover-in 0.12s ease-out;
 
   @keyframes popover-in {
     from {
       opacity: 0;
-      transform: scale(0.96);
+      transform: scale(var(--popover-scale-from, 0.96));
     }
     to {
       opacity: 1;
@@ -23,10 +25,16 @@
   }
 }
 
+:root {
+  @media (prefers-reduced-motion: reduce) {
+    --popover-scale-from: 1;
+  }
+}
+
 /*
  * ===== ТЕМА =====
  *
- * Как это устроено (тот же принцип, что в shadcn/ui, Vercel и chatgpt.com):
+ * Как это устроено (тот же принцип, что у Vercel и chatgpt.com):
  *
  *   1. Компоненты НИКОГДА не знают конкретных цветов. Они используют только
  *      семантические утилиты: bg-background, bg-card, bg-muted, text-foreground,
@@ -116,15 +124,16 @@
   --border: color-mix(in oklab, var(--card) 88%, var(--foreground));
   --ring: var(--primary);
 
-  /* Выпадающие списки/поповеры — как карточка; hover-фон (accent) и secondary — как muted; рамка поля — как border. */
-
+  /* Выпадающие списки/поповеры — как карточка; hover-фон (accent) и secondary — как muted. */
   --popover: var(--card);
   --popover-foreground: var(--foreground);
   --accent: var(--muted);
   --accent-foreground: var(--foreground);
   --secondary: var(--muted);
   --secondary-foreground: var(--foreground);
-  --input: var(--border);
+  /* Рамка поля ввода, выпадающего списка и контурной кнопки. Темнее обычной --border: граница
+     интерактивного элемента должна давать не меньше 3:1 к фону (WCAG 1.4.11). */
+  --input: color-mix(in oklab, var(--card) 57%, var(--foreground));
 
   /* Цвет текста на заливке: белый или чёрный — что контрастнее.
      Порог по яркости в OKLCH: светлее 0.65 → чёрный, темнее → белый. */
