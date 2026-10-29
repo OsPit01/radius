@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-import type { ChatPerson } from '@/lib/chat';
+import { type ChatPerson, MAX_MESSAGE_LENGTH } from '@/lib/chat';
 import type { RouterOutputs } from '@/trpc/react';
 
 import { ChatHeader } from './ChatHeader';
@@ -139,8 +139,9 @@ export function ChatWindow({
                     }}
                     placeholder={conversationActive ? 'Сообщение...' : 'Беседа заблокирована'}
                     disabled={!conversationActive}
-                    // maxLength — жёсткий лимит символов. Меняй тут (300–350 норм для чата).
-                    maxLength={300}
+                    // maxLength — жёсткий лимит символов: единая константа проекта
+                    // (server chat.send проверяет то же число через Zod).
+                    maxLength={MAX_MESSAGE_LENGTH}
                     className="min-w-0 flex-1 resize-none overflow-hidden rounded-2xl border border-border px-4 py-2.5 pr-5 text-[15px] text-foreground outline-none focus:border-primary disabled:cursor-not-allowed disabled:opacity-60"
                 />
                 <button

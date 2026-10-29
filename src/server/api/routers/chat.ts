@@ -3,6 +3,7 @@ import { and, asc, count, eq, max, ne, or } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import z from 'zod';
 
+import { MAX_MESSAGE_LENGTH } from '@/lib/chat';
 import { isAdminRole } from '@/lib/constants/roles';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import { apartments, booking, conversation, message, users } from '@/server/db/schema';
@@ -306,7 +307,7 @@ export const chatRouter = createTRPCRouter({
         .input(
             z.object({
                 conversationId: z.number(),
-                text: z.string().trim().min(1).max(500),
+                text: z.string().trim().min(1).max(MAX_MESSAGE_LENGTH),
             }),
         )
         .mutation(async ({ ctx, input }) => {

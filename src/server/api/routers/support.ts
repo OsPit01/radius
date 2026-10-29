@@ -2,6 +2,7 @@ import { TRPCError } from '@trpc/server';
 import { and, asc, count, eq, inArray, max, ne } from 'drizzle-orm';
 import z from 'zod';
 
+import { MAX_MESSAGE_LENGTH } from '@/lib/chat';
 import { ADMIN_ROLES, isAdminRole } from '@/lib/constants/roles';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import { notification, supportMessage, supportTicket, users } from '@/server/db/schema';
@@ -78,7 +79,7 @@ export const supportRouter = createTRPCRouter({
         .input(
             z.object({
                 id: z.number(),
-                text: z.string().trim().min(1).max(500),
+                text: z.string().trim().min(1).max(MAX_MESSAGE_LENGTH),
             }),
         )
         .mutation(async ({ ctx, input }) => {
@@ -141,7 +142,20 @@ export const supportRouter = createTRPCRouter({
                 message: 'Только для администратора',
             });
         }
-        const tickets = await ctx.db.select().from(supportTicket);
+        // Тикеты + ДАННЫЕ ВЛАДЕЛЬЦА (кто пишет обращение): email, id, имя.
+        // leftJoin: даже если пользователь удалён — тикет останется, owner будет null.
+        const tickets = await ctx.db
+            .select({
+                ticket: supportTicket,
+                owner: {
+                    id: users.id,
+                    name: users.name,
+                    email: users.email,
+                    image: users.image,
+                },
+            })
+            .from(supportTicket)
+            .leftJoin(users, eq(supportTicket.userId, users.id));
         const rows = await ctx.db
             .select({ ticketId: supportMessage.ticketId, unread: count() })
             .from(supportMessage)
@@ -157,9 +171,12 @@ export const supportRouter = createTRPCRouter({
         const lastByTicket = new Map(lastRows.map((r) => [r.ticketId, r.lastAt]));
         return tickets
             .map((t) => ({
-                ...t,
-                unreadCount: unreadByTicket.get(t.id) ?? 0,
-                lastActivity: lastByTicket.get(t.id) ?? t.createdAt,
+                // Разворачиваем поля самого тикета (id, status, createdAt...)
+                ...t.ticket,
+                // Кто написал обращение (для карточки в админке)
+                owner: t.owner,
+                unreadCount: unreadByTicket.get(t.ticket.id) ?? 0,
+                lastActivity: lastByTicket.get(t.ticket.id) ?? t.ticket.createdAt,
             }))
             .sort((a, b) => b.lastActivity.getTime() - a.lastActivity.getTime());
     }),
