@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { and, asc, eq, inArray } from 'drizzle-orm';
+import { and, asc, count, eq, inArray, max, ne } from 'drizzle-orm';
 import z from 'zod';
 
 import { ADMIN_ROLES, isAdminRole } from '@/lib/constants/roles';
@@ -52,6 +52,28 @@ export const supportRouter = createTRPCRouter({
             .where(eq(supportMessage.ticketId, input.id))
             .orderBy(asc(supportMessage.createdAt));
     }),
+
+    markRead: protectedProcedure.input(z.object({ id: z.number() })).mutation(async ({ ctx, input }) => {
+        const userId = ctx.session.user.id;
+        const [target] = await ctx.db.select().from(supportTicket).where(eq(supportTicket.id, input.id));
+        if (!target) {
+            throw new TRPCError({
+                code: 'NOT_FOUND',
+                message: 'Не найдено',
+            });
+        }
+        const isOwner = target.userId === userId;
+        const isAdmin = isAdminRole(ctx.session.user.role);
+        if (!isOwner && !isAdmin) {
+            throw new TRPCError({ code: 'FORBIDDEN', message: 'Нет доступа к этой заявке' });
+        }
+        await ctx.db
+            .update(supportMessage)
+            .set({ isRead: true })
+            .where(and(eq(supportMessage.ticketId, input.id), ne(supportMessage.senderId, userId)));
+        return { ok: true };
+    }),
+
     send: protectedProcedure
         .input(
             z.object({
@@ -112,13 +134,34 @@ export const supportRouter = createTRPCRouter({
         return ctx.db.select().from(supportTicket).where(eq(supportTicket.userId, userId));
     }),
     listAll: protectedProcedure.query(async ({ ctx }) => {
+        const userId = ctx.session.user.id;
         if (!isAdminRole(ctx.session.user.role)) {
             throw new TRPCError({
                 code: 'FORBIDDEN',
                 message: 'Только для администратора',
             });
         }
-        return ctx.db.select().from(supportTicket);
+        const tickets = await ctx.db.select().from(supportTicket);
+        const rows = await ctx.db
+            .select({ ticketId: supportMessage.ticketId, unread: count() })
+            .from(supportMessage)
+            .where(and(eq(supportMessage.isRead, false), ne(supportMessage.senderId, userId)))
+            .groupBy(supportMessage.ticketId);
+        // Когда было ПОСЛЕДНЕЕ сообщение в каждой заявке для сортивроки на верх
+        const unreadByTicket = new Map(rows.map((r) => [r.ticketId, r.unread]));
+        const lastRows = await ctx.db
+            .select({ ticketId: supportMessage.ticketId, lastAt: max(supportMessage.createdAt) })
+            .from(supportMessage)
+            .groupBy(supportMessage.ticketId);
+        // Словарь «id заявки → дата последнего сообщения»
+        const lastByTicket = new Map(lastRows.map((r) => [r.ticketId, r.lastAt]));
+        return tickets
+            .map((t) => ({
+                ...t,
+                unreadCount: unreadByTicket.get(t.id) ?? 0,
+                lastActivity: lastByTicket.get(t.id) ?? t.createdAt,
+            }))
+            .sort((a, b) => b.lastActivity.getTime() - a.lastActivity.getTime());
     }),
     assign: protectedProcedure.input(z.object({ id: z.number() })).mutation(async ({ ctx, input }) => {
         if (!isAdminRole(ctx.session.user.role)) {
