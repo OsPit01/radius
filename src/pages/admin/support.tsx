@@ -43,6 +43,7 @@ export default function SupportPage() {
         // чтобы ответ появился мгновенно, а не через 5 секунд.
         onSuccess: () => void utils.support.messages.invalidate(),
     });
+    const markRead = api.support.markRead.useMutation({ onSuccess: () => void utils.support.listAll.invalidate() });
 
     // Отправить ответ: два guard'а — пустой текст и «чат не открыт».
     const handleSend = async () => {
@@ -85,9 +86,17 @@ export default function SupportPage() {
                                     // w-full — «займи свою ячейку грида» (не всю страницу).
                                     // mb-0: отступы между карточками делает gap-6 грида.
                                     className="flex w-full cursor-pointer flex-col rounded-xl border border-border bg-card p-4 text-left transition-colors hover:border-primary"
-                                    onClick={() => setSelectedId(item.id)}
+                                    onClick={() => {
+                                        setSelectedId(item.id);
+                                        markRead.mutate({ id: item.id });
+                                    }}
                                 >
                                     <span className="font-semibold">Заявка #{item.id}</span>
+                                    {item.unreadCount > 0 && (
+                                        <span className="rounded-full bg-destructive px-2.5 py-0.5 text-sm font-semibold text-destructive-foreground">
+                                            {item.unreadCount}
+                                        </span>
+                                    )}
                                     <span className="text-sm text-muted-foreground">
                                         Статус: {item.status} — {formatChatDate(item.createdAt)}
                                     </span>
