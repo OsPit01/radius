@@ -11,6 +11,7 @@ import { selectApartmentCards, selectApartmentOwnList, selectApartmentPublic } f
 import { createTRPCRouter, protectedProcedure, publicProcedure } from '@/server/api/trpc';
 import type * as schema from '@/server/db/schema';
 import { apartments, notification, users } from '@/server/db/schema';
+import { getSupabaseAdmin } from '@/server/supabase';
 
 type Database = PostgresJsDatabase<typeof schema>;
 
@@ -277,6 +278,16 @@ export const apartmentRouter = createTRPCRouter({
             .set({ ...fields, updatedAt: new Date() })
             .where(eq(apartments.id, id))
             .returning();
+
+        // Файлы, которые убрали из списка, удаляем и из хранилища — иначе они
+        // останутся «висеть» в Supabase Storage и занимать место.
+        const removedImages = (existing.images ?? []).filter((url) => !(input.images ?? []).includes(url));
+        if (removedImages.length > 0) {
+            const fileNames = removedImages.map((url) => url.split('/').pop()).filter((name): name is string => !!name);
+            if (fileNames.length > 0) {
+                await getSupabaseAdmin().storage.from('apartments').remove(fileNames);
+            }
+        }
 
         return updated;
     }),

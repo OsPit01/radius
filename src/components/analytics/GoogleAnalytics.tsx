@@ -1,33 +1,60 @@
+'use client';
+
+// ============================================================
+// GoogleAnalytics — подключение GA4 и Google Ads ПОСЛЕ согласия
+// ============================================================
+//
+// Как это работает теперь:
+// 1. В _document.tsx остаётся «согласие по умолчанию — всё запрещено»
+//    (denied). Это защита на самый ранний момент загрузки.
+// 2. НИЖЕ (здесь) скрипт gtag.js вообще НЕ загружается, пока
+//    пользователь не дал согласие на «Аналитику» или «Маркетинг».
+//    Никаких запросов к Google до выбора — ни cookie, ни пикселей.
+// 3. После выбора категорий сюда приходят значения и в gtag
+//    отправляется обновлённое состояние согласия:
+//    аналитика → analytics_storage, реклама → ad_storage и связанные.
+//
+// Категории независимы: можно включить аналитику без рекламы —
+// тогда GA работает, а конверсии Google Ads не подключаются.
+// ============================================================
+
 import Script from 'next/script';
+
+import { useCookieConsent } from '@/components/consent/CookieConsentContext';
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
-// Подключает Google Analytics 4 (gtag) с режимом согласия (consent mode).
-//
-// Как работает «режим согласия»:
-// 1. До загрузки gtag.js объявляем default-состояние — всё ЗАПРЕЩЕНО (denied).
-//    Google получает сигналы, но НЕ сохраняет cookies аналитики/рекламы.
-// 2. После того как пользователь принял cookies (CookieConsent), вызывается
-//    gtag('consent', 'update', { ... 'granted' }) — и аналитика включается.
-//
-// Активируется только когда задана NEXT_PUBLIC_GA_ID, иначе ничего не рендерит.
-
-// Шаг 1 (default-согласие, `beforeInteractive`) подключается в pages/_document.tsx.
-// Ниже — шаги 2–4: загрузка gtag.js, инициализация и функция конверсии.
 export function GoogleAnalytics() {
+    const { consent } = useCookieConsent();
+
+    // Активируется только когда задан NEXT_PUBLIC_GA_ID, иначе ничего не рендерит.
     if (!GA_ID) {
+        return null;
+    }
+
+    // Согласия ещё нет (не прочитано или пользователь не решал) — не грузим Google.
+    if (!consent) {
+        return null;
+    }
+
+    const analytics = consent.categories.analytics;
+    const marketing = consent.categories.marketing;
+
+    // Ни аналитики, ни маркетинга — Google не нужен вовсе.
+    if (!analytics && !marketing) {
         return null;
     }
 
     return (
         <>
-            {/* 2. Загрузка gtag.js. */}
+            {/* Загрузка gtag.js — только после выбора категорий. */}
             <Script
                 src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
                 strategy="lazyOnload"
             />
 
-            {/* 3. Инициализация GA (данные не пишутся, пока consent = denied). */}
+            {/* Инициализация: обновляем состояние согласия ФАКТИЧЕСКИМ выбором
+                пользователя и только затем конфигурируем счётчик. */}
             <Script
                 id="ga-config"
                 strategy="afterInteractive"
@@ -35,17 +62,25 @@ export function GoogleAnalytics() {
                 {`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
+          gtag('consent', 'update', {
+            'ad_storage': ${marketing ? "'granted'" : "'denied'"},
+            'ad_user_data': ${marketing ? "'granted'" : "'denied'"},
+            'ad_personalization': ${marketing ? "'granted'" : "'denied'"},
+            'analytics_storage': ${analytics ? "'granted'" : "'denied'"}
+          });
           gtag('js', new Date());
           gtag('config', '${GA_ID}');
         `}
             </Script>
 
-            {/* 4. Конверсия Google Ads: функция вызывается из кода (reportConversion). */}
-            <Script
-                id="ga-conversion"
-                strategy="afterInteractive"
-            >
-                {`
+            {/* Конверсия Google Ads: вызывается из кода (reportConversion)
+                при бронировании. Подключается только при согласии на «Рекламу». */}
+            {marketing && (
+                <Script
+                    id="ga-conversion"
+                    strategy="afterInteractive"
+                >
+                    {`
           window.gtag_report_conversion = function (url) {
             var callback = function () {
               if (typeof url !== 'undefined') {
@@ -61,7 +96,8 @@ export function GoogleAnalytics() {
             return false;
           };
         `}
-            </Script>
+                </Script>
+            )}
         </>
     );
 }

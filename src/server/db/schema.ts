@@ -1,6 +1,6 @@
 import { type AdapterAccount } from '@auth/core/adapters';
 import { relations } from 'drizzle-orm';
-import { index, pgTableCreator, primaryKey, uniqueIndex } from 'drizzle-orm/pg-core';
+import { index, pgEnum, pgTableCreator, primaryKey, uniqueIndex } from 'drizzle-orm/pg-core';
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -9,6 +9,22 @@ import { index, pgTableCreator, primaryKey, uniqueIndex } from 'drizzle-orm/pg-c
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
 export const createTable = pgTableCreator((name) => `radius_${name}`);
+// ===== ENUM-ТИПЫ =====
+// Объявляем их ПЕРЕД таблицами: таблица apartments ссылается на apartmentStatusEnum,
+// а booking — на bookingStatusEnum. Если объявить enum после таблицы — будет ошибка
+// «Cannot access before initialization» (временная мёртвая зона JavaScript).
+export const bookingStatusEnum = pgEnum('booking_status', [
+    'new', // только что создана, ждёт ответа владельца
+    'approved', // владелец подтвердил
+    'rejected', // владелец отклонил
+    'cancelled', // отменена (гостем или владельцем)
+    'expired', // просрочена — владелец не ответил вовремя (ставит cron в booking-expiry.ts)
+]);
+export const apartmentStatusEnum = pgEnum('apartment_status', [
+    'moderation', // ждёт проверки админом
+    'active', // опубликована, видна всем
+    'inactive', // отклонена (причина в rejectionReason)
+]);
 // ===== ТАБЛИЦА КВАРТИР =====
 export const apartments = createTable(
     'apartment',
@@ -52,7 +68,7 @@ export const apartments = createTable(
         parking: d.varchar({ length: 50 }).default(''),
         images: d.text('images').array().default([]),
         createdById: d.varchar({ length: 255 }).references(() => users.id),
-        status: d.varchar({ length: 20 }).notNull().default('moderation'),
+        status: apartmentStatusEnum('status').notNull().default('moderation'),
         rejectionReason: d.text(),
         payerType: d.varchar({ length: 20 }).default('individual'),
         unp: d.varchar({ length: 9 }),
@@ -191,7 +207,6 @@ export const notification = createTable('notification', (d) => ({
         .$defaultFn(() => new Date())
         .notNull(),
 }));
-
 export const booking = createTable('booking', (d) => ({
     id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
     apartmentId: d
@@ -206,7 +221,7 @@ export const booking = createTable('booking', (d) => ({
     checkInDate: d.date({ mode: 'date' }).notNull(),
     checkOutDate: d.date({ mode: 'date' }).notNull(),
     message: d.text(),
-    status: d.varchar({ length: 20 }).notNull().default('new'),
+    status: bookingStatusEnum('status').notNull().default('new'),
     createdAt: d
         .timestamp({ withTimezone: true })
         .$defaultFn(() => new Date())

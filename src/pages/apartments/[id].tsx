@@ -15,6 +15,7 @@ import { parseApartmentId } from '@/lib/apartment-id';
 import { getCurrencySymbol } from '@/lib/constants/currencies';
 import { parseBookingChildren, parseBookingGuests } from '@/lib/search-params';
 import { getApartmentOgImagePath, SITE_URL } from '@/lib/seo';
+import { transliterate } from '@/lib/transliterate';
 import type { RouterOutputs } from '@/trpc/react';
 import { createServerCaller } from '@/trpc/server';
 
@@ -124,7 +125,7 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
                                     <>
                                         {', '}
                                         <Link
-                                            href={`/microdistrict/${encodeURIComponent(apartment.apartment.microdistrict)}`}
+                                            href={`/rent/flat/${transliterate(apartment.apartment.city)}/microdistrict/${transliterate(apartment.apartment.microdistrict)}`}
                                             className="text-foreground underline underline-offset-2 transition-colors hover:text-primary"
                                         >
                                             {apartment.apartment.microdistrict}

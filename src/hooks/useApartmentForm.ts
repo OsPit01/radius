@@ -1,6 +1,6 @@
 // src/hooks/useApartmentForm.ts
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { useRouter } from 'next/router';
 
@@ -81,6 +81,9 @@ export function useApartmentForm(apartmentId: string) {
     const [formData, setFormData] = useState<ApartmentFormData>(defaultFormData);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    // id квартиры, данные которой уже подгружены в форму. Нужен, чтобы при
+    // повторном рефетче (например, возврат на вкладку) НЕ затирать правки пользователя.
+    const initializedIdRef = useRef<string | null>(null);
 
     const updateField = (field: keyof ApartmentFormData, value: string | number | string[]) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
@@ -95,7 +98,8 @@ export function useApartmentForm(apartmentId: string) {
     );
 
     useEffect(() => {
-        if (apartmentData) {
+        if (apartmentData && initializedIdRef.current !== apartmentId) {
+            initializedIdRef.current = apartmentId;
             const apt = apartmentData.apartment;
             setFormData({
                 type: apt.type ?? 'apartment',
@@ -131,7 +135,7 @@ export function useApartmentForm(apartmentId: string) {
                 unp: apt.unp ?? '',
             });
         }
-    }, [apartmentData]);
+    }, [apartmentData, apartmentId]);
 
     // ===== ОБНОВЛЕНИЕ =====
     const updateApartment = api.apartment.update.useMutation({

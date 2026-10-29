@@ -6,11 +6,12 @@ import { optimizeImage } from '@/server/image-optimizer';
 import { enforceRateLimit } from '@/server/rate-limit';
 import { getSupabaseAdmin } from '@/server/supabase';
 
-// Максимальный размер загружаемого изображения — 5 МБ.
-const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
+// Максимальный размер загружаемого изображения — 15 МБ (достаточно для фото с камеры/фотографа).
+const MAX_IMAGE_SIZE_BYTES = 15 * 1024 * 1024;
 
 // Защита от флуда: сколько изображений один пользователь может загрузить за час.
-const UPLOAD_RATE_LIMIT = 20;
+// 100 — хватает на несколько альбомов (одна квартира ~10–20 фото), но не даёт флудить.
+const UPLOAD_RATE_LIMIT = 100;
 const UPLOAD_RATE_WINDOW_MS = 60 * 60 * 1000;
 
 export const uploadRouter = createTRPCRouter({
@@ -43,7 +44,7 @@ export const uploadRouter = createTRPCRouter({
         if (buffer.length > MAX_IMAGE_SIZE_BYTES) {
             throw new TRPCError({
                 code: 'PAYLOAD_TOO_LARGE',
-                message: 'Файл слишком большой. Максимум 5 МБ',
+                message: 'Файл слишком большой. Максимум 15 МБ. Сожмите фото или выберите другое.',
             });
         }
 
@@ -62,7 +63,8 @@ export const uploadRouter = createTRPCRouter({
         } catch {
             throw new TRPCError({
                 code: 'BAD_REQUEST',
-                message: 'Не удалось обработать изображение. Убедитесь, что файл не повреждён и не является анимацией.',
+                message:
+                    'Не удалось обработать изображение. Поддерживаемые форматы: JPEG, PNG, WebP, GIF, TIFF, AVIF. Убедитесь, что файл не повреждён.',
             });
         }
 

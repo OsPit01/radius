@@ -251,3 +251,16 @@ input:-webkit-autofill:active {
     transform: translateY(0);
   }
 }
+
+/* Стрелка на активном городе: периодически «покачивается» влево-вправо,
+   подсказывая «нажми на город». left-3/right-3 = 12px. */
+@keyframes nudgeX {
+  0%,
+  100% {
+    transform: translateX(5px);
+  }
+  30% {
+    transform: translateX(-5px);
+  }
+ 
+}

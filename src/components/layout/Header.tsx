@@ -4,8 +4,9 @@ import Link from 'next/link';
 import { signOut, useSession } from 'next-auth/react';
 
 import { UserDropdown } from '@/components/auth/UserDropdown';
-import { Close, Heart, Menu } from '@/components/icons';
+import { Close, Heart, Menu, Shield } from '@/components/icons';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
+import { isAdminRole } from '@/lib/constants/roles';
 import { HEADER_ICON_BUTTON } from '@/lib/constants/ui';
 import { api } from '@/trpc/react';
 
@@ -99,6 +100,16 @@ export function Header() {
                             >
                                 <NotificationBell />
                             </Link>
+                            {/* Панель администратора — видна ТОЛЬКО админам */}
+                            {isAdminRole(session?.user?.role) && (
+                                <Link
+                                    href="/admin"
+                                    className={`group rounded-lg ${HEADER_ICON_BUTTON}`}
+                                    aria-label="Панель администратора"
+                                >
+                                    <Shield className="h-6 w-6 text-muted-foreground transition-colors group-hover:text-primary/60" />
+                                </Link>
+                            )}
                         </div>
                     )}
                 </div>
@@ -121,6 +132,16 @@ export function Header() {
                             >
                                 <NotificationBell />
                             </Link>
+                            {/* Панель администратора — видна ТОЛЬКО админам (и на мобилке тоже) */}
+                            {isAdminRole(session?.user?.role) && (
+                                <Link
+                                    href="/admin"
+                                    className={`group rounded-lg ${HEADER_ICON_BUTTON}`}
+                                    aria-label="Панель администратора"
+                                >
+                                    <Shield className="h-6 w-6 text-muted-foreground transition-colors group-hover:text-primary/60" />
+                                </Link>
+                            )}
                         </>
                     )}
                     <button

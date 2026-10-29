@@ -10,11 +10,11 @@ import { SessionProvider } from 'next-auth/react';
 
 import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics';
 import { VisitTracker } from '@/components/analytics/VisitTracker';
+import { CookieConsentProvider } from '@/components/consent/CookieConsentProvider';
 import { Footer } from '@/components/layout/Footer';
 import { Seo } from '@/components/Seo';
 import { SupportChatButton } from '@/components/SupportChatButton';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
-import { CookieConsent } from '@/components/ui/CookieConsent';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { NOINDEX_PATHS } from '@/lib/seo';
 import { TRPCReactProvider } from '@/trpc/react';
@@ -73,26 +73,28 @@ export default function App({ Component, pageProps }: AppProps) {
             <Seo noindex={noindex} />
 
             <ThemeProvider>
-                <div className="flex min-h-screen flex-col">
-                    <GoogleAnalytics />
+                {/* Согласие на cookie: единый источник для GA, счётчика
+                    визитов, баннера и окна настроек (см. components/consent). */}
+                <CookieConsentProvider>
+                    <div className="flex min-h-screen flex-col">
+                        <GoogleAnalytics />
 
-                    <SessionProvider>
-                        <TRPCReactProvider>
-                            <div className="flex-1">
-                                {isApartmentLoading ? (
-                                    <LoadingSpinner label="Идёт загрузка объекта..." />
-                                ) : (
-                                    <Component {...pageProps} />
-                                )}
-                            </div>
-                            <SupportChatButton />
-                            <VisitTracker />
-                        </TRPCReactProvider>
-                    </SessionProvider>
-                    <Footer />
-
-                    <CookieConsent />
-                </div>
+                        <SessionProvider>
+                            <TRPCReactProvider>
+                                <div className="flex-1">
+                                    {isApartmentLoading ? (
+                                        <LoadingSpinner label="Идёт загрузка объекта..." />
+                                    ) : (
+                                        <Component {...pageProps} />
+                                    )}
+                                </div>
+                                <SupportChatButton />
+                                <VisitTracker />
+                            </TRPCReactProvider>
+                        </SessionProvider>
+                        <Footer />
+                    </div>
+                </CookieConsentProvider>
             </ThemeProvider>
         </>
     );

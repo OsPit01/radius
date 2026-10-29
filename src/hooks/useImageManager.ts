@@ -16,16 +16,12 @@ type ImageManagerReturn = {
     images: string[];
     mainImage: string;
     isUploading: boolean;
-    dragIndex: number | null;
     fileInputRef: React.RefObject<HTMLInputElement | null>;
     addImages: (files: FileList | null) => void;
     removeImage: (index: number) => void;
-    setMainImage: (index: number) => void;
-    handleDragStart: (index: number) => void;
-    handleDragOver: (e: React.DragEvent<HTMLDivElement>, index: number) => void;
-    handleDragEnd: () => void;
-    handleDrop: (e: React.DragEvent<HTMLDivElement>) => void;
+
     openFilePicker: () => void;
+    reorderImages: (from: number, to: number) => void;
 };
 
 export function useImageManager({
@@ -35,7 +31,7 @@ export function useImageManager({
     onMainImageChange,
 }: ImageManagerProps = {}): ImageManagerReturn {
     const [isUploading, setIsUploading] = useState(false);
-    const [dragIndex, setDragIndex] = useState<number | null>(null);
+
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const uploadImage = api.upload.image.useMutation();
@@ -87,71 +83,18 @@ export function useImageManager({
         }
     };
 
-    // ===== СДЕЛАТЬ ЗАГЛАВНОЙ =====
-    const setMainImage = (index: number) => {
-        if (images.length === 0 || index === 0) {
-            return;
-        }
-        const image = images[index];
-        if (!image) {
-            return;
-        }
-
-        const newImages = [image, ...images.filter((_, i) => i !== index)];
-        onImagesChange?.(newImages);
-        onMainImageChange?.(image);
-    };
-
-    // ===== DRAG & DROP =====
-    const handleDragStart = (index: number) => {
-        setDragIndex(index);
-    };
-
-    const handleDragOver = (e: React.DragEvent<HTMLDivElement>, index: number) => {
-        e.preventDefault();
-        if (dragIndex === null || dragIndex === index) {
-            return;
-        }
-        if (images.length === 0) {
-            return;
-        }
-        if (dragIndex < 0 || dragIndex >= images.length) {
-            return;
-        }
-        if (index < 0 || index >= images.length) {
-            return;
-        }
-
+    // Перестановка при drag-and-drop: элемент с позиции from встаёт на позицию to.
+    const reorderImages = (from: number, to: number) => {
         const newImages = [...images];
-        const [draggedItem] = newImages.splice(dragIndex, 1);
-        if (!draggedItem) {
+        const [moved] = newImages.splice(from, 1);
+        if (!moved) {
             return;
         }
-
-        newImages.splice(index, 0, draggedItem);
+        newImages.splice(to, 0, moved);
         onImagesChange?.(newImages);
-
-        const firstImage = newImages[0];
-        if (firstImage && firstImage !== mainImage) {
-            onMainImageChange?.(firstImage);
-        }
-
-        setDragIndex(index);
-    };
-
-    const handleDragEnd = () => {
-        setDragIndex(null);
-    };
-
-    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-        e.preventDefault();
-        const files = e.dataTransfer.files;
-        if (files && files.length > 0) {
-            const input = fileInputRef.current;
-            if (input) {
-                input.files = files;
-                input.dispatchEvent(new Event('change', { bubbles: true }));
-            }
+        // если первое фото поменялось — обновляем заглавное
+        if (newImages[0] && newImages[0] !== mainImage) {
+            onMainImageChange?.(newImages[0]);
         }
     };
 
@@ -164,15 +107,10 @@ export function useImageManager({
         images,
         mainImage,
         isUploading,
-        dragIndex,
         fileInputRef,
+        reorderImages,
         addImages,
         removeImage,
-        setMainImage,
-        handleDragStart,
-        handleDragOver,
-        handleDragEnd,
-        handleDrop,
         openFilePicker,
     };
 }
