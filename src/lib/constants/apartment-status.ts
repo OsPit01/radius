@@ -7,7 +7,7 @@ export const APARTMENT_STATUS = {
 
 export type ApartmentStatus = keyof typeof APARTMENT_STATUS;
 
-export const APARTMENT_STATUS_VALUES = Object.keys(APARTMENT_STATUS) as [ApartmentStatus, ...ApartmentStatus[]];
+export const APARTMENT_STATUS_VALUES = Object.keys(APARTMENT_STATUS) as [ApartmentStatus];
 
 export function getStatusInfo(status: string) {
     return APARTMENT_STATUS[status as ApartmentStatus] ?? APARTMENT_STATUS.active;
