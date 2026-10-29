@@ -101,7 +101,7 @@ export default function MyNotifications() {
                             </p>
                             <p className="flex items-start gap-2 text-xs text-muted-foreground">
                                 <Info className="h-5 w-5 shrink-0" />
-                                Нажмите на уведомление, чтобы открыть связанный объект
+                                Нажмите на уведомление, чтобы открыть связанную страницу
                             </p>
                             {selected.link && (
                                 <Link
@@ -109,7 +109,7 @@ export default function MyNotifications() {
                                     onClick={() => setSelected(null)}
                                     className="flex items-center justify-center gap-2 rounded-xl bg-foreground px-4 py-3 text-sm font-medium text-background transition-colors hover:bg-foreground/85"
                                 >
-                                    Открыть объект
+                                    Открыть
                                     <ArrowRight className="h-4 w-4" />
                                 </Link>
                             )}
