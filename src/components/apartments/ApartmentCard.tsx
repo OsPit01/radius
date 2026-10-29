@@ -148,11 +148,14 @@ export function ApartmentCard({
                         </span>
                     )}
                 </div>
-                {apartment.metro && (
+
+                {(apartment.minsToMetro ?? apartment.amenities.includes('gameConsole')) && (
                     <div className="flex flex-wrap gap-1.5 px-2.5 pt-1.5 pb-1">
-                        <p className="rounded-[15px] border border-border bg-muted px-2.5 py-1 text-sm font-normal">
-                            метро: в {apartment.metro} минутах
-                        </p>
+                        {apartment.minsToMetro && (
+                            <p className="rounded-[15px] border border-border bg-muted px-2.5 py-1 text-sm font-normal">
+                                метро: в {apartment.minsToMetro} минутах
+                            </p>
+                        )}
                         {apartment.amenities.includes('gameConsole') && (
                             <p className="rounded-[15px] border border-border bg-muted px-2.5 py-1 text-sm font-normal">
                                 Игровая консоль

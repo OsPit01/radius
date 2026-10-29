@@ -15,6 +15,12 @@ export const env = createEnv({
         RESEND_API_KEY: z.string().optional(),
         TELEGRAM_BOT_TOKEN: z.string(),
         TELEGRAM_WEBHOOK_SECRET: z.string().optional(),
+        YANDEX_GEOCODER_API_KEY: z.string().optional(),
+        // Резервный ключ: подключается, когда лимит основного исчерпан. Тоже только на сервере.
+        YANDEX_GEOCODER_API_KEY_RESERVE: z.string().optional(),
+        // Яндекс Геосаджест (подсказки адреса при вводе) — отдельный продукт со своими ключами. Тоже только на сервере.
+        YANDEX_GEOSUGGEST_API_KEY: z.string().optional(),
+        YANDEX_GEOSUGGEST_API_KEY_RESERVE: z.string().optional(),
         // Секрет для cron-эндпоинтов (Vercel Cron). В проде обязателен.
         CRON_SECRET: z.string().optional(),
         DATABASE_URL: z.string().url(),
@@ -44,6 +50,10 @@ export const env = createEnv({
         RESEND_API_KEY: process.env.RESEND_API_KEY,
         TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN,
         TELEGRAM_WEBHOOK_SECRET: process.env.TELEGRAM_WEBHOOK_SECRET,
+        YANDEX_GEOCODER_API_KEY: process.env.YANDEX_GEOCODER_API_KEY,
+        YANDEX_GEOCODER_API_KEY_RESERVE: process.env.YANDEX_GEOCODER_API_KEY_RESERVE,
+        YANDEX_GEOSUGGEST_API_KEY: process.env.YANDEX_GEOSUGGEST_API_KEY,
+        YANDEX_GEOSUGGEST_API_KEY_RESERVE: process.env.YANDEX_GEOSUGGEST_API_KEY_RESERVE,
         CRON_SECRET: process.env.CRON_SECRET,
         DATABASE_URL: process.env.DATABASE_URL,
         NODE_ENV: process.env.NODE_ENV,

@@ -1,0 +1,119 @@
+import { SortableImageGrid } from '@/components/apartments/SortableImageGrid';
+import { Camera, Hourglass, Star, Warning } from '@/components/icons';
+import { useImageManager } from '@/hooks/useImageManager';
+import type { StepProps } from '@/lib/utils';
+
+export function Step4_Images({ formData, updateField, error, errors }: StepProps) {
+    const { images, mainImage, isUploading, fileInputRef, addImages, removeImage, openFilePicker, reorderImages } =
+        useImageManager({
+            images: formData.images || [],
+            mainImage: formData.image || '',
+            onImagesChange: (newImages) => updateField('images', newImages),
+            onMainImageChange: (newMain) => updateField('image', newMain),
+        });
+
+    return (
+        <fieldset className="animate-[fadeIn_0.3s_ease] text-foreground">
+            <legend className="mb-2.5 text-[17px] text-foreground">Шаг 4: Фотографии объекта</legend>
+
+            {error && (
+                <div
+                    className="rounded-xl bg-destructive/10 p-3 text-center text-destructive"
+                    role="alert"
+                >
+                    {error}
+                </div>
+            )}
+
+            <div className="mt-2.5 flex flex-col gap-2">
+                <label className="pt-[5px] text-sm font-semibold text-foreground">
+                    Загрузите фотографии
+                    <span className="required">*</span>
+                    <span className="mt-[-8px] mb-3 block text-sm text-muted-foreground">(минимум 1 фото)</span>
+                </label>
+
+                <div
+                    className={`flex aspect-[4/1] w-full cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-border bg-background transition-all duration-200 hover:border-primary hover:bg-primary/5 max-[480px]:aspect-[2/1] ${
+                        isUploading ? 'opacity-60' : ''
+                    }`}
+                    onClick={openFilePicker}
+                >
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={(e) => addImages(e.target.files)}
+                        className="hidden"
+                        disabled={isUploading}
+                    />
+
+                    <div className="flex flex-col items-center">
+                        {isUploading ? (
+                            <>
+                                <Hourglass className="h-10 w-10" />
+                                <p>Загрузка...</p>
+                            </>
+                        ) : (
+                            <>
+                                <Camera className="h-10 w-10" />
+                                <p>Нажмите или перетащите фотографии</p>
+                                <small className="text-xs text-muted-foreground">Можно выбрать несколько файлов</small>
+                            </>
+                        )}
+                    </div>
+                </div>
+
+                {errors.includes('images') && (
+                    <div className="mt-1 text-[13px] text-destructive">Добавьте хотя бы одну фотографию</div>
+                )}
+            </div>
+
+            {images.length > 0 && (
+                <div className="mt-2.5 flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                        <label className="pt-[5px] text-sm font-semibold text-foreground">
+                            Фотографии ({images.length})
+                            {mainImage && (
+                                <span className="ml-2 inline-flex items-center gap-1 rounded bg-warning px-2 py-0.5 text-[10px] font-semibold text-warning-foreground">
+                                    <Star className="h-3 w-3" />
+                                    Заглавная выбрана
+                                </span>
+                            )}
+                        </label>
+                        <span className="text-sm text-muted-foreground">Перетаскивайте для изменения порядка</span>
+                    </div>
+                    <SortableImageGrid
+                        images={images}
+                        mainImage={mainImage}
+                        onReorder={reorderImages}
+                        onRemove={removeImage}
+                    />
+                </div>
+            )}
+
+            <div className="mt-5 p-[5px] text-[13px] text-muted-foreground">
+                <p className="flex items-center gap-1.5">
+                    <Camera className="h-4 w-4" />
+                    Загружено: {images.length} фото
+                </p>
+                {mainImage && (
+                    <p className="flex items-center gap-1.5">
+                        <Star className="h-4 w-4" />
+                        Заглавное фото: выбрано
+                    </p>
+                )}
+                {!mainImage && images.length > 0 && (
+                    <p className="flex items-center gap-1.5 text-[13px] text-destructive">
+                        <Warning className="h-4 w-4" />
+                        Выберите заглавное фото
+                        <Star
+                            muted
+                            className="h-3.5 w-3.5"
+                        />
+                    </p>
+                )}
+            </div>
+        </fieldset>
+    );
+}

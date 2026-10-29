@@ -132,7 +132,7 @@ export default function MyApartmentsPage() {
                         <div className="rounded-2xl bg-muted p-[80px_20px] text-center">
                             <p className="mb-5 text-lg text-muted-foreground">У вас пока нет добавленных объектов</p>
                             <Link
-                                href="/admin/add-apartment"
+                                href="/admin/add-object"
                                 className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-[30px] border-none bg-primary px-8 py-3 text-base font-semibold text-primary-foreground no-underline transition-colors duration-200 hover:bg-primary/90 max-[480px]:w-full max-[480px]:text-center"
                             >
                                 <Plus className="h-5 w-5" />

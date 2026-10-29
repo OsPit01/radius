@@ -1,44 +1,34 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import { useRouter } from 'next/router';
 
 import { NavigationButtons } from '@/components/admin/add-apartment/components/NavigationButtons';
 import { Step1_Type } from '@/components/admin/add-apartment/steps/Step1_Type';
-import { Step2_City } from '@/components/admin/add-apartment/steps/Step2_City';
-import { Step3_Address } from '@/components/admin/add-apartment/steps/Step3_Address';
-import { Step4_Details } from '@/components/admin/add-apartment/steps/Step4_Details';
-import { Step5_Images } from '@/components/admin/add-apartment/steps/Step5_Images';
+import { Step2_Address } from '@/components/admin/add-apartment/steps/Step2_Address';
+import { Step3_Details } from '@/components/admin/add-apartment/steps/Step3_Details';
+import { Step4_Images } from '@/components/admin/add-apartment/steps/Step4_Images';
 import { ClientHeader } from '@/components/layout/ClientHeader';
 import { Modal } from '@/components/ui/Modal';
-import { formatApartmentData, type FormData, updateFieldWithAddress, validateStep } from '@/lib/utils';
+import { type AddressPatch, type FieldPath, type FormData, patchAddress, validateStep } from '@/lib/utils';
 import { requireAuth } from '@/server/auth/require-auth';
-import { api } from '@/trpc/react';
 
 // Неавторизованных отправляем на вход ещё на сервере
 export const getServerSideProps = requireAuth;
 
 export default function AddApartmentPage() {
     const router = useRouter();
-    const utils = api.useUtils();
 
-    // ===== СОСТОЯНИЯ ДЛЯ ФОРМЫ =====
     const [currentStep, setCurrentStep] = useState(1);
 
-    // ЧТО И ЗАЧЕМ ТУТ МЕНЯТЬ: Полностью вернули твой ОРИГИНАЛЬНЫЙ useState со всеми дефолтными полями
     const [formData, setFormData] = useState<FormData>({
         type: 'apartment',
         region: '',
         district: '',
         city: '',
-        cityDistrict: '',
-        cityError: '',
         street: '',
-        streetConfirmed: false,
         numberHome: '',
-        building: '',
-        microdistrict: '',
-        formattedAddress: '',
-        addressError: '',
+        lat: 0,
+        lon: 0,
         title: '',
         capacity: 2,
         price: 100,
@@ -51,7 +41,8 @@ export default function AddApartmentPage() {
         image: '',
         description: '',
         rules: '',
-        metro: '',
+        minsToMetro: 0,
+        metroStation: '',
         area: 0,
         floor: 0,
         bathrooms: 0,
@@ -67,33 +58,37 @@ export default function AddApartmentPage() {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [errorFields, setErrorFields] = useState<(keyof FormData)[]>([]);
-    const [showSuccess, setShowSuccess] = useState(false);
+    const [errors, setErrors] = useState<FieldPath[]>([]);
+    const [showSuccess] = useState(false);
 
-    // ===== ФУНКЦИЯ ОБНОВЛЕНИЯ ДАННЫХ =====
     const updateField = (field: keyof FormData, value: string | number | string[] | boolean) => {
-        setFormData((prev) => updateFieldWithAddress(field, value, prev));
-        setErrorFields((prev) => prev.filter((f) => f !== field));
+        setFormData((prev) => ({ ...prev, [field]: value }));
+        setErrors((prev) => prev.filter((f) => f !== field));
     };
 
+    const updateAddress = useCallback((patch: AddressPatch) => {
+        setFormData((prev) => patchAddress(prev, patch));
+        setErrors((prev) => prev.filter((f) => !(f in patch)));
+    }, []);
+
     // ===== MUTATION ДЛЯ СОЗДАНИЯ КВАРТИРЫ =====
-    const createApartment = api.apartment.create.useMutation({
-        onSuccess: async () => {
-            await utils.apartment.getAll.invalidate();
-            setShowSuccess(true);
-        },
-        onError: (trpcErr) => {
-            setError(trpcErr.message ?? 'Произошла ошибка при отправке');
-            setIsSubmitting(false);
-        },
-    });
+    // const createApartment = api.apartment.create.useMutation({
+    //     onSuccess: async () => {
+    //         await utils.apartment.getAll.invalidate();
+    //         setShowSuccess(true);
+    //     },
+    //     onError: (trpcErr) => {
+    //         setError(trpcErr.message ?? 'Произошла ошибка при отправке');
+    //         setIsSubmitting(false);
+    //     },
+    // });
 
     // ===== ОБРАБОТЧИК ОТПРАВКИ ФОРМЫ =====
     const handleSubmit = async () => {
         setIsSubmitting(true);
         setError(null);
         try {
-            await createApartment.mutateAsync(formatApartmentData(formData));
+            // await createApartment.mutateAsync(formatApartmentData(formData));
         } catch (err) {
             // !!!!! ИСПРАВЛЕНО: явная проверка на Error !!!!!
             if (err instanceof Error) {
@@ -106,17 +101,16 @@ export default function AddApartmentPage() {
         }
     };
 
-    // ===== ПЕРЕХОД МЕЖДУ ШАГАМИ =====
     const goToNextStep = async () => {
         const validation = validateStep(currentStep, formData);
         if (!validation.isValid) {
             setError(validation.error ?? null);
-            setErrorFields(validation.fields ?? []);
+            setErrors(validation.fields ?? []);
             return;
         }
         setError(null);
-        setErrorFields([]);
-        if (currentStep === 5) {
+        setErrors([]);
+        if (currentStep === 4) {
             await handleSubmit();
             return;
         }
@@ -125,12 +119,10 @@ export default function AddApartmentPage() {
 
     const goToPrevStep = () => {
         setError(null);
-        setErrorFields([]);
+        setErrors([]);
         setCurrentStep(currentStep - 1);
     };
 
-    // ЧТО И ЗАЧЕМ ТУТ МЕНЯТЬ: Динамический метод рендеринга.
-    // Благодаря ему пропсы внутри шагов всегда свежие, и TypeScript больше не падает.
     const renderCurrentStep = () => {
         switch (currentStep) {
             case 1:
@@ -138,48 +130,42 @@ export default function AddApartmentPage() {
                     <Step1_Type
                         formData={formData}
                         updateField={updateField}
+                        updateAddress={updateAddress}
                         setFormData={setFormData}
-                        errorFields={errorFields}
+                        errors={errors}
                     />
                 );
             case 2:
                 return (
-                    <Step2_City
+                    <Step2_Address
                         formData={formData}
                         updateField={updateField}
+                        updateAddress={updateAddress}
                         setFormData={setFormData}
                         error={error}
-                        errorFields={errorFields}
+                        errors={errors}
                     />
                 );
             case 3:
                 return (
-                    <Step3_Address
+                    <Step3_Details
                         formData={formData}
                         updateField={updateField}
+                        updateAddress={updateAddress}
                         setFormData={setFormData}
                         error={error}
-                        errorFields={errorFields}
+                        errors={errors}
                     />
                 );
             case 4:
                 return (
-                    <Step4_Details
+                    <Step4_Images
                         formData={formData}
                         updateField={updateField}
+                        updateAddress={updateAddress}
                         setFormData={setFormData}
                         error={error}
-                        errorFields={errorFields}
-                    />
-                );
-            case 5:
-                return (
-                    <Step5_Images
-                        formData={formData}
-                        updateField={updateField}
-                        setFormData={setFormData}
-                        error={error}
-                        errorFields={errorFields}
+                        errors={errors}
                     />
                 );
             default:
@@ -192,7 +178,6 @@ export default function AddApartmentPage() {
             <ClientHeader />
             <div className="add-apartment-page">
                 <div className="mx-auto my-6 max-w-[800px] rounded-[24px] border border-border bg-card p-10 shadow-[0_10px_30px_rgba(0,0,0,0.08)] max-[640px]:p-5">
-                    {/* Восстановлен ваш оригинальный h1 */}
                     <h1
                         className="mb-[30px] text-center text-[28px] text-primary"
                         onClick={() => null}
@@ -201,14 +186,12 @@ export default function AddApartmentPage() {
                         Создание объекта{' '}
                     </h1>
 
-                    {/* Восстановлена ваша РОДНАЯ форма, CSS будет работать идеально */}
                     <form
                         className="flex flex-col gap-5"
                         onSubmit={(e) => {
                             e.preventDefault();
                         }}
                     >
-                        {/* Вызываем функцию динамического рендера вместо старого спреда компонентов */}
                         {renderCurrentStep()}
 
                         <NavigationButtons
@@ -216,7 +199,7 @@ export default function AddApartmentPage() {
                             onNext={goToNextStep}
                             onPrev={goToPrevStep}
                             isSubmitting={isSubmitting}
-                            isLastStep={currentStep === 5}
+                            isLastStep={currentStep === 4}
                         />
                     </form>
                 </div>

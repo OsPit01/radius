@@ -1,10 +1,12 @@
 import { TRPCError } from '@trpc/server';
-import { and, eq, gte, ilike, lte, or, type SQL, sql } from 'drizzle-orm';
+import { and, eq, gt, gte, ilike, lte, or, type SQL, sql } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { z } from 'zod';
 
+import { formatAddressLine } from '@/lib/address';
 import { APARTMENT_STATUS_VALUES, buildStatusNotificationText } from '@/lib/constants/apartment-status';
 import { isAdminRole } from '@/lib/constants/roles';
+import { createApartmentInput, updateApartmentInput } from '@/lib/schemas/apartment';
 import { selectApartmentCards, selectApartmentOwnList, selectApartmentPublic } from '@/server/apartment-selects';
 import { createTRPCRouter, protectedProcedure, publicProcedure } from '@/server/api/trpc';
 import type * as schema from '@/server/db/schema';
@@ -41,52 +43,7 @@ const selectApartmentWithUser = (db: Database) =>
         .from(apartments)
         .leftJoin(users, eq(apartments.createdById, users.id));
 
-// ===== ВАЛИДАЦИЯ ДЛЯ СОЗДАНИЯ КВАРТИРЫ =====
-const createApartmentSchema = z.object({
-    type: z.string(),
-    title: z.string().min(3, 'Название минимум 3 символа'),
-    city: z.string().min(2, 'Город обязателен'),
-    street: z
-        .string()
-        .min(2, 'Улица обязательна')
-        .regex(/^[A-Za-zА-Яа-яЁё\s.\-()]+$/, 'В названии улицы не должно быть цифр'),
-    numberHome: z.string().min(1, 'Номер дома обязателен'),
-    building: z.string().nullable().optional(),
-
-    // ЧТО И ЗАЧЕМ ТУТ МЕНЯТЬ: Убрали .min(2) и сделали поле .optional().default("").
-    // Теперь пустой инпут района на фронтенде не будет вызывать ошибку Zod "too_small" на сервере!
-    district: z.string().optional().default(''),
-    microdistrict: z.string().optional(),
-
-    formattedAddress: z.string().optional().default(''),
-    capacity: z.number().min(1).max(20),
-    price: z.number().positive('Цена должна быть положительной'),
-    image: z.string(),
-    description: z.string().optional(),
-    rules: z.string().optional(),
-    checkInTime: z.string().optional(),
-    checkOutTime: z.string().optional(),
-    reviewsCount: z.number().optional(),
-    rating: z.number().optional(),
-    rooms: z.number().min(1).max(10),
-    beds: z.number().min(0).max(20).optional(),
-    singleBeds: z.number().min(0).max(20).optional(),
-    doubleSofas: z.number().min(0).max(20).optional(),
-    singleSofas: z.number().min(0).max(20).optional(),
-    metro: z.string().optional(),
-    //////////////////////////////
-    area: z.number().int().min(0).max(10_000).optional(),
-    floor: z.number().int().min(0).max(100).optional(),
-    bathrooms: z.number().int().min(0).max(20).optional(),
-    currency: z.string().default('BYN'),
-    amenities: z.array(z.string()).optional().default([]),
-    payerType: z.string().default('individual'),
-    payerName: z.string().optional().default(''),
-    unp: z.string().optional().default(''),
-    parking: z.string().optional().default(''),
-    images: z.array(z.string()).optional().default([]),
-});
-
+// Схемы ввода объекта строятся из таблицы apartments — см. src/lib/schemas/apartment.ts
 export const apartmentRouter = createTRPCRouter({
     // 1. Получить все квартиры (с фильтрами для SEO-страниц каталога)
     getAll: publicProcedure
@@ -154,10 +111,7 @@ export const apartmentRouter = createTRPCRouter({
                 conditions.push(gte(sql`${apartments.doubleSofas} + ${apartments.singleSofas}`, input.sofas));
             }
             if (input?.metro) {
-                // metro хранится как varchar (минуты пешком), поэтому сравниваем численно через CAST
-                conditions.push(
-                    sql`${apartments.metro} IS NOT NULL AND ${apartments.metro} <> '' AND CAST(${apartments.metro} AS INTEGER) <= ${input.metro}`,
-                );
+                conditions.push(and(gt(apartments.minsToMetro, 0), lte(apartments.minsToMetro, input.metro)));
             }
 
             // Публично отдаём только карточку: без данных владельца и служебных полей.
@@ -243,7 +197,7 @@ export const apartmentRouter = createTRPCRouter({
     }),
 
     // 3. Создать квартиру
-    create: protectedProcedure.input(createApartmentSchema).mutation(async ({ ctx, input }) => {
+    create: protectedProcedure.input(createApartmentInput).mutation(async ({ ctx, input }) => {
         const userId = ctx.session.user.id;
         if (!userId) {
             throw new TRPCError({
@@ -255,41 +209,16 @@ export const apartmentRouter = createTRPCRouter({
         const [newApartment] = await ctx.db
             .insert(apartments)
             .values({
-                title: input.title,
-                type: input.type,
-                city: input.city,
-                street: input.street,
-                numberHome: input.numberHome,
-                district: input.district,
-                microdistrict: input.microdistrict ?? null,
-                building: input.building ?? null,
-                formattedAddress: input.formattedAddress,
-                capacity: input.capacity,
-                price: input.price,
-                image: input.image,
-                description: input.description ?? null,
-                rules: input.rules ?? null,
-                checkInTime: input.checkInTime ?? null,
-                checkOutTime: input.checkOutTime ?? null,
-                reviewsCount: input.reviewsCount ?? 0,
-                rating: input.rating ?? 0,
-                rooms: input.rooms,
-                beds: input.beds ?? 0,
-                singleBeds: input.singleBeds ?? 0,
-                doubleSofas: input.doubleSofas ?? 0,
-                singleSofas: input.singleSofas ?? 0,
-                metro: input.metro ?? null,
-                area: input.area ?? null,
-                floor: input.floor ?? null,
-                bathrooms: input.bathrooms ?? null,
+                ...input,
+                // Форма адрес одной строкой не присылает: он нужен чатам и переписке, поэтому собираем его здесь.
+                formattedAddress: formatAddressLine({
+                    city: input.city,
+                    street: input.street,
+                    numberHome: input.numberHome,
+                    building: input.building,
+                }),
+                reviewsCount: 0,
                 createdById: userId,
-                currency: input.currency ?? 'BYN',
-                amenities: input.amenities ?? [],
-                payerType: input.payerType ?? 'individual',
-                payerName: input.payerName ?? '',
-                unp: input.unp ?? '',
-                parking: input.parking ?? '',
-                images: input.images ?? [],
                 status: 'moderation',
             })
             .returning();
@@ -298,142 +227,70 @@ export const apartmentRouter = createTRPCRouter({
     }),
 
     // 3.5. Обновить квартиру
-    update: protectedProcedure
-        .input(
-            z.object({
-                id: z.number(),
-                title: z.string().min(3),
-                city: z.string().min(2),
-                street: z
-                    .string()
-                    .min(2)
-                    .regex(/^[A-Za-zА-Яа-яЁё\s.\-()]+$/, 'В названии улицы не должно быть цифр'),
-                numberHome: z.string().min(1),
-                building: z.string().nullable().optional(),
-                district: z.string().optional(),
-                microdistrict: z.string().optional(),
-                formattedAddress: z.string().optional(),
-                capacity: z.number().min(1).max(20),
-                price: z.number().positive(),
-                currency: z.string().default('BYN'),
-                image: z.string(),
-                description: z.string().optional(),
-                rules: z.string().optional(),
-                checkInTime: z.string().optional(),
-                checkOutTime: z.string().optional(),
-                rooms: z.number().min(1).max(10),
-                beds: z.number().min(0).max(20).optional(),
-                singleBeds: z.number().min(0).max(20).optional(),
-                area: z.number().int().min(0).max(10_000).optional(),
-                floor: z.number().int().min(0).max(100).optional(),
-                bathrooms: z.number().int().min(0).max(20).optional(),
-                doubleSofas: z.number().min(0).max(20).optional(),
-                singleSofas: z.number().min(0).max(20).optional(),
-                metro: z.string().optional(),
-                amenities: z.array(z.string()).optional().default([]),
-                payerType: z.string().default('individual'),
-                payerName: z.string().optional().default(''),
-                unp: z.string().optional().default(''),
-                parking: z.string().optional().default(''),
-                images: z.array(z.string()).optional().default([]),
-            }),
-        )
-        .mutation(async ({ ctx, input }) => {
-            const userId = ctx.session.user.id;
+    update: protectedProcedure.input(updateApartmentInput).mutation(async ({ ctx, input }) => {
+        const userId = ctx.session.user.id;
 
-            if (!userId) {
-                throw new TRPCError({
-                    code: 'UNAUTHORIZED',
-                    message: 'Пользователь не авторизован',
-                });
-            }
+        if (!userId) {
+            throw new TRPCError({
+                code: 'UNAUTHORIZED',
+                message: 'Пользователь не авторизован',
+            });
+        }
 
-            // Проверяем, что объект принадлежит пользователю
-            const [existing] = await ctx.db.select().from(apartments).where(eq(apartments.id, input.id));
-            if (!existing) {
-                throw new TRPCError({ code: 'NOT_FOUND', message: 'Объект не найден' });
-            }
-            const isOwner = existing.createdById === ctx.session.user.id;
-            const isAdmin = isAdminRole(ctx.session.user.role);
+        // Проверяем, что объект принадлежит пользователю
+        const [existing] = await ctx.db.select().from(apartments).where(eq(apartments.id, input.id));
+        if (!existing) {
+            throw new TRPCError({ code: 'NOT_FOUND', message: 'Объект не найден' });
+        }
+        const isOwner = existing.createdById === ctx.session.user.id;
+        const isAdmin = isAdminRole(ctx.session.user.role);
 
-            if (!isOwner && !isAdmin) {
+        if (!isOwner && !isAdmin) {
+            throw new TRPCError({
+                code: 'FORBIDDEN',
+                message: 'У вас нет прав на редактирование этого объекта',
+            });
+        }
+
+        // Адрес опубликованного объекта может менять только администратор.
+        // Обычный владелец не может менять адрес, пока объект уже опубликован.
+        if (existing.status === 'active' && !isAdmin) {
+            const addressChanged =
+                existing.city !== input.city ||
+                existing.street !== input.street ||
+                existing.numberHome !== input.numberHome ||
+                (existing.building ?? '') !== (input.building ?? '') ||
+                (existing.district ?? '') !== (input.district ?? '') ||
+                (existing.microdistrict ?? '') !== (input.microdistrict ?? '');
+
+            if (addressChanged) {
                 throw new TRPCError({
                     code: 'FORBIDDEN',
-                    message: 'У вас нет прав на редактирование этого объекта',
+                    message: 'Изменение адреса опубликованного объекта доступно только администратору',
                 });
             }
+        }
 
-            // Адрес опубликованного объекта может менять только администратор.
-            // Обычный владелец не может менять адрес, пока объект уже опубликован.
-            if (existing.status === 'active' && !isAdmin) {
-                const addressChanged =
-                    existing.city !== input.city ||
-                    existing.street !== input.street ||
-                    existing.numberHome !== input.numberHome ||
-                    (existing.building ?? '') !== (input.building ?? '') ||
-                    (existing.district ?? '') !== (input.district ?? '') ||
-                    (existing.microdistrict ?? '') !== (input.microdistrict ?? '');
+        // Поле, которого нет в запросе, не трогаем (undefined drizzle пропускает), а не сбрасываем в 0/null.
+        const { id, ...fields } = input;
+        const [updated] = await ctx.db
+            .update(apartments)
+            .set({ ...fields, updatedAt: new Date() })
+            .where(eq(apartments.id, id))
+            .returning();
 
-                if (addressChanged) {
-                    throw new TRPCError({
-                        code: 'FORBIDDEN',
-                        message: 'Изменение адреса опубликованного объекта доступно только администратору',
-                    });
-                }
+        // Файлы, которые убрали из списка, удаляем и из хранилища — иначе они
+        // останутся «висеть» в Supabase Storage и занимать место.
+        const removedImages = (existing.images ?? []).filter((url) => !(input.images ?? []).includes(url));
+        if (removedImages.length > 0) {
+            const fileNames = removedImages.map((url) => url.split('/').pop()).filter((name): name is string => !!name);
+            if (fileNames.length > 0) {
+                await getSupabaseAdmin().storage.from('apartments').remove(fileNames);
             }
+        }
 
-            const [updated] = await ctx.db
-                .update(apartments)
-                .set({
-                    title: input.title,
-                    city: input.city,
-                    street: input.street,
-                    numberHome: input.numberHome,
-                    building: input.building,
-                    district: input.district,
-                    microdistrict: input.microdistrict ?? null,
-                    capacity: input.capacity,
-                    price: input.price,
-                    currency: input.currency,
-                    image: input.image,
-                    description: input.description,
-                    rules: input.rules,
-                    checkInTime: input.checkInTime ?? null,
-                    checkOutTime: input.checkOutTime ?? null,
-                    rooms: input.rooms,
-                    beds: input.beds ?? 0,
-                    singleBeds: input.singleBeds ?? 0,
-                    doubleSofas: input.doubleSofas ?? 0,
-                    singleSofas: input.singleSofas ?? 0,
-                    metro: input.metro,
-                    area: input.area ?? null,
-                    floor: input.floor ?? null,
-                    bathrooms: input.bathrooms ?? null,
-                    amenities: input.amenities,
-                    payerType: input.payerType,
-                    payerName: input.payerName,
-                    unp: input.unp ?? '',
-                    parking: input.parking,
-                    images: input.images,
-                    updatedAt: new Date(),
-                })
-                .where(eq(apartments.id, input.id))
-                .returning();
-
-            // Файлы, которые убрали из списка, удаляем и из хранилища — иначе они
-            // останутся «висеть» в Supabase Storage и занимать место.
-            const removedImages = (existing.images ?? []).filter((url) => !(input.images ?? []).includes(url));
-            if (removedImages.length > 0) {
-                const fileNames = removedImages
-                    .map((url) => url.split('/').pop())
-                    .filter((name): name is string => !!name);
-                if (fileNames.length > 0) {
-                    await getSupabaseAdmin().storage.from('apartments').remove(fileNames);
-                }
-            }
-
-            return updated;
-        }),
+        return updated;
+    }),
     //удалить обьект админ/собственник
     delete: protectedProcedure.input(apartmentIdInput).mutation(async ({ ctx, input }) => {
         const [existing] = await ctx.db.select().from(apartments).where(eq(apartments.id, input.id));

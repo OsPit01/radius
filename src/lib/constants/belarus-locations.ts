@@ -1,5 +1,6 @@
 // Справочник населённых пунктов Беларуси.
-// Иерархия: Город/Область -> Район -> Населённый пункт.
+// Иерархия: Область (их 6) -> Район -> Населённый пункт.
+// Областной центр (в том числе Минск) — город внутри своей области со своими районами города.
 // Статические данные — храним локально, без API.
 
 export type LocalityType = 'г.' | 'д.' | 'п.' | 'аг.' | 'г.п.';
@@ -14,11 +15,18 @@ export type District = {
     localities: Locality[];
 };
 
+export type RegionCenter = {
+    name: string; // "Минск"
+    cityDistricts: string[]; // районы города: "Центральный", "Советский"…
+};
+
 export type Region = {
-    value: string;
-    label: string; // "Минск" или "Минская область"
-    cityDistricts?: string[]; // районы города (для областных центров и Минска)
-    districts?: District[]; // административные районы (для области)
+    value: string; // "minsk-region"
+    label: string; // "Минская область"
+    // Минск — отдельная единица, но стоит посреди Минской области и в справочнике относится к ней: область нужна нам
+    // только как одна из шести.
+    center: RegionCenter;
+    districts: District[]; // административные районы области
 };
 
 export function localityLabel(locality: Locality): string {
@@ -178,23 +186,22 @@ function district(cityName: string): District {
 // ===== СПРАВОЧНИК =====
 export const BELARUS_REGIONS: Region[] = [
     {
-        value: 'minsk',
-        label: 'Минск',
-        cityDistricts: [
-            'Центральный',
-            'Советский',
-            'Первомайский',
-            'Партизанский',
-            'Заводской',
-            'Ленинский',
-            'Октябрьский',
-            'Московский',
-            'Фрунзенский',
-        ],
-    },
-    {
         value: 'minsk-region',
         label: 'Минская область',
+        center: {
+            name: 'Минск',
+            cityDistricts: [
+                'Центральный',
+                'Советский',
+                'Первомайский',
+                'Партизанский',
+                'Заводской',
+                'Ленинский',
+                'Октябрьский',
+                'Московский',
+                'Фрунзенский',
+            ],
+        },
         districts: [
             {
                 name: 'Минский район',
@@ -245,13 +252,9 @@ export const BELARUS_REGIONS: Region[] = [
         ],
     },
     {
-        value: 'brest',
-        label: 'Брест',
-        cityDistricts: ['Ленинский', 'Московский'],
-    },
-    {
         value: 'brest-region',
         label: 'Брестская область',
+        center: { name: 'Брест', cityDistricts: ['Ленинский', 'Московский'] },
         districts: [
             district('Барановичи'),
             district('Берёза'),
@@ -271,13 +274,9 @@ export const BELARUS_REGIONS: Region[] = [
         ],
     },
     {
-        value: 'vitebsk',
-        label: 'Витебск',
-        cityDistricts: ['Железнодорожный', 'Октябрьский', 'Первомайский'],
-    },
-    {
         value: 'vitebsk-region',
         label: 'Витебская область',
+        center: { name: 'Витебск', cityDistricts: ['Железнодорожный', 'Октябрьский', 'Первомайский'] },
         districts: [
             district('Бешенковичи'),
             district('Браслав'),
@@ -302,13 +301,9 @@ export const BELARUS_REGIONS: Region[] = [
         ],
     },
     {
-        value: 'gomel',
-        label: 'Гомель',
-        cityDistricts: ['Железнодорожный', 'Новобелицкий', 'Советский', 'Центральный'],
-    },
-    {
         value: 'gomel-region',
         label: 'Гомельская область',
+        center: { name: 'Гомель', cityDistricts: ['Железнодорожный', 'Новобелицкий', 'Советский', 'Центральный'] },
         districts: [
             district('Брагин'),
             district('Буда-Кошелёво'),
@@ -333,13 +328,9 @@ export const BELARUS_REGIONS: Region[] = [
         ],
     },
     {
-        value: 'grodno',
-        label: 'Гродно',
-        cityDistricts: ['Ленинский', 'Октябрьский'],
-    },
-    {
         value: 'grodno-region',
         label: 'Гродненская область',
+        center: { name: 'Гродно', cityDistricts: ['Ленинский', 'Октябрьский'] },
         districts: [
             { name: 'Берестовицкий район', localities: [town('Большая Берестовица')] },
             district('Волковыск'),
@@ -360,13 +351,9 @@ export const BELARUS_REGIONS: Region[] = [
         ],
     },
     {
-        value: 'mogilev',
-        label: 'Могилёв',
-        cityDistricts: ['Ленинский', 'Октябрьский'],
-    },
-    {
         value: 'mogilev-region',
         label: 'Могилёвская область',
+        center: { name: 'Могилёв', cityDistricts: ['Ленинский', 'Октябрьский'] },
         districts: [
             district('Белыничи'),
             district('Бобруйск'),
@@ -394,4 +381,15 @@ export const BELARUS_REGIONS: Region[] = [
 
 export function getRegion(regionValue: string): Region | undefined {
     return BELARUS_REGIONS.find((r) => r.value === regionValue);
+}
+
+const sameName = (a: string, b: string) =>
+    a.toLowerCase().replaceAll('ё', 'е').trim() === b.toLowerCase().replaceAll('ё', 'е').trim();
+
+/**
+ * Районы города, если это Минск или другой областной центр («Центральный», «Советский»…), иначе undefined.
+ * Смотрим на сам город, а не на область: область у Минска и у деревни рядом с ним одна.
+ */
+export function getCityDistricts(cityName: string): string[] | undefined {
+    return BELARUS_REGIONS.find((r) => sameName(r.center.name, cityName))?.center.cityDistricts;
 }
