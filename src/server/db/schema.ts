@@ -1,6 +1,6 @@
 import { type AdapterAccount } from '@auth/core/adapters';
 import { relations } from 'drizzle-orm';
-import { index, pgEnum, pgTableCreator, primaryKey, uniqueIndex } from 'drizzle-orm/pg-core';
+import { index, pgEnum, pgTableCreator, primaryKey } from 'drizzle-orm/pg-core';
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -269,18 +269,6 @@ export const message = createTable('message', (d) => ({
         .$defaultFn(() => new Date())
         .notNull(),
 }));
-// ======== Streets (справочник улиц для автодополнения) ============= //
-export const streets = createTable(
-    'street',
-    (d) => ({
-        id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
-        name: d.varchar({ length: 255 }).notNull(),
-        region: d.varchar({ length: 100 }).notNull(),
-        district: d.varchar({ length: 150 }).notNull(),
-        city: d.varchar({ length: 150 }).notNull(),
-    }),
-    (t) => [index('street_city_idx').on(t.city), uniqueIndex('street_city_name_idx').on(t.city, t.name)],
-);
 
 // ======== Rate limit (защита от флуда) ============= //
 // Ключ — строка вида `booking:{userId}` или `upload:{userId}`.

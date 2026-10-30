@@ -173,13 +173,13 @@ export default function SupportPage() {
                         <div className="flex max-h-[60vh] flex-col gap-2 overflow-y-auto p-2">
                             {messages?.map((m) => (
                                 <MessageBubble
-                                    key={m.id}
-                                    text={m.text}
+                                    key={m.message.id}
+                                    text={m.message.text}
                                     // Моё сообщение — справа, юзера — слева.
-                                    isMine={m.senderId === myId}
+                                    isMine={m.message.senderId === myId}
                                     // У сообщения поддержки пока знаем только senderId (без имени/аватара).
-                                    sender={null}
-                                    createdAt={m.createdAt}
+                                    sender={m.sender}
+                                    createdAt={m.message.createdAt}
                                 />
                             ))}
                         </div>

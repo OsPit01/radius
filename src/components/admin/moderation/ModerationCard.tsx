@@ -11,6 +11,11 @@ type ModerationItem = RouterOutputs['apartment']['getForModeration'][number];
 
 export function ModerationCard({ item }: { item: ModerationItem }) {
     const statusInfo = getStatusInfo(item.apartment.status);
+    // ===== Управление кнопками по статусу =====
+    // Кнопка бессмысленна, если объект уже в этом статусе:
+    // одобрять уже одобренное / отклонять уже отклонённое нельзя — disabled.
+    const isActive = item.apartment.status === 'active';
+    const isInactive = item.apartment.status === 'inactive';
     const utils = api.useUtils();
     const updateStatus = api.apartment.updateStatus.useMutation({
         onSuccess: () => {
@@ -69,17 +74,24 @@ export function ModerationCard({ item }: { item: ModerationItem }) {
                     <p className="text-[12px] break-words text-muted-foreground">
                         УНП: {item.apartment.unp ?? 'не указан'}
                     </p>
-                    {/* //кнопки: ОДОБРОИТЬ/ОТКЛОНИТь  mt-auto прижимает к низу карточки  */}
+                    {/* //кнопки: ОДОБРОИТЬ/ОТКЛОНИТЬ  mt-auto прижимает к низу карточки.
+                        disabled: «Одобрить» не активна для уже одобренных,
+                        «Отклонить» — для уже отклонённых (бессмысленные действия). */}
                     <div className="mt-auto flex gap-2 pt-4 max-[480px]:flex-col">
                         <button
                             onClick={() => updateStatus.mutate({ id: item.apartment.id, status: 'active' })}
-                            className="flex-1 cursor-pointer rounded-[30px] bg-success px-5 py-2 text-sm font-semibold text-success-foreground transition-colors hover:bg-success/90"
+                            disabled={isActive}
+                            // title — подсказка при наведении: ЧЕМУ кнопка не активна
+                            title={isActive ? 'Объект уже одобрен' : undefined}
+                            className="flex-1 cursor-pointer rounded-[30px] bg-success px-5 py-2 text-sm font-semibold text-success-foreground transition-colors hover:bg-success/90 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             Одобрить
                         </button>
                         <button
                             onClick={() => setRejectOpen(true)}
-                            className="flex-1 cursor-pointer rounded-[30px] border border-border px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-warning hover:text-warning"
+                            disabled={isInactive}
+                            title={isInactive ? 'Объект уже отклонён' : undefined}
+                            className="flex-1 cursor-pointer rounded-[30px] border border-border px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-warning hover:text-warning disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             Отклонить
                         </button>

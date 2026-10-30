@@ -30,6 +30,47 @@ export const supportRouter = createTRPCRouter({
             .returning();
         return created;
     }),
+    // ============================================================
+    // myOpenTicket — «подглядывание»: вернуть ОТКРЫТУЮ заявку юзера,
+    // но НЕ СОЗДАВАТЬ новую. Виджет вызывает это при открытии окна:
+    // был разговор — подгрузить историю; не было — ничего не плодить.
+    // (Раньше заявка создавалась уже при открытии окна — от этого
+    // в БД копились ПУСТЫЕ заявки без единого сообщения.)
+    // Возвращает тикет или null, если открытой заявки нет.
+    // ============================================================
+    myOpenTicket: protectedProcedure.query(async ({ ctx }) => {
+        const userId = ctx.session.user.id;
+        const [ticket] = await ctx.db
+            .select()
+            .from(supportTicket)
+            .where(and(eq(supportTicket.userId, userId), eq(supportTicket.status, 'open')));
+        return ticket ?? null;
+    }),
+
+    // ============================================================
+    // unreadCount — сколько НЕпрочитанных ответов поддержки у юзера.
+    // Для бейджа на кнопке виджета. Паттерн — копия chat.unreadCount:
+    // считаем чужие непрочитанные сообщения в своих заявках.
+    // ============================================================
+    unreadCount: protectedProcedure.query(async ({ ctx }) => {
+        const userId = ctx.session.user.id;
+        const [row] = await ctx.db
+            .select({ value: count() })
+            .from(supportMessage)
+            .innerJoin(supportTicket, eq(supportMessage.ticketId, supportTicket.id))
+            .where(
+                and(
+                    // заявки — мои
+                    eq(supportTicket.userId, userId),
+                    // написанные НЕ мной (ответы поддержки)
+                    ne(supportMessage.senderId, userId),
+                    // и ещё не прочитанные
+                    eq(supportMessage.isRead, false),
+                ),
+            );
+        return row?.value ?? 0;
+    }),
+
     messages: protectedProcedure.input(z.object({ id: z.number() })).query(async ({ ctx, input }) => {
         const userId = ctx.session.user.id;
         const [target] = await ctx.db.select().from(supportTicket).where(eq(supportTicket.id, input.id));
@@ -47,11 +88,25 @@ export const supportRouter = createTRPCRouter({
                 message: 'Нет доступа к этой заявке',
             });
         }
-        return ctx.db
-            .select()
-            .from(supportMessage)
-            .where(eq(supportMessage.ticketId, input.id))
-            .orderBy(asc(supportMessage.createdAt));
+        //leftJoin — формула одна: «приклей таблицу users ТАМ, где supportMessage.senderId совпадает с users.id»:
+        return (
+            ctx.db
+                // select({...}) = НАКЛАДНАЯ: как упаковать ответ фронту
+                .select({
+                    message: supportMessage,
+                    sender: {
+                        id: users.id,
+                        name: users.name,
+                        firstName: users.firstName,
+                        lastName: users.lastName,
+                        image: users.image,
+                    },
+                })
+                .from(supportMessage)
+                .leftJoin(users, eq(supportMessage.senderId, users.id))
+                .where(eq(supportMessage.ticketId, input.id))
+                .orderBy(asc(supportMessage.createdAt))
+        );
     }),
 
     markRead: protectedProcedure.input(z.object({ id: z.number() })).mutation(async ({ ctx, input }) => {
@@ -107,25 +162,32 @@ export const supportRouter = createTRPCRouter({
                     text: input.text,
                 })
                 .returning();
-            // Находим всех админов одним запросом
-            const admins = await ctx.db
-                .select({ id: users.id })
-                .from(users)
-                .where(inArray(users.role, [...ADMIN_ROLES]));
+            // ===== Уведомляем админов — ТОЛЬКО если написал ПОЛЬЗОВАТЕЛЬ =====
+            // Баг-фикс: раньше уведомления рассылались безусловно, и КАЖДЫЙ ответ
+            // админа засыпал уведомлениями всю команду (включая самого отправителя).
+            // Правильно: уведомление = сигнал «нужна реакция поддержки» — он нужен,
+            // только когда написал не-админ (владелец заявки).
+            if (!isAdminRole(ctx.session.user.role)) {
+                // Находим всех админов одним запросом
+                const admins = await ctx.db
+                    .select({ id: users.id })
+                    .from(users)
+                    .where(inArray(users.role, [...ADMIN_ROLES]));
 
-            // Каждому админу — уведомление о новом сообщении.
-            // Batch-вставка: ОДИН запрос с массивом значений вместо N запросов в цикле
-            // (N поездок в БД — это медленно и нагружает базу).
-            if (admins.length > 0) {
-                await ctx.db.insert(notification).values(
-                    admins.map((admin) => ({
-                        userId: admin.id,
-                        type: 'support_new_message',
-                        title: 'Новое сообщение в поддержку',
-                        text: `Пользователь написал в поддержку. Заявка #${input.id}`,
-                        link: '/admin/support',
-                    })),
-                );
+                // Каждому админу — уведомление о новом сообщении.
+                // Batch-вставка: ОДИН запрос с массивом значений вместо N запросов в цикле
+                // (N поездок в БД — это медленно и нагружает базу).
+                if (admins.length > 0) {
+                    await ctx.db.insert(notification).values(
+                        admins.map((admin) => ({
+                            userId: admin.id,
+                            type: 'support_new_message',
+                            title: 'Новое сообщение в поддержку',
+                            text: `Пользователь написал в поддержку. Заявка #${input.id}`,
+                            link: '/admin/support',
+                        })),
+                    );
+                }
             }
 
             return created;
@@ -169,7 +231,13 @@ export const supportRouter = createTRPCRouter({
             .groupBy(supportMessage.ticketId);
         // Словарь «id заявки → дата последнего сообщения»
         const lastByTicket = new Map(lastRows.map((r) => [r.ticketId, r.lastAt]));
-        return tickets
+        // Прячем ПУСТЫЕ заявки (без единого сообщения) из очереди админа:
+        // раньше заявка создавалась уже при открытии окна — таких накопилось.
+        // После ленивого создания (see openOrGetTicket / виджет) новых не будет;
+        // старые не мозолят глаза. Напишет юзер в пустую — у неё появится
+        // сообщение, и она тут же вернётся в очередь.
+        const withMessages = tickets.filter((t) => lastByTicket.has(t.ticket.id));
+        return withMessages
             .map((t) => ({
                 // Разворачиваем поля самого тикета (id, status, createdAt...)
                 ...t.ticket,

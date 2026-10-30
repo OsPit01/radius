@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -53,49 +53,10 @@ export default function EditApartmentPage() {
 
     const [isUploading, setIsUploading] = useState(false);
 
-    const [streetSuggestions, setStreetSuggestions] = useState<string[]>([]);
-    const [streetOpen, setStreetOpen] = useState(false);
-    // Флаг «пользователь печатает улицу прямо сейчас».
-    // Автодополнение не должно срабатывать при автоматической подгрузке адреса из БД.
-    const streetUserTypedRef = useRef(false);
-
     const uploadImage = api.upload.image.useMutation();
-    const utils = api.useUtils();
 
     const images = useMemo(() => formData.images ?? [], [formData.images]);
     const mainImage = useMemo(() => formData.image ?? '', [formData.image]);
-
-    useEffect(() => {
-        // Автодополнение срабатывает только когда поле активно И пользователь
-        // сам печатает улицу (не при загрузке адреса из БД).
-        if (!canEditAddress || !streetUserTypedRef.current) {
-            setStreetSuggestions([]);
-            setStreetOpen(false);
-            return;
-        }
-        const query = formData.street.trim();
-        if (query.length < 1) {
-            setStreetSuggestions([]);
-            setStreetOpen(false);
-            return;
-        }
-        const timer = setTimeout(() => {
-            void (async () => {
-                try {
-                    const results = await utils.geo.searchStreets.fetch({
-                        query,
-                        location: formData.city,
-                    });
-                    setStreetSuggestions(results);
-                    setStreetOpen(results.length > 0);
-                } catch {
-                    setStreetSuggestions([]);
-                    setStreetOpen(false);
-                }
-            })();
-        }, 400);
-        return () => clearTimeout(timer);
-    }, [formData.street, formData.city, utils, canEditAddress]);
 
     const addImages = useCallback(
         async (files: FileList | null) => {
@@ -529,37 +490,13 @@ export default function EditApartmentPage() {
                                         <input
                                             type="text"
                                             value={formData.street}
-                                            onChange={(e) => {
-                                                streetUserTypedRef.current = true;
-                                                updateField('street', sanitizeStreet(e.target.value));
-                                            }}
-                                            onBlur={() => setStreetOpen(false)}
-                                            placeholder="Начните вводить название улицы"
+                                            onChange={(e) => updateField('street', sanitizeStreet(e.target.value))}
+                                            placeholder="Название улицы"
                                             autoComplete="off"
                                             required
                                             disabled={!canEditAddress}
                                             className={`${EDIT_INPUT_CLASS} disabled:cursor-not-allowed disabled:opacity-50`}
                                         />
-                                        {streetOpen && streetSuggestions.length > 0 && (
-                                            <ul className="absolute top-full right-0 left-0 z-50 mt-1 max-h-[240px] overflow-y-auto rounded-xl border-2 border-border bg-card shadow-[0_8px_30px_rgba(0,0,0,0.25)]">
-                                                {streetSuggestions.map((s) => (
-                                                    <li key={s}>
-                                                        <button
-                                                            type="button"
-                                                            onMouseDown={(e) => {
-                                                                e.preventDefault();
-                                                                streetUserTypedRef.current = false;
-                                                                updateField('street', s);
-                                                                setStreetOpen(false);
-                                                            }}
-                                                            className="block w-full cursor-pointer px-4 py-3 text-left text-sm text-foreground transition-colors hover:bg-primary/20"
-                                                        >
-                                                            {s}
-                                                        </button>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        )}
                                     </div>
                                     <div className="mb-4 flex flex-col gap-1.5">
                                         <label className="text-sm font-medium text-foreground">Номер дома *</label>
