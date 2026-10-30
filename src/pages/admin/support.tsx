@@ -10,7 +10,7 @@ import { AuthGuard } from '@/components/layout/AuthGuard';
 import { ClientHeader } from '@/components/layout/ClientHeader';
 import { Avatar } from '@/components/ui/Avatar';
 import { formatChatDate } from '@/lib/chat';
-import { isAdminRole } from '@/lib/constants/roles';
+import { getRoleInfo, isAdminRole } from '@/lib/constants/roles';
 import { requireAuth } from '@/server/auth/require-auth';
 import { api } from '@/trpc/react';
 
@@ -47,6 +47,12 @@ export default function SupportPage() {
         onSuccess: () => void utils.support.messages.invalidate(),
     });
     const markRead = api.support.markRead.useMutation({ onSuccess: () => void utils.support.listAll.invalidate() });
+    const takeTicket = api.support.assign.useMutation({
+        onSuccess: () => void utils.support.listAll.invalidate(),
+    });
+    const leaveTicket = api.support.leave.useMutation({
+        onSuccess: () => void utils.support.listAll.invalidate(),
+    });
 
     // Отправить ответ: guard'ы — пустой текст, «чат не открыт» и «уже отправляем»
     // (третий защищает от дубля при Enter + быстрых кликах).
@@ -70,7 +76,8 @@ export default function SupportPage() {
             </AuthGuard>
         );
     }
-
+    // Данные выбранной заявки (для «Ведёт: Имя» и кнопок взять/выйти)
+    const selected = tickets?.find((t) => t.id === selectedId) ?? null;
     // ===== Экран =====
     return (
         <AuthGuard>
@@ -155,8 +162,8 @@ export default function SupportPage() {
                     </>
                 ) : (
                     <>
-                        {/* Шапка окна: назад + номер заявки. */}
-                        <div className="flex items-center gap-3 pb-4">
+                        {/* Шапка окна: назад + номер заявки + кто ведёт. */}
+                        <div className="flex flex-wrap items-center gap-3 pb-4">
                             <button
                                 type="button"
                                 // «Назад»: сбрасываем выбор → снова список.
@@ -167,6 +174,48 @@ export default function SupportPage() {
                                 ← Назад
                             </button>
                             <h1 className="text-[25px] max-md:text-xl">Заявка #{selectedId}</h1>
+
+                            {/* ===== КТО ВЕДЁТ + кнопки «Взять/Выйти» =====
+                                selected заполнен ТОЛЬКО в этой ветке (selectedId — число),
+                                поэтому блок живёт здесь, а не в списке. */}
+                            {selected?.assignedAdmin ? (
+                                <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                                    Ведёт:
+                                    <span className="font-medium text-foreground">
+                                        {selected.assignedAdmin.name ?? 'Админ'}
+                                    </span>
+                                    {/* Статус ведущего: цвет из справочника roles.ts
+                                        (админ — синий, супер — красный, главный — оранжевый).
+                                        Динамический цвет → через style, не Tailwind —
+                                        паттерн бейджа статуса из ModerationCard. */}
+                                    <span
+                                        style={{ background: getRoleInfo(selected.assignedAdmin.role).color }}
+                                        className="rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide text-white uppercase"
+                                    >
+                                        {getRoleInfo(selected.assignedAdmin.role).label}
+                                    </span>
+                                </span>
+                            ) : (
+                                <button
+                                    type="button"
+                                    // «Взять себе» = процедура assign (переиспользование:
+                                    // assign и есть «назначить меня ведущим»)
+                                    onClick={() => selectedId !== null && takeTicket.mutate({ id: selectedId })}
+                                    className="h-11 cursor-pointer rounded-[30px] bg-gray-100 px-4 text-sm hover:bg-gray-200"
+                                >
+                                    Участвовать
+                                </button>
+                            )}
+                            {/* «Выйти» видит только тот, кто ведёт эту заявку */}
+                            {selected?.assignedAdmin?.id === myId && selectedId !== null && (
+                                <button
+                                    type="button"
+                                    onClick={() => leaveTicket.mutate({ id: selectedId })}
+                                    className="h-11 cursor-pointer rounded-[30px] border border-border px-4 text-sm font-medium text-muted-foreground hover:border-destructive hover:text-destructive"
+                                >
+                                    Выйти
+                                </button>
+                            )}
                         </div>
 
                         {/* Переписка выбранной заявки (прокрутка, если сообщений много). */}

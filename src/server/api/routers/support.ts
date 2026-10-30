@@ -1,5 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import { and, asc, count, eq, inArray, max, ne } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 import z from 'zod';
 
 import { MAX_MESSAGE_LENGTH } from '@/lib/chat';
@@ -10,6 +11,7 @@ import { enforceRateLimit } from '@/server/rate-limit';
 // Антифлуд: сколько сообщений может отправить один пользователь за окно времени.
 const CHAT_RATE_LIMIT = 30;
 const CHAT_RATE_WINDOW_MS = 60 * 1000;
+const assignedAdminUser = alias(users, 'assigned_admin');
 export const supportRouter = createTRPCRouter({
     openOrGetTicket: protectedProcedure.mutation(async ({ ctx }) => {
         const userId = ctx.session.user.id;
@@ -154,6 +156,19 @@ export const supportRouter = createTRPCRouter({
                     message: 'Нет доступа к этой заявке',
                 });
             }
+            if (isAdmin && !isOwner) {
+                if (target.assignedToId === null) {
+                    await ctx.db
+                        .update(supportTicket)
+                        .set({ assignedToId: userId })
+                        .where(eq(supportTicket.id, input.id));
+                } else if (target.assignedToId !== userId) {
+                    throw new TRPCError({
+                        code: 'FORBIDDEN',
+                        message: 'Заявку ведет другой администратор',
+                    });
+                }
+            }
             const [created] = await ctx.db
                 .insert(supportMessage)
                 .values({
@@ -215,9 +230,17 @@ export const supportRouter = createTRPCRouter({
                     email: users.email,
                     image: users.image,
                 },
+                assignedAdmin: {
+                    id: assignedAdminUser.id,
+                    name: assignedAdminUser.name,
+                    image: assignedAdminUser.image,
+                    // Роль ведущего (admin/superadmin/mainadmin) — для цветного бейджа статуса
+                    role: assignedAdminUser.role,
+                },
             })
             .from(supportTicket)
-            .leftJoin(users, eq(supportTicket.userId, users.id));
+            .leftJoin(users, eq(supportTicket.userId, users.id))
+            .leftJoin(assignedAdminUser, eq(supportTicket.assignedToId, assignedAdminUser.id));
         const rows = await ctx.db
             .select({ ticketId: supportMessage.ticketId, unread: count() })
             .from(supportMessage)
@@ -243,6 +266,7 @@ export const supportRouter = createTRPCRouter({
                 ...t.ticket,
                 // Кто написал обращение (для карточки в админке)
                 owner: t.owner,
+                assignedAdmin: t.assignedAdmin,
                 unreadCount: unreadByTicket.get(t.ticket.id) ?? 0,
                 lastActivity: lastByTicket.get(t.ticket.id) ?? t.ticket.createdAt,
             }))
@@ -264,6 +288,29 @@ export const supportRouter = createTRPCRouter({
             throw new TRPCError({
                 code: 'NOT_FOUND',
                 message: 'Заявка не найдена',
+            });
+        }
+        return updated;
+    }),
+
+    leave: protectedProcedure.input(z.object({ id: z.number() })).mutation(async ({ ctx, input }) => {
+        if (!isAdminRole(ctx.session.user.role)) {
+            throw new TRPCError({
+                code: 'FORBIDDEN',
+                message: 'Только для Администратора',
+            });
+        }
+        const [updated] = await ctx.db
+            .update(supportTicket)
+            .set({
+                assignedToId: null,
+            })
+            .where(and(eq(supportTicket.id, input.id), eq(supportTicket.assignedToId, ctx.session.user.id)))
+            .returning();
+        if (!updated) {
+            throw new TRPCError({
+                code: 'NOT_FOUND',
+                message: 'Вы не ведёте эту заявку',
             });
         }
         return updated;
