@@ -11,9 +11,9 @@ import { ClientHeader } from '@/components/layout/ClientHeader';
 import { Avatar } from '@/components/ui/Avatar';
 import { formatChatDate } from '@/lib/chat';
 import { getRoleInfo, isAdminRole } from '@/lib/constants/roles';
+import { SUPPORT_TEMPLATES } from '@/lib/constants/support-templates';
 import { requireAuth } from '@/server/auth/require-auth';
 import { api } from '@/trpc/react';
-
 // Неавторизованных разворачивает на вход ещё на сервере.
 export const getServerSideProps = requireAuth;
 
@@ -230,6 +230,21 @@ export default function SupportPage() {
                                     sender={m.sender}
                                     createdAt={m.message.createdAt}
                                 />
+                            ))}
+                        </div>
+
+                        {/* Подсказки-шаблоны: клик — текст летит в поле ввода.
+                            flex-wrap — на мобилке чипы переносятся на новые строки. */}
+                        <div className="flex flex-wrap gap-2 pb-2">
+                            {SUPPORT_TEMPLATES.map((s) => (
+                                <button
+                                    key={s.id}
+                                    type="button"
+                                    onClick={() => setText(s.text)}
+                                    className="cursor-pointer rounded-full border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                                >
+                                    {s.label}
+                                </button>
                             ))}
                         </div>
 
