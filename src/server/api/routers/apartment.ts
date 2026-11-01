@@ -5,7 +5,7 @@ import { z } from 'zod';
 
 import { formatAddressLine } from '@/lib/address';
 import { APARTMENT_STATUS_VALUES, buildStatusNotificationText } from '@/lib/constants/apartment-status';
-import { isAdminRole } from '@/lib/constants/roles';
+import { isAdminRole, isStaffRole } from '@/lib/constants/roles';
 import { createApartmentInput, updateApartmentInput } from '@/lib/schemas/apartment';
 import { selectApartmentCards, selectApartmentOwnList, selectApartmentPublic } from '@/server/apartment-selects';
 import { createTRPCRouter, protectedProcedure, publicProcedure } from '@/server/api/trpc';
@@ -156,10 +156,12 @@ export const apartmentRouter = createTRPCRouter({
         }
 
         // Полные данные (включая email/телефон владельца) — только владельцу
-        // или администратору. Чужому авторизованному — FORBIDDEN.
+        // или ПЕРСОНАЛУ (модератору и выше: нужно для проверки объекта
+        // при модерации). Чужому авторизованному — FORBIDDEN.
+        // isStaff (не isAdmin!): имя переменной обязано говорить, ЧТО в ней.
         const isOwner = apartment.apartment.createdById === ctx.session.user.id;
-        const isAdmin = isAdminRole(ctx.session.user.role);
-        if (!isOwner && !isAdmin) {
+        const isStaff = isStaffRole(ctx.session.user.role);
+        if (!isOwner && !isStaff) {
             throw new TRPCError({
                 code: 'FORBIDDEN',
                 message: 'У вас нет прав на просмотр полных данных этого объекта',
@@ -329,7 +331,8 @@ export const apartmentRouter = createTRPCRouter({
     }),
     //вернуть все объекты
     getForModeration: protectedProcedure.query(async ({ ctx }) => {
-        if (!isAdminRole(ctx.session.user.role)) {
+        // Модерация контента — работа ПЕРСОНАЛА (модератор и выше).
+        if (!isStaffRole(ctx.session.user.role)) {
             throw new TRPCError({
                 code: 'FORBIDDEN',
                 message: 'У вас нет прав на модерацию',
@@ -348,7 +351,9 @@ export const apartmentRouter = createTRPCRouter({
             }),
         )
         .mutation(async ({ ctx, input }) => {
-            if (!isAdminRole(ctx.session.user.role)) {
+            // Одобрить/отклонить — работа ПЕРСОНАЛА (модератор и выше),
+            // как и getForModeration: модератор видит очередь И умеет решать.
+            if (!isStaffRole(ctx.session.user.role)) {
                 throw new TRPCError({
                     code: 'FORBIDDEN',
                     message: 'У вас нет прав на модерацию',

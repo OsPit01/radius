@@ -46,3 +46,5 @@ yarn-error.log*
 .idea
 
 AGENTS.md
+# Одноразовые проверочные скрипты (не коммитятся)
+.tmp-check/

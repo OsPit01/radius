@@ -12,6 +12,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { formatChatDate } from '@/lib/chat';
 import { getRoleInfo, isAdminRole } from '@/lib/constants/roles';
 import { SUPPORT_TEMPLATES } from '@/lib/constants/support-templates';
+import { getRoleColor } from '@/lib/theme';
 import { requireAuth } from '@/server/auth/require-auth';
 import { api } from '@/trpc/react';
 // Неавторизованных разворачивает на вход ещё на сервере.
@@ -184,12 +185,12 @@ export default function SupportPage() {
                                     <span className="font-medium text-foreground">
                                         {selected.assignedAdmin.name ?? 'Админ'}
                                     </span>
-                                    {/* Статус ведущего: цвет из справочника roles.ts
-                                        (админ — синий, супер — красный, главный — оранжевый).
-                                        Динамический цвет → через style, не Tailwind —
-                                        паттерн бейджа статуса из ModerationCard. */}
+                                    {/* Статус ведущего: цвет — из слоя оформления
+                                        (getRoleColor, см. lib/theme.ts), текст роли — из
+                                        домена (getRoleInfo). Динамический цвет → style,
+                                        не Tailwind (Tailwind не собирает классы из переменных). */}
                                     <span
-                                        style={{ background: getRoleInfo(selected.assignedAdmin.role).color }}
+                                        style={{ background: getRoleColor(selected.assignedAdmin.role) }}
                                         className="rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide text-white uppercase"
                                     >
                                         {getRoleInfo(selected.assignedAdmin.role).label}

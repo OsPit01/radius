@@ -11,7 +11,7 @@
 // ============================================================
 import { useMemo, useSyncExternalStore } from 'react';
 
-import { hasPermission } from '@/lib/constants/roles';
+import { hasPermission, isRoleKey, type RoleKey } from '@/lib/constants/roles';
 
 export type ThemeMode = 'light' | 'dark';
 export type ThemeSeedKey = 'background' | 'foreground' | 'primary';
@@ -28,6 +28,32 @@ const THEME_STYLE_ID = 'radius-theme-colors';
 // Пока настройка темы доступна только суперадминам (и выше).
 export function canCustomizeTheme(role: string | undefined | null): boolean {
     return !!role && hasPermission(role, 'superadmin');
+}
+
+// ============================================================
+// ЦВЕТА БЕЙДЖЕЙ РОЛЕЙ — слой ОФОРМЛЕНИЯ (не домена!)
+//
+// Раньше цвета лежали в roles.ts вперемешку с уровнями доступа —
+// домен «знал» про пиксели. Разделение ответственности:
+//   roles.ts — ЧТО есть роль и какие у неё ПРАВА (данные);
+//   theme.ts — КАК роль ВЫГЛЯДИТ на экране (оформление).
+// Record<RoleKey, string> — TS проверяет: забыла роль — ошибка компиляции.
+// ============================================================
+export const ROLE_COLORS: Record<RoleKey, string> = {
+    user: '#4b5563',
+    lessor: '#28a745',
+    moderator: '#9333ea', // фиолетовый — «модерация контента», ниже админа
+    admin: '#007bff',
+    superadmin: '#dc3545',
+    mainadmin: '#fd7e14',
+};
+
+/**
+ * Цвет роли для бейджа. Мусорная строка из БД → серый дефолт:
+ * оформление тоже проходит валидацию на границе (как getRoleInfo в домене).
+ */
+export function getRoleColor(role: string): string {
+    return ROLE_COLORS[isRoleKey(role) ? role : 'user'];
 }
 
 // ===== ГОТОВЫЕ ТЕМЫ =====

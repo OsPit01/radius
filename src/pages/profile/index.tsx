@@ -6,6 +6,7 @@ import { ArrowRight, BarChart, Calendar, Chat, Heart, Home, Settings } from '@/c
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { ClientHeader } from '@/components/layout/ClientHeader';
 import { getRoleInfo } from '@/lib/constants/roles';
+import { getRoleColor } from '@/lib/theme';
 import { requireAuth } from '@/server/auth/require-auth';
 import { api } from '@/trpc/react';
 
@@ -110,7 +111,7 @@ export default function ProfilePage() {
                                 <div className="flex items-center gap-2 max-md:justify-center">
                                     <span
                                         className="inline-flex items-center gap-1.5 rounded-[30px] px-[18px] py-1.5 text-[13px] font-semibold tracking-[0.5px] text-white uppercase shadow-[0_4px_12px_rgba(49,53,50,0.658)]"
-                                        style={{ background: roleInfo.color }}
+                                        style={{ background: getRoleColor(user.role) }}
                                     >
                                         {roleInfo.label}
                                     </span>

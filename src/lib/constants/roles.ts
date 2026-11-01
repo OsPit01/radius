@@ -1,77 +1,146 @@
 // ============================================================
-// src/lib/constants/roles.ts - РОЛИ
+// РОЛИ: ЕДИНЫЙ КОРЕНЬ ПРАВДЫ
+//
+// АРХИТЕКТУРА (прочти перед изменением):
+// Всё знание о ролях живёт ТОЛЬКО здесь, в объекте ROLES.
+// Список админов, список для zod, опции для селектов/вкладок —
+// НЕ пишутся руками, а ВЫВОДЯТСЯ из корня (см. внизу файла).
+// Добавление новой роли = ОДНА строка в ROLES — она сама
+// появится во всех механизмах проекта. Дублирование знания
+// вручную (второй список, вторая константа) = ЗАПРЕЩЕНО.
+//
+// В файле НЕТ цветов: это домен (данные и правила), оформление
+// (цвета бейджей) живёт отдельно в src/lib/theme.ts — там ROLE_COLORS.
+//
+// ИЕРАРХИЯ: level — уровень доступа (чем больше, тем больше прав).
+// user(0) < lessor(1) < admin(2) < superadmin(3) < mainadmin(4).
+// Сравнение прав всегда через level (hasPermission), НЕ через списки.
 // ============================================================
 
-type RoleInfo = {
-    label: string;
-    color: string;
-    level: number;
-};
-
-// ===== ВСЕ РОЛИ =====
 export const ROLES = {
-    user: {
-        label: 'Пользователь',
-        color: '#4b5563',
-        level: 0,
-    },
-    lessor: {
-        label: 'Арендодатель',
-        color: '#28a745',
-        level: 1,
-    },
-    admin: {
-        label: 'Администратор',
-        color: '#007bff',
-        level: 2,
-    },
-    superadmin: {
-        label: 'Супер Админ',
-        color: '#dc3545',
-        level: 3,
-    },
-    mainadmin: {
-        label: 'Главный Админ',
-        color: '#fd7e14',
-        level: 4,
-    },
-};
+    user: { label: 'Пользователь', level: 0 },
+    lessor: { label: 'Арендодатель', level: 1 },
+    // Модератор: вход в админ-панель + модерация КОНТЕНТА (объекты).
+    // НЕ управляет пользователями и НЕ ведёт поддержку (это админ+).
+    moderator: { label: 'Модератор', level: 2 },
+    admin: { label: 'Администратор', level: 3 },
+    superadmin: { label: 'Супер Админ', level: 4 },
+    mainadmin: { label: 'Главный Админ', level: 5 },
+} as const satisfies Record<string, { label: string; level: number }>;
+// ↑ Две конструкции работают В ПАРЕ:
+//   as const   — «запомни КОНКРЕТНЫЕ ключи/значения, не расширяй до string»
+//                (без него keyof был бы просто string — и вся типобезопасность умерла);
+//   satisfies  — «проверь, что у каждой роли есть label и level, но типы
+//                не расширяй» (проверка формы БЕЗ кастов и БЕЗ ослабления типов).
 
-// ===== ТИП ДЛЯ КЛЮЧЕЙ РОЛЕЙ =====
+/** Ключ роли — выводится из корня, руками не пишем. */
 export type RoleKey = keyof typeof ROLES;
 
-// ===== ВСЕ РОЛИ ДЛЯ ZOD =====
-export const ROLE_VALUES = Object.keys(ROLES) as [RoleKey, ...RoleKey[]];
+/** Данные одной роли (label + level) — тоже выводятся. */
+export type RoleInfo = (typeof ROLES)[RoleKey];
 
-// ===== АДМИН-РОЛИ (только те, у кого есть доступ в админку) =====
-export const ADMIN_ROLES: readonly RoleKey[] = ['admin', 'superadmin', 'mainadmin'];
+/**
+ * ДВА УРОВНЯ ВОРОТ (не путать!):
+ *
+ * STAFF_LEVEL (модератор+) — «вход в админ-панель + модерация контента»:
+ *   иконка щита в шапке, страница /admin (хаб), «Модерация объектов»,
+ *   просмотр полных данных объекта, одобрение/отклонение.
+ *
+ * ADMIN_LEVEL (админ+) — «полное управление»: пользователи, поддержка,
+ *   беседы, статистика, реквизиты, редактирование/удаление чужих объектов.
+ */
+export const STAFF_LEVEL = ROLES.moderator.level;
+export const ADMIN_LEVEL = ROLES.admin.level;
 
+// ============================================================
+// ВАЛИДАЦИЯ НА ГРАНИЦЕ ДОВЕРИЯ
+//
+// Роль приходит из varchar в БД — там МОЖЕТ лежать мусор ('admn', '' и т.п.).
+// Нигде в коде НЕ доверяем строке роли напрямую: сначала isRoleKey.
+// ============================================================
+
+/**
+ * Строка — одна из НАШИХ ролей?
+ * Type-guard: после проверки TypeScript СУЖАЕТ тип string → RoleKey,
+ * и дальше можно безопасно писать ROLES[role].
+ */
+export function isRoleKey(value: string | null | undefined): value is RoleKey {
+    // Object.hasOwn, а НЕ `in`: `in` лезет в прототип объекта
+    // ('constructor' in ROLES → true — и вернётся мусор).
+    // hasOwn проверяет ТОЛЬКО собственные ключи.
+    return !!value && Object.hasOwn(ROLES, value);
+}
+
+/**
+ * Персонал (модератор и выше): вход в админ-панель + модерация контента.
+ * Именно эта проверка стоит на иконке щита, хабе /admin и модерации объектов.
+ */
+export function isStaffRole(role: string | undefined | null): boolean {
+    return isRoleKey(role) && ROLES[role].level >= STAFF_LEVEL;
+}
+
+/** Админ и выше: ПОЛНОЕ управление (пользователи, поддержка, статистика...). */
 export function isAdminRole(role: string | undefined | null): boolean {
-    return !!role && (ADMIN_ROLES as readonly string[]).includes(role);
+    // Сначала валидация (мусор — не роль), потом уровень.
+    // Список админ-ролей НЕ пишем руками — он ВЫВОДИТСЯ из level (см. ADMIN_ROLES),
+    // поэтому новая роль не сможет «потеряться» в одном из двух списков.
+    return isRoleKey(role) && ROLES[role].level >= ADMIN_LEVEL;
 }
 
-// ===== ПОЛУЧИТЬ ИНФОРМАЦИЮ О РОЛИ =====
+/**
+ * Данные роли по строке. Мусор из БД → дефолт user
+ * (не краш, не undefined — предсказуемый «самый нижний» уровень прав).
+ */
 export function getRoleInfo(role: string): RoleInfo {
-    // Проверяем, есть ли такая роль
-    if (role in ROLES) {
-        return ROLES[role as RoleKey];
-    }
-    // Если нет — возвращаем user
-    return ROLES.user;
+    return isRoleKey(role) ? ROLES[role] : ROLES.user;
 }
 
-// ===== ПРОВЕРКА ПРАВ =====
+/**
+ * Проверка права: уровень юзера >= уровня требуемой роли.
+ * Пример: hasPermission('admin', 'superadmin') → false (2 < 3).
+ */
 export function hasPermission(userRole: string, requiredRole: RoleKey): boolean {
-    const userInfo = getRoleInfo(userRole);
-    const requiredInfo = ROLES[requiredRole];
-    return userInfo.level >= requiredInfo.level;
+    return getRoleInfo(userRole).level >= ROLES[requiredRole].level;
 }
 
-// ===== ВСЕ РОЛИ ДЛЯ СПИСКОВ =====
-export const ROLE_LIST = Object.keys(ROLES);
+// ============================================================
+// ВЫВОДНЫЕ СПИСКИ — руками НЕ дублировать!
+//
+// Все списки ниже выведены из ROLES. filter(isRoleKey) — не просто
+// фильтрация: type-guard СУЖАЕТ тип элементов string[] → RoleKey[],
+// поэтому КАСТЫ (`as`) не нужны вовсе — тип доказан компилятору.
+// ============================================================
 
-// ===== ДЛЯ SELECT =====
-export const ROLE_OPTIONS = ROLE_LIST.map((key) => ({
+/** Все ключи ролей (для перебора, сортировок, вкладок). */
+export const ROLE_VALUES: readonly RoleKey[] = Object.keys(ROLES).filter(isRoleKey);
+
+/**
+ * Кортеж для zod: z.enum требует тип «минимум один элемент» ([A, ...A[]]),
+ * а не просто массив. Единственный легитимный каст в этом файле —
+// на ГРАНИЦЕ с внешней библиотекой (zod), задокументирован здесь.
+ */
+export const ROLE_VALUES_TUPLE = ROLE_VALUES as [RoleKey, ...RoleKey[]];
+
+/**
+ * Админ-роли — ВЫВОДЯТСЯ из level, не пишутся списком.
+ * Раньше список ['admin','superadmin','mainadmin'] был написан руками и
+// мог РАЗОЙТИСЬ с level (классическая мина: новая роль админская по уровню,
+// но не в списке — и права врут в двух местах по-разному).
+ * Используется, например, для поиска всех админов в уведомлениях поддержки.
+ */
+export const ADMIN_ROLES: readonly RoleKey[] = ROLE_VALUES.filter((key) => ROLES[key].level >= ADMIN_LEVEL);
+
+/** Опции для <select> и вкладок: {value, label} — label всегда синхронен с ROLES. */
+export const ROLE_OPTIONS: readonly { value: RoleKey; label: string }[] = ROLE_VALUES.map((key) => ({
     value: key,
-    label: ROLES[key as RoleKey].label,
+    label: ROLES[key].label,
 }));
+
+// ============================================================
+// ЧТО НЕ СДЕЛАНО (осознанно, документируем):
+// В БД role — varchar(50). Канон — pgEnum, но это МИГРАЦИЯ прод-данных
+// (varchar → enum требует проверки реального содержимого колонки и
+// аккуратного ALTER ... USING). Граница уже защищена isRoleKey на входе
+// в сессию и во все проверки, так что enum — второй рубеж, делать
+// отдельным шагом по правилу «перед db:push сверить состояние БД».
+// ============================================================

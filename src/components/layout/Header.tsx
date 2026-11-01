@@ -6,7 +6,7 @@ import { signOut, useSession } from 'next-auth/react';
 import { UserDropdown } from '@/components/auth/UserDropdown';
 import { Close, Heart, Menu, Shield } from '@/components/icons';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
-import { isAdminRole } from '@/lib/constants/roles';
+import { isStaffRole } from '@/lib/constants/roles';
 import { HEADER_ICON_BUTTON } from '@/lib/constants/ui';
 import { api } from '@/trpc/react';
 
@@ -100,8 +100,10 @@ export function Header() {
                             >
                                 <NotificationBell />
                             </Link>
-                            {/* Панель администратора — видна ТОЛЬКО админам */}
-                            {isAdminRole(session?.user?.role) && (
+                            {/* Панель — для ПЕРСОНАЛА (модератор и выше):
+                                модератор видит щит и входит в хаб (только свои разделы),
+                                обычный юзер — не видит */}
+                            {isStaffRole(session?.user?.role) && (
                                 <Link
                                     href="/admin"
                                     className={`group rounded-lg ${HEADER_ICON_BUTTON}`}
@@ -132,8 +134,8 @@ export function Header() {
                             >
                                 <NotificationBell />
                             </Link>
-                            {/* Панель администратора — видна ТОЛЬКО админам (и на мобилке тоже) */}
-                            {isAdminRole(session?.user?.role) && (
+                            {/* Панель — для ПЕРСОНАЛА (модератор и выше, и на мобилке) */}
+                            {isStaffRole(session?.user?.role) && (
                                 <Link
                                     href="/admin"
                                     className={`group rounded-lg ${HEADER_ICON_BUTTON}`}

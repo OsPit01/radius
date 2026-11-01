@@ -3,7 +3,7 @@ import { count, eq } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { z } from 'zod';
 
-import { getRoleInfo, isAdminRole, ROLE_VALUES } from '@/lib/constants/roles';
+import { getRoleInfo, isAdminRole, ROLE_VALUES_TUPLE } from '@/lib/constants/roles';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import type * as schema from '@/server/db/schema';
 import { apartments, booking, favorites, users } from '@/server/db/schema';
@@ -117,7 +117,9 @@ export const userRouter = createTRPCRouter({
         .input(
             z.object({
                 userId: z.string(),
-                role: z.enum(ROLE_VALUES),
+                // zod требует КОРТЕЖ ([A, ...A[]]), а не массив —
+                // ROLE_VALUES_TUPLE выведен из ROLES (см. roles.ts), не дублирован.
+                role: z.enum(ROLE_VALUES_TUPLE),
             }),
         )
         .mutation(async ({ ctx, input }) => {

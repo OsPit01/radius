@@ -3,7 +3,7 @@ import { type NextAuthConfig } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import Resend from 'next-auth/providers/resend';
 
-import type { RoleKey } from '@/lib/constants/roles';
+import { isRoleKey, type RoleKey } from '@/lib/constants/roles';
 import { db } from '@/server/db';
 import { accounts, sessions, users, verificationTokens } from '@/server/db/schema';
 // ============================================================
@@ -76,7 +76,11 @@ export const authConfig = {
                 user: {
                     ...session.user,
                     id: user.id,
-                    role: user.role ?? 'user',
+                    // ВАЛИДАЦИЯ НА ГРАНИЦЕ: role приходит из varchar в БД и может
+                    // содержать мусор ('admn', ''). Тип сессии клянётся, что там
+                    // RoleKey — поэтому пропускаем только реальные роли, мусор → 'user'.
+                    // (БЫЛО: user.role ?? 'user' — пропускало любую строку.)
+                    role: isRoleKey(user.role) ? user.role : 'user',
                     bannedUntil: user.bannedUntil ?? null,
                 },
             };

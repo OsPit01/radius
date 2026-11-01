@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { ModerationCard } from '@/components/admin/moderation/ModerationCard';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { ClientHeader } from '@/components/layout/ClientHeader';
-import { isAdminRole } from '@/lib/constants/roles';
+import { isAdminRole, isStaffRole } from '@/lib/constants/roles';
 import { EDIT_INPUT_CLASS } from '@/lib/utils';
 import { requireAuth } from '@/server/auth/require-auth';
 import { api } from '@/trpc/react';
@@ -37,7 +37,7 @@ export default function ModerationPage() {
             ? sortedData
             : sortedData.filter((item) => String(item.apartment.id) === searchId.trim());
 
-    if (!isAdminRole(session?.user.role)) {
+    if (!isStaffRole(session?.user.role)) {
         return (
             <AuthGuard>
                 <ClientHeader />
@@ -69,6 +69,9 @@ export default function ModerationPage() {
                             <ModerationCard
                                 key={item.apartment.id}
                                 item={item}
+                                // Полные права (Удалить/Редактировать чужое) — только админ+.
+                                // Модератору сервер эти действия запрещает — кнопки не показываем.
+                                canManage={isAdminRole(session?.user.role)}
                             />
                         ))}
                     </div>

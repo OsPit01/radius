@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Avatar } from '@/components/ui/Avatar';
 import { Modal } from '@/components/ui/Modal';
 import { getRoleInfo, type RoleKey } from '@/lib/constants/roles';
+import { getRoleColor } from '@/lib/theme';
 import { api } from '@/trpc/react';
 
 type AdminUser = {
@@ -118,9 +119,10 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
                     </div>
                 </div>
 
-                {/* Бейдж роли */}
+                {/* Бейдж роли: цвет — из слоя оформления (getRoleColor),
+                    текст — из домена (getRoleInfo). Разделение ответственности. */}
                 <span
-                    style={{ background: roleInfo.color }}
+                    style={{ background: getRoleColor(user.role) }}
                     className="mt-4 inline-flex w-fit items-center rounded-full px-3 py-1 text-xs font-semibold tracking-wide text-white uppercase"
                 >
                     {roleInfo.label}

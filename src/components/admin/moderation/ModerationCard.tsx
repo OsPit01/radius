@@ -9,7 +9,15 @@ import { PAYERTYPE } from '@/lib/constants/info-company';
 import { api, type RouterOutputs } from '@/trpc/react';
 type ModerationItem = RouterOutputs['apartment']['getForModeration'][number];
 
-export function ModerationCard({ item }: { item: ModerationItem }) {
+type ModerationCardProps = {
+    item: ModerationItem;
+    /** true — полные права (админ и выше): «Удалить» и «Редактировать» чужого объекта.
+     *  Модератору эти действия запрещены СЕРВЕРОМ (delete/update — admin+),
+     *  поэтому кнопки и не показываются: UI не должен обещать то, что сервер отобьёт. */
+    canManage: boolean;
+};
+
+export function ModerationCard({ item, canManage }: ModerationCardProps) {
     const statusInfo = getStatusInfo(item.apartment.status);
     // ===== Управление кнопками по статусу =====
     // Кнопка бессмысленна, если объект уже в этом статусе:
@@ -96,24 +104,28 @@ export function ModerationCard({ item }: { item: ModerationItem }) {
                             Отклонить
                         </button>
                     </div>
-                    {/* Кнопки: УДАЛИТЬ/РЕДАКТИРОВАТЬ*/}
-                    <div className="mt-auto flex gap-2 pt-4 max-[480px]:flex-col">
-                        <button
-                            onClick={() => setDeleteOpen(true)}
-                            className="flex-1 cursor-pointer rounded-[30px] border border-border px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
-                        >
-                            Удалить
-                        </button>
-
-                        <Link
-                            href={`/my-apartments/${item.apartment.id}/edit`}
-                            className="flex-1 max-[480px]:w-full"
-                        >
-                            <button className="w-full cursor-pointer rounded-[30px] border border-border px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary">
-                                Редактировать
+                    {/* Кнопки: УДАЛИТЬ/РЕДАКТИРОВАТЬ — только для админа+ (canManage).
+                        Модератору их не показываем: сервер эти действия для него
+                        закрывает (delete/update — admin+), кнопки бы просто врали. */}
+                    {canManage && (
+                        <div className="mt-auto flex gap-2 pt-4 max-[480px]:flex-col">
+                            <button
+                                onClick={() => setDeleteOpen(true)}
+                                className="flex-1 cursor-pointer rounded-[30px] border border-border px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
+                            >
+                                Удалить
                             </button>
-                        </Link>
-                    </div>
+
+                            <Link
+                                href={`/my-apartments/${item.apartment.id}/edit`}
+                                className="flex-1 max-[480px]:w-full"
+                            >
+                                <button className="w-full cursor-pointer rounded-[30px] border border-border px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary">
+                                    Редактировать
+                                </button>
+                            </Link>
+                        </div>
+                    )}
                     {/* ID ОБЪЕКТА */}
                     <p className="text-sm text-muted-foreground">ID: {item.apartment.id}</p>
                     {/*////////////////// Часть Modal //////////////////////*/}
