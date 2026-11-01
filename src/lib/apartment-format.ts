@@ -17,7 +17,7 @@ export type ApartmentCardData = {
     doubleSofas: number;
     singleSofas: number;
     /** Минут пешком до метро; 0 — неизвестно (см. isMetroWalkable). */
-    minsToMetro: number;
+    minsToMetro: number | null;
     amenities: string[];
 };
 
@@ -63,7 +63,7 @@ export function getApartmentCardData(apartment: ApartmentSource): ApartmentCardD
         singleBeds: apartment.singleBeds ?? 0,
         doubleSofas: apartment.doubleSofas ?? 0,
         singleSofas: apartment.singleSofas ?? 0,
-        minsToMetro: apartment.minsToMetro ?? 0,
+        minsToMetro: apartment.minsToMetro,
         amenities: apartment.amenities ?? [],
     };
 }

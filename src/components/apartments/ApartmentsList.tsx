@@ -51,9 +51,8 @@ export function ApartmentsList({
 
         const totalSofas = (apartment.doubleSofas ?? 0) + (apartment.singleSofas ?? 0);
         const matchesSofas = filters?.sofas == null || totalSofas >= filters.sofas;
-
-        const matchesMetro =
-            filters?.metro == null || (apartment.minsToMetro > 0 && apartment.minsToMetro <= filters.metro);
+        const minsToMetro = apartment.minsToMetro ?? 0;
+        const matchesMetro = filters?.metro == null || (minsToMetro > 0 && minsToMetro <= filters.metro);
 
         return (
             matchesSearch &&
