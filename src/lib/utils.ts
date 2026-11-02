@@ -5,6 +5,8 @@ import { findNearestMetro, isMetroRegion, walkMinutesToStation } from '@/lib/met
 import { isMetroWalkable } from '@/lib/metro-limit';
 import type { CreateApartmentInput } from '@/lib/schemas/apartment';
 
+import type { PayerType } from './constants/payer';
+
 export type FormData = {
     type: string;
     /** Только область — одна из шести (`value` из BELARUS_REGIONS, Минск относится к Минской). Пусто, пока не определена. */
@@ -42,7 +44,7 @@ export type FormData = {
     images: string[];
     checkInTime: string;
     checkOutTime: string;
-    payerType: string;
+    payerType: PayerType;
     unp: string;
     payerName: string;
 };

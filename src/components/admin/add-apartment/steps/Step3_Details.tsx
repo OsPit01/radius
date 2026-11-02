@@ -1,7 +1,7 @@
 import { Car, Clipboard, Clock, Money, Note, Ruler, Sofa, Sparkles } from '@/components/icons';
 import { formatAddressLine } from '@/lib/address';
 import { AMENITIES, CURRENCIES, getTypeLabel, PARKING_TYPES } from '@/lib/constants';
-import { PAYERTYPE } from '@/lib/constants/info-company';
+import { PAYER_TYPE_OPTIONS } from '@/lib/constants/payer';
 import type { StepProps } from '@/lib/utils';
 import { EDIT_INPUT_CLASS, INPUT_CLASS, toggleAmenity } from '@/lib/utils';
 
@@ -415,7 +415,7 @@ export function Step3_Details({ formData, updateField, error, errors }: StepProp
                         onChange={(e) => updateField('payerType', e.target.value)}
                         className={EDIT_INPUT_CLASS}
                     >
-                        {PAYERTYPE.map((i) => (
+                        {PAYER_TYPE_OPTIONS.map((i) => (
                             <option
                                 key={i.value}
                                 value={i.value}

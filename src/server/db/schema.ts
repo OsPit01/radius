@@ -1,6 +1,8 @@
 import { type AdapterAccount } from '@auth/core/adapters';
-import { relations } from 'drizzle-orm';
-import { index, pgEnum, pgTableCreator, primaryKey } from 'drizzle-orm/pg-core';
+import { relations, sql } from 'drizzle-orm';
+import { check, index, pgEnum, pgTableCreator, primaryKey } from 'drizzle-orm/pg-core';
+
+import { PAYER_TYPE_VALUES } from '@/lib/constants/payer';
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -22,12 +24,13 @@ export const apartmentStatusEnum = pgEnum('apartment_status', [
     'active', // опубликована, видна всем
     'inactive', // отклонена (причина в rejectionReason)
 ]);
+export const payerTypeEnum = pgEnum('payer_type', PAYER_TYPE_VALUES);
 // ===== ТАБЛИЦА КВАРТИР =====
 export const apartments = createTable(
     'apartment',
     (d) => ({
         id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
-        type: d.varchar({ length: 100 }),
+        type: d.varchar({ length: 100 }).notNull().default('apartment'),
         title: d.varchar({ length: 200 }).notNull(),
         city: d.varchar({ length: 100 }).notNull(),
         street: d.varchar({ length: 100 }).notNull(),
@@ -67,7 +70,7 @@ export const apartments = createTable(
         createdById: d.varchar({ length: 255 }).references(() => users.id),
         status: apartmentStatusEnum('status').notNull().default('moderation'),
         rejectionReason: d.text(),
-        payerType: d.varchar({ length: 20 }).default('individual'),
+        payerType: payerTypeEnum('payerType').notNull().default('individual'),
         unp: d.varchar({ length: 9 }),
         payerName: d.varchar({ length: 255 }),
         createdAt: d
@@ -76,7 +79,11 @@ export const apartments = createTable(
             .notNull(),
         updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
     }),
-    (t) => [index('apartment_city_idx').on(t.city), index('apartment_capacity_idx').on(t.capacity)],
+    (t) => [
+        index('apartment_city_idx').on(t.city),
+        index('apartment_capacity_idx').on(t.capacity),
+        check('apartment_unp_format', sql`${t.unp} ~ '^[0-9]{9}$' OR ${t.unp} = ''`),
+    ],
 );
 // ======== User ============= //
 export const users = createTable('user', (d) => ({

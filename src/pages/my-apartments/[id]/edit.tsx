@@ -11,7 +11,7 @@ import { ClientHeader } from '@/components/layout/ClientHeader';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useApartmentForm } from '@/hooks/useApartmentForm';
 import { AMENITIES, CURRENCIES, PARKING_TYPES } from '@/lib/constants';
-import { PAYERTYPE } from '@/lib/constants/info-company';
+import { PAYER_TYPE_OPTIONS } from '@/lib/constants/payer';
 import { isAdminRole } from '@/lib/constants/roles';
 import { EDIT_INPUT_CLASS, sanitizeStreet, toggleAmenity } from '@/lib/utils';
 import { requireAuth } from '@/server/auth/require-auth';
@@ -548,7 +548,7 @@ export default function EditApartmentPage() {
                                         onChange={(e) => updateField('payerType', e.target.value)}
                                         className={EDIT_INPUT_CLASS}
                                     >
-                                        {PAYERTYPE.map((i) => (
+                                        {PAYER_TYPE_OPTIONS.map((i) => (
                                             <option
                                                 key={i.value}
                                                 value={i.value}

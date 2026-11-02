@@ -2,7 +2,7 @@ import React from 'react';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
 
 import { AMENITIES, PARKING_TYPES } from '@/lib/constants';
-import { PAYERTYPE } from '@/lib/constants/info-company';
+import { PAYER_TYPE_OPTIONS } from '@/lib/constants/payer';
 import { createApartmentInput } from '@/lib/schemas/apartment';
 import { Field, FieldError, FieldGroup, FieldLabel, FieldLegend, FieldRequired, FieldSet } from '@/shared/ui/field';
 import { Input } from '@/shared/ui/input';
@@ -408,7 +408,7 @@ export function Step3() {
                             name="payerType"
                             render={({ field }) => (
                                 <div className="flex flex-col">
-                                    {PAYERTYPE.map((payer) => (
+                                    {PAYER_TYPE_OPTIONS.map((payer) => (
                                         <Label
                                             key={payer.value}
                                             className="cursor-pointer py-2 transition-colors hover:text-primary"

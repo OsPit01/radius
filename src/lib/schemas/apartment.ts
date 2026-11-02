@@ -6,6 +6,8 @@ import { getRegion } from '@/lib/constants/belarus-locations';
 import { getMetroStation } from '@/lib/metro';
 import { apartments } from '@/server/db/schema';
 
+import { PAYER_TYPE_VALUES } from '../constants/payer';
+
 // Сообщения, которые мы не задали сами (границы чисел, длина строк из колонок), — по-русски, а не по-английски
 z.config(z.locales.ru());
 
@@ -13,6 +15,9 @@ z.config(z.locales.ru());
 // Номер дома в поле улицы клиент не пропускает сам (sanitizeStreet при ручном вводе).
 const STREET_NAME_REGEX = /^[A-Za-zА-Яа-яЁё0-9\s.\-()]+$/;
 const STREET_NAME_MESSAGE = 'В названии улицы недопустимые символы';
+// УНП в РБ — всегда ровно 9 цифр, у всех типов плательщиков (букв не бывает)
+const UNP_PATTERN = /^\d{9}$/;
+const UNP_MESSAGE = 'УНП - ровно 9 цифр';
 
 const PHOTO_REQUIRED_MESSAGE = 'Добавьте хотя бы одну фотографию';
 
@@ -27,7 +32,7 @@ const PHOTO_REQUIRED_MESSAGE = 'Добавьте хотя бы одну фото
  * сам делает поле необязательным, а в типе — нет, и без этого TypeScript требовал бы присылать `null` явно.
  */
 const apartmentInsertSchema = createInsertSchema(apartments, {
-    // В базе колонка допускает null (старые записи), но новый объект без типа создавать нельзя
+    // В базе колонка допускает null (уже не допускает) (новые записи), но новый объект без типа создавать нельзя -  «Тип обязателен: в БД notNull с дефолтом 'apartment', zod требует min(1) — строгость совпадает».
     type: z.string().min(1, 'Выберите тип объекта').max(100),
     title: (s) => s.min(3, 'Название минимум 3 символа'),
     city: (s) => s.min(2, 'Город обязателен'),
@@ -48,6 +53,7 @@ const apartmentInsertSchema = createInsertSchema(apartments, {
     area: (s) => s.min(0).max(10_000).optional(),
     floor: (s) => s.min(0).max(100).optional(),
     bathrooms: (s) => s.min(0).max(20).optional(),
+    payerType: z.enum(PAYER_TYPE_VALUES),
 });
 
 /**
@@ -87,7 +93,7 @@ const apartmentInput = apartmentInsertSchema.omit({ ...SERVER_OWNED_FIELDS, ...L
 export const createApartmentInput = apartmentInput.extend({
     image: z.string().min(1, PHOTO_REQUIRED_MESSAGE),
     images: z.array(z.string()).min(1, PHOTO_REQUIRED_MESSAGE),
-    unp: z.string().regex(/^\d{9}$/, 'УНП — 9 цифр'),
+    unp: z.string().regex(UNP_PATTERN, UNP_MESSAGE),
 });
 
 /**
@@ -97,7 +103,10 @@ export const createApartmentInput = apartmentInput.extend({
  */
 export const updateApartmentInput = apartmentInput
     .omit({ type: true, region: true, lat: true, lon: true, metroStation: true })
-    .extend({ id: z.number().int().positive('Некорректный идентификатор объекта') });
+    .extend({
+        id: z.number().int().positive('Некорректный идентификатор объекта'),
+        unp: z.string().regex(UNP_PATTERN, UNP_MESSAGE),
+    });
 
 export type CreateApartmentInput = z.input<typeof createApartmentInput>;
 export type UpdateApartmentInput = z.input<typeof updateApartmentInput>;

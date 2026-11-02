@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 import { Modal } from '@/components/ui/Modal';
 import { getStatusInfo } from '@/lib/constants/apartment-status';
-import { PAYERTYPE } from '@/lib/constants/info-company';
+import { getPayerLabel } from '@/lib/constants/payer';
 import { api, type RouterOutputs } from '@/trpc/react';
 type ModerationItem = RouterOutputs['apartment']['getForModeration'][number];
 
@@ -76,9 +76,7 @@ export function ModerationCard({ item, canManage }: ModerationCardProps) {
                     </p>
                     <p className="break-word text-sm text-muted-foreground">ФИО: {item.user?.name}</p>
                     {/* Юр данные */}
-                    <p className="text-sm text-muted-foreground">
-                        {PAYERTYPE.find((p) => p.value === item.apartment.payerType)?.label}
-                    </p>
+                    <p className="text-sm text-muted-foreground">{getPayerLabel(item.apartment.payerType)}</p>
                     <p className="text-[12px] break-words text-muted-foreground">
                         УНП: {item.apartment.unp ?? 'не указан'}
                     </p>

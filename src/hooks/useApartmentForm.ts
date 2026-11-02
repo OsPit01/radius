@@ -1,9 +1,9 @@
 // src/hooks/useApartmentForm.ts
-
 import { useEffect, useRef, useState } from 'react';
 
 import { useRouter } from 'next/router';
 
+import { type PayerType } from '@/lib/constants/payer';
 import { api } from '@/trpc/react';
 
 export type ApartmentFormData = {
@@ -35,7 +35,7 @@ export type ApartmentFormData = {
     images: string[];
     checkInTime: string;
     checkOutTime: string;
-    payerType: string;
+    payerType: PayerType;
     payerName: string;
     unp: string;
 };
