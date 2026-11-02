@@ -1,3 +1,5 @@
+import type { FieldErrors, Resolver } from 'react-hook-form';
+
 import { isMetroRegion } from '@/lib/metro';
 import { isMetroWalkable } from '@/lib/metro-limit';
 import { type CreateApartmentInput, createApartmentInput } from '@/lib/schemas/apartment';
@@ -110,7 +112,7 @@ export function toCreateInput(form: ApartmentForm): CreateApartmentInput {
 export type FieldPath = keyof ApartmentForm;
 
 /** Какие поля серверной схемы проверяет каждый шаг формы. */
-const STEP_FIELDS = {
+export const STEP_FIELDS = {
     1: ['type'],
     2: ['region', 'city', 'street', 'numberHome', 'district', 'lat', 'lon', 'minsToMetro', 'metroStation'],
     3: [
@@ -149,53 +151,62 @@ export const everyFieldHasAStep: [UnassignedFields] extends [never] ? true : { m
 
 export type StepNumber = keyof typeof STEP_FIELDS;
 
-export type StepValidation = {
-    isValid: boolean;
-    /** Текст для общей плашки шага; null, если всё в порядке. */
-    error: string | null;
-    /** Поля, которые надо подсветить. */
-    fields: FieldPath[];
-    /** Сообщение у каждого такого поля. */
-    messages: Partial<Record<FieldPath, string>>;
-};
-
 /** Адрес нужен для четырёх полей сразу: если не заполнено ни одно, человек ещё не начинал — подсказываем путь. */
 const REQUIRED_ADDRESS_FIELDS = ['region', 'city', 'street', 'numberHome'] as const;
 
 /**
- * Проверка шага формы. Правила не дублируются: форма превращается в то, что получит сервер (`toCreateInput`), и
- * проходит через ту же схему `createApartmentInput`, что и вход `apartment.create`. Из её ошибок остаются только
- * относящиеся к текущему шагу — остальные поля человек ещё не заполнял.
+ * Резолвер react-hook-form. Правила не дублируются: форма превращается в то, что получит сервер (`toCreateInput`), и
+ * проходит через ту же схему `createApartmentInput`, что и вход `apartment.create`. Проверяется вся форма сразу;
+ * какие ошибки показать, решает вызывающий — `trigger(STEP_FIELDS[step])` берёт только поля текущего шага.
  */
-export function validateStep(step: StepNumber, form: ApartmentForm): StepValidation {
-    const stepFields: readonly string[] = STEP_FIELDS[step];
+export const apartmentFormResolver: Resolver<ApartmentForm> = (values) => {
     const messages: Partial<Record<FieldPath, string>> = {};
 
     // В схеме область необязательна (у старых объектов её нет), но новый объект без неё форма не пропускает:
     // по области решаем, искать ли метро
-    if (step === 2 && !form.region) {
+    if (!values.region) {
         messages.region = 'Выберите область';
     }
 
-    const result = createApartmentInput.safeParse(toCreateInput(form));
+    const result = createApartmentInput.safeParse(toCreateInput(values));
     for (const issue of result.error?.issues ?? []) {
         // Имена полей в схеме сервера и в форме одни и те же — переводить ничего не нужно
         const field = String(issue.path[0]) as FieldPath;
-        if (!stepFields.includes(field)) {
-            continue;
-        }
         messages[field] ??= issue.message;
     }
 
     const fields = Object.keys(messages) as FieldPath[];
     if (fields.length === 0) {
-        return { isValid: true, error: null, fields, messages };
+        return { values, errors: {} };
     }
-    const nothingFilled = step === 2 && REQUIRED_ADDRESS_FIELDS.every((field) => field in messages);
     return {
-        isValid: false,
-        error: nothingFilled ? 'Выберите адрес из подсказок' : (messages[fields[0]!] ?? null),
-        fields,
-        messages,
+        values: {},
+        errors: Object.fromEntries(
+            fields.map((field) => [field, { type: 'server', message: messages[field] }]),
+        ) as FieldErrors<ApartmentForm>,
     };
+};
+
+/**
+ * Текст для плашки над кнопками, если на шаге ошибка. Нужен шагам без поля ввода рядом с ошибкой: тип выбирают карточкой,
+ * адрес ищут одной строкой поиска — подсветить «неверное поле» там нечем.
+ */
+export function getStepError(step: StepNumber, errors: FieldErrors<ApartmentForm>): string | null {
+    const stepFields: readonly FieldPath[] = STEP_FIELDS[step];
+    const failed = stepFields.filter((field) => errors[field]);
+    if (failed.length === 0) {
+        return null;
+    }
+    const nothingFilled = step === 2 && REQUIRED_ADDRESS_FIELDS.every((field) => failed.includes(field));
+    return nothingFilled ? 'Выберите адрес из подсказок' : (errors[failed[0]!]?.message ?? null);
+}
+
+/** Самый ранний шаг с ошибкой: если форма не прошла проверку целиком, человека возвращают к нему. */
+export function getFirstInvalidStep(errors: FieldErrors<ApartmentForm>): StepNumber | undefined {
+    const steps = Object.keys(STEP_FIELDS).map(Number) as StepNumber[];
+
+    return steps.find((step) => {
+        const stepFields: readonly FieldPath[] = STEP_FIELDS[step];
+        return stepFields.some((field) => errors[field]);
+    });
 }

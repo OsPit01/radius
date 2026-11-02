@@ -9,10 +9,7 @@ import { index, pgEnum, pgTableCreator, primaryKey } from 'drizzle-orm/pg-core';
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
 export const createTable = pgTableCreator((name) => `radius_${name}`);
-// ===== ENUM-ТИПЫ =====
-// Объявляем их ПЕРЕД таблицами: таблица apartments ссылается на apartmentStatusEnum,
-// а booking — на bookingStatusEnum. Если объявить enum после таблицы — будет ошибка
-// «Cannot access before initialization» (временная мёртвая зона JavaScript).
+
 export const bookingStatusEnum = pgEnum('booking_status', [
     'new', // только что создана, ждёт ответа владельца
     'approved', // владелец подтвердил

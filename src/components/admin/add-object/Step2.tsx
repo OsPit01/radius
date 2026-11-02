@@ -1,4 +1,5 @@
-import React, { type Dispatch, type SetStateAction, useState } from 'react';
+import React, { useState } from 'react';
+import { useFormContext, useWatch } from 'react-hook-form';
 
 import { getCityDistricts, getRegion } from '@/lib/constants/belarus-locations';
 import { MINSK_METRO_STATIONS } from '@/lib/constants/minsk-metro';
@@ -11,15 +12,14 @@ import { Input } from '@/shared/ui/input';
 import { AddressSearch } from './AddressSearch';
 import type { ApartmentForm } from './form';
 
-export interface Step2Props {
-    setForm: Dispatch<SetStateAction<ApartmentForm>>;
-    form: ApartmentForm;
-}
+export const Step2: React.FC = function () {
+    const { control, setValue } = useFormContext<ApartmentForm>();
+    const [city, street, numberHome, district, lat, lon, metroStation, minsToMetro, regionId] = useWatch({
+        control,
+        name: ['city', 'street', 'numberHome', 'district', 'lat', 'lon', 'metroStation', 'minsToMetro', 'region'],
+    });
 
-export const Step2: React.FC<Step2Props> = function ({ setForm, form }) {
-    const { city, street, numberHome, district, lat, lon, metroStation, minsToMetro } = form;
-
-    const region = getRegion(form.region);
+    const region = getRegion(regionId);
     const cityDistrict = getCityDistricts(city);
 
     const hasCoordinates = lat > 0 && lon > 0;
@@ -32,22 +32,17 @@ export const Step2: React.FC<Step2Props> = function ({ setForm, form }) {
 
             const nearestMetro = isMetroRegion(region) ? findNearestMetro(lat, lon) : null;
 
-            setForm((prev) => {
-                return {
-                    ...prev,
-                    city,
-                    lat,
-                    lon,
-                    region,
-                    district,
-                    street,
-                    numberHome: house,
-                    metroStation: nearestMetro?.station?.id ?? '',
-                    minsToMetro: nearestMetro?.walkMinutes ?? 0,
-                };
-            });
+            setValue('city', city);
+            setValue('lat', lat);
+            setValue('lon', lon);
+            setValue('region', region);
+            setValue('district', district);
+            setValue('street', street);
+            setValue('numberHome', house);
+            setValue('metroStation', nearestMetro?.station?.id ?? '');
+            setValue('minsToMetro', nearestMetro?.walkMinutes ?? 0);
         },
-        [setForm],
+        [setValue],
     );
 
     const isResolved = city.trim() !== '' && street.trim() !== '' && numberHome.trim() !== '';

@@ -1,4 +1,5 @@
-import React, { type ChangeEvent, type Dispatch, type SetStateAction } from 'react';
+import React from 'react';
+import { Controller, useFormContext, useWatch } from 'react-hook-form';
 
 import { AMENITIES, PARKING_TYPES } from '@/lib/constants';
 import { PAYERTYPE } from '@/lib/constants/info-company';
@@ -9,7 +10,7 @@ import { Label } from '@/shared/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Textarea } from '@/shared/ui/textarea';
 
-import type { ApartmentForm, StepValidation } from './form';
+import type { ApartmentForm } from './form';
 
 // Длина заголовка задана колонкой varchar в таблице apartments; серверная схема берёт её оттуда же
 const TITLE_MAX_LENGTH = createApartmentInput.shape.title.maxLength ?? undefined;
@@ -24,95 +25,14 @@ const TIME_OPTIONS = Array.from({ length: 24 }, (_, i) => {
     return { value: time, label: time };
 });
 
-interface Step3Props {
-    form: ApartmentForm;
-    setForm: Dispatch<SetStateAction<ApartmentForm>>;
-    messages?: StepValidation['messages'];
-}
+export function Step3() {
+    const {
+        control,
+        register,
+        formState: { errors },
+    } = useFormContext<ApartmentForm>();
 
-export function Step3({ form, setForm, messages = {} }: Step3Props) {
-    const handleTitleChange = (e: ChangeEvent<HTMLInputElement>) => {
-        setForm((prev) => ({ ...prev, title: e.target.value }));
-    };
-
-    const handlePriceChange = (e: ChangeEvent<HTMLInputElement>) => {
-        setForm((prev) => ({ ...prev, price: Number(e.target.value) }));
-    };
-
-    const handleRoomsChange = (e: ChangeEvent<HTMLInputElement>) => {
-        setForm((prev) => ({ ...prev, rooms: Number(e.target.value) }));
-    };
-
-    const handleCapacityChange = (e: ChangeEvent<HTMLInputElement>) => {
-        setForm((prev) => ({ ...prev, capacity: Number(e.target.value) }));
-    };
-
-    const handleBedsChange = (value: string) => {
-        setForm((prev) => ({ ...prev, beds: Number(value) }));
-    };
-
-    const handleSingleBedsChange = (value: string) => {
-        setForm((prev) => ({ ...prev, singleBeds: Number(value) }));
-    };
-
-    const handleDoubleSofasChange = (value: string) => {
-        setForm((prev) => ({ ...prev, doubleSofas: Number(value) }));
-    };
-
-    const handleSingleSofasChange = (value: string) => {
-        setForm((prev) => ({ ...prev, singleSofas: Number(value) }));
-    };
-
-    const handleAreaChange = (e: ChangeEvent<HTMLInputElement>) => {
-        setForm((prev) => ({ ...prev, area: Number(e.target.value) }));
-    };
-
-    const handleFloorChange = (e: ChangeEvent<HTMLInputElement>) => {
-        setForm((prev) => ({ ...prev, floor: Number(e.target.value) }));
-    };
-
-    const handleBathroomsChange = (e: ChangeEvent<HTMLInputElement>) => {
-        setForm((prev) => ({ ...prev, bathrooms: Number(e.target.value) }));
-    };
-
-    const handleAmenityChange = (amenityId: string, checked: boolean) => {
-        setForm((prev) => {
-            const rest = prev.amenities.filter((id) => id !== amenityId);
-            return { ...prev, amenities: checked ? [...rest, amenityId] : rest };
-        });
-    };
-
-    const handleParkingChange = (parkingId: string) => {
-        setForm((prev) => ({ ...prev, parking: parkingId }));
-    };
-
-    const handleDescriptionChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
-        setForm((prev) => ({ ...prev, description: e.target.value }));
-    };
-
-    const handleRulesChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
-        setForm((prev) => ({ ...prev, rules: e.target.value }));
-    };
-
-    const handleCheckInTimeChange = (value: string) => {
-        setForm((prev) => ({ ...prev, checkInTime: value }));
-    };
-
-    const handleCheckOutTimeChange = (value: string) => {
-        setForm((prev) => ({ ...prev, checkOutTime: value }));
-    };
-
-    const handlePayerTypeChange = (payerType: string) => {
-        setForm((prev) => ({ ...prev, payerType }));
-    };
-
-    const handleUnpChange = (e: ChangeEvent<HTMLInputElement>) => {
-        setForm((prev) => ({ ...prev, unp: e.target.value.replace(/\D/g, '').slice(0, 9) }));
-    };
-
-    const handlePayerNameChange = (e: ChangeEvent<HTMLInputElement>) => {
-        setForm((prev) => ({ ...prev, payerName: e.target.value }));
-    };
+    const currency = useWatch({ control, name: 'currency' });
 
     return (
         <div className="animate-[fadeIn_0.3s_ease] text-foreground">
@@ -122,71 +42,63 @@ export function Step3({ form, setForm, messages = {} }: Step3Props) {
             </p>
 
             <FieldGroup className="mt-5">
-                <Field invalid={Boolean(messages.title)}>
+                <Field invalid={Boolean(errors.title)}>
                     <FieldLabel>
                         Заголовок <FieldRequired />
                     </FieldLabel>
                     <Input
-                        name="title"
+                        {...register('title')}
                         required
                         maxLength={TITLE_MAX_LENGTH}
-                        value={form.title}
-                        onChange={handleTitleChange}
                         placeholder="Например: Уютная студия в центре города"
                     />
-                    <FieldError>{messages.title}</FieldError>
+                    <FieldError>{errors.title?.message}</FieldError>
                 </Field>
 
-                <Field invalid={Boolean(messages.price)}>
+                <Field invalid={Boolean(errors.price)}>
                     <FieldLabel>
-                        Цена за сутки, {form.currency} <FieldRequired />
+                        Цена за сутки, {currency} <FieldRequired />
                     </FieldLabel>
                     <Input
-                        name="price"
                         type="number"
+                        {...register('price', { valueAsNumber: true })}
                         required
                         min={30}
-                        value={form.price || ''}
-                        onChange={handlePriceChange}
                         placeholder="100"
                     />
-                    <FieldError>{messages.price}</FieldError>
+                    <FieldError>{errors.price?.message}</FieldError>
                 </Field>
 
                 <FieldSet>
                     <FieldLegend variant="legend">Вместимость</FieldLegend>
                     <div className="grid grid-cols-2 gap-3 max-[640px]:grid-cols-1">
-                        <Field invalid={Boolean(messages.rooms)}>
+                        <Field invalid={Boolean(errors.rooms)}>
                             <FieldLabel>
                                 Количество комнат <FieldRequired />
                             </FieldLabel>
                             <Input
-                                name="rooms"
                                 type="number"
+                                {...register('rooms', { valueAsNumber: true })}
                                 required
                                 min={1}
                                 max={20}
-                                value={form.rooms || ''}
-                                onChange={handleRoomsChange}
                                 placeholder="1"
                             />
-                            <FieldError>{messages.rooms}</FieldError>
+                            <FieldError>{errors.rooms?.message}</FieldError>
                         </Field>
-                        <Field invalid={Boolean(messages.capacity)}>
+                        <Field invalid={Boolean(errors.capacity)}>
                             <FieldLabel>
                                 Вместимость (человек) <FieldRequired />
                             </FieldLabel>
                             <Input
-                                name="capacity"
                                 type="number"
+                                {...register('capacity', { valueAsNumber: true })}
                                 required
                                 min={1}
                                 max={35}
-                                value={form.capacity || ''}
-                                onChange={handleCapacityChange}
                                 placeholder="2"
                             />
-                            <FieldError>{messages.capacity}</FieldError>
+                            <FieldError>{errors.capacity?.message}</FieldError>
                         </Field>
                     </div>
                 </FieldSet>
@@ -196,91 +108,115 @@ export function Step3({ form, setForm, messages = {} }: Step3Props) {
                     <div className="grid grid-cols-2 gap-3 max-[640px]:grid-cols-1">
                         <Field>
                             <FieldLabel>Двуспальные кровати</FieldLabel>
-                            <Select
+                            <Controller
+                                control={control}
                                 name="beds"
-                                value={String(form.beds)}
-                                onValueChange={handleBedsChange}
-                            >
-                                <SelectTrigger className="w-full">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {SLEEP_OPTIONS.map(({ value, label }) => (
-                                        <SelectItem
-                                            key={value}
-                                            value={value}
-                                        >
-                                            {label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                                render={({ field }) => (
+                                    <Select
+                                        name={field.name}
+                                        value={String(field.value)}
+                                        onValueChange={(value) => field.onChange(Number(value))}
+                                    >
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {SLEEP_OPTIONS.map(({ value, label }) => (
+                                                <SelectItem
+                                                    key={value}
+                                                    value={value}
+                                                >
+                                                    {label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
                         </Field>
                         <Field>
                             <FieldLabel>Односпальные кровати</FieldLabel>
-                            <Select
+                            <Controller
+                                control={control}
                                 name="singleBeds"
-                                value={String(form.singleBeds)}
-                                onValueChange={handleSingleBedsChange}
-                            >
-                                <SelectTrigger className="w-full">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {SLEEP_OPTIONS.map(({ value, label }) => (
-                                        <SelectItem
-                                            key={value}
-                                            value={value}
-                                        >
-                                            {label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                                render={({ field }) => (
+                                    <Select
+                                        name={field.name}
+                                        value={String(field.value)}
+                                        onValueChange={(value) => field.onChange(Number(value))}
+                                    >
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {SLEEP_OPTIONS.map(({ value, label }) => (
+                                                <SelectItem
+                                                    key={value}
+                                                    value={value}
+                                                >
+                                                    {label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
                         </Field>
                         <Field>
                             <FieldLabel>Двуспальные диваны</FieldLabel>
-                            <Select
+                            <Controller
+                                control={control}
                                 name="doubleSofas"
-                                value={String(form.doubleSofas)}
-                                onValueChange={handleDoubleSofasChange}
-                            >
-                                <SelectTrigger className="w-full">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {SLEEP_OPTIONS.map(({ value, label }) => (
-                                        <SelectItem
-                                            key={value}
-                                            value={value}
-                                        >
-                                            {label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                                render={({ field }) => (
+                                    <Select
+                                        name={field.name}
+                                        value={String(field.value)}
+                                        onValueChange={(value) => field.onChange(Number(value))}
+                                    >
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {SLEEP_OPTIONS.map(({ value, label }) => (
+                                                <SelectItem
+                                                    key={value}
+                                                    value={value}
+                                                >
+                                                    {label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
                         </Field>
                         <Field>
                             <FieldLabel>Односпальные диваны</FieldLabel>
-                            <Select
+                            <Controller
+                                control={control}
                                 name="singleSofas"
-                                value={String(form.singleSofas)}
-                                onValueChange={handleSingleSofasChange}
-                            >
-                                <SelectTrigger className="w-full">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {SLEEP_OPTIONS.map(({ value, label }) => (
-                                        <SelectItem
-                                            key={value}
-                                            value={value}
-                                        >
-                                            {label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                                render={({ field }) => (
+                                    <Select
+                                        name={field.name}
+                                        value={String(field.value)}
+                                        onValueChange={(value) => field.onChange(Number(value))}
+                                    >
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {SLEEP_OPTIONS.map(({ value, label }) => (
+                                                <SelectItem
+                                                    key={value}
+                                                    value={value}
+                                                >
+                                                    {label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
                         </Field>
                     </div>
                 </FieldSet>
@@ -288,111 +224,116 @@ export function Step3({ form, setForm, messages = {} }: Step3Props) {
                 <FieldSet>
                     <FieldLegend variant="legend">Параметры объекта</FieldLegend>
                     <div className="grid grid-cols-3 gap-3 max-[640px]:grid-cols-1">
-                        <Field invalid={Boolean(messages.area)}>
+                        <Field invalid={Boolean(errors.area)}>
                             <FieldLabel>Площадь, м²</FieldLabel>
                             <Input
-                                name="area"
                                 type="number"
+                                {...register('area', { valueAsNumber: true })}
                                 min={0}
-                                value={form.area || ''}
-                                onChange={handleAreaChange}
                                 placeholder="45"
                             />
-                            <FieldError>{messages.area}</FieldError>
+                            <FieldError>{errors.area?.message}</FieldError>
                         </Field>
-                        <Field invalid={Boolean(messages.floor)}>
+                        <Field invalid={Boolean(errors.floor)}>
                             <FieldLabel>Этаж</FieldLabel>
                             <Input
-                                name="floor"
                                 type="number"
+                                {...register('floor', { valueAsNumber: true })}
                                 min={1}
-                                value={form.floor || ''}
-                                onChange={handleFloorChange}
                                 placeholder="5"
                             />
-                            <FieldError>{messages.floor}</FieldError>
+                            <FieldError>{errors.floor?.message}</FieldError>
                         </Field>
-                        <Field invalid={Boolean(messages.bathrooms)}>
+                        <Field invalid={Boolean(errors.bathrooms)}>
                             <FieldLabel>Санузлы</FieldLabel>
                             <Input
-                                name="bathrooms"
                                 type="number"
+                                {...register('bathrooms', { valueAsNumber: true })}
                                 min={0}
-                                value={form.bathrooms || ''}
-                                onChange={handleBathroomsChange}
                                 placeholder="1"
                             />
-                            <FieldError>{messages.bathrooms}</FieldError>
+                            <FieldError>{errors.bathrooms?.message}</FieldError>
                         </Field>
                     </div>
                 </FieldSet>
 
                 <FieldSet>
                     <FieldLegend variant="legend">Удобства</FieldLegend>
-                    <div className="grid grid-cols-3 gap-x-4 gap-y-1 max-[480px]:grid-cols-1 max-md:grid-cols-2">
-                        {AMENITIES.map((amenity) => (
-                            <Label
-                                key={amenity.id}
-                                className="cursor-pointer py-1.5 transition-colors hover:text-primary"
-                            >
-                                <input
-                                    type="checkbox"
-                                    name="amenities"
-                                    value={amenity.id}
-                                    checked={form.amenities.includes(amenity.id)}
-                                    onChange={(e) => handleAmenityChange(amenity.id, e.target.checked)}
-                                    className="size-4 shrink-0 cursor-pointer accent-primary pointer-coarse:size-5"
-                                />
-                                {amenity.label}
-                            </Label>
-                        ))}
-                    </div>
+                    <Controller
+                        control={control}
+                        name="amenities"
+                        render={({ field }) => (
+                            <div className="grid grid-cols-3 gap-x-4 gap-y-1 max-[480px]:grid-cols-1 max-md:grid-cols-2">
+                                {AMENITIES.map((amenity) => (
+                                    <Label
+                                        key={amenity.id}
+                                        className="cursor-pointer py-1.5 transition-colors hover:text-primary"
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            name={field.name}
+                                            value={amenity.id}
+                                            checked={field.value.includes(amenity.id)}
+                                            onChange={(e) => {
+                                                const rest = field.value.filter((id) => id !== amenity.id);
+                                                field.onChange(e.target.checked ? [...rest, amenity.id] : rest);
+                                            }}
+                                            className="size-4 shrink-0 cursor-pointer accent-primary pointer-coarse:size-5"
+                                        />
+                                        {amenity.label}
+                                    </Label>
+                                ))}
+                            </div>
+                        )}
+                    />
                 </FieldSet>
 
                 <FieldSet>
                     <FieldLegend variant="legend">Парковка</FieldLegend>
-                    <div className="flex flex-wrap gap-x-6 gap-y-1">
-                        {PARKING_TYPES.map((type) => (
-                            <Label
-                                key={type.id}
-                                className="cursor-pointer py-2 transition-colors hover:text-primary"
-                            >
-                                <input
-                                    type="radio"
-                                    name="parking"
-                                    value={type.id}
-                                    checked={form.parking === type.id}
-                                    onChange={() => handleParkingChange(type.id)}
-                                    className="size-4 shrink-0 cursor-pointer accent-primary pointer-coarse:size-5"
-                                />
-                                {type.label}
-                            </Label>
-                        ))}
-                    </div>
+                    <Controller
+                        control={control}
+                        name="parking"
+                        render={({ field }) => (
+                            <div className="flex flex-wrap gap-x-6 gap-y-1">
+                                {PARKING_TYPES.map((type) => (
+                                    <Label
+                                        key={type.id}
+                                        className="cursor-pointer py-2 transition-colors hover:text-primary"
+                                    >
+                                        <input
+                                            type="radio"
+                                            name={field.name}
+                                            value={type.id}
+                                            checked={field.value === type.id}
+                                            onChange={() => field.onChange(type.id)}
+                                            className="size-4 shrink-0 cursor-pointer accent-primary pointer-coarse:size-5"
+                                        />
+                                        {type.label}
+                                    </Label>
+                                ))}
+                            </div>
+                        )}
+                    />
                 </FieldSet>
 
-                <Field invalid={Boolean(messages.description)}>
+                <Field invalid={Boolean(errors.description)}>
                     <FieldLabel>Описание</FieldLabel>
                     <Textarea
-                        name="description"
+                        {...register('description')}
                         rows={4}
-                        value={form.description}
-                        onChange={handleDescriptionChange}
                         placeholder="Опишите квартиру, особенности, что рядом находится..."
                     />
-                    <FieldError>{messages.description}</FieldError>
+                    <FieldError>{errors.description?.message}</FieldError>
                 </Field>
 
-                <Field invalid={Boolean(messages.rules)}>
+                <Field invalid={Boolean(errors.rules)}>
                     <FieldLabel>Правила проживания</FieldLabel>
                     <Textarea
-                        name="rules"
+                        {...register('rules')}
                         rows={4}
-                        value={form.rules}
-                        onChange={handleRulesChange}
                         placeholder="Например: без вечеринок, без животных, курение запрещено, заезд после 14:00..."
                     />
-                    <FieldError>{messages.rules}</FieldError>
+                    <FieldError>{errors.rules?.message}</FieldError>
                 </Field>
 
                 <FieldSet>
@@ -400,47 +341,59 @@ export function Step3({ form, setForm, messages = {} }: Step3Props) {
                     <div className="grid grid-cols-2 gap-3 max-[640px]:grid-cols-1">
                         <Field>
                             <FieldLabel>Заселение</FieldLabel>
-                            <Select
+                            <Controller
+                                control={control}
                                 name="checkInTime"
-                                value={form.checkInTime}
-                                onValueChange={handleCheckInTimeChange}
-                            >
-                                <SelectTrigger className="w-full">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {TIME_OPTIONS.map(({ value, label }) => (
-                                        <SelectItem
-                                            key={value}
-                                            value={value}
-                                        >
-                                            {label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                                render={({ field }) => (
+                                    <Select
+                                        name={field.name}
+                                        value={field.value}
+                                        onValueChange={field.onChange}
+                                    >
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {TIME_OPTIONS.map(({ value, label }) => (
+                                                <SelectItem
+                                                    key={value}
+                                                    value={value}
+                                                >
+                                                    {label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
                         </Field>
                         <Field>
                             <FieldLabel>Выезд</FieldLabel>
-                            <Select
+                            <Controller
+                                control={control}
                                 name="checkOutTime"
-                                value={form.checkOutTime}
-                                onValueChange={handleCheckOutTimeChange}
-                            >
-                                <SelectTrigger className="w-full">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {TIME_OPTIONS.map(({ value, label }) => (
-                                        <SelectItem
-                                            key={value}
-                                            value={value}
-                                        >
-                                            {label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                                render={({ field }) => (
+                                    <Select
+                                        name={field.name}
+                                        value={field.value}
+                                        onValueChange={field.onChange}
+                                    >
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {TIME_OPTIONS.map(({ value, label }) => (
+                                                <SelectItem
+                                                    key={value}
+                                                    value={value}
+                                                >
+                                                    {label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
                         </Field>
                     </div>
                 </FieldSet>
@@ -450,54 +403,54 @@ export function Step3({ form, setForm, messages = {} }: Step3Props) {
 
                     <FieldSet className="gap-0">
                         <FieldLegend variant="label">Плательщик</FieldLegend>
-                        <div className="flex flex-col">
-                            {PAYERTYPE.map((payer) => (
-                                <Label
-                                    key={payer.value}
-                                    className="cursor-pointer py-2 transition-colors hover:text-primary"
-                                >
-                                    <input
-                                        type="radio"
-                                        name="payerType"
-                                        value={payer.value}
-                                        checked={form.payerType === payer.value}
-                                        onChange={() => handlePayerTypeChange(payer.value)}
-                                        className="size-4 shrink-0 cursor-pointer accent-primary pointer-coarse:size-5"
-                                    />
-                                    {payer.label}
-                                </Label>
-                            ))}
-                        </div>
+                        <Controller
+                            control={control}
+                            name="payerType"
+                            render={({ field }) => (
+                                <div className="flex flex-col">
+                                    {PAYERTYPE.map((payer) => (
+                                        <Label
+                                            key={payer.value}
+                                            className="cursor-pointer py-2 transition-colors hover:text-primary"
+                                        >
+                                            <input
+                                                type="radio"
+                                                name={field.name}
+                                                value={payer.value}
+                                                checked={field.value === payer.value}
+                                                onChange={() => field.onChange(payer.value)}
+                                                className="size-4 shrink-0 cursor-pointer accent-primary pointer-coarse:size-5"
+                                            />
+                                            {payer.label}
+                                        </Label>
+                                    ))}
+                                </div>
+                            )}
+                        />
                     </FieldSet>
 
                     <div className="grid grid-cols-2 gap-3 max-[640px]:grid-cols-1">
-                        <Field invalid={Boolean(messages.unp)}>
+                        <Field invalid={Boolean(errors.unp)}>
                             <FieldLabel>
                                 Учётный номер плательщика (УНП) <FieldRequired />
                             </FieldLabel>
                             <Input
-                                name="unp"
-                                type="text"
-                                inputMode="numeric"
+                                {...register('unp')}
                                 autoComplete="off"
                                 required
                                 maxLength={9}
-                                pattern="\d{9}"
-                                value={form.unp}
-                                onChange={handleUnpChange}
-                                placeholder="9 цифр"
+                                placeholder="9 символов"
                             />
-                            <FieldError>{messages.unp}</FieldError>
+                            <FieldError>{errors.unp?.message}</FieldError>
                         </Field>
-                        <Field invalid={Boolean(messages.payerName)}>
+
+                        <Field invalid={Boolean(errors.payerName)}>
                             <FieldLabel>Наименование организации</FieldLabel>
                             <Input
-                                name="payerName"
-                                value={form.payerName}
-                                onChange={handlePayerNameChange}
+                                {...register('payerName')}
                                 placeholder="Название вашей организации"
                             />
-                            <FieldError>{messages.payerName}</FieldError>
+                            <FieldError>{errors.payerName?.message}</FieldError>
                         </Field>
                     </div>
                 </FieldSet>

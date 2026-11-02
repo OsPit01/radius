@@ -1,4 +1,5 @@
-import React, { type ChangeEvent, type Dispatch, type DragEvent, type SetStateAction } from 'react';
+import React, { type ChangeEvent, type DragEvent } from 'react';
+import { useFormContext, useWatch } from 'react-hook-form';
 
 import Image from 'next/image';
 
@@ -7,7 +8,7 @@ import { Button } from '@/shared/ui/button';
 import { FieldDescription, FieldError, FieldLegend, FieldRequired, FieldSet } from '@/shared/ui/field';
 import { api } from '@/trpc/react';
 
-import type { ApartmentForm, StepValidation } from './form';
+import type { ApartmentForm } from './form';
 
 function readAsDataUrl(file: File) {
     return new Promise<string>((resolve, reject) => {
@@ -24,31 +25,36 @@ function readAsDataUrl(file: File) {
     });
 }
 
-/** Заглавное фото всегда первое: обложка (image) и порядок (images) меняются вместе. */
-function withImages(form: ApartmentForm, images: string[]): ApartmentForm {
-    return { ...form, images, image: images[0] ?? '' };
-}
-
 interface Step4Props {
-    form: ApartmentForm;
-    setForm: Dispatch<SetStateAction<ApartmentForm>>;
-    /** Сообщения об ошибках по полям; приходят только после попытки отправить форму. */
-    messages?: StepValidation['messages'];
     /** Пока фото грузятся, страница не даёт отправить форму — иначе уйдёт неполный набор. */
     onUploadingChange?: (isUploading: boolean) => void;
 }
 
-export function Step4({ form, setForm, messages = {}, onUploadingChange }: Step4Props) {
+export function Step4({ onUploadingChange }: Step4Props) {
+    const {
+        control,
+        getValues,
+        setValue,
+        formState: { errors },
+    } = useFormContext<ApartmentForm>();
+    const images = useWatch({ control, name: 'images' });
+
     const [isUploading, setIsUploading] = React.useState(false);
     const [uploadError, setUploadError] = React.useState<string | null>(null);
     const [dragIndex, setDragIndex] = React.useState<number | null>(null);
+
+    /** Заглавное фото всегда первое: обложка (image) и порядок (images) меняются вместе. */
+    const setImages = (next: string[]) => {
+        setValue('images', next);
+        setValue('image', next[0] ?? '');
+    };
 
     const uploadImage = api.upload.image.useMutation();
 
     // Фото грузятся по одному; то, что успело загрузиться до ошибки, остаётся в списке
     const uploadFiles = async (files: File[]) => {
-        const images = files.filter((file) => file.type.startsWith('image/'));
-        if (isUploading || images.length === 0) {
+        const imageFiles = files.filter((file) => file.type.startsWith('image/'));
+        if (isUploading || imageFiles.length === 0) {
             return;
         }
 
@@ -56,9 +62,9 @@ export function Step4({ form, setForm, messages = {}, onUploadingChange }: Step4
         onUploadingChange?.(true);
         setUploadError(null);
         try {
-            for (const file of images) {
+            for (const file of imageFiles) {
                 const { url } = await uploadImage.mutateAsync({ dataUrl: await readAsDataUrl(file) });
-                setForm((prev) => withImages(prev, [...prev.images, url]));
+                setImages([...getValues('images'), url]);
             }
         } catch (error) {
             setUploadError(error instanceof Error ? error.message : 'Не удалось загрузить изображения');
@@ -81,22 +87,16 @@ export function Step4({ form, setForm, messages = {}, onUploadingChange }: Step4
     };
 
     const handleRemove = (index: number) => {
-        setForm((prev) =>
-            withImages(
-                prev,
-                prev.images.filter((_, i) => i !== index),
-            ),
-        );
+        setImages(getValues('images').filter((_, i) => i !== index));
     };
 
     const handleMakeMain = (index: number) => {
-        setForm((prev) => {
-            const image = prev.images[index];
-            if (image === undefined) {
-                return prev;
-            }
-            return withImages(prev, [image, ...prev.images.filter((_, i) => i !== index)]);
-        });
+        const current = getValues('images');
+        const image = current[index];
+        if (image === undefined) {
+            return;
+        }
+        setImages([image, ...current.filter((_, i) => i !== index)]);
     };
 
     const handleDragStart = (e: DragEvent<HTMLLIElement>, index: number) => {
@@ -112,15 +112,13 @@ export function Step4({ form, setForm, messages = {}, onUploadingChange }: Step4
         if (dragIndex === null || dragIndex === overIndex) {
             return;
         }
-        setForm((prev) => {
-            const images = [...prev.images];
-            const [moved] = images.splice(dragIndex, 1);
-            if (moved === undefined) {
-                return prev;
-            }
-            images.splice(overIndex, 0, moved);
-            return withImages(prev, images);
-        });
+        const reordered = [...getValues('images')];
+        const [moved] = reordered.splice(dragIndex, 1);
+        if (moved === undefined) {
+            return;
+        }
+        reordered.splice(overIndex, 0, moved);
+        setImages(reordered);
         setDragIndex(overIndex);
     };
 
@@ -128,7 +126,7 @@ export function Step4({ form, setForm, messages = {}, onUploadingChange }: Step4
         setDragIndex(null);
     };
 
-    const photoError = uploadError ?? messages.images;
+    const photoError = uploadError ?? errors.images?.message;
 
     return (
         <div className="animate-[fadeIn_0.3s_ease] text-foreground">
@@ -176,16 +174,16 @@ export function Step4({ form, setForm, messages = {}, onUploadingChange }: Step4
                 </label>
                 <FieldError>{photoError}</FieldError>
 
-                {form.images.length > 0 && (
+                {images.length > 0 && (
                     <>
                         <p className="text-sm font-medium">
-                            Фотографии ({form.images.length}){' '}
+                            Фотографии ({images.length}){' '}
                             <span className="font-normal text-muted-foreground">
                                 — перетаскивайте, чтобы изменить порядок
                             </span>
                         </p>
                         <ul className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-4">
-                            {form.images.map((image, index) => (
+                            {images.map((image, index) => (
                                 <li
                                     key={image}
                                     draggable
