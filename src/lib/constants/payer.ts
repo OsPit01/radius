@@ -39,3 +39,38 @@ export function isPayerType(value: string | null | undefined): value is PayerTyp
 export function getPayerLabel(value: string | null | undefined): string {
     return isPayerType(value) ? PAYER_TYPE_LABELS[value] : '—';
 }
+
+// ============================================================
+// ПРАВИЛА УНП ПО ТИПУ ПЛАТЕЛЬЩИКА (решение владельца, окончательное)
+//
+// Формат по РБ (МНС / lookuptax / tin-validate, проверено 03.11.2026):
+//   физлицо: 2 ЗАГЛАВНЫЕ ЛАТИНСКИЕ буквы + 7 цифр (LLNNNNNNN), пример: MA1953684
+//   ИП:      ровно 9 цифр
+//   компания: ровно 9 цифр
+// Буквы — ТОЛЬКО заглавные латинские (МНС: «большими буквами на английской
+// раскладке»). Форма поднимает регистр автоматически; сервер принимает
+// только заглавные — строчные отбиваются строгой валидацией.
+//
+// Карта — ОДИН источник правил: отсюда берут паттерн и zod (сервер),
+// и формы (подсказка под полем). satisfies проверяет полноту компилятором.
+// ============================================================
+
+export const UNP_RULES = {
+    individual: {
+        pattern: /^[A-Z]{2}\d{7}$/,
+        message: 'УНП физлица — 2 заглавные латинские буквы и 7 цифр, пример: MA1953684',
+    },
+    ip: {
+        pattern: /^\d{9}$/,
+        message: 'УНП ИП — ровно 9 цифр',
+    },
+    company: {
+        pattern: /^\d{9}$/,
+        message: 'УНП компании — ровно 9 цифр',
+    },
+} as const satisfies Record<PayerType, { pattern: RegExp; message: string }>;
+
+/** Паттерн УНП для выбранного типа (для форм); мусорный тип → правило физлица. */
+export function getUnpRule(payerType: string | null | undefined): { pattern: RegExp; message: string } {
+    return isPayerType(payerType) ? UNP_RULES[payerType] : UNP_RULES.individual;
+}

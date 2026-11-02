@@ -6,7 +6,7 @@ import { getRegion } from '@/lib/constants/belarus-locations';
 import { getMetroStation } from '@/lib/metro';
 import { apartments } from '@/server/db/schema';
 
-import { PAYER_TYPE_VALUES } from '../constants/payer';
+import { PAYER_TYPE_VALUES, type PayerType, UNP_RULES } from '../constants/payer';
 
 // Сообщения, которые мы не задали сами (границы чисел, длина строк из колонок), — по-русски, а не по-английски
 z.config(z.locales.ru());
@@ -15,11 +15,28 @@ z.config(z.locales.ru());
 // Номер дома в поле улицы клиент не пропускает сам (sanitizeStreet при ручном вводе).
 const STREET_NAME_REGEX = /^[A-Za-zА-Яа-яЁё0-9\s.\-()]+$/;
 const STREET_NAME_MESSAGE = 'В названии улицы недопустимые символы';
-// УНП в РБ — всегда ровно 9 цифр, у всех типов плательщиков (букв не бывает)
-const UNP_PATTERN = /^\d{9}$/;
-const UNP_MESSAGE = 'УНП - ровно 9 цифр';
 
 const PHOTO_REQUIRED_MESSAGE = 'Добавьте хотя бы одну фотографию';
+
+/**
+ * Зависимая проверка УНП: формат зависит от типа плательщика
+ * (физлицо — 2 буквы + 7 цифр, ИП/компания — 9 цифр; см. payer.ts UNP_RULES).
+ * superRefine, а не discriminatedUnion: у типов ОДНИ И ТЕ ЖЕ поля —
+ * меняется только правило, DU заставил бы писать три копии объекта.
+ * Общая для создания и обновления — одна функция, две двери.
+ */
+function checkUnpByPayerType(
+    // Колонка nullable → на входе бывает null/undefined (drizzle-zod делает поле
+    // необязательным). Пустое — НЕ проходит: строгая валидация (правило №1).
+    data: { payerType: PayerType; unp?: string | null | undefined },
+    ctx: z.RefinementCtx,
+): void {
+    const rule = UNP_RULES[data.payerType];
+    if (typeof data.unp !== 'string' || !rule.pattern.test(data.unp)) {
+        // Ошибка клеится к полю unp — форма подсветит именно его
+        ctx.addIssue({ code: 'custom', path: ['unp'], message: rule.message });
+    }
+}
 
 /**
  * Единый источник правил для объекта — таблица `apartments` (src/server/db/schema.ts).
@@ -88,13 +105,14 @@ const apartmentInput = apartmentInsertSchema.omit({ ...SERVER_OWNED_FIELDS, ...L
 /**
  * Создание. Правила, которые действуют только здесь (при правке старых объектов их не требуем):
  *  - хотя бы одна фотография (image — обложка, images — все);
- *  - УНП — ровно 9 цифр (поле в форме обрезается до 9 цифр, и дальше шага с реквизитами форма без него не пускает).
+ *  - УНП — формат по типу плательщика (см. UNP_RULES в payer.ts).
  */
-export const createApartmentInput = apartmentInput.extend({
-    image: z.string().min(1, PHOTO_REQUIRED_MESSAGE),
-    images: z.array(z.string()).min(1, PHOTO_REQUIRED_MESSAGE),
-    unp: z.string().regex(UNP_PATTERN, UNP_MESSAGE),
-});
+export const createApartmentInput = apartmentInput
+    .extend({
+        image: z.string().min(1, PHOTO_REQUIRED_MESSAGE),
+        images: z.array(z.string()).min(1, PHOTO_REQUIRED_MESSAGE),
+    })
+    .superRefine(checkUnpByPayerType);
 
 /**
  * Редактирование: форма правки пока не меняет тип, область, координаты и станцию метро. Область и координаты к тому же
@@ -105,8 +123,10 @@ export const updateApartmentInput = apartmentInput
     .omit({ type: true, region: true, lat: true, lon: true, metroStation: true })
     .extend({
         id: z.number().int().positive('Некорректный идентификатор объекта'),
-        unp: z.string().regex(UNP_PATTERN, UNP_MESSAGE),
-    });
+    })
+    // Тот же формат УНП по типу плательщика, что и при создании: владелец
+    // легаси-объекта с пустым/неправильным УНП обязан вписать корректный при сохранении.
+    .superRefine(checkUnpByPayerType);
 
 export type CreateApartmentInput = z.input<typeof createApartmentInput>;
 export type UpdateApartmentInput = z.input<typeof updateApartmentInput>;

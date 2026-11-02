@@ -82,7 +82,20 @@ export const apartments = createTable(
     (t) => [
         index('apartment_city_idx').on(t.city),
         index('apartment_capacity_idx').on(t.capacity),
-        check('apartment_unp_format', sql`${t.unp} ~ '^[0-9]{9}$' OR ${t.unp} = ''`),
+        // УНП: формат зависит от типа плательщика (см. payer.ts UNP_RULES):
+        //   физлицо — 2 ЗАГЛАВНЫЕ латинские буквы + 7 цифр (LLNNNNNNN, пример MA1953684);
+        //   ИП/компания — ровно 9 цифр.
+        // Пустая строка — исключение для известного легаси (физлица дозаполнят при
+        // первом редактировании: zod-схема не пропускает пустое при сохранении).
+        // Любой иной мусор БД отвергает САМА — даже при записи мимо API, прямым SQL.
+        check(
+            'apartment_unp_format',
+            sql`(
+                ("payerType" = 'individual' and ("unp" ~ '^[A-Z]{2}[0-9]{7}$' or "unp" = ''))
+                or
+                ("payerType" <> 'individual' and ("unp" ~ '^[0-9]{9}$' or "unp" = ''))
+            )`,
+        ),
     ],
 );
 // ======== User ============= //

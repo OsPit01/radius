@@ -11,7 +11,7 @@ import { ClientHeader } from '@/components/layout/ClientHeader';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useApartmentForm } from '@/hooks/useApartmentForm';
 import { AMENITIES, CURRENCIES, PARKING_TYPES } from '@/lib/constants';
-import { PAYER_TYPE_OPTIONS } from '@/lib/constants/payer';
+import { getUnpRule, PAYER_TYPE_OPTIONS } from '@/lib/constants/payer';
 import { isAdminRole } from '@/lib/constants/roles';
 import { EDIT_INPUT_CLASS, sanitizeStreet, toggleAmenity } from '@/lib/utils';
 import { requireAuth } from '@/server/auth/require-auth';
@@ -565,12 +565,27 @@ export default function EditApartmentPage() {
                                         type="text"
                                         value={formData.unp ?? ''}
                                         onChange={(e) =>
-                                            updateField('unp', e.target.value.replace(/\D/g, '').slice(0, 9))
+                                            // Раньше слепо резали всё, кроме цифр — физлицо не могло
+                                            // ввести УНП с буквами (у физлиц в РБ формат LLNNNNNNN).
+                                            // Теперь: только латиница+цифры, АВТОМАТИЧЕСКИ заглавными
+                                            // (МНС: «большими буквами на английской раскладке»), до 9 знаков.
+                                            updateField(
+                                                'unp',
+                                                e.target.value
+                                                    .toUpperCase()
+                                                    .replace(/[^A-Z0-9]/g, '')
+                                                    .slice(0, 9),
+                                            )
                                         }
-                                        placeholder="Введите УНП"
+                                        placeholder={formData.payerType === 'individual' ? 'MA1953684' : '123456789'}
                                         className={`${EDIT_INPUT_CLASS} w-full max-w-[300px]`}
                                         maxLength={9}
                                     />
+                                    {/* Подсказка формата — из той же карты правил, что и серверная
+                                        валидация (UNP_RULES в payer.ts): текст всегда совпадает */}
+                                    <p className="text-xs text-muted-foreground">
+                                        {getUnpRule(formData.payerType).message}
+                                    </p>
                                     <label className="text-medium text-sm text-foreground">
                                         Наименование организации
                                     </label>
