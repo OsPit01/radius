@@ -25,5 +25,5 @@ export const conversation = pgTable(
             .$defaultFn(() => new Date())
             .notNull(),
     }),
-    (t) => [index('conversation_guest_idx').on(t.guestId), index('conversation_owner_indx').on(t.ownerId)],
+    (t) => [index('conversation_guest_idx').on(t.guestId), index('conversation_owner_idx').on(t.ownerId)],
 );

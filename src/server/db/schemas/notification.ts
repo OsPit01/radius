@@ -24,5 +24,5 @@ export const notification = pgTable(
             .$defaultFn(() => new Date())
             .notNull(),
     }),
-    (t) => [index('notification_user_indx').on(t.userId)],
+    (t) => [index('notification_user_idx').on(t.userId)],
 );
