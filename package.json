@@ -21,7 +21,7 @@
         "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
         "format:write": "prettier --write \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
         "lint": "run-s --continue-on-error lint:ts lint:typecheck",
-        "lint:ts": "eslint '**/*.{js,ts,tsx}'",
+        "lint:ts": "eslint \"**/*.{js,ts,tsx}\"",
         "lint:typecheck": "tsc --noEmit",
         "lint:fix": "npm run lint:ts -- --fix",
         "preview": "next build && next start",

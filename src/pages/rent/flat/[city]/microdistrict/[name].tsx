@@ -4,7 +4,7 @@ import { ApartmentsList } from '@/components/apartments/ApartmentsList';
 import { ClientHeader } from '@/components/layout/ClientHeader';
 import { Seo } from '@/components/Seo';
 import { type ApartmentCardData, getApartmentCardData } from '@/lib/apartment-format';
-import { getCurrencySymbol } from '@/lib/constants/currencies';
+import { formatByn } from '@/lib/constants/currencies';
 import { pluralRu } from '@/lib/plural';
 import { SITE_URL } from '@/lib/seo';
 import { transliterate } from '@/lib/transliterate';
@@ -97,9 +97,9 @@ export default function MicrodistrictPage({ city, name, apartments }: Microdistr
                     </h2>
                     <p>
                         В микрорайоне {name} доступно {apartments.length}{' '}
-                        {pluralRu(apartments.length, 'квартира', 'квартиры', 'квартир')} на сутки — от {cheapest.price}{' '}
-                        {getCurrencySymbol(cheapest.currency)} за ночь. Все объекты сдаются напрямую от собственников:
-                        актуальные фотографии, честные цены, онлайн-бронирование без посредников и скрытых комиссий.
+                        {pluralRu(apartments.length, 'квартира', 'квартиры', 'квартир')} на сутки — от{' '}
+                        {formatByn(cheapest.price)} за ночь. Все объекты сдаются напрямую от собственников: актуальные
+                        фотографии, честные цены, онлайн-бронирование без посредников и скрытых комиссий.
                     </p>
                 </section>
             </main>

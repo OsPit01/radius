@@ -8,7 +8,6 @@ export type ApartmentCardData = {
     microdistrict: string;
     capacity: number;
     price: number;
-    currency: string;
     image: string;
     description: string;
     rooms: number;
@@ -32,7 +31,6 @@ type ApartmentSource = {
     microdistrict: string | null;
     capacity: number;
     price: number;
-    currency: string | null;
     image: string;
     description: string | null;
     rooms: number;
@@ -55,7 +53,6 @@ export function getApartmentCardData(apartment: ApartmentSource): ApartmentCardD
         microdistrict: apartment.microdistrict ?? '',
         capacity: apartment.capacity,
         price: apartment.price,
-        currency: apartment.currency ?? 'BYN',
         image: apartment.image,
         description: apartment.description ?? '',
         rooms: apartment.rooms,

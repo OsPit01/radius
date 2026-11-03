@@ -1,7 +1,7 @@
 import React from 'react';
-import { Controller, useFormContext, useWatch } from 'react-hook-form';
+import { Controller, useFormContext } from 'react-hook-form';
 
-import { AMENITIES, PARKING_TYPES } from '@/lib/constants';
+import { AMENITIES, BASE_CURRENCY_SYMBOL, PARKING_TYPES } from '@/lib/constants';
 import { PAYER_TYPE_OPTIONS } from '@/lib/constants/payer';
 import { createApartmentInput } from '@/lib/schemas/apartment';
 import { Field, FieldError, FieldGroup, FieldLabel, FieldLegend, FieldRequired, FieldSet } from '@/shared/ui/field';
@@ -32,8 +32,6 @@ export function Step3() {
         formState: { errors },
     } = useFormContext<ApartmentForm>();
 
-    const currency = useWatch({ control, name: 'currency' });
-
     return (
         <div className="animate-[fadeIn_0.3s_ease] text-foreground">
             <h2 className="mb-3 text-[17px] text-foreground">Шаг 3 из 4: Детали объекта</h2>
@@ -57,7 +55,7 @@ export function Step3() {
 
                 <Field invalid={Boolean(errors.price)}>
                     <FieldLabel>
-                        Цена за сутки, {currency} <FieldRequired />
+                        Цена за сутки, {BASE_CURRENCY_SYMBOL} <FieldRequired />
                     </FieldLabel>
                     <Input
                         type="number"

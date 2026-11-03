@@ -1,6 +1,6 @@
 import { Car, Clipboard, Clock, Money, Note, Ruler, Sofa, Sparkles } from '@/components/icons';
 import { formatAddressLine } from '@/lib/address';
-import { AMENITIES, CURRENCIES, getTypeLabel, PARKING_TYPES } from '@/lib/constants';
+import { AMENITIES, getTypeLabel, PARKING_TYPES } from '@/lib/constants';
 import { PAYER_TYPE_OPTIONS } from '@/lib/constants/payer';
 import type { StepProps } from '@/lib/utils';
 import { EDIT_INPUT_CLASS, INPUT_CLASS, toggleAmenity } from '@/lib/utils';
@@ -67,9 +67,9 @@ export function Step3_Details({ formData, updateField, error, errors }: StepProp
             {/* ===== СЕКЦИЯ: ЦЕНА ===== */}
             <div className="mb-5 flex items-center gap-2">
                 <Money className="h-6 w-6 text-primary" />
-                <h3 className="text-base font-semibold tracking-wide text-primary uppercase">Цена и валюта</h3>
+                <h3 className="text-base font-semibold tracking-wide text-primary uppercase">Цена</h3>
             </div>
-            <div className="grid grid-cols-2 gap-5 max-[640px]:grid-cols-1">
+            <div className="grid grid-cols-1 gap-5 max-[640px]:grid-cols-1">
                 <div className="flex flex-col gap-2">
                     <label
                         htmlFor="price-field"
@@ -85,19 +85,6 @@ export function Step3_Details({ formData, updateField, error, errors }: StepProp
                         className={`${INPUT_CLASS} ${errors.includes('price') ? '!border-destructive' : ''}`}
                         placeholder="100"
                         min="30"
-                    />
-                </div>
-                <div className="flex flex-col gap-2">
-                    <label
-                        htmlFor="currency-field"
-                        className="pt-[5px] text-sm font-semibold text-foreground"
-                    >
-                        Валюта
-                    </label>
-                    <CustomSelect
-                        options={CURRENCIES}
-                        value={formData.currency ?? 'BYN'}
-                        onChange={(value) => updateField('currency', value)}
                     />
                 </div>
             </div>

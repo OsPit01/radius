@@ -10,7 +10,7 @@ import { AuthGuard } from '@/components/layout/AuthGuard';
 import { ClientHeader } from '@/components/layout/ClientHeader';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useApartmentForm } from '@/hooks/useApartmentForm';
-import { AMENITIES, CURRENCIES, PARKING_TYPES } from '@/lib/constants';
+import { AMENITIES, PARKING_TYPES } from '@/lib/constants';
 import { getUnpRule, PAYER_TYPE_OPTIONS } from '@/lib/constants/payer';
 import { isAdminRole } from '@/lib/constants/roles';
 import { EDIT_INPUT_CLASS, sanitizeStreet, toggleAmenity } from '@/lib/utils';
@@ -216,20 +216,6 @@ export default function EditApartmentPage() {
                                                 min="1"
                                                 className={`${EDIT_INPUT_CLASS} flex-1`}
                                             />
-                                            <select
-                                                value={formData.currency}
-                                                onChange={(e) => updateField('currency', e.target.value)}
-                                                className="h-[42px] cursor-pointer rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none"
-                                            >
-                                                {CURRENCIES.map((c) => (
-                                                    <option
-                                                        key={c.value}
-                                                        value={c.value}
-                                                    >
-                                                        {c.label}
-                                                    </option>
-                                                ))}
-                                            </select>
                                         </div>
                                     </div>
                                 </div>

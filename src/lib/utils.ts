@@ -26,7 +26,6 @@ export type FormData = {
     title: string;
     capacity: number;
     price: number;
-    currency: string;
     rooms: number;
     beds: number;
     singleBeds: number;
@@ -79,7 +78,6 @@ export type Apartment = {
     description: string;
     rooms: number;
     minsToMetro: number;
-    currency: string;
 };
 
 // ============================================================
@@ -218,7 +216,6 @@ export function formatApartmentData(formData: FormData): CreateApartmentInput {
         lon: hasCoordinates ? formData.lon : undefined,
         capacity: Number(formData.capacity ?? 0),
         price: Number(formData.price ?? 0),
-        currency: formData.currency ?? 'BYN',
         image: formData.image,
         description: formData.description ?? undefined,
         rules: formData.rules ?? undefined,

@@ -33,7 +33,6 @@ export const apartmentCardColumns = {
     microdistrict: apartments.microdistrict,
     capacity: apartments.capacity,
     price: apartments.price,
-    currency: apartments.currency,
     image: apartments.image,
     description: apartments.description,
     rooms: apartments.rooms,

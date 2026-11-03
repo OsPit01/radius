@@ -12,7 +12,8 @@ const compat = new FlatCompat({
 export default tseslint.config(
     {
         // next-env.d.ts генерирует Next.js, править его нельзя.
-        ignores: ['.next', 'next-env.d.ts'],
+        // .tmp-check — одноразовые диагностические скрипты, не часть прод-кода.
+        ignores: ['.next', 'next-env.d.ts', '.tmp-check'],
     },
     ...compat.extends('next/core-web-vitals'),
     {

@@ -18,7 +18,6 @@ export type ApartmentFormData = {
     microdistrict: string;
     capacity: number;
     price: number;
-    currency: string;
     rooms: number;
     beds: number;
     singleBeds: number;
@@ -52,7 +51,6 @@ const defaultFormData: ApartmentFormData = {
     microdistrict: '',
     capacity: 2,
     price: 0,
-    currency: 'BYN',
     rooms: 1,
     beds: 0,
     singleBeds: 0,
@@ -113,7 +111,6 @@ export function useApartmentForm(apartmentId: string) {
                 microdistrict: apt.microdistrict ?? '',
                 capacity: apt.capacity ?? 2,
                 price: apt.price ?? 0,
-                currency: apt.currency ?? 'BYN',
                 rooms: apt.rooms ?? 1,
                 beds: apt.beds ?? 0,
                 singleBeds: apt.singleBeds ?? 0,

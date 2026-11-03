@@ -31,7 +31,7 @@ export const apartments = pgTable(
         lat: d.doublePrecision(),
         lon: d.doublePrecision(),
         capacity: d.integer().notNull(),
-        price: d.integer().notNull(),
+        price: d.integer().notNull(), // цена за сутки в BYN (BASE_CURRENCY); валюта не выбирается — закон РБ
         image: d.text().notNull(),
         description: d.text(),
         rules: d.text(),
@@ -51,7 +51,6 @@ export const apartments = pgTable(
         floor: d.integer(),
         bathrooms: d.integer(),
         isAvailable: d.boolean().default(true),
-        currency: d.varchar({ length: 10 }).notNull().default('BYN'),
         amenities: d.varchar('amenities').array().default([]),
         parking: d.varchar({ length: 50 }).default(''),
         images: d.text('images').array().default([]),

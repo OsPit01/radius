@@ -1,15 +1,39 @@
 // src/lib/constants/currencies.ts
-export const CURRENCIES = [
-    { value: 'BYN', symbol: 'Br', label: 'Br (Бел. руб)' },
-    { value: 'USD', symbol: '$', label: '$ (Доллар)' },
-    { value: 'EUR', symbol: '€', label: '€ (Евро)' },
-    { value: 'RUB', symbol: '₽', label: '₽ (Рос. руб)' },
-] as const;
 
-export type Currency = (typeof CURRENCIES)[number];
+// Справочник валют: код → символ и название.
+export const CURRENCY_INFO = {
+    BYN: { symbol: 'Br', label: 'Белорусский рубль' },
+    USD: { symbol: '$', label: 'Доллар США' },
+    EUR: { symbol: '€', label: 'Евро' },
+    RUB: { symbol: '₽', label: 'Российский рубль' },
+} as const;
 
-// Возвращает символ валюты для отображения цены (например "Br" для BYN).
-// Если валюта не найдена — возвращаем её код как есть (безопасный fallback).
-export function getCurrencySymbol(currency: string | null | undefined): string {
-    return CURRENCIES.find((c) => c.value === currency)?.symbol ?? currency ?? '';
+// Список кодов: 'BYN' | 'USD' | 'EUR' | 'RUB'
+export type CurrencyCode = keyof typeof CURRENCY_INFO;
+
+// Проверка: строка — один из наших кодов?
+export function isCurrencyCode(value: string | null | undefined): value is CurrencyCode {
+    return !!value && Object.hasOwn(CURRENCY_INFO, value);
+}
+
+// Массив кодов, выведенный из справочника (без ручного дублирования).
+export const CURRENCY_CODES = Object.keys(CURRENCY_INFO).filter(isCurrencyCode);
+
+// Базовая валюта площадки. Цена хранится только в ней.
+export const BASE_CURRENCY = 'BYN' satisfies CurrencyCode;
+
+// Валюты для будущего пересчёта (без BYN).
+export type QuoteCurrency = Exclude<CurrencyCode, typeof BASE_CURRENCY>;
+
+// Символ базовой валюты: 'Br'
+export const BASE_CURRENCY_SYMBOL = CURRENCY_INFO[BASE_CURRENCY].symbol;
+
+// Символ по коду. Мусор → пустая строка.
+export function getCurrencySymbol(code: string | null | undefined): string {
+    return isCurrencyCode(code) ? CURRENCY_INFO[code].symbol : '';
+}
+
+// Единый формат цены: 100 → '100 Br'
+export function formatByn(amount: number): string {
+    return `${amount} ${BASE_CURRENCY_SYMBOL}`;
 }

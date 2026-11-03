@@ -9,7 +9,7 @@ import { ClientHeader } from '@/components/layout/ClientHeader';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Modal } from '@/components/ui/Modal';
 import { useMyApartments } from '@/hooks/useApartments';
-import { getStatusInfo } from '@/lib/constants';
+import { formatByn, getStatusInfo } from '@/lib/constants';
 import { requireAuth } from '@/server/auth/require-auth';
 
 // Неавторизованных отправляем на вход ещё на сервере
@@ -84,7 +84,7 @@ export default function MyApartmentsPage() {
                                             </span>
                                             <p className="mb-2 text-sm text-muted-foreground">{item.apartment.city}</p>
                                             <p className="mb-3 text-[22px] font-bold text-foreground max-md:text-xl">
-                                                {item.apartment.price} {item.apartment.currency}
+                                                {formatByn(item.apartment.price)}
                                             </p>
                                             <div className="mt-auto flex flex-col gap-2 pt-4">
                                                 <div className="flex flex-wrap gap-2">

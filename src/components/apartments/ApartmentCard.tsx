@@ -5,7 +5,7 @@ import { Heart } from '@/components/icons';
 import { ImageWithFallback } from '@/components/ui/ImageWithFallback';
 import type { ApartmentCardData } from '@/lib/apartment-format';
 import { DEFAULT_BOOKING_GUESTS } from '@/lib/constants/booking';
-import { getCurrencySymbol } from '@/lib/constants/currencies';
+import { formatByn } from '@/lib/constants/currencies';
 import { pluralRu } from '@/lib/plural';
 import { api } from '@/trpc/react';
 
@@ -107,7 +107,7 @@ export function ApartmentCard({
                         </div>
                     </button>
                     <span className="absolute right-3 bottom-3 z-10 rounded-lg bg-card px-3 py-1.5 text-base font-bold text-foreground shadow-sm">
-                        {apartment.price} {getCurrencySymbol(apartment.currency)}
+                        {formatByn(apartment.price)}
                     </span>
                 </div>
                 <div className="px-2.5 pt-3 pb-1">

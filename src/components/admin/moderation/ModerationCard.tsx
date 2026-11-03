@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import { Modal } from '@/components/ui/Modal';
+import { formatByn } from '@/lib/constants';
 import { getStatusInfo } from '@/lib/constants/apartment-status';
 import { getPayerLabel } from '@/lib/constants/payer';
 import { api, type RouterOutputs } from '@/trpc/react';
@@ -60,7 +61,7 @@ export function ModerationCard({ item, canManage }: ModerationCardProps) {
                     <p className="text-lg font-semibold text-foreground">{item.apartment.title}</p>
                     {/* город + цена. "·" — просто разделитель-точка в тексте */}
                     <p className="text-sm text-muted-foreground">
-                        {item.apartment.city} · {item.apartment.price} {item.apartment.currency}
+                        {item.apartment.city} · {formatByn(item.apartment.price)}
                     </p>
                     {/* СТАТУС — цветной бейдж. Цвет динамический, поэтому через style,
             а не через Tailwind (Tailwind не умеет динамические цвета). */}

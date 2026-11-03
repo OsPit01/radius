@@ -32,7 +32,6 @@ export default function AddApartmentPage() {
         title: '',
         capacity: 2,
         price: 100,
-        currency: 'BYN',
         rooms: 1,
         beds: 0,
         singleBeds: 0,

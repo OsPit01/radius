@@ -12,7 +12,7 @@ import { ClientHeader } from '@/components/layout/ClientHeader';
 import { Seo } from '@/components/Seo';
 import { Avatar } from '@/components/ui/Avatar';
 import { parseApartmentId } from '@/lib/apartment-id';
-import { getCurrencySymbol } from '@/lib/constants/currencies';
+import { BASE_CURRENCY_SYMBOL, formatByn } from '@/lib/constants/currencies';
 import { parseBookingChildren, parseBookingGuests } from '@/lib/search-params';
 import { getApartmentOgImagePath, SITE_URL } from '@/lib/seo';
 import { transliterate } from '@/lib/transliterate';
@@ -91,7 +91,7 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
             addressLocality: a.city,
             addressCountry: 'BY',
         },
-        priceRange: `${a.price} ${getCurrencySymbol(a.currency)}`,
+        priceRange: formatByn(a.price),
     };
 
     return (
@@ -195,9 +195,7 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
                         {/* Цена */}
                         <div className="mt-6 flex flex-wrap items-baseline gap-x-1.5">
                             <span className="text-[20px] font-bold text-foreground">{apartment.apartment.price}</span>
-                            <span className="text-[13px] font-medium text-foreground">
-                                {getCurrencySymbol(apartment.apartment.currency)}
-                            </span>
+                            <span className="text-[13px] font-medium text-foreground">{BASE_CURRENCY_SYMBOL}</span>
                             <span className="text-[15px] text-foreground">/ сутки</span>
                         </div>
 
