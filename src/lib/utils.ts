@@ -1,6 +1,7 @@
 import type { Dispatch, SetStateAction } from 'react';
 import { useState } from 'react';
 
+import type { ApartmentType } from '@/lib/constants/property';
 import { findNearestMetro, isMetroRegion, walkMinutesToStation } from '@/lib/metro';
 import { isMetroWalkable } from '@/lib/metro-limit';
 import type { CreateApartmentInput } from '@/lib/schemas/apartment';
@@ -8,7 +9,7 @@ import type { CreateApartmentInput } from '@/lib/schemas/apartment';
 import type { PayerType } from './constants/payer';
 
 export type FormData = {
-    type: string;
+    type: ApartmentType;
     /** Только область — одна из шести (`value` из BELARUS_REGIONS, Минск относится к Минской). Пусто, пока не определена. */
     region: string;
     /**

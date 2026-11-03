@@ -1,13 +1,16 @@
 // src/lib/constants/property.ts
-export const PROPERTY_TYPES = ['Квартира', 'Дом', 'Комната', 'Офис', 'Склад', 'Магазин'] as const;
+// Корень — английские слоги, как они хранятся в БД.
+// (Прежний PROPERTY_TYPES с русскими словами удалён: он врал — БД хранит слоги.)
 
-export type PropertyType = (typeof PROPERTY_TYPES)[number];
+export const APARTMENT_TYPE_VALUES = ['apartment', 'cottage'] as const;
+export type ApartmentType = (typeof APARTMENT_TYPE_VALUES)[number];
 
-const TYPE_LABELS: Record<string, string> = {
+// Подписи для UI (слог → русский текст)
+export const APARTMENT_TYPE_LABELS: Record<ApartmentType, string> = {
     apartment: 'квартира, апартаменты',
     cottage: 'коттедж, дом',
 };
-
+/** Подпись типа для UI; мусор из БД → показываем как есть (валидация на границе) */
 export function getTypeLabel(type: string): string {
-    return TYPE_LABELS[type] ?? type;
+    return APARTMENT_TYPE_LABELS[type as ApartmentType] ?? type;
 }

@@ -4,10 +4,11 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 
 import { type PayerType } from '@/lib/constants/payer';
+import type { ApartmentType } from '@/lib/constants/property';
 import { api } from '@/trpc/react';
 
 export type ApartmentFormData = {
-    type: string;
+    type: ApartmentType;
     title: string;
     city: string;
     street: string;

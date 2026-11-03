@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { check, index, pgEnum, pgTable } from 'drizzle-orm/pg-core';
 
+import { APARTMENT_TYPE_VALUES } from '@/lib/constants';
 import { PAYER_TYPE_VALUES } from '@/lib/constants/payer';
 
 import { users } from './user';
@@ -12,12 +13,12 @@ export const apartmentStatusEnum = pgEnum('apartment_status', [
 ]);
 
 export const payerTypeEnum = pgEnum('payer_type', PAYER_TYPE_VALUES);
-
+export const apartmentTypeEnum = pgEnum('apartment_type', APARTMENT_TYPE_VALUES);
 export const apartments = pgTable(
     'radius_apartment',
     (d) => ({
         id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
-        type: d.varchar({ length: 100 }),
+        type: apartmentTypeEnum('type').notNull().default('apartment'),
         title: d.varchar({ length: 200 }).notNull(),
         city: d.varchar({ length: 100 }).notNull(),
         street: d.varchar({ length: 100 }).notNull(),
@@ -69,6 +70,9 @@ export const apartments = pgTable(
     (t) => [
         index('apartment_city_idx').on(t.city),
         index('apartment_capacity_idx').on(t.capacity),
+        index('apartment_public_idx')
+            .on(t.city, t.price)
+            .where(sql` ${t.status} = 'active'`),
         // УНП: формат зависит от типа плательщика (см. payer.ts UNP_RULES):
         //   физлицо — 2 ЗАГЛАВНЫЕ латинские буквы + 7 цифр (LLNNNNNNN, пример MA1953684);
         //   ИП/компания — ровно 9 цифр.

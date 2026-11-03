@@ -6,6 +6,7 @@ import { getRegion } from '@/lib/constants/belarus-locations';
 import { getMetroStation } from '@/lib/metro';
 import { apartments } from '@/server/db/schemas/apartment';
 
+import { APARTMENT_TYPE_VALUES } from '../constants';
 import { PAYER_TYPE_VALUES, type PayerType, UNP_RULES } from '../constants/payer';
 
 // Сообщения, которые мы не задали сами (границы чисел, длина строк из колонок), — по-русски, а не по-английски
@@ -50,7 +51,7 @@ function checkUnpByPayerType(
  */
 const apartmentInsertSchema = createInsertSchema(apartments, {
     // В базе колонка допускает null (уже не допускает) (новые записи), но новый объект без типа создавать нельзя -  «Тип обязателен: в БД notNull с дефолтом 'apartment', zod требует min(1) — строгость совпадает».
-    type: z.string().min(1, 'Выберите тип объекта').max(100),
+    type: z.enum(APARTMENT_TYPE_VALUES),
     title: (s) => s.min(3, 'Название минимум 3 символа'),
     city: (s) => s.min(2, 'Город обязателен'),
     street: (s) => s.min(2, 'Улица обязательна').regex(STREET_NAME_REGEX, STREET_NAME_MESSAGE),
