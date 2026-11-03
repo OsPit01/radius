@@ -2,7 +2,7 @@ import { and, eq, lt } from 'drizzle-orm';
 
 import { sendTelegramMessage } from '@/lib/telegram';
 import { db } from '@/server/db';
-import { apartments, booking, notification, users } from '@/server/db/schema';
+import { apartments, booking, notification, users } from '@/server/db/schemas';
 
 // Сколько часов заявка «живёт» без реакции владельца. После этого — автоотмена.
 const BOOKING_EXPIRY_HOURS = 12;

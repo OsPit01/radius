@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 import { apartmentCardColumns } from '@/server/apartment-selects';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
-import { apartments, favorites } from '@/server/db/schema';
+import { apartments, favorites } from '@/server/db/schemas';
 
 const apartmentIdInput = z.object({
     apartmentId: z.number().int().positive('Некорректный идентификатор объекта'),

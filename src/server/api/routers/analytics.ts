@@ -4,7 +4,7 @@ import { z } from 'zod';
 
 import { isAdminRole } from '@/lib/constants/roles';
 import { createTRPCRouter, protectedProcedure, publicProcedure } from '@/server/api/trpc';
-import { apartments, apartmentView, booking, favorites, siteVisit, users } from '@/server/db/schema';
+import { apartments, apartmentView, booking, favorites, siteVisit, users } from '@/server/db/schemas';
 
 export const analyticsRouter = createTRPCRouter({
     // Уникальный переход на сайт. Один браузер = одна запись (первичный ключ

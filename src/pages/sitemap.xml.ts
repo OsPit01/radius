@@ -4,7 +4,7 @@ import type { GetServerSideProps } from 'next';
 import { SITE_URL } from '@/lib/seo';
 import { transliterate } from '@/lib/transliterate';
 import { db } from '@/server/db';
-import { apartments } from '@/server/db/schema';
+import { apartments } from '@/server/db/schemas';
 
 type SitemapEntry = {
     url: string;

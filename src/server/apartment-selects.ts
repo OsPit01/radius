@@ -14,8 +14,8 @@
 import { eq } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 
-import type * as schema from '@/server/db/schema';
-import { apartments, users } from '@/server/db/schema';
+import type * as schema from '@/server/db/schemas';
+import { apartments, users } from '@/server/db/schemas';
 
 type Database = PostgresJsDatabase<typeof schema>;
 

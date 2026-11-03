@@ -26,8 +26,10 @@ const MIN_QUERY_LENGTH = 3;
 // Бесплатная квота Яндекса ограничена — не ищем на каждую букву и не повторяем одинаковые запросы.
 const DEBOUNCE_MS = 500;
 const CACHE_MS = 5 * 60 * 1000;
-const GENERIC_ERROR = 'Поиск адреса сейчас недоступен. Заполните адрес вручную.';
-const NOT_RESOLVED_ERROR = 'Не удалось определить этот адрес. Выберите другой или заполните адрес вручную.';
+// const GENERIC_ERROR = 'Поиск адреса сейчас недоступен. Заполните адрес вручную.';
+// const NOT_RESOLVED_ERROR = 'Не удалось определить этот адрес. Выберите другой или заполните адрес вручную.';
+const GENERIC_ERROR = 'Поиск адреса сейчас недоступен. Попробуйте позже.';
+const NOT_RESOLVED_ERROR = 'Не удалось определить этот адрес. Попробуйте ввести по-другому.';
 
 // Нужны только aria-controls и aria-activedescendant — они ссылаются на элементы по id. Поле адреса на странице одно,
 // поэтому id статические; у самого поля id и подпись выдаёт <Field>. Имя списка — обычный aria-label.
@@ -183,7 +185,7 @@ export function AddressSearch({ initialValue = '', onResolved }: AddressSearchPr
     return (
         <Field>
             <FieldLabel>
-                Начните вводить адрес — город, улицу, дом. Выберите его из списка, остальное заполним сами.
+                Начните вводить город, улицу и дом и выберите адрес из подсказок — остальные поля заполнятся сами.
             </FieldLabel>
             <div>
                 <div className="relative">
@@ -203,7 +205,7 @@ export function AddressSearch({ initialValue = '', onResolved }: AddressSearchPr
                         aria-activedescendant={open && activeIndex >= 0 ? optionId(activeIndex) : undefined}
                         autoComplete="off"
                         value={value}
-                        placeholder="Например: Гродно, Советская 1"
+                        placeholder="Например: Минск, Петра Мстиславца, 6"
                         className="pl-9!"
                         onChange={(e) => {
                             resolveRequest.current += 1;

@@ -4,7 +4,7 @@ import { z } from 'zod/v4';
 
 import { getRegion } from '@/lib/constants/belarus-locations';
 import { getMetroStation } from '@/lib/metro';
-import { apartments } from '@/server/db/schema';
+import { apartments } from '@/server/db/schemas/apartment';
 
 import { PAYER_TYPE_VALUES, type PayerType, UNP_RULES } from '../constants/payer';
 

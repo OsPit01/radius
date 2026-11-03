@@ -6,7 +6,7 @@ import z from 'zod';
 import { MAX_MESSAGE_LENGTH } from '@/lib/chat';
 import { ADMIN_ROLES, isAdminRole } from '@/lib/constants/roles';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
-import { notification, supportMessage, supportTicket, users } from '@/server/db/schema';
+import { notification, supportMessage, supportTicket, users } from '@/server/db/schemas';
 import { enforceRateLimit } from '@/server/rate-limit';
 // Антифлуд: сколько сообщений может отправить один пользователь за окно времени.
 const CHAT_RATE_LIMIT = 30;

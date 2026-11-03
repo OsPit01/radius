@@ -6,7 +6,7 @@ import z from 'zod';
 import { MAX_MESSAGE_LENGTH } from '@/lib/chat';
 import { isAdminRole } from '@/lib/constants/roles';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
-import { apartments, booking, conversation, message, users } from '@/server/db/schema';
+import { apartments, booking, conversation, message, users } from '@/server/db/schemas';
 import { enforceRateLimit } from '@/server/rate-limit';
 
 // Антифлуд: сколько сообщений может отправить один пользователь за окно времени.

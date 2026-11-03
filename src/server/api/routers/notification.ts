@@ -3,7 +3,7 @@ import { and, asc, count, desc, eq } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { isAdminRole } from '@/lib/constants/roles';
-import { notification } from '@/server/db/schema';
+import { notification } from '@/server/db/schemas';
 
 import { createTRPCRouter, protectedProcedure } from '../trpc';
 

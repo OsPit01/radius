@@ -5,8 +5,8 @@ import { z } from 'zod';
 
 import { getRoleInfo, isAdminRole, ROLE_VALUES_TUPLE } from '@/lib/constants/roles';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
-import type * as schema from '@/server/db/schema';
-import { apartments, booking, favorites, users } from '@/server/db/schema';
+import type * as schema from '@/server/db/schemas';
+import { apartments, booking, favorites, users } from '@/server/db/schemas';
 
 type Database = PostgresJsDatabase<typeof schema>;
 

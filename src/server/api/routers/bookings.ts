@@ -7,7 +7,7 @@ import { isValidPhoneNumber } from '@/lib/phone';
 import { sendTelegramMessage } from '@/lib/telegram';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import { expireStaleBookings } from '@/server/booking-expiry';
-import { apartments, booking, conversation, message, notification, users } from '@/server/db/schema';
+import { apartments, booking, conversation, message, notification, users } from '@/server/db/schemas';
 import { enforceRateLimit } from '@/server/rate-limit';
 
 // Защита от флуда: сколько заявок один гость может оставить за одно окно.

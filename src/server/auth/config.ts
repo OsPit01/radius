@@ -5,7 +5,7 @@ import Resend from 'next-auth/providers/resend';
 
 import { isRoleKey, type RoleKey } from '@/lib/constants/roles';
 import { db } from '@/server/db';
-import { accounts, sessions, users, verificationTokens } from '@/server/db/schema';
+import { accounts, sessions, users, verificationTokens } from '@/server/db/schemas';
 // ============================================================
 // РАСШИРЯЕМ ТИПЫ ДЛЯ NEXT-AUTH V5
 // ============================================================

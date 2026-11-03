@@ -5,7 +5,7 @@ import sharp from 'sharp';
 import { parseApartmentId } from '@/lib/apartment-id';
 import { DEFAULT_OG_IMAGE, OG_IMAGE_SIZE } from '@/lib/seo';
 import { db } from '@/server/db';
-import { apartments } from '@/server/db/schema';
+import { apartments } from '@/server/db/schemas';
 
 // Превью квартиры для Telegram / WhatsApp / соцсетей: первое фото, обрезанное до 1200×630 JPEG.
 // В базе фото лежат как WebP до 1920px — их не везде показывают (WhatsApp, часть мессенджеров)

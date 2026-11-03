@@ -9,8 +9,8 @@ import { isAdminRole, isStaffRole } from '@/lib/constants/roles';
 import { createApartmentInput, updateApartmentInput } from '@/lib/schemas/apartment';
 import { selectApartmentCards, selectApartmentOwnList, selectApartmentPublic } from '@/server/apartment-selects';
 import { createTRPCRouter, protectedProcedure, publicProcedure } from '@/server/api/trpc';
-import type * as schema from '@/server/db/schema';
-import { apartments, notification, users } from '@/server/db/schema';
+import type * as schema from '@/server/db/schemas';
+import { apartments, notification, users } from '@/server/db/schemas';
 import { getSupabaseAdmin } from '@/server/supabase';
 
 type Database = PostgresJsDatabase<typeof schema>;

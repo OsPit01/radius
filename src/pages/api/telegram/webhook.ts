@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { env } from '@/env';
 import { sendTelegramMessage } from '@/lib/telegram';
 import { db } from '@/server/db';
-import { users } from '@/server/db/schema';
+import { users } from '@/server/db/schemas';
 
 const telegramUpdateSchema = z.object({
     message: z
