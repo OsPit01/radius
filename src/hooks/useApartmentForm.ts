@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { useRouter } from 'next/router';
 
+import { isParkingType } from '@/lib/constants/parking';
 import { type PayerType } from '@/lib/constants/payer';
 import type { ApartmentType } from '@/lib/constants/property';
 import { api } from '@/trpc/react';
@@ -167,6 +168,7 @@ export function useApartmentForm(apartmentId: string) {
                 singleSofas: Number(formData.singleSofas),
                 // 0 в поле — «не знаю»: в базу уходит null, а не 0
                 minsToMetro: formData.minsToMetro > 0 ? formData.minsToMetro : null,
+                parking: isParkingType(formData.parking) ? formData.parking : undefined,
             };
 
             await updateApartment.mutateAsync({ id: Number(apartmentId), ...data });

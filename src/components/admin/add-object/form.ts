@@ -1,5 +1,6 @@
 import type { FieldErrors, Resolver } from 'react-hook-form';
 
+import { isParkingType } from '@/lib/constants/parking';
 import { isMetroRegion } from '@/lib/metro';
 import { isMetroWalkable } from '@/lib/metro-limit';
 import { type CreateApartmentInput, createApartmentInput } from '@/lib/schemas/apartment';
@@ -15,7 +16,9 @@ type NotAskedFields = 'building' | 'microdistrict';
  * из серверной схемы (src/lib/schemas/apartment.ts), а она — из таблицы apartments: добавили колонку — она появилась
  * и здесь, а `toCreateInput` перестал компилироваться, пока не решите, откуда брать её значение.
  */
-export type ApartmentForm = Filled<Omit<CreateApartmentInput, NotAskedFields>>;
+export type ApartmentForm = Filled<Omit<CreateApartmentInput, NotAskedFields | 'parking'>> & {
+    parking: string;
+};
 
 export function createEmptyApartmentForm(): ApartmentForm {
     return {
@@ -92,7 +95,7 @@ export function toCreateInput(form: ApartmentForm): CreateApartmentInput {
         floor: form.floor ? Number(form.floor) : undefined,
         bathrooms: form.bathrooms ? Number(form.bathrooms) : undefined,
         amenities: form.amenities,
-        parking: form.parking,
+        parking: isParkingType(form.parking) ? form.parking : undefined,
         images: form.images,
         checkInTime: form.checkInTime,
         checkOutTime: form.checkOutTime,
