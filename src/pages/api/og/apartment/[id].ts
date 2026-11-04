@@ -4,6 +4,7 @@ import sharp from 'sharp';
 
 import { parseApartmentId } from '@/lib/apartment-id';
 import { DEFAULT_OG_IMAGE, OG_IMAGE_SIZE } from '@/lib/seo';
+import { hideTestApartments } from '@/server/apartment-selects';
 import { db } from '@/server/db';
 import { apartments } from '@/server/db/schemas';
 
@@ -72,11 +73,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return;
     }
 
-    // Как на странице объекта (apartment.getByIdPublic): снаружи видны только опубликованные квартиры.
     const [apartment] = await db
         .select({ image: apartments.image, images: apartments.images })
         .from(apartments)
-        .where(and(eq(apartments.id, id), eq(apartments.status, 'active')));
+        .where(and(eq(apartments.id, id), eq(apartments.status, 'active'), hideTestApartments()));
 
     if (!apartment) {
         res.setHeader('Cache-Control', CACHE_FALLBACK);

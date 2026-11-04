@@ -1,10 +1,11 @@
 import { TRPCError } from '@trpc/server';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { MAX_BOOKING_GUESTS, MIN_BOOKING_GUESTS } from '@/lib/constants/booking';
 import { isValidPhoneNumber } from '@/lib/phone';
 import { sendTelegramMessage } from '@/lib/telegram';
+import { hideTestApartments } from '@/server/apartment-selects';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import { expireStaleBookings } from '@/server/booking-expiry';
 import { apartments, booking, conversation, message, notification, users } from '@/server/db/schemas';
@@ -46,7 +47,10 @@ export const bookingsRouter = createTRPCRouter({
 
         await enforceRateLimit(ctx.db, `booking:${userId}`, BOOKING_RATE_LIMIT, BOOKING_RATE_WINDOW_MS);
 
-        const [apartment] = await ctx.db.select().from(apartments).where(eq(apartments.id, input.apartmentId));
+        const [apartment] = await ctx.db
+            .select()
+            .from(apartments)
+            .where(and(eq(apartments.id, input.apartmentId), hideTestApartments(ctx.session.user.role)));
 
         if (!apartment) {
             throw new TRPCError({

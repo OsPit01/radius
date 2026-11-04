@@ -11,13 +11,20 @@
 // Приватные процедуры (владелец смотрит свою квартиру, админ — модерация)
 // работают напрямую с таблицей apartments целиком.
 
-import { eq } from 'drizzle-orm';
+import { eq, notLike } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 
+import { hasPermission } from '@/lib/constants/roles';
 import type * as schema from '@/server/db/schemas';
 import { apartments, users } from '@/server/db/schemas';
 
 type Database = PostgresJsDatabase<typeof schema>;
+
+// Тестовые объекты (название начинается и заканчивается на «$test$») видны только суперадмину и выше;
+// без роли (гость, OG-картинка, sitemap) скрыты всегда.
+// undefined = «без условия» — только для and(): or(x, undefined) превратится в просто x.
+export const hideTestApartments = (role?: string) =>
+    role && hasPermission(role, 'superadmin') ? undefined : notLike(apartments.title, '$test$%$test$');
 
 /**
  * Поля карточки объекта: ровно то, что рисует ApartmentCard.

@@ -1,8 +1,9 @@
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import type { GetServerSideProps } from 'next';
 
 import { SITE_URL } from '@/lib/seo';
 import { transliterate } from '@/lib/transliterate';
+import { hideTestApartments } from '@/server/apartment-selects';
 import { db } from '@/server/db';
 import { apartments } from '@/server/db/schemas';
 
@@ -48,7 +49,7 @@ async function buildEntries(): Promise<SitemapEntry[]> {
             microdistrict: apartments.microdistrict,
         })
         .from(apartments)
-        .where(eq(apartments.status, 'active'));
+        .where(and(eq(apartments.status, 'active'), hideTestApartments()));
 
     const apartmentUrls: SitemapEntry[] = rows.map((a) => ({
         url: `${SITE_URL}/apartments/${a.id}`,

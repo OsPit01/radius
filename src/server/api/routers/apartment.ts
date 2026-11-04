@@ -7,7 +7,12 @@ import { formatAddressLine } from '@/lib/address';
 import { APARTMENT_STATUS_VALUES, buildStatusNotificationText } from '@/lib/constants/apartment-status';
 import { isAdminRole, isStaffRole } from '@/lib/constants/roles';
 import { createApartmentInput, updateApartmentInput } from '@/lib/schemas/apartment';
-import { selectApartmentCards, selectApartmentOwnList, selectApartmentPublic } from '@/server/apartment-selects';
+import {
+    hideTestApartments,
+    selectApartmentCards,
+    selectApartmentOwnList,
+    selectApartmentPublic,
+} from '@/server/apartment-selects';
 import { createTRPCRouter, protectedProcedure, publicProcedure } from '@/server/api/trpc';
 import type * as schema from '@/server/db/schemas';
 import { apartments, notification, users } from '@/server/db/schemas';
@@ -70,7 +75,10 @@ export const apartmentRouter = createTRPCRouter({
                 .optional(),
         )
         .query(async ({ ctx, input }) => {
-            const conditions: (SQL | undefined)[] = [eq(apartments.status, 'active')];
+            const conditions: (SQL | undefined)[] = [
+                eq(apartments.status, 'active'),
+                hideTestApartments(ctx.session?.user.role),
+            ];
 
             if (input?.city) {
                 conditions.push(
@@ -125,7 +133,7 @@ export const apartmentRouter = createTRPCRouter({
         const rows = await ctx.db
             .select({ city: apartments.city, microdistrict: apartments.microdistrict })
             .from(apartments)
-            .where(eq(apartments.status, 'active'));
+            .where(and(eq(apartments.status, 'active'), hideTestApartments(ctx.session?.user.role)));
 
         // Группируем микрорайоны по городу
         const byCity = new Map<string, string[]>();
@@ -179,7 +187,11 @@ export const apartmentRouter = createTRPCRouter({
         const canViewPhone = !!ctx.session?.user;
 
         const [apartment] = await selectApartmentPublic(ctx.db).where(
-            and(eq(apartments.id, input.id), eq(apartments.status, 'active')),
+            and(
+                eq(apartments.id, input.id),
+                eq(apartments.status, 'active'),
+                hideTestApartments(ctx.session?.user.role),
+            ),
         );
 
         if (!apartment) {
@@ -327,7 +339,9 @@ export const apartmentRouter = createTRPCRouter({
                 message: 'У вас нет прав на просмотр чужих объектов',
             });
         }
-        return await selectApartmentOwnList(ctx.db).where(eq(apartments.createdById, input.userId));
+        return await selectApartmentOwnList(ctx.db).where(
+            and(eq(apartments.createdById, input.userId), hideTestApartments(ctx.session.user.role)),
+        );
     }),
     //вернуть все объекты
     getForModeration: protectedProcedure.query(async ({ ctx }) => {
@@ -338,7 +352,7 @@ export const apartmentRouter = createTRPCRouter({
                 message: 'У вас нет прав на модерацию',
             });
         }
-        return await selectApartmentWithUser(ctx.db);
+        return await selectApartmentWithUser(ctx.db).where(hideTestApartments(ctx.session.user.role));
     }),
 
     //Админ панель* Обновить статус

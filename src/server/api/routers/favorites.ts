@@ -1,7 +1,7 @@
 import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
 
-import { apartmentCardColumns } from '@/server/apartment-selects';
+import { apartmentCardColumns, hideTestApartments } from '@/server/apartment-selects';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import { apartments, favorites } from '@/server/db/schemas';
 
@@ -54,6 +54,12 @@ export const favoritesRouter = createTRPCRouter({
             .select(apartmentCardColumns)
             .from(favorites)
             .innerJoin(apartments, eq(favorites.apartmentId, apartments.id))
-            .where(and(eq(favorites.userId, userId), eq(apartments.status, 'active')));
+            .where(
+                and(
+                    eq(favorites.userId, userId),
+                    eq(apartments.status, 'active'),
+                    hideTestApartments(ctx.session.user.role),
+                ),
+            );
     }),
 });
