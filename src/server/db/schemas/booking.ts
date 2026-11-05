@@ -1,15 +1,11 @@
 import { index, pgEnum, pgTable } from 'drizzle-orm/pg-core';
 
+import { BOOKING_STATUS_VALUES } from '@/lib/constants/booking';
+
 import { apartments } from './apartment';
 import { users } from './user';
 
-export const bookingStatusEnum = pgEnum('booking_status', [
-    'new', // только что создана, ждёт ответа владельца
-    'approved', // владелец подтвердил
-    'rejected', // владелец отклонил
-    'cancelled', // отменена (гостем или владельцем)
-    'expired', // просрочена — владелец не ответил вовремя (ставит cron в booking-expiry.ts)
-]);
+export const bookingStatusEnum = pgEnum('booking_status', BOOKING_STATUS_VALUES);
 
 export const booking = pgTable(
     'radius_booking',

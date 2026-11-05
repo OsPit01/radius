@@ -4,15 +4,18 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 
+import { AddressSearch, type AddressSuggestion } from '@/components/address/AddressSearch';
 import { SortableImageGrid } from '@/components/apartments/SortableImageGrid';
 import { Bed, Camera, Clock, Home, Hourglass, MapPin, Money, Sofa } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { ClientHeader } from '@/components/layout/ClientHeader';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useApartmentForm } from '@/hooks/useApartmentForm';
+import { formatAddressLine } from '@/lib/address';
 import { AMENITIES, PARKING_TYPES } from '@/lib/constants';
 import { getUnpRule, PAYER_TYPE_OPTIONS } from '@/lib/constants/payer';
 import { isAdminRole } from '@/lib/constants/roles';
+import { findNearestMetro, isMetroRegion } from '@/lib/metro';
 import { EDIT_INPUT_CLASS, sanitizeStreet, toggleAmenity } from '@/lib/utils';
 import { requireAuth } from '@/server/auth/require-auth';
 import { api } from '@/trpc/react';
@@ -41,15 +44,30 @@ export const getServerSideProps = requireAuth;
 export default function EditApartmentPage() {
     const { query } = useRouter();
     const id = typeof query.id === 'string' ? query.id : (query.id?.[0] ?? '');
-
-    const { formData, isSubmitting, isLoadingData, error, updateField, handleSubmit, apartmentData } =
+    const { formData, isSubmitting, isLoadingData, error, updateField, setFormData, handleSubmit } =
         useApartmentForm(id);
 
     const { data: session } = useSession();
-    // Адрес опубликованного объекта может менять только администратор.
+    // Адрес объекта может менять только администратор и выше.
     const isAdmin = isAdminRole(session?.user?.role);
-    const isPublished = apartmentData?.apartment.status === 'active';
-    const canEditAddress = !isPublished || isAdmin;
+    const canEditAddress = isAdmin;
+    const handleAddressResolved = (address: AddressSuggestion) => {
+        const nearestMetro = isMetroRegion(address.region) ? findNearestMetro(address.lat, address.lon) : null;
+
+        setFormData((prev) => ({
+            ...prev,
+            city: address.city,
+            street: address.street,
+            numberHome: address.house,
+            building: '',
+            district: address.district,
+            region: address.region,
+            lat: address.lat,
+            lon: address.lon,
+            metroStation: nearestMetro?.station?.id ?? '',
+            minsToMetro: nearestMetro?.walkMinutes ?? 0,
+        }));
+    };
 
     const [isUploading, setIsUploading] = useState(false);
 
@@ -444,8 +462,22 @@ export default function EditApartmentPage() {
                                 </div>
                                 {!canEditAddress && (
                                     <p className="mb-4 rounded-lg border border-border bg-background px-4 py-3 text-sm text-muted-foreground">
-                                        Адрес опубликованного объекта может изменить только администратор.
+                                        Адрес объекта может изменить только администратор.
                                     </p>
+                                )}
+
+                                {canEditAddress && (
+                                    <div className="mb-4">
+                                        <AddressSearch
+                                            initialValue={formatAddressLine({
+                                                city: formData.city,
+                                                street: formData.street,
+                                                numberHome: formData.numberHome,
+                                                building: formData.building,
+                                            })}
+                                            onResolved={handleAddressResolved}
+                                        />
+                                    </div>
                                 )}
                                 <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
                                     <div className="mb-4 flex flex-col gap-1.5">
@@ -521,6 +553,27 @@ export default function EditApartmentPage() {
                                         />
                                     </div>
                                 </div>
+                                {/* Широта и долгота  */}
+                                {canEditAddress && formData.lat > 0 && (
+                                    <div className="mb-4 grid grid-cols-2 gap-4 max-md:grid-cols-1">
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="text-sm font-medium text-foreground">Широта</label>
+                                            <input
+                                                disabled
+                                                value={formData.lat}
+                                                className={EDIT_INPUT_CLASS}
+                                            />
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="text-sm font-medium text-foreground">Долгота</label>
+                                            <input
+                                                disabled
+                                                value={formData.lon}
+                                                className={EDIT_INPUT_CLASS}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
                             </section>
                             {/*ЮРИДИЧЕСКАЯ ИНФОРМАЦИЯ/РЕКВИЗИТЫ ПЛАТЕЛЬЩИКА*/}
                             <section className="mb-10 text-muted-foreground">

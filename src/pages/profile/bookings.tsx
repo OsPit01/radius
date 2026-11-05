@@ -6,18 +6,10 @@ import { AuthGuard } from '@/components/layout/AuthGuard';
 import { ClientHeader } from '@/components/layout/ClientHeader';
 import { Modal } from '@/components/ui/Modal';
 import { SegmentedTabs } from '@/components/ui/SegmentedTabs';
+import { BOOKING_STATUS_LABELS } from '@/lib/constants/booking';
 import { formatPhoneForDisplay } from '@/lib/phone';
 import { requireAuth } from '@/server/auth/require-auth';
 import { api } from '@/trpc/react';
-
-// Человекочитаемые подписи статусов брони.
-const BOOKING_STATUS_LABELS: Record<string, string> = {
-    new: 'Новая заявка',
-    approved: 'Подтверждена',
-    rejected: 'Отклонена',
-    cancelled: 'Отменена',
-    expired: 'Истекла',
-};
 
 // Форматирование даты в человекочитаемый вид (например «30 октября 2026 г.»).
 function formatDate(date: Date) {

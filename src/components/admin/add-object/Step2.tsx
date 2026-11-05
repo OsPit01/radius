@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 
+import { AddressSearch } from '@/components/address/AddressSearch';
 import { getCityDistricts, getRegion } from '@/lib/constants/belarus-locations';
 import { MINSK_METRO_STATIONS } from '@/lib/constants/minsk-metro';
 import { findNearestMetro, isMetroRegion } from '@/lib/metro';
@@ -9,7 +10,6 @@ import type { AddressSuggestion } from '@/server/yandex-geocoder';
 import { Field, FieldDescription, FieldLabel, FieldLegend, FieldSet } from '@/shared/ui/field';
 import { Input } from '@/shared/ui/input';
 
-import { AddressSearch } from './AddressSearch';
 import type { ApartmentForm } from './form';
 
 export const Step2: React.FC = function () {

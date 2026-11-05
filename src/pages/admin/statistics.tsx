@@ -3,23 +3,15 @@ import { useSession } from 'next-auth/react';
 import { BarChart } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { ClientHeader } from '@/components/layout/ClientHeader';
+import { BOOKING_STATUS_PLURAL_LABELS as BOOKING_STATUS_LABELS } from '@/lib/constants/booking';
 import { isAdminRole } from '@/lib/constants/roles';
 import { requireAuth } from '@/server/auth/require-auth';
 import { api } from '@/trpc/react';
-
 // Человекочитаемые подписи статусов.
 const APARTMENT_STATUS_LABELS: Record<string, string> = {
     active: 'Опубликовано',
     moderation: 'На модерации',
     rejected: 'Отклонено',
-};
-
-const BOOKING_STATUS_LABELS: Record<string, string> = {
-    new: 'Новые',
-    approved: 'Подтверждены',
-    rejected: 'Отклонены',
-    cancelled: 'Отменены',
-    expired: 'Истекли',
 };
 
 // Неавторизованных отправляем на вход ещё на сервере

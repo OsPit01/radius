@@ -17,6 +17,10 @@ export type ApartmentFormData = {
     building: string;
     district: string;
     microdistrict: string;
+    region: string;
+    lat: number;
+    lon: number;
+    metroStation: string;
     capacity: number;
     price: number;
     rooms: number;
@@ -50,6 +54,10 @@ const defaultFormData: ApartmentFormData = {
     building: '',
     district: '',
     microdistrict: '',
+    region: '',
+    lat: 0,
+    lon: 0,
+    metroStation: '',
     capacity: 2,
     price: 0,
     rooms: 1,
@@ -110,6 +118,10 @@ export function useApartmentForm(apartmentId: string) {
                 building: apt.building ?? '',
                 district: apt.district ?? '',
                 microdistrict: apt.microdistrict ?? '',
+                region: apt.region ?? '',
+                lat: apt.lat ?? 0,
+                lon: apt.lon ?? 0,
+                metroStation: apt.metroStation ?? '',
                 capacity: apt.capacity ?? 2,
                 price: apt.price ?? 0,
                 rooms: apt.rooms ?? 1,
@@ -169,6 +181,10 @@ export function useApartmentForm(apartmentId: string) {
                 // 0 в поле — «не знаю»: в базу уходит null, а не 0
                 minsToMetro: formData.minsToMetro > 0 ? formData.minsToMetro : null,
                 parking: isParkingType(formData.parking) ? formData.parking : undefined,
+                region: formData.region || undefined,
+                lat: formData.lat > 0 ? formData.lat : undefined,
+                lon: formData.lon > 0 ? formData.lon : undefined,
+                metroStation: formData.metroStation || undefined,
             };
 
             await updateApartment.mutateAsync({ id: Number(apartmentId), ...data });

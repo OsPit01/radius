@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 
+import { AddressSearch, type AddressSuggestion } from '@/components/address/AddressSearch';
 import { formatAddressLine, normalizeHouse } from '@/lib/address';
 import { BELARUS_REGIONS, getCityDistricts, getRegion } from '@/lib/constants/belarus-locations';
 import { findNearestMetro, getMetroStation, isMetroRegion, METRO_STATIONS_ALPHABETICAL } from '@/lib/metro';
@@ -10,8 +11,6 @@ import { Field, FieldDescription, FieldError, FieldLabel, FieldLegend, FieldSet 
 import { Input } from '@/shared/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { api } from '@/trpc/react';
-
-import { AddressSearch, type AddressSuggestion } from '../../add-object/AddressSearch';
 
 type SelectOption = { value: string; label: string };
 

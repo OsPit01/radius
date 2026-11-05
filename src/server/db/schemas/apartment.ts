@@ -2,16 +2,13 @@ import { sql } from 'drizzle-orm';
 import { check, index, pgEnum, pgTable } from 'drizzle-orm/pg-core';
 
 import { APARTMENT_TYPE_VALUES } from '@/lib/constants';
+import { APARTMENT_STATUS_VALUES } from '@/lib/constants/apartment-status';
 import { PARKING_TYPE_VALUES } from '@/lib/constants/parking';
 import { PAYER_TYPE_VALUES } from '@/lib/constants/payer';
 
 import { users } from './user';
 
-export const apartmentStatusEnum = pgEnum('apartment_status', [
-    'moderation', // ждёт проверки админом
-    'active', // опубликована, видна всем
-    'inactive', // отклонена (причина в rejectionReason)
-]);
+export const apartmentStatusEnum = pgEnum('apartment_status', APARTMENT_STATUS_VALUES);
 
 export const payerTypeEnum = pgEnum('payer_type', PAYER_TYPE_VALUES);
 export const apartmentTypeEnum = pgEnum('apartment_type', APARTMENT_TYPE_VALUES);

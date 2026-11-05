@@ -7,6 +7,7 @@ import { formatAddressLine } from '@/lib/address';
 import { APARTMENT_STATUS_VALUES, buildStatusNotificationText } from '@/lib/constants/apartment-status';
 import { isAdminRole, isStaffRole } from '@/lib/constants/roles';
 import { createApartmentInput, updateApartmentInput } from '@/lib/schemas/apartment';
+import { isAddressChanged } from '@/server/apartment-address';
 import {
     hideTestApartments,
     selectApartmentCards,
@@ -265,31 +266,31 @@ export const apartmentRouter = createTRPCRouter({
                 message: 'У вас нет прав на редактирование этого объекта',
             });
         }
-
-        // Адрес опубликованного объекта может менять только администратор.
-        // Обычный владелец не может менять адрес, пока объект уже опубликован.
-        if (existing.status === 'active' && !isAdmin) {
-            const addressChanged =
-                existing.city !== input.city ||
-                existing.street !== input.street ||
-                existing.numberHome !== input.numberHome ||
-                (existing.building ?? '') !== (input.building ?? '') ||
-                (existing.district ?? '') !== (input.district ?? '') ||
-                (existing.microdistrict ?? '') !== (input.microdistrict ?? '');
-
-            if (addressChanged) {
-                throw new TRPCError({
-                    code: 'FORBIDDEN',
-                    message: 'Изменение адреса опубликованного объекта доступно только администратору',
-                });
-            }
+        // Адрес — только администратор: он влияет на публичную страницу, карту, поиск и SEO.
+        if (!isAdmin && isAddressChanged(existing, input)) {
+            throw new TRPCError({
+                code: 'FORBIDDEN',
+                message: 'Адрес объекта может изменить только администратор',
+            });
         }
-
+        const nextCity = input.city ?? existing.city;
+        const nextStreet = input.street ?? existing.street;
+        const nextNumberHome = input.numberHome ?? existing.numberHome;
+        const nextBuilding = input.building ?? existing.building;
         // Поле, которого нет в запросе, не трогаем (undefined drizzle пропускает), а не сбрасываем в 0/null.
         const { id, ...fields } = input;
         const [updated] = await ctx.db
             .update(apartments)
-            .set({ ...fields, updatedAt: new Date() })
+            .set({
+                ...fields,
+                formattedAddress: formatAddressLine({
+                    city: nextCity,
+                    street: nextStreet,
+                    numberHome: nextNumberHome,
+                    building: nextBuilding,
+                }),
+                updatedAt: new Date(),
+            })
             .where(eq(apartments.id, id))
             .returning();
 

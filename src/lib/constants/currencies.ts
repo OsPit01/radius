@@ -13,7 +13,7 @@ export type CurrencyCode = keyof typeof CURRENCY_INFO;
 
 // Проверка: строка — один из наших кодов?
 export function isCurrencyCode(value: string | null | undefined): value is CurrencyCode {
-    return !!value && Object.hasOwn(CURRENCY_INFO, value);
+    return typeof value === 'string' && Object.hasOwn(CURRENCY_INFO, value);
 }
 
 // Массив кодов, выведенный из справочника (без ручного дублирования).

@@ -15,5 +15,5 @@ export const PARKING_TYPE_LABELS: Record<ParkingType, string> = {
 export const PARKING_TYPES = PARKING_TYPE_VALUES.map((id) => ({ id, label: PARKING_TYPE_LABELS[id] }));
 
 export function isParkingType(value: string | null | undefined): value is ParkingType {
-    return !!value && Object.hasOwn(PARKING_TYPE_LABELS, value);
+    return typeof value === 'string' && Object.hasOwn(PARKING_TYPE_LABELS, value);
 }
