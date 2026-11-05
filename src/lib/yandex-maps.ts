@@ -16,10 +16,10 @@ let loading: Promise<typeof ymaps3> | null = null;
  * Подключает JS API один раз на страницу (скрипт создаёт глобальный ymaps3) и ждёт его готовности.
  * Если загрузка сорвалась, следующий вызов попробует снова.
  */
-export function loadYandexMaps(apiKey: string): Promise<typeof ymaps3> {
+export function loadYandexMaps(apikey: string): Promise<typeof ymaps3> {
     loading ??= new Promise<void>((resolve, reject) => {
         const script = document.createElement('script');
-        script.src = `${API_URL}?${new URLSearchParams({ apikey: apiKey, lang: 'ru_RU' }).toString()}`;
+        script.src = `${API_URL}?${new URLSearchParams({ apikey, lang: 'ru_RU' }).toString()}`;
         // Яндекс сверяет ключ с сайтом по заголовку Referer, поэтому no-referrer тут нельзя;
         // при этой политике уходит только домен, без пути страницы.
         script.referrerPolicy = 'strict-origin-when-cross-origin';
