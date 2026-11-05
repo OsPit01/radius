@@ -35,6 +35,9 @@ export const env = createEnv({
     client: {
         NEXT_PUBLIC_SITE_URL: z.string().url().optional(),
         NEXT_PUBLIC_GA_ID: z.string().optional(),
+        // Яндекс Карты в браузере (JS API) — отдельный ключ, не серверные ключи Геокодера. Он виден в коде страницы,
+        // поэтому в кабинете Яндекса у него заполнено «Ограничение по HTTP Referer» (см. src/lib/yandex-maps.ts).
+        NEXT_PUBLIC_YANDEX_MAPS_API_KEY: z.string().optional(),
     },
 
     /**
@@ -59,6 +62,7 @@ export const env = createEnv({
         NODE_ENV: process.env.NODE_ENV,
         NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
         NEXT_PUBLIC_GA_ID: process.env.NEXT_PUBLIC_GA_ID,
+        NEXT_PUBLIC_YANDEX_MAPS_API_KEY: process.env.NEXT_PUBLIC_YANDEX_MAPS_API_KEY,
     },
     /**
      * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

@@ -45,6 +45,7 @@ export const ICON_NAMES = [
     'metro',
     'mapPin',
     'mapView',
+    'route',
     'sparkles',
     // справка
     'money',
@@ -107,6 +108,7 @@ export const ICON_VARIANTS: Record<IconName, IconVariant> = {
     metro: 2,
     mapPin: 2,
     mapView: 2,
+    route: 2,
     sparkles: 2,
     money: 2,
     note: 2,

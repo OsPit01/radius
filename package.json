@@ -66,6 +66,7 @@
         "@types/node": "^20.19.41",
         "@types/react": "^19.0.0",
         "@types/react-dom": "^19.0.0",
+        "@yandex/ymaps3-types": "^1.0.21772363",
         "drizzle-kit": "^0.31.11",
         "eslint": "^9.23.0",
         "eslint-config-next": "^15.2.3",

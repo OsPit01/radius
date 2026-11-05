@@ -15,7 +15,7 @@ import {
 } from './glyphs';
 import { AlarmClock, Calendar, Clipboard, Clock, Mail, Money, Note, Phone } from './info';
 import { BarChart, Camera, Chat, Eye, Shield, User, UserCircle, Users } from './people';
-import { Bath, Bed, Building, Car, Home, MapPin, MapView, Metro, Ruler, Sofa, Sparkles } from './property';
+import { Bath, Bed, Building, Car, Home, MapPin, MapView, Metro, Route, Ruler, Sofa, Sparkles } from './property';
 import { Bell, CheckCircle, Heart, Hourglass, Info, Star, Warning } from './status';
 
 export { ICON_NAMES, ICON_VARIANTS, type IconName, type IconVariant } from './config';
@@ -61,6 +61,7 @@ export {
     Note,
     Phone,
     Plus,
+    Route,
     Ruler,
     Search,
     Send,
@@ -114,6 +115,7 @@ export const ICONS: readonly IconComponent[] = [
     Metro,
     MapPin,
     MapView,
+    Route,
     Sparkles,
     // справка
     Money,

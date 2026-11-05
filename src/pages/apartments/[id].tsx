@@ -11,6 +11,7 @@ import { JsonLd } from '@/components/JsonLd';
 import { ClientHeader } from '@/components/layout/ClientHeader';
 import { Seo } from '@/components/Seo';
 import { Avatar } from '@/components/ui/Avatar';
+import { formatAddressLine } from '@/lib/address';
 import { parseApartmentId } from '@/lib/apartment-id';
 import { BASE_CURRENCY_SYMBOL, formatByn } from '@/lib/constants/currencies';
 import { parseBookingChildren, parseBookingGuests } from '@/lib/search-params';
@@ -241,6 +242,9 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
                     rules={apartment.apartment.rules ?? ''}
                     checkInTime={apartment.apartment.checkInTime ?? null}
                     checkOutTime={apartment.apartment.checkOutTime ?? null}
+                    lat={a.lat}
+                    lon={a.lon}
+                    address={formatAddressLine(a)}
                 />
             </div>
         </>

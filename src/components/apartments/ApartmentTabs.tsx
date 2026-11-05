@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { ApartmentMap } from '@/components/apartments/ApartmentMap';
 import { AlarmClock, Check, Clipboard, Clock, MapView, Note, Sparkles } from '@/components/icons';
 import { SegmentedTabs } from '@/components/ui/SegmentedTabs';
 import { AMENITIES } from '@/lib/constants/amenities';
@@ -17,12 +18,18 @@ export function ApartmentTabs({
     rules,
     checkInTime,
     checkOutTime,
+    lat,
+    lon,
+    address,
 }: {
     description: string;
     amenities: string[];
     rules: string;
     checkInTime: string | null;
     checkOutTime: string | null;
+    lat: number | null;
+    lon: number | null;
+    address: string;
 }) {
     const [activeTab, setActiveTab] = useState(0);
 
@@ -103,11 +110,18 @@ export function ApartmentTabs({
                     </div>
                 )}
 
-                {activeTab === 3 && (
-                    <div className="mx-auto max-w-2xl rounded-2xl border border-border bg-muted p-6">
-                        <p className="text-center text-muted-foreground">Карта появится здесь в ближайшее время</p>
-                    </div>
-                )}
+                {activeTab === 3 &&
+                    (!!lat && !!lon ? (
+                        <ApartmentMap
+                            lat={lat}
+                            lon={lon}
+                            address={address}
+                        />
+                    ) : (
+                        <div className="mx-auto max-w-2xl rounded-2xl border border-border bg-muted p-6">
+                            <p className="text-center text-muted-foreground">Расположение на карте не указано</p>
+                        </div>
+                    ))}
             </div>
         </div>
     );

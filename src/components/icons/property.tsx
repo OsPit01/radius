@@ -1,7 +1,7 @@
 import { createIcon } from './core';
 import { circle, HEART, polygon, rotate, rrect, spark } from './geometry';
 
-// Всё про жильё: дом, здание, кровать, диван, ванна, площадь, парковка, метро, адрес, карта, удобства.
+// Всё про жильё: дом, здание, кровать, диван, ванна, площадь, парковка, метро, адрес, карта, маршрут, удобства.
 
 const HOUSE = 'M4 10.8 12 3.8l8 7v8.8a1.6 1.6 0 0 1-1.6 1.6H5.6A1.6 1.6 0 0 1 4 19.6z';
 const DOOR = 'M10 21.2v-4.2a2 2 0 0 1 4 0v4.2';
@@ -164,6 +164,19 @@ export const MapView = createIcon({
     strokes: ['M8.4 4v13.4M15.6 6.6V20'],
     marks: ['M12 15s-2.4-2-2.4-3.8a2.4 2.4 0 0 1 4.8 0C14.4 13 12 15 12 15z'],
     cut: 1.5,
+});
+
+// Маленькая метка в правом верхнем углу — пропорции те же, что у PIN.
+const ROUTE_PIN = 'M17.6 12.6S13.8 9.33 13.8 6.2a3.8 3.8 0 0 1 7.6 0c0 3.13-3.8 6.4-3.8 6.4z';
+
+export const Route = createIcon({
+    name: 'route',
+    label: 'Маршрут',
+    usage: 'Кнопка «Маршрут» на карте квартиры',
+    // Точка старта, S-образная дорога и метка назначения.
+    shapes: [ROUTE_PIN, circle(5.6, 18.4, 2.2)],
+    holes: [circle(17.6, 6.2, 1.35)],
+    extras: `<path d="M9 18.4h6a2.6 2.6 0 0 0 0-5.2H9.4a2.6 2.6 0 0 1 0-5.2h1.4" fill="none" stroke="$fg" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>`,
 });
 
 export const Sparkles = createIcon({

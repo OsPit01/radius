@@ -66,6 +66,8 @@ const apartmentPublicColumns = {
     checkOutTime: apartments.checkOutTime,
     amenities: apartments.amenities,
     rules: apartments.rules,
+    lat: apartments.lat,
+    lon: apartments.lon,
 };
 
 /**
