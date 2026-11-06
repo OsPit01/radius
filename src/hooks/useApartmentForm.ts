@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { useRouter } from 'next/router';
 
+import { isAmenity } from '@/lib/constants';
 import { isParkingType } from '@/lib/constants/parking';
 import { type PayerType } from '@/lib/constants/payer';
 import type { ApartmentType } from '@/lib/constants/property';
@@ -185,6 +186,7 @@ export function useApartmentForm(apartmentId: string) {
                 lat: formData.lat > 0 ? formData.lat : undefined,
                 lon: formData.lon > 0 ? formData.lon : undefined,
                 metroStation: formData.metroStation || undefined,
+                amenities: (formData.amenities ?? []).filter(isAmenity),
             };
 
             await updateApartment.mutateAsync({ id: Number(apartmentId), ...data });

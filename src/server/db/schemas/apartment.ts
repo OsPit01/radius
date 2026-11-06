@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm';
 import { check, index, pgEnum, pgTable } from 'drizzle-orm/pg-core';
 
 import { APARTMENT_TYPE_VALUES } from '@/lib/constants';
+import { AMENITY_VALUES } from '@/lib/constants/amenities';
 import { APARTMENT_STATUS_VALUES } from '@/lib/constants/apartment-status';
 import { PARKING_TYPE_VALUES } from '@/lib/constants/parking';
 import { PAYER_TYPE_VALUES } from '@/lib/constants/payer';
@@ -13,6 +14,7 @@ export const apartmentStatusEnum = pgEnum('apartment_status', APARTMENT_STATUS_V
 export const payerTypeEnum = pgEnum('payer_type', PAYER_TYPE_VALUES);
 export const apartmentTypeEnum = pgEnum('apartment_type', APARTMENT_TYPE_VALUES);
 export const parkingTypeEnum = pgEnum('parking_type', PARKING_TYPE_VALUES);
+export const amenityEnum = pgEnum('amenity', AMENITY_VALUES);
 export const apartments = pgTable(
     'radius_apartment',
     (d) => ({
@@ -50,7 +52,7 @@ export const apartments = pgTable(
         floor: d.integer(),
         bathrooms: d.integer(),
         isAvailable: d.boolean().default(true),
-        amenities: d.varchar('amenities').array().default([]),
+        amenities: amenityEnum('amenities').array().default([]),
         parking: parkingTypeEnum('parking'), // NULL = не указано; absent = парковки нет
         images: d.text('images').array().default([]),
         createdById: d.varchar({ length: 255 }).references(() => users.id),

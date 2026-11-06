@@ -6,7 +6,7 @@ import { getRegion } from '@/lib/constants/belarus-locations';
 import { getMetroStation } from '@/lib/metro';
 import { apartments } from '@/server/db/schemas/apartment';
 
-import { APARTMENT_TYPE_VALUES, PARKING_TYPE_VALUES } from '../constants';
+import { AMENITY_VALUES, APARTMENT_TYPE_VALUES, PARKING_TYPE_VALUES } from '../constants';
 import { PAYER_TYPE_VALUES, type PayerType, UNP_RULES } from '../constants/payer';
 
 // Сообщения, которые мы не задали сами (границы чисел, длина строк из колонок), — по-русски, а не по-английски
@@ -73,6 +73,7 @@ const apartmentInsertSchema = createInsertSchema(apartments, {
     bathrooms: (s) => s.min(0).max(20).optional(),
     payerType: z.enum(PAYER_TYPE_VALUES),
     parking: z.enum(PARKING_TYPE_VALUES).optional(),
+    amenities: z.array(z.enum(AMENITY_VALUES)).default([]),
 });
 
 /**

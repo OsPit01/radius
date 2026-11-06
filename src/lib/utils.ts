@@ -6,6 +6,7 @@ import { findNearestMetro, isMetroRegion, walkMinutesToStation } from '@/lib/met
 import { isMetroWalkable } from '@/lib/metro-limit';
 import type { CreateApartmentInput } from '@/lib/schemas/apartment';
 
+import { isAmenity } from './constants/amenities';
 import { isParkingType } from './constants/parking';
 import type { PayerType } from './constants/payer';
 
@@ -230,7 +231,7 @@ export function formatApartmentData(formData: FormData): CreateApartmentInput {
         area: formData.area ? Number(formData.area) : undefined,
         floor: formData.floor ? Number(formData.floor) : undefined,
         bathrooms: formData.bathrooms ? Number(formData.bathrooms) : undefined,
-        amenities: formData.amenities ?? [],
+        amenities: (formData.amenities ?? []).filter(isAmenity),
         parking: isParkingType(formData.parking) ? formData.parking : undefined,
         images: formData.images ?? [],
         checkInTime: formData.checkInTime ?? undefined,
