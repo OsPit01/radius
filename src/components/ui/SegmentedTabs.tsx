@@ -15,7 +15,7 @@ export function SegmentedTabs<T extends string | number>({ tabs, active, onChang
     return (
         <div
             role="tablist"
-            className="flex flex-wrap justify-center gap-2 rounded-2xl bg-muted p-2 max-sm:gap-1.5"
+            className="flex [scrollbar-width:none] flex-wrap justify-center gap-2 rounded-2xl bg-muted p-2 max-sm:flex-nowrap max-sm:justify-start max-sm:gap-1.5 max-sm:overflow-x-auto [&::-webkit-scrollbar]:hidden"
         >
             {tabs.map((tab) => (
                 <button
@@ -23,7 +23,7 @@ export function SegmentedTabs<T extends string | number>({ tabs, active, onChang
                     role="tab"
                     aria-selected={active === tab.id}
                     onClick={() => onChange(tab.id)}
-                    className={`flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-3 text-[15px] font-medium transition-all duration-200 max-sm:min-w-[45%] ${
+                    className={`flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-3 text-[15px] font-medium transition-all duration-200 max-sm:flex-none max-sm:shrink-0 max-sm:whitespace-nowrap ${
                         active === tab.id
                             ? 'bg-foreground text-background shadow-[0_4px_12px_rgba(0,0,0,0.2)]'
                             : 'text-muted-foreground hover:bg-card hover:text-foreground'
