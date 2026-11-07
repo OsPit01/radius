@@ -8,19 +8,18 @@ export type ApartmentCardData = {
     microdistrict: string;
     capacity: number;
     price: number;
-    image: string;
+    images: string[];
     description: string;
     rooms: number;
     beds: number;
     singleBeds: number;
     doubleSofas: number;
     singleSofas: number;
-    /** Минут пешком до метро; 0 — неизвестно (см. isMetroWalkable). */
     minsToMetro: number | null;
     amenities: string[];
 };
 
-// Структура полей, которые возвращает selectApartmentLight
+// Структура полей, которые возвращает selectApartmentCards (apartmentCardColumns)
 type ApartmentSource = {
     id: number;
     type: string | null;
@@ -31,7 +30,7 @@ type ApartmentSource = {
     microdistrict: string | null;
     capacity: number;
     price: number;
-    image: string;
+    images: string[] | null;
     description: string | null;
     rooms: number;
     beds: number | null;
@@ -53,7 +52,7 @@ export function getApartmentCardData(apartment: ApartmentSource): ApartmentCardD
         microdistrict: apartment.microdistrict ?? '',
         capacity: apartment.capacity,
         price: apartment.price,
-        image: apartment.image,
+        images: apartment.images ?? [],
         description: apartment.description ?? '',
         rooms: apartment.rooms,
         beds: apartment.beds ?? 0,

@@ -14,6 +14,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { formatAddressLine } from '@/lib/address';
 import { parseApartmentId } from '@/lib/apartment-id';
 import { BASE_CURRENCY_SYMBOL, formatByn } from '@/lib/constants/currencies';
+import { DEFAULT_IMAGE_URL } from '@/lib/constants/images';
 import { parseBookingChildren, parseBookingGuests } from '@/lib/search-params';
 import { getApartmentOgImagePath, SITE_URL } from '@/lib/seo';
 import { transliterate } from '@/lib/transliterate';
@@ -64,7 +65,8 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
         a.description?.slice(0, 160) ??
         `${a.title} — посуточная аренда${a.district ? ` в р-не ${a.district}` : ''} в г. ${a.city}. Снять квартиру на сутки недорого.`;
 
-    const photos = a.images?.length ? a.images : [a.image];
+    // Заглавное фото — images[0]. Без фото галерея покажет одну заглушку.
+    const photos = a.images?.length ? a.images : [DEFAULT_IMAGE_URL];
     // Превью ссылки — первое фото галереи. Заглушку (не http) в превью не показываем — там будет логотип сайта.
     const cover = photos[0];
 

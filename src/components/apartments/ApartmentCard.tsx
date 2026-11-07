@@ -79,7 +79,7 @@ export function ApartmentCard({
             >
                 <div className="relative h-[350px] w-full overflow-hidden max-md:h-[250px]">
                     <ImageWithFallback
-                        src={apartment.image}
+                        src={apartment.images[0]}
                         alt={apartment.title}
                         fill
                         className="rounded-[15px] object-cover"

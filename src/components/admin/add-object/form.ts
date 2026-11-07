@@ -38,7 +38,6 @@ export function createEmptyApartmentForm(): ApartmentForm {
         singleBeds: 0,
         doubleSofas: 0,
         singleSofas: 0,
-        image: '',
         description: '',
         rules: '',
         minsToMetro: 0,
@@ -80,7 +79,6 @@ export function toCreateInput(form: ApartmentForm): CreateApartmentInput {
         lon: hasCoordinates ? form.lon : undefined,
         capacity: Number(form.capacity),
         price: Number(form.price),
-        image: form.image,
         description: form.description,
         rules: form.rules,
         rooms: Number(form.rooms),
@@ -138,7 +136,7 @@ export const STEP_FIELDS = {
         'unp',
         'payerName',
     ],
-    4: ['image', 'images'],
+    4: ['images'],
 } as const satisfies Record<number, readonly (keyof CreateApartmentInput)[]>;
 
 // Колонку добавили, а шаг для неё не назначили — не скомпилируется; в тексте ошибки будет имя колонки (`missingStepFor`).

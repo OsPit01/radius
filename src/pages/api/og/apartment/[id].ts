@@ -23,7 +23,7 @@ const CACHE_FALLBACK = 'public, max-age=300, s-maxage=300';
 
 /**
  * Только наше хранилище Supabase (то же правило, что images.remotePatterns в next.config.js).
- * Поле apartments.image задаёт владелец, поэтому произвольный адрес качать с сервера нельзя (SSRF).
+ * Ссылки на фото (apartments.images) присылает владелец, поэтому произвольный адрес качать с сервера нельзя (SSRF).
  */
 function isStorageUrl(src: string): boolean {
     const base = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -74,7 +74,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const [apartment] = await db
-        .select({ image: apartments.image, images: apartments.images })
+        .select({ images: apartments.images })
         .from(apartments)
         .where(and(eq(apartments.id, id), eq(apartments.status, 'active'), hideTestApartments()));
 
@@ -84,8 +84,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return;
     }
 
-    // Первое фото — то же, что открывается первым в галерее на странице объекта.
-    const cover = apartment.images?.[0] ?? apartment.image;
+    // Заглавное фото (images[0]) — то же, что открывается первым в галерее на странице объекта.
+    const cover = apartment.images?.[0];
 
     if (cover && isStorageUrl(cover)) {
         try {

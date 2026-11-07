@@ -7,14 +7,11 @@ import { api } from '@/trpc/react';
 
 type ImageManagerProps = {
     images?: string[];
-    mainImage?: string;
     onImagesChange?: (images: string[]) => void;
-    onMainImageChange?: (image: string) => void;
 };
 
 type ImageManagerReturn = {
     images: string[];
-    mainImage: string;
     isUploading: boolean;
     fileInputRef: React.RefObject<HTMLInputElement | null>;
     addImages: (files: FileList | null) => void;
@@ -24,12 +21,7 @@ type ImageManagerReturn = {
     reorderImages: (from: number, to: number) => void;
 };
 
-export function useImageManager({
-    images = [],
-    mainImage = '',
-    onImagesChange,
-    onMainImageChange,
-}: ImageManagerProps = {}): ImageManagerReturn {
+export function useImageManager({ images = [], onImagesChange }: ImageManagerProps = {}): ImageManagerReturn {
     const [isUploading, setIsUploading] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -53,12 +45,7 @@ export function useImageManager({
                     urls.push(res.url);
                 }
 
-                const newImages = [...images, ...urls];
-                onImagesChange?.(newImages);
-
-                if (!mainImage && newImages.length > 0) {
-                    onMainImageChange?.(newImages[0] ?? '');
-                }
+                onImagesChange?.([...images, ...urls]);
             })
             .catch((error) => {
                 console.error('Ошибка загрузки изображений:', error);
@@ -74,13 +61,7 @@ export function useImageManager({
 
     // ===== УДАЛЕНИЕ ФОТО =====
     const removeImage = (index: number) => {
-        const deletedImage = images[index];
-        const newImages = images.filter((_, i) => i !== index);
-        onImagesChange?.(newImages);
-
-        if (mainImage === deletedImage) {
-            onMainImageChange?.(newImages[0] ?? '');
-        }
+        onImagesChange?.(images.filter((_, i) => i !== index));
     };
 
     // Перестановка при drag-and-drop: элемент с позиции from встаёт на позицию to.
@@ -91,11 +72,8 @@ export function useImageManager({
             return;
         }
         newImages.splice(to, 0, moved);
+        // первое после перестановки фото и становится заглавным
         onImagesChange?.(newImages);
-        // если первое фото поменялось — обновляем заглавное
-        if (newImages[0] && newImages[0] !== mainImage) {
-            onMainImageChange?.(newImages[0]);
-        }
     };
 
     // ===== ОТКРЫТЬ ПРОВОДНИК =====
@@ -105,7 +83,6 @@ export function useImageManager({
 
     return {
         images,
-        mainImage,
         isUploading,
         fileInputRef,
         reorderImages,

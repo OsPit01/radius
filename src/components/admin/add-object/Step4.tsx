@@ -43,10 +43,8 @@ export function Step4({ onUploadingChange }: Step4Props) {
     const [uploadError, setUploadError] = React.useState<string | null>(null);
     const [dragIndex, setDragIndex] = React.useState<number | null>(null);
 
-    /** Заглавное фото всегда первое: обложка (image) и порядок (images) меняются вместе. */
     const setImages = (next: string[]) => {
         setValue('images', next);
-        setValue('image', next[0] ?? '');
     };
 
     const uploadImage = api.upload.image.useMutation();

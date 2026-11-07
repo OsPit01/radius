@@ -1,7 +1,7 @@
-import { and, eq } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
 import { z } from 'zod';
 
-import { apartmentCardColumns, hideTestApartments } from '@/server/apartment-selects';
+import { apartmentCardColumns, hideTestApartments, listingRank } from '@/server/apartment-selects';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import { apartments, favorites } from '@/server/db/schemas';
 
@@ -60,6 +60,7 @@ export const favoritesRouter = createTRPCRouter({
                     eq(apartments.status, 'active'),
                     hideTestApartments(ctx.session.user.role),
                 ),
-            );
+            )
+            .orderBy(listingRank, desc(favorites.createdAt));
     }),
 });

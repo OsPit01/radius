@@ -33,7 +33,6 @@ export type FormData = {
     singleBeds: number;
     doubleSofas: number;
     singleSofas: number;
-    image: string;
     description: string;
     rules: string;
     minsToMetro: number;
@@ -76,7 +75,6 @@ export type Apartment = {
     district: string;
     capacity: number;
     price: number;
-    image: string;
     description: string;
     rooms: number;
     minsToMetro: number;
@@ -218,7 +216,6 @@ export function formatApartmentData(formData: FormData): CreateApartmentInput {
         lon: hasCoordinates ? formData.lon : undefined,
         capacity: Number(formData.capacity ?? 0),
         price: Number(formData.price ?? 0),
-        image: formData.image,
         description: formData.description ?? undefined,
         rules: formData.rules ?? undefined,
         rooms: Number(formData.rooms ?? 0),
@@ -333,9 +330,6 @@ export function validateStep(
             const badFields: FieldPath[] = [];
             if (!formData.images || formData.images.length === 0) {
                 badFields.push('images');
-            }
-            if (!formData.image) {
-                badFields.push('image');
             }
             if (badFields.length > 0) {
                 return {

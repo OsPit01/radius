@@ -40,9 +40,9 @@ export function ChatList({ chats, userId, selectedId, onSelect }: ChatListProps)
                         >
                             {/* Фото квартиры (или заглушка, если фото нет / не загрузилось) */}
                             <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-muted">
-                                {c.apartment.image ? (
+                                {c.apartment.images?.[0] ? (
                                     <ImageWithFallback
-                                        src={c.apartment.image}
+                                        src={c.apartment.images?.[0]}
                                         alt={c.apartment.title}
                                         fill
                                         className="object-cover"

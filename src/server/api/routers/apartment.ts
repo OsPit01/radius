@@ -9,7 +9,9 @@ import { isAdminRole, isStaffRole } from '@/lib/constants/roles';
 import { createApartmentInput, updateApartmentInput } from '@/lib/schemas/apartment';
 import { isAddressChanged } from '@/server/apartment-address';
 import {
+    apartmentPrivateColumns,
     hideTestApartments,
+    listingRank,
     selectApartmentCards,
     selectApartmentOwnList,
     selectApartmentPublic,
@@ -27,14 +29,14 @@ const apartmentIdInput = z.object({
 });
 
 // ===== ЗАПРОС ДЛЯ ПРИВАТНЫХ ПРОЦЕДУР (владелец / админ) =====
-// Здесь отдаём квартиру целиком: нужны все поля, включая служебные.
+// Здесь отдаём квартиру целиком: нужны все поля, включая служебные (кроме места в выдаче — rank).
 // Публичные процедуры (главная, страница объекта) так делать НЕ должны —
 // они используют selectApartmentCards / selectApartmentPublic из
 // src/server/apartment-selects.ts, где список безопасных полей один на всех.
 const selectApartmentWithUser = (db: Database) =>
     db
         .select({
-            apartment: apartments,
+            apartment: apartmentPrivateColumns,
             user: {
                 id: users.id,
                 name: users.name,
@@ -124,9 +126,12 @@ export const apartmentRouter = createTRPCRouter({
             }
 
             // Публично отдаём только карточку: без данных владельца и служебных полей.
+            // Порядок: сначала объекты с местом в выдаче (rank 0, 1, 2…), остальные — в случайном порядке,
+            // чтобы все владельцы получали равное внимание. Случайность заново при каждой загрузке страницы.
             // Пагинация: защищает от раздувания ответа при росте каталога.
             return await selectApartmentCards(ctx.db)
                 .where(and(...conditions))
+                .orderBy(listingRank, sql`random()`)
                 .limit(input?.limit ?? 50)
                 .offset(input?.offset ?? 0);
         }),
@@ -236,7 +241,7 @@ export const apartmentRouter = createTRPCRouter({
                 createdById: userId,
                 status: 'moderation',
             })
-            .returning();
+            .returning(apartmentPrivateColumns);
 
         return newApartment;
     }),
@@ -292,7 +297,7 @@ export const apartmentRouter = createTRPCRouter({
                 updatedAt: new Date(),
             })
             .where(eq(apartments.id, id))
-            .returning();
+            .returning(apartmentPrivateColumns);
 
         // Файлы, которые убрали из списка, удаляем и из хранилища — иначе они
         // останутся «висеть» в Supabase Storage и занимать место.
@@ -382,7 +387,7 @@ export const apartmentRouter = createTRPCRouter({
                     rejectionReason: input.rejectionReason ?? null,
                 })
                 .where(eq(apartments.id, input.id))
-                .returning();
+                .returning(apartmentPrivateColumns);
             if (!update) {
                 throw new TRPCError({
                     code: 'NOT_FOUND',

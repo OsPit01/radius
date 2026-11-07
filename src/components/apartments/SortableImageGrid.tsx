@@ -8,7 +8,6 @@ import { CSS } from '@dnd-kit/utilities';
 import Image from 'next/image';
 type SortableImageGridProps = {
     images: string[];
-    mainImage: string;
     onReorder: (from: number, to: number) => void;
     onRemove: (index: number) => void;
 
@@ -71,7 +70,7 @@ function SortableImageItem({
     );
 }
 
-export function SortableImageGrid({ images, mainImage, onReorder, onRemove, children }: SortableImageGridProps) {
+export function SortableImageGrid({ images, onReorder, onRemove, children }: SortableImageGridProps) {
     const mouseSensor = useSensor(MouseSensor, {
         activationConstraint: {
             distance: 10,
@@ -117,7 +116,7 @@ export function SortableImageGrid({ images, mainImage, onReorder, onRemove, chil
                             key={src}
                             src={src}
                             index={index}
-                            isMain={mainImage === src}
+                            isMain={index === 0}
                             onRemove={onRemove}
                         />
                     ))}

@@ -50,7 +50,7 @@ export const chatRouter = createTRPCRouter({
                 // Какую квартиру бронировали (фото и название для карточки беседы).
                 apartment: {
                     title: apartments.title,
-                    image: apartments.image,
+                    images: apartments.images,
                     street: apartments.street,
                     formattedAddress: apartments.formattedAddress,
                 },
@@ -178,7 +178,7 @@ export const chatRouter = createTRPCRouter({
                 },
                 apartment: {
                     title: apartments.title,
-                    image: apartments.image,
+                    images: apartments.images,
                     formattedAddress: apartments.formattedAddress,
                 },
                 booking: {

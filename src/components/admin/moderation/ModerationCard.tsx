@@ -1,8 +1,8 @@
 import { useState } from 'react';
 
-import Image from 'next/image';
 import Link from 'next/link';
 
+import { ImageWithFallback } from '@/components/ui/ImageWithFallback';
 import { Modal } from '@/components/ui/Modal';
 import { formatByn } from '@/lib/constants';
 import { getStatusInfo } from '@/lib/constants/apartment-status';
@@ -45,14 +45,13 @@ export function ModerationCard({ item, canManage }: ModerationCardProps) {
         // overflow-hidden — чтобы фото не вылезало за скруглённые углы
         <>
             <div className="flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-                {/* ФОТО. relative + fill + object-cover — картинка заполняет блок 16:9 */}
                 <div className="relative aspect-[16/9] w-full bg-muted">
-                    <Image
-                        src={item.apartment.image}
+                    <ImageWithFallback
+                        src={item.apartment.images?.[0]}
                         alt={item.apartment.title}
                         fill
                         className="object-cover"
-                    ></Image>
+                    />
                 </div>
                 {/* ТЕКСТ. flex flex-col gap-2 — всё столбиком с промежутком 0.5rem.
           flex-1 — растягивает блок, чтобы кнопки прижимались к низу карточки. */}

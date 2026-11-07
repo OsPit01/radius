@@ -68,13 +68,7 @@ async function listAllFiles(supabase: ReturnType<typeof getSupabase>) {
 // Обновляет ссылки в БД: заменяет имя старого файла на имя нового
 // (подстрочная замена — работает при любом домене хранилища).
 async function updateDbUrls(sql: postgres.Sql, oldName: string, newName: string) {
-    // 1. Обложка квартиры (radius_apartment.image — одна строка)
-    await sql`
-    UPDATE radius_apartment
-    SET image = replace(image, ${oldName}, ${newName})
-    WHERE image LIKE ${'%' + oldName}`;
-
-    // 2. Галерея квартир (radius_apartment.images — массив строк).
+    // 1. Фото квартир (radius_apartment.images — массив строк, images[0] — заглавное).
     // unnest() разворачивает массив в таблицу строк, replace() меняет имя
     // в каждой, array_agg() собирает обратно в массив.
     await sql`
@@ -87,7 +81,7 @@ async function updateDbUrls(sql: postgres.Sql, oldName: string, newName: string)
       SELECT 1 FROM unnest(images) AS i WHERE i LIKE ${'%' + oldName}
     )`;
 
-    // 3. Аватар пользователя (radius_user.image — может быть null)
+    // 2. Аватар пользователя (radius_user.image — может быть null)
     await sql`
     UPDATE radius_user
     SET image = replace(image, ${oldName}, ${newName})

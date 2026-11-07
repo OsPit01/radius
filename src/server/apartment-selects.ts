@@ -9,9 +9,9 @@
 // отклонения, служебные даты, юридические данные.
 //
 // Приватные процедуры (владелец смотрит свою квартиру, админ — модерация)
-// работают напрямую с таблицей apartments целиком.
+// получают объект целиком — кроме места в выдаче (apartmentPrivateColumns).
 
-import { eq, notLike } from 'drizzle-orm';
+import { eq, getTableColumns, notLike, sql } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 
 import { hasPermission } from '@/lib/constants/roles';
@@ -27,6 +27,21 @@ export const hideTestApartments = (role?: string) =>
     role && hasPermission(role, 'superadmin') ? undefined : notLike(apartments.title, '$test$%$test$');
 
 /**
+ * Порядок выдачи в каталоге: сначала объекты с местом (rank 0, 1, 2…), потом все остальные.
+ * Место ставят только руками в базе (см. колонку rank). Второй ключ — у каждого списка свой:
+ * каталогу случайный, избранному стабильный.
+ */
+export const listingRank = sql`${apartments.rank} asc nulls last`;
+
+/**
+ * Все колонки объекта, кроме rank: для приватных ответов (владелец, модерация).
+ * Место в выдаче влияет только на сортировку и наружу не уходит — даже владельцу и персоналу.
+ */
+export const apartmentPrivateColumns = Object.fromEntries(
+    Object.entries(getTableColumns(apartments)).filter(([name]) => name !== 'rank'),
+) as Omit<typeof apartments._.columns, 'rank'>;
+
+/**
  * Поля карточки объекта: ровно то, что рисует ApartmentCard.
  * Соответствует типу ApartmentSource в src/lib/apartment-format.ts
  */
@@ -40,7 +55,7 @@ export const apartmentCardColumns = {
     microdistrict: apartments.microdistrict,
     capacity: apartments.capacity,
     price: apartments.price,
-    image: apartments.image,
+    images: apartments.images,
     description: apartments.description,
     rooms: apartments.rooms,
     beds: apartments.beds,

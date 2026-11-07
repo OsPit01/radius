@@ -33,7 +33,6 @@ export const apartments = pgTable(
         lon: d.doublePrecision(),
         capacity: d.integer().notNull(),
         price: d.integer().notNull(), // цена за сутки в BYN (BASE_CURRENCY); валюта не выбирается — закон РБ
-        image: d.text().notNull(),
         description: d.text(),
         rules: d.text(),
         checkInTime: d.varchar({ length: 50 }),
@@ -55,6 +54,9 @@ export const apartments = pgTable(
         amenities: amenityEnum('amenities').array().default([]),
         parking: parkingTypeEnum('parking'), // NULL = не указано; absent = парковки нет
         images: d.text('images').array().default([]),
+        // Место в выдаче каталога: чем меньше число, тем выше (0 или 1 — первое место). NULL — после всех с номером,
+        // в случайном порядке. Ставится ТОЛЬКО руками в базе: в формах и API его нет (SERVER_OWNED_FIELDS), наружу не отдаётся.
+        rank: d.integer(),
         createdById: d.varchar({ length: 255 }).references(() => users.id),
         status: apartmentStatusEnum('status').notNull().default('moderation'),
         rejectionReason: d.text(),

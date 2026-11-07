@@ -37,7 +37,6 @@ export default function AddApartmentPage() {
         singleBeds: 0,
         doubleSofas: 0,
         singleSofas: 0,
-        image: '',
         description: '',
         rules: '',
         minsToMetro: 0,

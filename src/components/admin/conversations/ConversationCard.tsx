@@ -72,9 +72,9 @@ export function ConversationCard({ item }: ConversationCardProps) {
                 {/* Квартира */}
                 <div className="flex items-center gap-3">
                     <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-muted">
-                        {item.apartment.image ? (
+                        {item.apartment.images?.[0] ? (
                             <ImageWithFallback
-                                src={item.apartment.image}
+                                src={item.apartment.images?.[0]}
                                 alt={item.apartment.title}
                                 fill
                                 className="object-cover"

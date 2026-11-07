@@ -91,6 +91,7 @@ const SERVER_OWNED_FIELDS = {
     formattedAddress: true,
     createdAt: true,
     updatedAt: true,
+    rank: true,
 } as const;
 
 /**
@@ -107,12 +108,11 @@ const apartmentInput = apartmentInsertSchema.omit({ ...SERVER_OWNED_FIELDS, ...L
 
 /**
  * Создание. Правила, которые действуют только здесь (при правке старых объектов их не требуем):
- *  - хотя бы одна фотография (image — обложка, images — все);
+ *  - хотя бы одна фотография (заглавная — images[0]);
  *  - УНП — формат по типу плательщика (см. UNP_RULES в payer.ts).
  */
 export const createApartmentInput = apartmentInput
     .extend({
-        image: z.string().min(1, PHOTO_REQUIRED_MESSAGE),
         images: z.array(z.string()).min(1, PHOTO_REQUIRED_MESSAGE),
     })
     .superRefine(checkUnpByPayerType);

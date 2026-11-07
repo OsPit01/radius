@@ -73,8 +73,8 @@ export default function EditApartmentPage() {
 
     const uploadImage = api.upload.image.useMutation();
 
+    // Заглавное фото — images[0]: перетащили фото на первое место — оно и стало обложкой
     const images = useMemo(() => formData.images ?? [], [formData.images]);
-    const mainImage = useMemo(() => formData.image ?? '', [formData.image]);
 
     const addImages = useCallback(
         async (files: FileList | null) => {
@@ -97,30 +97,24 @@ export default function EditApartmentPage() {
                     const res = await uploadImage.mutateAsync({ dataUrl });
                     urls.push(res.url);
                 }
-                const merged = [...images, ...urls];
-                updateField('images', merged);
-                if (!mainImage) {
-                    updateField('image', urls[0] ?? '');
-                }
+                updateField('images', [...images, ...urls]);
             } catch (error) {
                 alert(error instanceof Error ? error.message : 'Ошибка загрузки');
             } finally {
                 setIsUploading(false);
             }
         },
-        [images, mainImage, updateField, uploadImage],
+        [images, updateField, uploadImage],
     );
 
     const removeImage = useCallback(
         (index: number) => {
-            const deleted = images[index];
-            const next = images.filter((_, i) => i !== index);
-            updateField('images', next);
-            if (mainImage === deleted) {
-                updateField('image', next[0] ?? '');
-            }
+            updateField(
+                'images',
+                images.filter((_, i) => i !== index),
+            );
         },
-        [images, mainImage, updateField],
+        [images, updateField],
     );
 
     const reorderImages = useCallback(
@@ -132,11 +126,8 @@ export default function EditApartmentPage() {
             }
             next.splice(to, 0, moved);
             updateField('images', next);
-            if (next[0] && next[0] !== mainImage) {
-                updateField('image', next[0]);
-            }
         },
-        [images, mainImage, updateField],
+        [images, updateField],
     );
 
     const handleFileChange = useCallback(
@@ -178,7 +169,6 @@ export default function EditApartmentPage() {
                             <div className="edit-drop-zone">
                                 <SortableImageGrid
                                     images={images}
-                                    mainImage={mainImage}
                                     onReorder={reorderImages}
                                     onRemove={removeImage}
                                 >

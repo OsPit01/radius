@@ -1,11 +1,11 @@
 import { useState } from 'react';
 
-import Image from 'next/image';
 import Link from 'next/link';
 
 import { Plus } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { ClientHeader } from '@/components/layout/ClientHeader';
+import { ImageWithFallback } from '@/components/ui/ImageWithFallback';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Modal } from '@/components/ui/Modal';
 import { useMyApartments } from '@/hooks/useApartments';
@@ -69,8 +69,8 @@ export default function MyApartmentsPage() {
                                         className="flex flex-col overflow-hidden rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.08)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_12px_32px_rgba(0,0,0,0.12)]"
                                     >
                                         <div className="relative h-[300px] w-full overflow-hidden bg-muted max-[480px]:aspect-square max-md:aspect-[16/9] max-md:h-auto">
-                                            <Image
-                                                src={item.apartment.image}
+                                            <ImageWithFallback
+                                                src={item.apartment.images?.[0]}
                                                 alt={item.apartment.title}
                                                 fill
                                                 className="object-cover"
