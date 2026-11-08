@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { count, eq } from 'drizzle-orm';
+import { count, eq, ilike, or } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { z } from 'zod';
 
@@ -46,34 +46,52 @@ async function requireTargetUser(db: Database, myRole: string, myId: string, tar
 // 1. ПОЛУЧИТЬ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ (ТОЛЬКО ДЛЯ АДМИНА)
 // =====
 export const userRouter = createTRPCRouter({
-    // 1. Получить всех пользователей (админка)
-    getAll: protectedProcedure.query(async ({ ctx }) => {
-        // Проверка: только админы могут видеть всех пользователей
-        const userRole = ctx.session.user?.role;
+    // 1. Получить пользователей (админка). Поиск — на сервере: в браузер уходят
+    // только совпадения, а не весь список (табу: ничего лишнего в клиент).
+    getAll: protectedProcedure
+        .input(
+            z.object({
+                query: z.string().trim().max(200).optional(),
+            }),
+        )
+        .query(async ({ ctx, input }) => {
+            // Проверка: только админы могут видеть пользователей
+            const userRole = ctx.session.user?.role;
 
-        if (!isAdminRole(userRole)) {
-            throw new TRPCError({
-                code: 'FORBIDDEN',
-                message: 'У вас нет прав на просмотр всех пользователей',
-            });
-        }
-        // Отдаём только то, что нужно админке. Служебные и приватные поля
-        // (telegramChatId, telegramLinkCode, bannedUntil, emailVerified, счётчики)
-        // в список не входят — им здесь не место.
-        return await ctx.db
-            .select({
-                id: users.id,
-                name: users.name,
-                email: users.email,
-                phone: users.phone,
-                firstName: users.firstName,
-                lastName: users.lastName,
-                patronymic: users.patronymic,
-                image: users.image,
-                role: users.role,
-            })
-            .from(users);
-    }),
+            if (!isAdminRole(userRole)) {
+                throw new TRPCError({
+                    code: 'FORBIDDEN',
+                    message: 'У вас нет прав на просмотр всех пользователей',
+                });
+            }
+
+            // % и _ — шаблонные символы ILIKE: экранируем, чтобы поиск «100%» не ловил всё подряд.
+            const escaped = input?.query?.replace(/[\\%_]/g, (ch) => `\\${ch}`);
+
+            // Пустой запрос — без условия (вернём всех). Иначе: email содержит строку,
+            // ИЛИ id начинается с неё.
+            const searchCondition = escaped
+                ? or(ilike(users.email, `%${escaped}%`), ilike(users.id, `${escaped}%`))
+                : undefined;
+
+            // Отдаём только то, что нужно админке. Служебные и приватные поля
+            // (telegramChatId, telegramLinkCode, bannedUntil, emailVerified, счётчики)
+            // в список не входят — им здесь не место.
+            return await ctx.db
+                .select({
+                    id: users.id,
+                    name: users.name,
+                    email: users.email,
+                    phone: users.phone,
+                    firstName: users.firstName,
+                    lastName: users.lastName,
+                    patronymic: users.patronymic,
+                    image: users.image,
+                    role: users.role,
+                })
+                .from(users)
+                .where(searchCondition);
+        }),
     // 2. Получить одного пользователя по ID
     getById: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ ctx, input }) => {
         // Безопасность: личные данные доступны только самому пользователю

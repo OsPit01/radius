@@ -2,7 +2,9 @@ import { useState } from 'react';
 
 import Link from 'next/link';
 
+import { Eye } from '@/components/icons';
 import { Avatar } from '@/components/ui/Avatar';
+import { ImageWithFallback } from '@/components/ui/ImageWithFallback';
 import { Modal } from '@/components/ui/Modal';
 import { getRoleInfo, type RoleKey } from '@/lib/constants/roles';
 import { getRoleColor } from '@/lib/theme';
@@ -43,7 +45,7 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
     const [notifyOpen, setNotifyOpen] = useState(false);
     const [notifyForm, setNotifyForm] = useState({ title: '', text: '' });
     const [objectsOpen, setObjectsOpen] = useState(false);
-
+    const [showId, setShowId] = useState(false);
     const utils = api.useUtils();
 
     const updateRole = api.user.updateRole.useMutation({
@@ -116,6 +118,22 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
                     <div className="min-w-0">
                         <p className="truncate text-lg font-semibold text-foreground">{user.firstName ?? user.email}</p>
                         <p className="truncate text-sm text-muted-foreground">{user.email}</p>
+                        <div className="flex items-center gap-1.5">
+                            <p
+                                className="text-xs text-muted-foreground"
+                                title={user.id}
+                            >
+                                ID: {showId ? user.id : `${user.id.slice(0, 8)}…`}
+                            </p>
+                            <button
+                                type="button"
+                                onClick={() => setShowId((visible) => !visible)}
+                                aria-label={showId ? 'Скрыть ID' : 'Показать ID'}
+                                className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            >
+                                <Eye className="size-4" />
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -321,7 +339,16 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
                             key={o.apartment.id}
                             className="flex items-center justify-between gap-2 border-b border-border py-2"
                         >
-                            <span className="min-w-0 truncate text-sm text-foreground">{o.apartment.title}</span>
+                            <div className="flex min-w-0 items-center gap-3">
+                                <ImageWithFallback
+                                    src={o.apartment.images?.[0]}
+                                    alt=""
+                                    width={48}
+                                    height={48}
+                                    className="size-12 shrink-0 rounded-md object-cover"
+                                />
+                                <span className="text-sm text-muted-foreground">#{o.apartment.id}</span>
+                            </div>
                             <Link
                                 href={`/my-apartments/${o.apartment.id}/edit`}
                                 className="shrink-0 cursor-pointer rounded-[30px] border border-primary px-4 py-1.5 text-sm font-medium text-primary no-underline transition-colors hover:bg-muted"
