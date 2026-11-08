@@ -41,6 +41,14 @@ export const ChevronDown = createGlyphIcon({
     w: 3.4,
 });
 
+export const ChevronUp = createGlyphIcon({
+    name: 'chevronUp',
+    label: 'Шеврон вверх',
+    usage: 'Кнопка «увеличить» у числового поля',
+    d: 'M5.5 14.5 12 8l6.5 6.5',
+    w: 3.4,
+});
+
 export const Close = createGlyphIcon({
     name: 'close',
     label: 'Закрыть',

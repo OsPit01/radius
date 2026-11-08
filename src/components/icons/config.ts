@@ -15,6 +15,7 @@ export const ICON_NAMES = [
     'chevronLeft',
     'chevronRight',
     'chevronDown',
+    'chevronUp',
     // действия
     'close',
     'menu',
@@ -81,6 +82,7 @@ export const ICON_VARIANTS: Record<IconName, IconVariant> = {
     chevronLeft: 1,
     chevronRight: 1,
     chevronDown: 1,
+    chevronUp: 1,
     close: 1,
     menu: 1,
     plus: 1,

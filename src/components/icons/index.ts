@@ -8,6 +8,7 @@ import {
     ChevronDown,
     ChevronLeft,
     ChevronRight,
+    ChevronUp,
     Close,
     Menu,
     Minus,
@@ -39,6 +40,7 @@ export {
     ChevronDown,
     ChevronLeft,
     ChevronRight,
+    ChevronUp,
     Clipboard,
     Clock,
     Close,
@@ -85,6 +87,7 @@ export const ICONS: readonly IconComponent[] = [
     ChevronLeft,
     ChevronRight,
     ChevronDown,
+    ChevronUp,
     // действия
     Close,
     Menu,
