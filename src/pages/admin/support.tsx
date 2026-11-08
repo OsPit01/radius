@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 
 import { ChatTextarea } from '@/components/chat/ChatTextarea';
 import { MessageBubble } from '@/components/chat/MessageBubble';
-import { Send } from '@/components/icons';
+import { Eye, Send } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { ClientHeader } from '@/components/layout/ClientHeader';
 import { Avatar } from '@/components/ui/Avatar';
@@ -31,6 +31,9 @@ export default function SupportPage() {
 
     // Выбранная заявка: null — показываем список, число — открыта переписка.
     const [selectedId, setSelectedId] = useState<number | null>(null);
+
+    // Чей id раскрыт полностью (глаз в карточке заявки): null — все свёрнуты.
+    const [expandedId, setExpandedId] = useState<number | null>(null);
 
     // ===== Сообщения ВЫБРАННОЙ заявки =====
     // enabled: пока чат не открыт — запрос на сервер вообще не уходит.
@@ -131,7 +134,7 @@ export default function SupportPage() {
                                     {item.owner && (
                                         <div className="mt-3 flex items-center gap-2">
                                             <Link
-                                                href="/admin/users"
+                                                href={`/admin/users?query=${item.owner.id}`}
                                                 aria-label="Открыть профиль пользователя"
                                                 // shrink-0: аватар не сжимается, текст переносится
                                                 className="shrink-0 rounded-full transition-opacity hover:opacity-80"
@@ -148,13 +151,34 @@ export default function SupportPage() {
                                             {/* Email — крупно и чётко (текст основного цвета),
                                                 id — приглушённо. break-all — длинный email
                                                 переносится и НЕ распирает карточку. */}
-                                            <span className="min-w-0 text-sm font-medium break-all text-foreground">
-                                                {item.owner.email ?? '—'}
-                                                <span className="font-normal text-muted-foreground">
-                                                    {' '}
-                                                    · id: {item.owner.id}
+                                            <div className="flex min-w-0 flex-col">
+                                                <span className="text-sm font-medium break-all text-foreground">
+                                                    {item.owner.email ?? '—'}
                                                 </span>
-                                            </span>
+                                                <span className="flex items-center gap-1">
+                                                    <span
+                                                        className="text-xs text-muted-foreground"
+                                                        title={item.owner.id}
+                                                    >
+                                                        ID:{' '}
+                                                        {expandedId === item.id
+                                                            ? item.owner.id
+                                                            : `${item.owner.id.slice(0, 8)}…`}
+                                                    </span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            setExpandedId(expandedId === item.id ? null : item.id)
+                                                        }
+                                                        aria-label={
+                                                            expandedId === item.id ? 'Скрыть ID' : 'Показать ID'
+                                                        }
+                                                        className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                                                    >
+                                                        <Eye className="size-4" />
+                                                    </button>
+                                                </span>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
@@ -202,7 +226,7 @@ export default function SupportPage() {
                                     // «Взять себе» = процедура assign (переиспользование:
                                     // assign и есть «назначить меня ведущим»)
                                     onClick={() => selectedId !== null && takeTicket.mutate({ id: selectedId })}
-                                    className="h-11 cursor-pointer rounded-[30px] bg-gray-100 px-4 text-sm hover:bg-gray-200"
+                                    className="h-11 cursor-pointer rounded-[30px] bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
                                 >
                                     Участвовать
                                 </button>

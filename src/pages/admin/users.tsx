@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 
+import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 
 import { UserCard } from '@/components/admin/users/UserCard';
@@ -15,9 +16,12 @@ export const getServerSideProps = requireAuth;
 
 export default function Users() {
     const { data: session } = useSession();
+    const router = useRouter();
     const [activeRole, setActiveRole] = useState<string>('all');
-    const [query, setQuery] = useState('');
-    const [debouncedQuery, setDebouncedQuery] = useState('');
+    // ?query=... из URL (например, из обращения в поддержке) — сразу подставляем в поиск.
+    const initialQuery = (router.query.query as string) ?? '';
+    const [query, setQuery] = useState<string>(initialQuery);
+    const [debouncedQuery, setDebouncedQuery] = useState<string>(initialQuery);
 
     // Не дёргаем БД на каждую букву: ждём 300 мс паузы в печати.
     useEffect(() => {
