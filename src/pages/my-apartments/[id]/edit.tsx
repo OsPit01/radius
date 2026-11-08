@@ -18,6 +18,10 @@ import { isAdminRole } from '@/lib/constants/roles';
 import { findNearestMetro, isMetroRegion } from '@/lib/metro';
 import { EDIT_INPUT_CLASS, sanitizeStreet, toggleAmenity } from '@/lib/utils';
 import { requireAuth } from '@/server/auth/require-auth';
+// Общие компоненты полей: все стили и стрелки ↑↓ для чисел встроены внутрь —
+// EDIT_INPUT_CLASS полям больше не нужен (остался только у двух <select> ниже)
+import { Input } from '@/shared/ui/input';
+import { Textarea } from '@/shared/ui/textarea';
 import { api } from '@/trpc/react';
 
 const TIME_OPTIONS = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, '0')}:00`);
@@ -44,7 +48,7 @@ export const getServerSideProps = requireAuth;
 export default function EditApartmentPage() {
     const { query } = useRouter();
     const id = typeof query.id === 'string' ? query.id : (query.id?.[0] ?? '');
-    const { formData, isSubmitting, isLoadingData, error, updateField, setFormData, handleSubmit } =
+    const { formData, isSubmitting, isLoadingData, error, validationError, updateField, setFormData, handleSubmit } =
         useApartmentForm(id);
 
     const { data: session } = useSession();
@@ -190,6 +194,9 @@ export default function EditApartmentPage() {
                                     </label>
                                 </SortableImageGrid>
                             </div>
+                            {validationError && (
+                                <p className="mt-2 text-sm font-medium text-destructive">{validationError}</p>
+                            )}
                             {/* ИНФОРМАЦИЯ */}
                             <section className="mb-10 text-muted-foreground">
                                 <div className="mt-[35px] mb-[15px] flex items-center gap-2 border-b border-border pb-2 text-xl font-semibold text-foreground">
@@ -205,24 +212,23 @@ export default function EditApartmentPage() {
                                 <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
                                     <div className="mb-4 flex flex-col gap-1.5">
                                         <label className="text-sm font-medium text-foreground">Заголовок*</label>
-                                        <input
+                                        <Input
                                             type="text"
                                             value={formData.title}
                                             onChange={(e) => updateField('title', e.target.value)}
                                             required
-                                            className={EDIT_INPUT_CLASS}
                                         />
                                     </div>
                                     <div className="mb-4 flex flex-col gap-1.5">
                                         <label className="text-sm font-medium text-foreground">Цена за сутки*</label>
                                         <div className="flex items-center gap-2">
-                                            <input
+                                            <Input
                                                 type="number"
                                                 value={formData.price}
                                                 onChange={(e) => updateField('price', Number(e.target.value))}
                                                 required
                                                 min="1"
-                                                className={`${EDIT_INPUT_CLASS} flex-1`}
+                                                className="flex-1"
                                             />
                                         </div>
                                     </div>
@@ -238,27 +244,25 @@ export default function EditApartmentPage() {
                                         <label className="text-sm font-medium text-foreground">
                                             Количество комнат*
                                         </label>
-                                        <input
+                                        <Input
                                             type="number"
                                             value={formData.rooms}
                                             onChange={(e) => updateField('rooms', Number(e.target.value))}
                                             required
                                             min="1"
                                             max="20"
-                                            className={EDIT_INPUT_CLASS}
                                         />
                                     </div>
                                     <div className="mb-4 flex flex-col gap-1.5">
                                         <label className="text-sm font-medium text-foreground">
                                             Вместимость (человек)
                                         </label>
-                                        <input
+                                        <Input
                                             type="number"
                                             value={formData.capacity}
                                             onChange={(e) => updateField('capacity', Number(e.target.value))}
                                             min="1"
                                             max="30"
-                                            className={EDIT_INPUT_CLASS}
                                         />
                                     </div>
                                 </div>
@@ -273,26 +277,24 @@ export default function EditApartmentPage() {
                                         <label className="text-sm font-medium text-foreground">
                                             Двуспальные кровати
                                         </label>
-                                        <input
+                                        <Input
                                             type="number"
                                             value={formData.beds}
                                             onChange={(e) => updateField('beds', Number(e.target.value))}
                                             min="0"
                                             max="20"
-                                            className={EDIT_INPUT_CLASS}
                                         />
                                     </div>
                                     <div className="mb-4 flex flex-col gap-1.5">
                                         <label className="text-sm font-medium text-foreground">
                                             Односпальные кровати
                                         </label>
-                                        <input
+                                        <Input
                                             type="number"
                                             value={formData.singleBeds}
                                             onChange={(e) => updateField('singleBeds', Number(e.target.value))}
                                             min="0"
                                             max="20"
-                                            className={EDIT_INPUT_CLASS}
                                         />
                                     </div>
                                 </div>
@@ -301,26 +303,24 @@ export default function EditApartmentPage() {
                                         <label className="text-sm font-medium text-foreground">
                                             Двуспальные диваны
                                         </label>
-                                        <input
+                                        <Input
                                             type="number"
                                             value={formData.doubleSofas}
                                             onChange={(e) => updateField('doubleSofas', Number(e.target.value))}
                                             min="0"
                                             max="20"
-                                            className={EDIT_INPUT_CLASS}
                                         />
                                     </div>
                                     <div className="mb-4 flex flex-col gap-1.5">
                                         <label className="text-sm font-medium text-foreground">
                                             Односпальные диваны
                                         </label>
-                                        <input
+                                        <Input
                                             type="number"
                                             value={formData.singleSofas}
                                             onChange={(e) => updateField('singleSofas', Number(e.target.value))}
                                             min="0"
                                             max="20"
-                                            className={EDIT_INPUT_CLASS}
                                         />
                                     </div>
                                 </div>
@@ -377,23 +377,22 @@ export default function EditApartmentPage() {
                                         <label className="text-sm font-medium text-foreground">
                                             Метро (мин пешком)
                                         </label>
-                                        <input
+                                        <Input
                                             type="text"
                                             inputMode="numeric"
                                             value={formData.minsToMetro || ''}
                                             onChange={(e) =>
                                                 updateField('minsToMetro', Number(e.target.value.replace(/\D/g, '')))
                                             }
-                                            className={EDIT_INPUT_CLASS}
                                         />
                                     </div>
                                     <div className="mb-4 flex flex-col gap-1.5">
                                         <label className="text-sm font-medium text-foreground">Описание</label>
-                                        <textarea
+                                        <Textarea
                                             value={formData.description}
                                             onChange={(e) => updateField('description', e.target.value)}
                                             rows={4}
-                                            className={`${EDIT_INPUT_CLASS} min-h-[100px] resize-y`}
+                                            className="min-h-[100px]"
                                         />
                                     </div>
                                     <div className="mb-4 flex flex-col gap-1.5">
@@ -401,11 +400,11 @@ export default function EditApartmentPage() {
                                             Правила проживания{' '}
                                             <span className="text-muted-foreground">(необязательно)</span>
                                         </label>
-                                        <textarea
+                                        <Textarea
                                             value={formData.rules}
                                             onChange={(e) => updateField('rules', e.target.value)}
                                             rows={4}
-                                            className={`${EDIT_INPUT_CLASS} min-h-[100px] resize-y`}
+                                            className="min-h-[100px]"
                                             placeholder="Например: без вечеринок, без животных, заезд после 14:00..."
                                         />
                                     </div>
@@ -415,31 +414,28 @@ export default function EditApartmentPage() {
                                 <div className="grid grid-cols-3 gap-4 max-md:grid-cols-1">
                                     <div className="mb-4 flex flex-col gap-1.5">
                                         <label className="text-sm font-medium text-foreground">Площадь, м²</label>
-                                        <input
+                                        <Input
                                             type="number"
                                             min={0}
                                             value={formData.area || ''}
                                             onChange={(e) => updateField('area', Number(e.target.value))}
-                                            className={EDIT_INPUT_CLASS}
                                         />
                                     </div>
                                     <div className="mb-4 flex flex-col gap-1.5">
                                         <label className="text-sm font-medium text-foreground">Этаж</label>
-                                        <input
+                                        <Input
                                             type="number"
                                             value={formData.floor || ''}
                                             onChange={(e) => updateField('floor', Number(e.target.value))}
-                                            className={EDIT_INPUT_CLASS}
                                         />
                                     </div>
                                     <div className="mb-4 flex flex-col gap-1.5">
                                         <label className="text-sm font-medium text-foreground">Санузлы</label>
-                                        <input
+                                        <Input
                                             type="number"
                                             min={0}
                                             value={formData.bathrooms || ''}
                                             onChange={(e) => updateField('bathrooms', Number(e.target.value))}
-                                            className={EDIT_INPUT_CLASS}
                                         />
                                     </div>
                                 </div>
@@ -472,30 +468,28 @@ export default function EditApartmentPage() {
                                 <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
                                     <div className="mb-4 flex flex-col gap-1.5">
                                         <label className="text-sm font-medium text-foreground">Город *</label>
-                                        <input
+                                        <Input
                                             type="text"
                                             value={formData.city}
                                             onChange={(e) => updateField('city', e.target.value)}
                                             required
                                             disabled={!canEditAddress}
-                                            className={`${EDIT_INPUT_CLASS} disabled:cursor-not-allowed disabled:opacity-50`}
                                         />
                                     </div>
                                     <div className="mb-4 flex flex-col gap-1.5">
                                         <label className="text-sm font-medium text-foreground">Район</label>
-                                        <input
+                                        <Input
                                             type="text"
                                             value={formData.district}
                                             onChange={(e) => updateField('district', e.target.value)}
                                             disabled={!canEditAddress}
-                                            className={`${EDIT_INPUT_CLASS} disabled:cursor-not-allowed disabled:opacity-50`}
                                         />
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
                                     <div className="relative mb-4 flex flex-col gap-1.5">
                                         <label className="text-sm font-medium text-foreground">Улица *</label>
-                                        <input
+                                        <Input
                                             type="text"
                                             value={formData.street}
                                             onChange={(e) => updateField('street', sanitizeStreet(e.target.value))}
@@ -503,43 +497,39 @@ export default function EditApartmentPage() {
                                             autoComplete="off"
                                             required
                                             disabled={!canEditAddress}
-                                            className={`${EDIT_INPUT_CLASS} disabled:cursor-not-allowed disabled:opacity-50`}
                                         />
                                     </div>
                                     <div className="mb-4 flex flex-col gap-1.5">
                                         <label className="text-sm font-medium text-foreground">Номер дома *</label>
-                                        <input
+                                        <Input
                                             type="text"
                                             value={formData.numberHome}
                                             onChange={(e) => updateField('numberHome', e.target.value)}
                                             required
                                             disabled={!canEditAddress}
-                                            className={`${EDIT_INPUT_CLASS} disabled:cursor-not-allowed disabled:opacity-50`}
                                         />
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
                                     <div className="mb-4 flex flex-col gap-1.5">
                                         <label className="text-sm font-medium text-foreground">Корпус</label>
-                                        <input
+                                        <Input
                                             type="text"
                                             value={formData.building}
                                             onChange={(e) => updateField('building', e.target.value)}
                                             disabled={!canEditAddress}
-                                            className={`${EDIT_INPUT_CLASS} disabled:cursor-not-allowed disabled:opacity-50`}
                                         />
                                     </div>
                                     <div className="mb-4 flex flex-col gap-1.5">
                                         <label className="text-sm font-medium text-foreground">
                                             Микрорайон <span className="text-muted-foreground">(необязательно)</span>
                                         </label>
-                                        <input
+                                        <Input
                                             type="text"
                                             value={formData.microdistrict}
                                             onChange={(e) => updateField('microdistrict', e.target.value)}
                                             disabled={!canEditAddress}
                                             placeholder="Например: Уручье, Новая Боровая"
-                                            className={`${EDIT_INPUT_CLASS} disabled:cursor-not-allowed disabled:opacity-50`}
                                         />
                                     </div>
                                 </div>
@@ -548,18 +538,16 @@ export default function EditApartmentPage() {
                                     <div className="mb-4 grid grid-cols-2 gap-4 max-md:grid-cols-1">
                                         <div className="flex flex-col gap-1.5">
                                             <label className="text-sm font-medium text-foreground">Широта</label>
-                                            <input
+                                            <Input
                                                 disabled
                                                 value={formData.lat}
-                                                className={EDIT_INPUT_CLASS}
                                             />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
                                             <label className="text-sm font-medium text-foreground">Долгота</label>
-                                            <input
+                                            <Input
                                                 disabled
                                                 value={formData.lon}
-                                                className={EDIT_INPUT_CLASS}
                                             />
                                         </div>
                                     </div>
@@ -590,7 +578,7 @@ export default function EditApartmentPage() {
                                         Учетный номер плательщика
                                     </label>
 
-                                    <input
+                                    <Input
                                         type="text"
                                         value={formData.unp ?? ''}
                                         onChange={(e) =>
@@ -607,7 +595,7 @@ export default function EditApartmentPage() {
                                             )
                                         }
                                         placeholder={formData.payerType === 'individual' ? 'MA1953684' : '123456789'}
-                                        className={`${EDIT_INPUT_CLASS} w-full max-w-[300px]`}
+                                        className="max-w-[300px]"
                                         maxLength={9}
                                     />
                                     {/* Подсказка формата — из той же карты правил, что и серверная
@@ -618,12 +606,11 @@ export default function EditApartmentPage() {
                                     <label className="text-medium text-sm text-foreground">
                                         Наименование организации
                                     </label>
-                                    <input
+                                    <Input
                                         type="text"
                                         value={formData.payerName ?? ''}
                                         onChange={(e) => updateField('payerName', e.target.value)}
                                         placeholder="Название вашей организации"
-                                        className={EDIT_INPUT_CLASS}
                                     />
                                 </div>
                             </section>

@@ -90,8 +90,12 @@ export function useApartmentForm(apartmentId: string) {
     const [error, setError] = useState<string | null>(null);
     // id квартиры, данные которой уже подгружены в форму. Нужен, чтобы при
     // повторном рефетче (например, возврат на вкладку) НЕ затирать правки пользователя.
-    const initializedIdRef = useRef<string | null>(null);
 
+    const initializedIdRef = useRef<string | null>(null);
+    // Ошибка ДО отправки (нет фото). Отдельна от `error`: тот заменяет всю
+    // страницу заглушкой «Ошибка», а эта должна показаться поверх живой формы,
+    // чтобы человек не потерял введённые данные.
+    const [validationError, setValidationError] = useState<string | null>(null);
     const updateField = (field: keyof ApartmentFormData, value: string | number | string[]) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
     };
@@ -163,9 +167,16 @@ export function useApartmentForm(apartmentId: string) {
     // ===== ОТПРАВКА ФОРМЫ =====
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsSubmitting(true);
-        setError(null);
 
+        setError(null);
+        setValidationError(null);
+        // Без фото сохранять нельзя: сохранение физически стирает удалённые
+        // файлы из хранилища — пустой список уничтожил бы все фото объекта
+        if ((formData.images ?? []).length === 0) {
+            setValidationError('Добавьте хотя бы одну фотографию');
+            return;
+        }
+        setIsSubmitting(true);
         try {
             const data = {
                 ...formData,
@@ -201,6 +212,7 @@ export function useApartmentForm(apartmentId: string) {
         isSubmitting,
         isLoadingData,
         error,
+        validationError,
         apartmentData,
         updateField,
         handleSubmit,
