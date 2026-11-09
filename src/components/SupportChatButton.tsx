@@ -3,9 +3,9 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 
 import { ChatTextarea } from '@/components/chat/ChatTextarea';
-import { Chat, Send } from '@/components/icons';
+import { MessageBubble } from '@/components/chat/MessageBubble';
+import { Chat, Close, Send } from '@/components/icons';
 import { api } from '@/trpc/react';
-
 export function SupportChatButton() {
     const utils = api.useUtils();
     const { data: session } = useSession();
@@ -91,27 +91,31 @@ export function SupportChatButton() {
             {/* Окно чата — видимо только когда open */}
             {open && (
                 <div className="fixed right-5 bottom-24 z-50 flex h-96 w-80 flex-col rounded-2xl bg-card text-[12px] shadow-2xl max-md:inset-x-2 max-md:h-[60vh] max-md:w-auto">
-                    <p className="p-4 text-[20px] font-semibold">Поддержка</p>
+                    <div className="flex items-center justify-between">
+                        <p className="p-4 text-[20px] font-semibold">Поддержка</p>
+                        <button
+                            type="button"
+                            aria-label="Закрыть"
+                            onClick={() => setOpen(false)}
+                            className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                        >
+                            <Close className="h-5 w-5" />
+                        </button>
+                    </div>
 
                     {/* Блок сообщений: min-h-0 разрешает блоку сжиматься —
                         окно строго фиксированной высоты, сообщения прокручиваются.
                         break-words: длинное слово переносится, не распирая окно. */}
                     <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-4">
                         {messages?.map((m) => (
-                            <div
+                            <MessageBubble
                                 key={m.message.id}
-                                className={`mb-2 flex ${m.message.senderId === myId ? 'justify-end' : 'justify-start'}`}
-                            >
-                                <div
-                                    className={`max-w-[80%] min-w-0 rounded-2xl px-3 py-2 break-words ${
-                                        m.message.senderId === myId
-                                            ? 'bg-primary text-primary-foreground'
-                                            : 'bg-blue-100 text-foreground'
-                                    }`}
-                                >
-                                    {m.message.text}
-                                </div>
-                            </div>
+                                text={m.message.text}
+                                isMine={m.message.senderId === myId}
+                                sender={m.sender}
+                                createdAt={m.message.createdAt}
+                                compact
+                            />
                         ))}
                     </div>
                     {/* Поле ввода: растёт до 10 строк, лимит 500 + счётчик —
@@ -141,7 +145,7 @@ export function SupportChatButton() {
                     <button
                         type="button"
                         onClick={handleOpen}
-                        className="relative flex h-14 w-14 cursor-pointer items-center justify-center rounded-full bg-primary text-gray-100 shadow-lg hover:bg-primary/90"
+                        className="relative flex h-14 w-14 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90"
                         aria-label="Поддержка"
                     >
                         <Chat className="h-7 w-7" />

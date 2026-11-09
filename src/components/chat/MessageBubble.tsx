@@ -13,13 +13,15 @@ type MessageBubbleProps = {
     createdAt: Date;
     /** Если задано — показывает маленькую кнопку удаления (видна админу). */
     onDelete?: () => void;
+    /** Компактный вид для маленьких окон (виджет поддержки): мельче текст и аватар. */
+    compact?: boolean;
 };
 
 /**
  * Один пузырь сообщения с аватаром отправителя.
  * Мои — справа (пурпурные), чужие — слева (серые).
  */
-export function MessageBubble({ text, isMine, sender, createdAt, onDelete }: MessageBubbleProps) {
+export function MessageBubble({ text, isMine, sender, createdAt, onDelete, compact = false }: MessageBubbleProps) {
     return (
         <div className={`flex items-end gap-2 ${isMine ? 'flex-row-reverse' : ''}`}>
             {/* Аватар отправителя: фото или буква, если фото нет / не загрузилось. */}
@@ -27,17 +29,23 @@ export function MessageBubble({ text, isMine, sender, createdAt, onDelete }: Mes
                 src={sender?.image}
                 name={displayName(sender)}
                 fallbackText={avatarInitial(sender)}
-                size={32}
+                size={compact ? 24 : 32}
             />
 
             {/* min-w-0 разрешает flex-элементу сжиматься, а не растягивать окно. */}
             <div className="flex max-w-[70%] min-w-0 flex-col">
                 {/* Имя отправителя (видно только у чужих, чтобы отличать в групповой переписке) */}
-                {!isMine && <span className="mb-0.5 px-1 text-xs text-muted-foreground">{displayName(sender)}</span>}
+                {!isMine && (
+                    <span className={`mb-0.5 px-1 text-muted-foreground ${compact ? 'text-[11px]' : 'text-xs'}`}>
+                        {displayName(sender)}
+                    </span>
+                )}
 
                 {/* break-words переносит длинные слова, чтобы текст не вылезал за пузырь. */}
                 <div
-                    className={`rounded-2xl px-4 py-2 text-[15px] break-words whitespace-pre-line ${
+                    className={`rounded-2xl break-words whitespace-pre-line ${
+                        compact ? 'px-3 py-1.5 text-[13px]' : 'px-4 py-2 text-[15px]'
+                    } ${
                         isMine
                             ? 'rounded-br-sm bg-primary text-primary-foreground'
                             : 'rounded-bl-sm bg-muted text-foreground'
@@ -47,9 +55,9 @@ export function MessageBubble({ text, isMine, sender, createdAt, onDelete }: Mes
                 </div>
 
                 <span
-                    className={`mt-0.5 flex items-center gap-1 px-1 text-[11px] text-muted-foreground ${
-                        isMine ? 'flex-row-reverse' : ''
-                    }`}
+                    className={`mt-0.5 flex items-center gap-1 px-1 text-muted-foreground ${
+                        compact ? 'text-[10px]' : 'text-[11px]'
+                    } ${isMine ? 'flex-row-reverse' : ''}`}
                 >
                     {formatChatDate(createdAt)}
                     {onDelete && (

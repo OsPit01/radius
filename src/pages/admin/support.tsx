@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
@@ -34,17 +34,27 @@ export default function SupportPage() {
 
     // Чей id раскрыт полностью (глаз в карточке заявки): null — все свёрнуты.
     const [expandedId, setExpandedId] = useState<number | null>(null);
-
+    const messagesRef = useRef<HTMLDivElement>(null);
     // ===== Сообщения ВЫБРАННОЙ заявки =====
     // enabled: пока чат не открыт — запрос на сервер вообще не уходит.
     const { data: messages } = api.support.messages.useQuery(
         { id: selectedId ?? 0 },
         { enabled: selectedId !== null, refetchInterval: 5000 },
     );
-
+    // Автопрокрутка вниз: при открытии заявки и при новых сообщениях
+    // показываем последнее.
+    useEffect(() => {
+        const el = messagesRef.current;
+        if (!el) {
+            return;
+        }
+        el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+    }, [selectedId, messages?.length]);
     // ===== Ответ админа =====
     const utils = api.useUtils();
     const [text, setText] = useState('');
+    // Ссылка на ленту сообщений — для автопрокрутки вниз.
+
     const sendMessage = api.support.send.useMutation({
         // После успешной отправки — «кэш устарел, перезабери»,
         // чтобы ответ появился мгновенно, а не через 5 секунд.
@@ -244,7 +254,10 @@ export default function SupportPage() {
                         </div>
 
                         {/* Переписка выбранной заявки (прокрутка, если сообщений много). */}
-                        <div className="flex max-h-[60vh] flex-col gap-2 overflow-y-auto p-2">
+                        <div
+                            ref={messagesRef}
+                            className="flex max-h-[60vh] flex-col gap-2 overflow-y-auto p-2"
+                        >
                             {messages?.map((m) => (
                                 <MessageBubble
                                     key={m.message.id}
