@@ -63,8 +63,10 @@ export function TicketCard({ item, expanded, onToggleId, onOpen }: TicketCardPro
                     >
                         <Avatar
                             src={item.owner.image}
-                            name={item.owner.name ?? item.owner.email ?? 'Пользователь'}
-                            fallbackText={(item.owner.name ?? item.owner.email ?? 'П').charAt(0).toUpperCase()}
+                            name={item.owner.firstName ?? item.owner.name ?? item.owner.email ?? 'Пользователь'}
+                            fallbackText={(item.owner.firstName ?? item.owner.name ?? item.owner.email ?? 'П')
+                                .charAt(0)
+                                .toUpperCase()}
                             size={32}
                         />
                     </Link>

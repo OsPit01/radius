@@ -15,13 +15,23 @@ type MessageBubbleProps = {
     onDelete?: () => void;
     /** Компактный вид для маленьких окон (виджет поддержки): мельче текст и аватар. */
     compact?: boolean;
+    /** Переопределяет подпись имени отправителя (например, только имя в поддержке). */
+    senderName?: string;
 };
 
 /**
  * Один пузырь сообщения с аватаром отправителя.
  * Мои — справа (пурпурные), чужие — слева (серые).
  */
-export function MessageBubble({ text, isMine, sender, createdAt, onDelete, compact = false }: MessageBubbleProps) {
+export function MessageBubble({
+    text,
+    isMine,
+    sender,
+    createdAt,
+    onDelete,
+    compact = false,
+    senderName,
+}: MessageBubbleProps) {
     return (
         <div className={`flex items-end gap-2 ${isMine ? 'flex-row-reverse' : ''}`}>
             {/* Аватар отправителя: фото или буква, если фото нет / не загрузилось. */}
@@ -37,7 +47,7 @@ export function MessageBubble({ text, isMine, sender, createdAt, onDelete, compa
                 {/* Имя отправителя (видно только у чужих, чтобы отличать в групповой переписке) */}
                 {!isMine && (
                     <span className={`mb-0.5 px-1 text-muted-foreground ${compact ? 'text-[11px]' : 'text-xs'}`}>
-                        {displayName(sender)}
+                        {senderName ?? displayName(sender)}
                     </span>
                 )}
 

@@ -17,6 +17,8 @@ declare module 'next-auth' {
             name: string;
             email: string;
             image: string | null;
+            /** Настоящее имя без фамилии (для подписей «Оператор: Имя» и т.п.). */
+            firstName: string | null;
             role: Role;
             /** Дата, до которой аккаунт заблокирован (null — не забанен). */
             bannedUntil: Date | null;
@@ -36,6 +38,7 @@ declare module '@auth/core/adapters' {
     interface AdapterUser {
         role?: Role;
         bannedUntil?: Date | null;
+        firstName?: string | null;
     }
 }
 
@@ -82,6 +85,7 @@ export const authConfig = {
                     // (БЫЛО: user.role ?? 'user' — пропускало любую строку.)
                     role: isRoleKey(user.role) ? user.role : 'user',
                     bannedUntil: user.bannedUntil ?? null,
+                    firstName: user.firstName ?? null,
                 },
             };
         },

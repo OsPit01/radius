@@ -13,7 +13,7 @@ import { VisitTracker } from '@/components/analytics/VisitTracker';
 import { CookieConsentProvider } from '@/components/consent/CookieConsentProvider';
 import { Footer } from '@/components/layout/Footer';
 import { Seo } from '@/components/Seo';
-import { SupportChatButton } from '@/components/SupportChatButton';
+import { SupportChatButton } from '@/components/support/SupportChatButton';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { NOINDEX_PATHS } from '@/lib/seo';

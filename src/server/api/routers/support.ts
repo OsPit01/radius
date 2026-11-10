@@ -60,6 +60,7 @@ export const supportRouter = createTRPCRouter({
                 status: supportTicket.status,
                 assignedAdmin: {
                     name: assignedAdminUser.name,
+                    firstName: assignedAdminUser.firstName,
                     email: assignedAdminUser.email,
                 },
             })
@@ -262,12 +263,14 @@ export const supportRouter = createTRPCRouter({
                 owner: {
                     id: users.id,
                     name: users.name,
+                    firstName: users.firstName,
                     email: users.email,
                     image: users.image,
                 },
                 assignedAdmin: {
                     id: assignedAdminUser.id,
                     name: assignedAdminUser.name,
+                    firstName: assignedAdminUser.firstName,
                     image: assignedAdminUser.image,
                     // Роль ведущего (admin/superadmin/mainadmin) — для цветного бейджа статуса
                     role: assignedAdminUser.role,
@@ -441,7 +444,7 @@ export const supportRouter = createTRPCRouter({
             throw new TRPCError({ code: 'FORBIDDEN', message: 'Только для Администратора' });
         }
         return await ctx.db
-            .select({ id: users.id, name: users.name, email: users.email })
+            .select({ id: users.id, name: users.name, firstName: users.firstName, email: users.email })
             .from(users)
             .where(inArray(users.role, [...ADMIN_ROLES]));
     }),
@@ -476,20 +479,13 @@ export const supportRouter = createTRPCRouter({
             if (!updated) {
                 throw new TRPCError({ code: 'NOT_FOUND', message: 'Заявка не найдена' });
             }
-            await ctx.db.insert(notification).values({
-                userId: input.adminId,
-                type: 'support_assigned',
-                title: 'Вам передана заявка',
-                text: `Заявку #${input.id} передал ${ctx.session.user.name ?? 'администратор'}`,
-                link: '/admin/support',
-            });
-
             // Сигнал новому ведущему: заявку передали именно ему.
+            // Имя передавшего — firstName (без фамилии), иначе name.
             await ctx.db.insert(notification).values({
                 userId: input.adminId,
                 type: 'support_assigned',
                 title: `Заявка #${input.id}`,
-                text: `Вам её передал ${ctx.session.user.name ?? 'администратор'}`,
+                text: `Вам её передал ${ctx.session.user.firstName ?? ctx.session.user.name ?? 'администратор'}`,
                 link: '/admin/support',
             });
 
