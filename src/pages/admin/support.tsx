@@ -5,10 +5,11 @@ import { useSession } from 'next-auth/react';
 
 import { ChatTextarea } from '@/components/chat/ChatTextarea';
 import { MessageBubble } from '@/components/chat/MessageBubble';
-import { Eye, Send } from '@/components/icons';
+import { ArrowLeft, Eye, Send } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { ClientHeader } from '@/components/layout/ClientHeader';
 import { Avatar } from '@/components/ui/Avatar';
+import { Modal } from '@/components/ui/Modal';
 import { formatChatDate } from '@/lib/chat';
 import { getRoleInfo, isAdminRole } from '@/lib/constants/roles';
 import { SUPPORT_TEMPLATES } from '@/lib/constants/support-templates';
@@ -34,6 +35,8 @@ export default function SupportPage() {
 
     // Чей id раскрыт полностью (глаз в карточке заявки): null — все свёрнуты.
     const [expandedId, setExpandedId] = useState<number | null>(null);
+    const [transferOpen, setTransferOpen] = useState(false);
+    const [transferTo, setTransferTo] = useState('');
     const messagesRef = useRef<HTMLDivElement>(null);
     // ===== Сообщения ВЫБРАННОЙ заявки =====
     // enabled: пока чат не открыт — запрос на сервер вообще не уходит.
@@ -67,7 +70,15 @@ export default function SupportPage() {
     const leaveTicket = api.support.leave.useMutation({
         onSuccess: () => void utils.support.listAll.invalidate(),
     });
-
+    // Список админов — лениво: только когда открыта какая-то заявка.
+    const { data: admins } = api.support.admins.useQuery(undefined, { enabled: selectedId !== null });
+    const transfer = api.support.transfer.useMutation({
+        onSuccess: () => {
+            setTransferOpen(false);
+            setTransferTo('');
+            void utils.support.listAll.invalidate();
+        },
+    });
     // Отправить ответ: guard'ы — пустой текст, «чат не открыт» и «уже отправляем»
     // (третий защищает от дубля при Enter + быстрых кликах).
     const handleSend = async () => {
@@ -125,7 +136,7 @@ export default function SupportPage() {
                                             markRead.mutate({ id: item.id });
                                         }}
                                     >
-                                        <span className="font-semibold">Заявка #{item.id}</span>
+                                        <span className="text-sm font-semibold">Заявка #{item.id}</span>
                                         {item.unreadCount > 0 && (
                                             // self-start: бейдж не растягивается на всю ширину кнопки
                                             <span className="mt-1 self-start rounded-full bg-destructive px-2.5 py-0.5 text-sm font-semibold text-destructive-foreground">
@@ -198,7 +209,7 @@ export default function SupportPage() {
                 ) : (
                     <>
                         {/* Шапка окна: назад + номер заявки + кто ведёт. */}
-                        <div className="flex flex-wrap items-center gap-3 pb-4">
+                        <div className="flex flex-wrap items-center gap-3 border-b pb-4">
                             <button
                                 type="button"
                                 // «Назад»: сбрасываем выбор → снова список.
@@ -206,13 +217,9 @@ export default function SupportPage() {
                                 className="flex h-11 cursor-pointer items-center rounded-lg px-3 text-sm hover:bg-muted"
                                 onClick={() => setSelectedId(null)}
                             >
-                                ← Назад
+                                <ArrowLeft className="h-6 w-6" />
                             </button>
-                            <h1 className="text-[25px] max-md:text-xl">Заявка #{selectedId}</h1>
-
-                            {/* ===== КТО ВЕДЁТ + кнопки «Взять/Выйти» =====
-                                selected заполнен ТОЛЬКО в этой ветке (selectedId — число),
-                                поэтому блок живёт здесь, а не в списке. */}
+                            {/* ===== КТО ВЕДЁТ + кнопки «Взять/Выйти/Передать» ===== */}
                             {selected?.assignedAdmin ? (
                                 <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
                                     Ведёт:
@@ -251,6 +258,13 @@ export default function SupportPage() {
                                     Выйти
                                 </button>
                             )}
+                            <button
+                                type="button"
+                                onClick={() => setTransferOpen(true)}
+                                className="h-11 cursor-pointer rounded-[30px] border border-border px-4 text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                            >
+                                Передать
+                            </button>
                         </div>
 
                         {/* Переписка выбранной заявки (прокрутка, если сообщений много). */}
@@ -306,6 +320,42 @@ export default function SupportPage() {
                             >
                                 <Send className="h-6 w-6" />
                             </button>
+                            <Modal
+                                open={transferOpen}
+                                onClose={() => setTransferOpen(false)}
+                                title="Передать обращение"
+                            >
+                                <div className="flex flex-col gap-3">
+                                    <select
+                                        value={transferTo}
+                                        onChange={(e) => setTransferTo(e.target.value)}
+                                        className="w-full cursor-pointer rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                                    >
+                                        <option value="">Выберите админа...</option>
+                                        {admins
+                                            ?.filter((a) => a.id !== myId)
+                                            .map((a) => (
+                                                <option
+                                                    key={a.id}
+                                                    value={a.id}
+                                                >
+                                                    {a.name ?? a.email}
+                                                </option>
+                                            ))}
+                                    </select>
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            selectedId !== null &&
+                                            transfer.mutate({ id: selectedId, adminId: transferTo })
+                                        }
+                                        disabled={!transferTo || transfer.isPending}
+                                        className="mt-2 cursor-pointer rounded-[30px] bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                                    >
+                                        {transfer.isPending ? 'Передаём...' : 'Передать'}
+                                    </button>
+                                </div>
+                            </Modal>
                         </div>
                     </>
                 )}

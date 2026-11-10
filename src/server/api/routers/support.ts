@@ -315,13 +315,39 @@ export const supportRouter = createTRPCRouter({
         }
         return updated;
     }),
+    // Список админов для передачи заявки: только id и имя
     admins: protectedProcedure.query(async ({ ctx }) => {
         if (!isAdminRole(ctx.session.user.role)) {
             throw new TRPCError({ code: 'FORBIDDEN', message: 'Только для Администратора' });
         }
         return await ctx.db
-            .select({ id: users.id, name: users.name })
+            .select({ id: users.id, name: users.name, email: users.email })
             .from(users)
             .where(inArray(users.role, [...ADMIN_ROLES]));
     }),
+    // Передать заявку другому админу.
+    transfer: protectedProcedure
+        .input(z.object({ id: z.number(), adminId: z.string() }))
+        .mutation(async ({ ctx, input }) => {
+            if (!isAdminRole(ctx.session.user.role)) {
+                throw new TRPCError({ code: 'FORBIDDEN', message: 'Только для Администратора' });
+            }
+            // Граница доверия: adminId обязан быть реальным админом.
+            const [targetAdmin] = await ctx.db
+                .select({ id: users.id })
+                .from(users)
+                .where(and(eq(users.id, input.adminId), inArray(users.role, [...ADMIN_ROLES])));
+            if (!targetAdmin) {
+                throw new TRPCError({ code: 'BAD_REQUEST', message: 'Выбранный Пользователь не администратор' });
+            }
+            const [updated] = await ctx.db
+                .update(supportTicket)
+                .set({ assignedToId: input.adminId })
+                .where(eq(supportTicket.id, input.id))
+                .returning();
+            if (!updated) {
+                throw new TRPCError({ code: 'NOT_FOUND', message: 'Заявка не найдена' });
+            }
+            return updated;
+        }),
 });
