@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { count, eq, ilike, or } from 'drizzle-orm';
+import { and, count, eq, ilike, or } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { z } from 'zod';
 
@@ -184,12 +184,14 @@ export const userRouter = createTRPCRouter({
             .from(favorites)
             .where(eq(favorites.userId, userId));
 
-        // Заявки на бронирование квартир этого пользователя (как арендодателя)
+        // Заявки на бронирование квартир этого пользователя (как арендодателя).
+        // На плитке профиля показываем только НОВЫЕ (status='new' — ждут решения):
+        // общее число за всю историю не информативно, важно, сколько ждёт ответа.
         const [bookingsCount] = await ctx.db
             .select({ count: count() })
             .from(booking)
             .innerJoin(apartments, eq(booking.apartmentId, apartments.id))
-            .where(eq(apartments.createdById, userId));
+            .where(and(eq(apartments.createdById, userId), eq(booking.status, 'new')));
 
         return {
             stats: {

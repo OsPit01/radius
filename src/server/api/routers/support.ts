@@ -315,4 +315,13 @@ export const supportRouter = createTRPCRouter({
         }
         return updated;
     }),
+    admins: protectedProcedure.query(async ({ ctx }) => {
+        if (!isAdminRole(ctx.session.user.role)) {
+            throw new TRPCError({ code: 'FORBIDDEN', message: 'Только для Администратора' });
+        }
+        return await ctx.db
+            .select({ id: users.id, name: users.name })
+            .from(users)
+            .where(inArray(users.role, [...ADMIN_ROLES]));
+    }),
 });
