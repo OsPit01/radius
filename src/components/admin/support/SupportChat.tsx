@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { ChatTextarea } from '@/components/chat/ChatTextarea';
 import { MessageBubble } from '@/components/chat/MessageBubble';
@@ -22,6 +22,11 @@ type SupportChatProps = {
     onLeave: () => void;
     onSend: () => void;
     onOpenTransfer: () => void;
+    onClose: () => void;
+    /** Может ли удалять обращения: только superadmin/mainadmin. */
+    canDelete: boolean;
+    /** Удалить заявку вместе со ВСЕМИ сообщениями (после подтверждения). */
+    onDelete: () => void;
 };
 
 export function SupportChat({
@@ -36,12 +41,26 @@ export function SupportChat({
     onLeave,
     onSend,
     onOpenTransfer,
+    onClose,
+    canDelete,
+    onDelete,
 }: SupportChatProps) {
     // Автопрокрутка вниз: при открытии заявки и при новых сообщениях.
     const messagesRef = useRef<HTMLDivElement>(null);
 
+    // Двухшаговое удаление: первый клик «Удалить» → кнопка превращается
+    // в «Точно удалить?», второй клик — реальное удаление. Защита от
+    // случайного клика: заявку со всей перепиской не вернуть.
+    const [confirmDelete, setConfirmDelete] = useState(false);
+
+    // Заявка закрыта: переписка закончена, поле и кнопки действий не нужны.
+    const isClosed = selected?.status === 'closed';
+
     // Заявку ведёт другой админ: смотреть можно, отвечать нельзя.
     const ledByOther = Boolean(selected?.assignedAdmin) && selected?.assignedAdmin?.id !== myId;
+
+    // Действовать может: не закрыта И не ведёт другой админ.
+    const canAct = !isClosed && !ledByOther;
 
     useEffect(() => {
         const el = messagesRef.current;
@@ -66,6 +85,13 @@ export function SupportChat({
                 {/* Номер заявки: маленький жирный, прижат к левому краю. */}
                 <span className="text-sm font-bold">Заявка #{selectedId}</span>
 
+                {/* Закрытую заявку помечаем бейджем — сразу видно, что она решена. */}
+                {isClosed && (
+                    <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
+                        Закрыта
+                    </span>
+                )}
+
                 {/* Ведёт: имя + бейдж роли. */}
                 {selected?.assignedAdmin ? (
                     <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -79,17 +105,20 @@ export function SupportChat({
                         </span>
                     </span>
                 ) : (
-                    <button
-                        type="button"
-                        onClick={onTake}
-                        className="h-11 cursor-pointer rounded-[30px] bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-                    >
-                        Участвовать
-                    </button>
+                    // Закрытую заявку в работу уже не взять — кнопка не нужна.
+                    !isClosed && (
+                        <button
+                            type="button"
+                            onClick={onTake}
+                            className="h-11 cursor-pointer rounded-[30px] bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                        >
+                            Участвовать
+                        </button>
+                    )
                 )}
 
-                {/* «Выйти» видит только тот, кто ведёт эту заявку. */}
-                {selected?.assignedAdmin?.id === myId && (
+                {/* «Выйти» видит только тот, кто ведёт эту заявку (и она открыта). */}
+                {!isClosed && selected?.assignedAdmin?.id === myId && (
                     <button
                         type="button"
                         onClick={onLeave}
@@ -99,13 +128,53 @@ export function SupportChat({
                     </button>
                 )}
 
-                <button
-                    type="button"
-                    onClick={onOpenTransfer}
-                    className="h-11 cursor-pointer rounded-[30px] border border-border px-4 text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary"
-                >
-                    Передать
-                </button>
+                {/* «Закрыть» — финальное действие: решает заявку. Доступно тому,
+                    кто может действовать (ведёт её или никто не ведёт). */}
+                {canAct && (
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="h-11 cursor-pointer rounded-[30px] border border-border px-4 text-sm font-medium text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
+                    >
+                        Закрыть
+                    </button>
+                )}
+
+                {/* Закрытую заявку передавать бессмысленно — кнопку прячем. */}
+                {!isClosed && (
+                    <button
+                        type="button"
+                        onClick={onOpenTransfer}
+                        className="h-11 cursor-pointer rounded-[30px] border border-border px-4 text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                    >
+                        Передать
+                    </button>
+                )}
+
+                {/* Удаление — только superadmin/mainadmin. Двухшаговое:
+                    первый клик включает подтверждение, второй удаляет
+                    заявку со ВСЕЙ перепиской (безвозвратно). */}
+                {canDelete &&
+                    (confirmDelete ? (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                onDelete();
+                                setConfirmDelete(false);
+                            }}
+                            className="h-11 cursor-pointer rounded-[30px] bg-destructive px-4 text-sm font-semibold text-destructive-foreground transition-colors hover:bg-destructive/90"
+                        >
+                            Точно удалить?
+                        </button>
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={() => setConfirmDelete(true)}
+                            className="h-11 cursor-pointer rounded-[30px] border border-border px-4 text-sm font-medium text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
+                        >
+                            Удалить
+                        </button>
+                    ))}
             </div>
 
             {/* Переписка выбранной заявки (прокрутка, если сообщений много). */}
@@ -124,40 +193,55 @@ export function SupportChat({
                 ))}
             </div>
 
-            {/* Подсказки-шаблоны: клик — текст летит в поле ввода. */}
-            <div className="flex flex-wrap gap-2 pb-2">
-                {SUPPORT_TEMPLATES.map((s) => (
-                    <button
-                        key={s.id}
-                        type="button"
-                        onClick={() => onChangeText(s.text)}
-                        className="cursor-pointer rounded-full border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary"
-                    >
-                        {s.label}
-                    </button>
-                ))}
-            </div>
+            {/* Подсказки-шаблоны: клик — текст летит в поле ввода.
+                Действовать нельзя — шаблоны не нужны (текст всё равно не уйдёт). */}
+            {canAct && (
+                <div className="flex flex-wrap gap-2 pb-2">
+                    {SUPPORT_TEMPLATES.map((s) => (
+                        <button
+                            key={s.id}
+                            type="button"
+                            onClick={() => onChangeText(s.text)}
+                            className="cursor-pointer rounded-full border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                        >
+                            {s.label}
+                        </button>
+                    ))}
+                </div>
+            )}
 
-            {/* Поле ввода + кнопка отправки. Если заявку ведёт другой админ —
-                поле заблокировано и видна пометка. */}
-            {ledByOther && (
+            {/* Пометка, почему писать нельзя: заявка закрыта или её ведёт другой админ. */}
+            {isClosed ? (
                 <p className="pt-3 text-sm text-muted-foreground">
-                    Заявку ведёт {selected?.assignedAdmin?.name ?? 'другой администратор'} — отвечать может только он.
+                    Обращение закрыто. Новое обращение пользователь создаст из виджета поддержки.
                 </p>
+            ) : (
+                ledByOther && (
+                    <p className="pt-3 text-sm text-muted-foreground">
+                        Заявку ведёт {selected?.assignedAdmin?.name ?? 'другой администратор'} — отвечать может только
+                        он.
+                    </p>
+                )
             )}
             <div className="mt-4 flex items-end gap-2 border-t pt-4">
                 <ChatTextarea
                     value={text}
                     onChange={onChangeText}
-                    placeholder={ledByOther ? 'Отвечать может только ведущий заявку' : 'Ответ пользователю...'}
+                    placeholder={
+                        isClosed
+                            ? 'Обращение закрыто'
+                            : ledByOther
+                              ? 'Отвечать может только ведущий заявку'
+                              : 'Ответ пользователю...'
+                    }
                     onSend={onSend}
-                    disabled={ledByOther}
+                    disabled={!canAct}
                 />
                 <button
                     type="button"
                     onClick={onSend}
                     aria-label="Отправить"
-                    disabled={ledByOther}
+                    disabled={!canAct}
                     className="mb-6 flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     <Send className="h-6 w-6" />

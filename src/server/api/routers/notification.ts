@@ -55,6 +55,26 @@ export const notificationRouter = createTRPCRouter({
             .where(and(eq(notification.userId, userId), eq(notification.isRead, false)));
     }),
 
+    // Удалить ОДНО своё уведомление. Где userId = мой И id = указанный:
+    // чужое уведомление удалить нельзя — условие просто не совпадёт.
+    delete: protectedProcedure.input(z.object({ id: z.number() })).mutation(async ({ ctx, input }) => {
+        const userId = ctx.session.user.id;
+        const [deleted] = await ctx.db
+            .delete(notification)
+            .where(and(eq(notification.id, input.id), eq(notification.userId, userId)))
+            .returning({ id: notification.id });
+        if (!deleted) {
+            throw new TRPCError({ code: 'NOT_FOUND', message: 'Уведомление не найдено' });
+        }
+        return { ok: true };
+    }),
+
+    // Очистить ВСЕ свои уведомления (кнопка «Удалить все» на странице).
+    deleteAll: protectedProcedure.mutation(async ({ ctx }) => {
+        await ctx.db.delete(notification).where(eq(notification.userId, ctx.session.user.id));
+        return { ok: true };
+    }),
+
     // Админ пишет пользователю — сообщение приходит в уведомления, не в чат.
     notifyUser: protectedProcedure
         .input(

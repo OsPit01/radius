@@ -29,21 +29,46 @@ export default function MyNotifications() {
             void utils.notification.getUnreadCount.invalidate();
         },
     });
+    // Удаление одного уведомления (X в углу карточки).
+    const deleteNotification = api.notification.delete.useMutation({
+        onSuccess: () => {
+            void utils.notification.getMyNotifications.invalidate();
+            void utils.notification.getUnreadCount.invalidate();
+        },
+    });
+    // Полная очистка: все мои уведомления удаляются из БД.
+    const deleteAllNotifications = api.notification.deleteAll.useMutation({
+        onSuccess: () => {
+            void utils.notification.getMyNotifications.invalidate();
+            void utils.notification.getUnreadCount.invalidate();
+        },
+    });
     return (
         <>
             <AuthGuard>
                 <ClientHeader />
                 <div className="mt-auto flex w-full flex-wrap items-center justify-between gap-2 px-5 py-10 max-md:py-5">
                     <span className="text-2xl font-bold text-foreground max-md:text-xl">Мои уведомления</span>
-                    {notifications?.some((n) => !n.isRead) ? (
-                        <button
-                            type="button"
-                            onClick={() => markAllAsRead.mutate()}
-                            className="rounded-xl bg-foreground px-4 py-2 text-sm font-medium whitespace-nowrap text-background transition-colors hover:bg-foreground/85"
-                        >
-                            Отметить все
-                        </button>
-                    ) : null}
+                    <div className="flex flex-wrap items-center gap-2">
+                        {notifications?.some((n) => !n.isRead) ? (
+                            <button
+                                type="button"
+                                onClick={() => markAllAsRead.mutate()}
+                                className="rounded-xl bg-foreground px-4 py-2 text-sm font-medium whitespace-nowrap text-background transition-colors hover:bg-foreground/85"
+                            >
+                                Отметить все
+                            </button>
+                        ) : null}
+                        {notifications?.length ? (
+                            <button
+                                type="button"
+                                onClick={() => deleteAllNotifications.mutate()}
+                                className="rounded-xl border border-border px-4 py-2 text-sm font-medium whitespace-nowrap text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
+                            >
+                                Удалить все
+                            </button>
+                        ) : null}
+                    </div>
                 </div>
                 <div className="grid grid-cols-1 gap-3 px-5 pb-10 md:grid-cols-2 lg:grid-cols-4">
                     {notifications?.map((item) => (
@@ -57,6 +82,7 @@ export default function MyNotifications() {
                                 setSelected(item);
                                 markAsRead.mutate({ id: item.id });
                             }}
+                            onDelete={() => deleteNotification.mutate({ id: item.id })}
                         />
                     ))}
                     {notifications?.length === 0 && (

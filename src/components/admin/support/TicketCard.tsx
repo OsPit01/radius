@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Eye } from '@/components/icons';
 import { Avatar } from '@/components/ui/Avatar';
 import { formatChatDate } from '@/lib/chat';
+import { getSupportTicketStatusInfo } from '@/lib/constants/support';
 import type { RouterOutputs } from '@/trpc/react';
 
 /** Одна заявка из очереди поддержки (тип из процедуры support.listAll). */
@@ -17,6 +18,8 @@ type TicketCardProps = {
 };
 
 export function TicketCard({ item, expanded, onToggleId, onOpen }: TicketCardProps) {
+    // Подпись и цвет бейджа статуса — из единых констант (не хардкод в вёрстке).
+    const statusInfo = getSupportTicketStatusInfo(item.status);
     return (
         <div className="flex flex-col rounded-xl border border-border bg-card p-4 transition-colors hover:border-primary">
             {/* Кликабельная часть: открывает переписку.
@@ -35,8 +38,17 @@ export function TicketCard({ item, expanded, onToggleId, onOpen }: TicketCardPro
                         </span>
                     )}
                 </span>
-                <span className="mt-1 text-sm text-muted-foreground">
-                    Статус: {item.status} — {formatChatDate(item.createdAt)}
+                <span className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+                    {/* Бейдж статуса: «Открыта» (зелёный) / «Закрыта» (серый).
+                        `${color}1f` — 8-значный HEX: к цвету добавлена
+                        прозрачность 1f (~12%) для фона бейджа. */}
+                    <span
+                        className="rounded-full px-2 py-0.5 text-xs font-medium"
+                        style={{ backgroundColor: `${statusInfo.color}1f`, color: statusInfo.color }}
+                    >
+                        {statusInfo.label}
+                    </span>
+                    <span>{formatChatDate(item.createdAt)}</span>
                 </span>
             </button>
 

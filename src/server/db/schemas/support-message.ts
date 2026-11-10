@@ -9,7 +9,10 @@ export const supportMessage = pgTable(
         id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
         ticketId: d
             .integer()
-            .references(() => supportTicket.id)
+            // cascade: удаление заявки автоматически удаляет ВСЕ её сообщения
+            // на уровне БД — сирот не останется, даже если удаление произошло
+            // не через код приложения, а напрямую SQL'ом.
+            .references(() => supportTicket.id, { onDelete: 'cascade' })
             .notNull(),
         senderId: d
             .varchar({ length: 255 })

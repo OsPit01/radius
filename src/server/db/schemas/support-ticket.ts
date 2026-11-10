@@ -1,6 +1,12 @@
-import { index, pgTable } from 'drizzle-orm/pg-core';
+import { index, pgEnum, pgTable } from 'drizzle-orm/pg-core';
+
+import { SUPPORT_TICKET_STATUS_VALUES } from '@/lib/constants/support';
 
 import { users } from './user';
+
+// enum БД: на уровне PostgreSQL в колонку невозможно записать мусор
+// ('random'), БД сама отвергнет. Значения — из ЕДИНОГО кортежа констант.
+export const supportTicketStatusEnum = pgEnum('support_ticket_status', SUPPORT_TICKET_STATUS_VALUES);
 
 export const supportTicket = pgTable(
     'radius_support_ticket',
@@ -11,7 +17,7 @@ export const supportTicket = pgTable(
             .notNull()
             .references(() => users.id),
         assignedToId: d.varchar({ length: 255 }).references(() => users.id),
-        status: d.varchar({ length: 20 }).notNull().default('open'),
+        status: supportTicketStatusEnum('status').notNull().default('open'),
         createdAt: d
             .timestamp({ withTimezone: true })
             .$defaultFn(() => new Date())

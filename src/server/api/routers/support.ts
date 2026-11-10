@@ -1,10 +1,10 @@
 import { TRPCError } from '@trpc/server';
-import { and, asc, count, eq, inArray, max, ne } from 'drizzle-orm';
+import { and, asc, count, desc, eq, inArray, max, ne } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import z from 'zod';
 
 import { MAX_MESSAGE_LENGTH } from '@/lib/chat';
-import { ADMIN_ROLES, isAdminRole } from '@/lib/constants/roles';
+import { ADMIN_ROLES, hasPermission, isAdminRole } from '@/lib/constants/roles';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import { notification, supportMessage, supportTicket, users } from '@/server/db/schemas';
 import { enforceRateLimit } from '@/server/rate-limit';
@@ -16,12 +16,25 @@ export const supportRouter = createTRPCRouter({
     openOrGetTicket: protectedProcedure.mutation(async ({ ctx }) => {
         const userId = ctx.session.user.id;
 
-        // 1. Ищем открытую заявку пользователя
+        // ОДНА непрерывная беседа на пользователя: ищем его ПОСЛЕДНЮЮ заявку
+        // (любого статуса). Закрыта? Переоткрываем — диалог продолжается
+        // в той же заявке, а не плодит новую. Новой заявка будет только
+        // у того, кто ещё никогда не обращался в поддержку.
         const [existing] = await ctx.db
             .select()
             .from(supportTicket)
-            .where(and(eq(supportTicket.userId, userId), eq(supportTicket.status, 'open')));
+            .where(eq(supportTicket.userId, userId))
+            .orderBy(desc(supportTicket.createdAt))
+            .limit(1);
         if (existing) {
+            if (existing.status !== 'open') {
+                const [reopened] = await ctx.db
+                    .update(supportTicket)
+                    .set({ status: 'open' })
+                    .where(eq(supportTicket.id, existing.id))
+                    .returning();
+                return reopened;
+            }
             return existing;
         }
         const [created] = await ctx.db
@@ -33,19 +46,28 @@ export const supportRouter = createTRPCRouter({
         return created;
     }),
     // ============================================================
-    // myOpenTicket — «подглядывание»: вернуть ОТКРЫТУЮ заявку юзера,
-    // но НЕ СОЗДАВАТЬ новую. Виджет вызывает это при открытии окна:
-    // был разговор — подгрузить историю; не было — ничего не плодить.
-    // (Раньше заявка создавалась уже при открытии окна — от этого
-    // в БД копились ПУСТЫЕ заявки без единого сообщения.)
-    // Возвращает тикет или null, если открытой заявки нет.
+    // myTicket — «подглядывание»: вернуть ПОСЛЕДНЮЮ заявку юзера
+    // (любого статуса), но НЕ СОЗДАВАТЬ новую. Виджет вызывает это
+    // при открытии окна: был разговор — подгрузить его и статус
+    // (открыта/закрыта) + кто из админов ведёт; не было — null.
+    // Возвращает { id, status, assignedAdmin } или null.
     // ============================================================
-    myOpenTicket: protectedProcedure.query(async ({ ctx }) => {
+    myTicket: protectedProcedure.query(async ({ ctx }) => {
         const userId = ctx.session.user.id;
         const [ticket] = await ctx.db
-            .select()
+            .select({
+                id: supportTicket.id,
+                status: supportTicket.status,
+                assignedAdmin: {
+                    name: assignedAdminUser.name,
+                    email: assignedAdminUser.email,
+                },
+            })
             .from(supportTicket)
-            .where(and(eq(supportTicket.userId, userId), eq(supportTicket.status, 'open')));
+            .leftJoin(assignedAdminUser, eq(supportTicket.assignedToId, assignedAdminUser.id))
+            .where(eq(supportTicket.userId, userId))
+            .orderBy(desc(supportTicket.createdAt))
+            .limit(1);
         return ticket ?? null;
     }),
 
@@ -155,6 +177,19 @@ export const supportRouter = createTRPCRouter({
                     code: 'FORBIDDEN',
                     message: 'Нет доступа к этой заявке',
                 });
+            }
+            // В закрытую заявку писать нельзя — админу. А вот ВЛАДЕЛЕЦ
+            // закрытую ПЕРЕОТКРЫВАЕТ: беседа у пользователя одна,
+            // новое сообщение продолжает её в той же заявке.
+            if (target.status !== 'open') {
+                if (isOwner) {
+                    await ctx.db.update(supportTicket).set({ status: 'open' }).where(eq(supportTicket.id, input.id));
+                } else {
+                    throw new TRPCError({
+                        code: 'FORBIDDEN',
+                        message: 'Заявка закрыта',
+                    });
+                }
             }
             if (isAdmin && !isOwner) {
                 if (target.assignedToId === null) {
@@ -279,6 +314,27 @@ export const supportRouter = createTRPCRouter({
                 message: 'Только для Администратора',
             });
         }
+        const [target] = await ctx.db.select().from(supportTicket).where(eq(supportTicket.id, input.id));
+        if (!target) {
+            throw new TRPCError({
+                code: 'NOT_FOUND',
+                message: 'Заявка не найдена',
+            });
+        }
+        // Закрытую заявку брать в работу нельзя — она уже решена.
+        if (target.status !== 'open') {
+            throw new TRPCError({
+                code: 'FORBIDDEN',
+                message: 'Заявка закрыта',
+            });
+        }
+        // Если заявку уже ведёт другой админ — перехватывать её нельзя.
+        if (target.assignedToId !== null && target.assignedToId !== ctx.session.user.id) {
+            throw new TRPCError({
+                code: 'FORBIDDEN',
+                message: 'Заявку ведёт другой администратор',
+            });
+        }
         const [updated] = await ctx.db
             .update(supportTicket)
             .set({ assignedToId: ctx.session.user.id })
@@ -315,6 +371,70 @@ export const supportRouter = createTRPCRouter({
         }
         return updated;
     }),
+    // ============================================================
+    // close — закрыть обращение. Вопрос решён, переписка закончена.
+    // Закрыть может ведущий заявку админ; если никто не ведёт — любой админ.
+    // После закрытия писать в заявку нельзя (см. проверку в send),
+    // а пользователь при следующем обращении получит НОВУЮ заявку.
+    // ============================================================
+    close: protectedProcedure.input(z.object({ id: z.number() })).mutation(async ({ ctx, input }) => {
+        if (!isAdminRole(ctx.session.user.role)) {
+            throw new TRPCError({ code: 'FORBIDDEN', message: 'Только для Администратора' });
+        }
+        const [target] = await ctx.db.select().from(supportTicket).where(eq(supportTicket.id, input.id));
+        if (!target) {
+            throw new TRPCError({ code: 'NOT_FOUND', message: 'Заявка не найдена' });
+        }
+        // Если заявку ведёт другой админ — закрывать может только он.
+        if (target.assignedToId !== null && target.assignedToId !== ctx.session.user.id) {
+            throw new TRPCError({ code: 'FORBIDDEN', message: 'Заявку ведёт другой администратор' });
+        }
+        const [updated] = await ctx.db
+            .update(supportTicket)
+            .set({ status: 'closed' })
+            .where(eq(supportTicket.id, input.id))
+            .returning();
+        // Уведомляем владельца: его обращение закрыто.
+        // Структура уведомления: субъект в title, действие в text.
+        // link появится вместе со страницей «Мои обращения» (Ч4) —
+        // пока ссылки нет, оставляем без неё, чтобы не вести на 404.
+        await ctx.db.insert(notification).values({
+            userId: target.userId,
+            type: 'support_closed',
+            title: `Заявка #${input.id}`,
+            text: 'Закрыта службой поддержки',
+        });
+        return updated;
+    }),
+    // ============================================================
+    // delete — удалить обращение ЦЕЛИКОМ: заявку и ВСЕ её сообщения.
+    // Только superadmin/mainadmin (уровень >= superadmin): рядовой админ
+    // не может замести следы переписки. Транзакция: либо удалилось всё
+    // (сообщения + заявка), либо ничего — частичного состояния не бывает
+    // (ошибка внутри — Drizzle откатит все операции).
+    // ============================================================
+    delete: protectedProcedure.input(z.object({ id: z.number() })).mutation(async ({ ctx, input }) => {
+        if (!hasPermission(ctx.session.user.role, 'superadmin')) {
+            throw new TRPCError({
+                code: 'FORBIDDEN',
+                message: 'Только супер админ или главный админ может удалять обращения',
+            });
+        }
+        await ctx.db.transaction(async (tx) => {
+            // 1. Сначала сообщения: FK supportMessage.ticketId ссылается
+            //    на заявку — с «живыми» сообщениями заявку не удалить.
+            await tx.delete(supportMessage).where(eq(supportMessage.ticketId, input.id));
+            // 2. Потом саму заявку. returning — проверить, что она была.
+            const [deleted] = await tx
+                .delete(supportTicket)
+                .where(eq(supportTicket.id, input.id))
+                .returning({ id: supportTicket.id });
+            if (!deleted) {
+                throw new TRPCError({ code: 'NOT_FOUND', message: 'Заявка не найдена' });
+            }
+        });
+        return { ok: true };
+    }),
     // Список админов для передачи заявки: только id и имя
     admins: protectedProcedure.query(async ({ ctx }) => {
         if (!isAdminRole(ctx.session.user.role)) {
@@ -331,6 +451,14 @@ export const supportRouter = createTRPCRouter({
         .mutation(async ({ ctx, input }) => {
             if (!isAdminRole(ctx.session.user.role)) {
                 throw new TRPCError({ code: 'FORBIDDEN', message: 'Только для Администратора' });
+            }
+            // Закрытую заявку передавать бессмысленно — она уже решена.
+            const [target] = await ctx.db.select().from(supportTicket).where(eq(supportTicket.id, input.id));
+            if (!target) {
+                throw new TRPCError({ code: 'NOT_FOUND', message: 'Заявка не найдена' });
+            }
+            if (target.status !== 'open') {
+                throw new TRPCError({ code: 'FORBIDDEN', message: 'Заявка закрыта' });
             }
             // Граница доверия: adminId обязан быть реальным админом.
             const [targetAdmin] = await ctx.db

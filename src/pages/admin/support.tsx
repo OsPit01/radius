@@ -7,7 +7,7 @@ import { TicketCard } from '@/components/admin/support/TicketCard';
 import { TransferModal } from '@/components/admin/support/TransferModal';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { ClientHeader } from '@/components/layout/ClientHeader';
-import { isAdminRole } from '@/lib/constants/roles';
+import { hasPermission, isAdminRole } from '@/lib/constants/roles';
 import { requireAuth } from '@/server/auth/require-auth';
 import { api } from '@/trpc/react';
 
@@ -42,6 +42,15 @@ export default function SupportPage() {
     const markRead = api.support.markRead.useMutation({ onSuccess: () => void utils.support.listAll.invalidate() });
     const takeTicket = api.support.assign.useMutation({ onSuccess: () => void utils.support.listAll.invalidate() });
     const leaveTicket = api.support.leave.useMutation({ onSuccess: () => void utils.support.listAll.invalidate() });
+    const closeTicket = api.support.close.useMutation({ onSuccess: () => void utils.support.listAll.invalidate() });
+    // Удаление заявки целиком (superadmin/mainadmin): после удаления
+    // возвращаемся к списку — открытую переписку смотреть больше нечего.
+    const deleteTicket = api.support.delete.useMutation({
+        onSuccess: () => {
+            setSelectedId(null);
+            void utils.support.listAll.invalidate();
+        },
+    });
 
     // ===== Передача заявки другому админу =====
     const [transferOpen, setTransferOpen] = useState(false);
@@ -115,6 +124,9 @@ export default function SupportPage() {
                         onLeave={() => leaveTicket.mutate({ id: selectedId })}
                         onSend={handleSend}
                         onOpenTransfer={() => setTransferOpen(true)}
+                        onClose={() => closeTicket.mutate({ id: selectedId })}
+                        canDelete={hasPermission(session?.user?.role ?? '', 'superadmin')}
+                        onDelete={() => deleteTicket.mutate({ id: selectedId })}
                     />
                 )}
 
