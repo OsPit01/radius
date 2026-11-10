@@ -348,6 +348,23 @@ export const supportRouter = createTRPCRouter({
             if (!updated) {
                 throw new TRPCError({ code: 'NOT_FOUND', message: 'Заявка не найдена' });
             }
+            await ctx.db.insert(notification).values({
+                userId: input.adminId,
+                type: 'support_assigned',
+                title: 'Вам передана заявка',
+                text: `Заявку #${input.id} передал ${ctx.session.user.name ?? 'администратор'}`,
+                link: '/admin/support',
+            });
+
+            // Сигнал новому ведущему: заявку передали именно ему.
+            await ctx.db.insert(notification).values({
+                userId: input.adminId,
+                type: 'support_assigned',
+                title: 'Вам передана заявка',
+                text: `Заявку #${input.id} передал ${ctx.session.user.name ?? 'администратор'}`,
+                link: '/admin/support',
+            });
+
             return updated;
         }),
 });
