@@ -1,6 +1,8 @@
+import { type ComponentType } from 'react';
+
 import Link from 'next/link';
 
-import { ArrowRight, type IconComponent } from '@/components/icons';
+import { ArrowRight, type IconProps } from '@/components/icons';
 import { cn } from '@/shared/lib/utils';
 
 type TileLinkProps = {
@@ -8,8 +10,12 @@ type TileLinkProps = {
     href: string;
     /** Название раздела — оно же доступное имя ссылки (иконка декоративная, скринридер её не читает). */
     label: string;
-    /** Иконка раздела. Необязательна: бывают плитки без иконки (например, «Все иконки на проекте»). */
-    icon?: IconComponent;
+    /**
+     * Иконка раздела. Необязательна: бывают плитки без иконки (например, «Все иконки на проекте»).
+     * Тип ComponentType (а не IconComponent) разрешает «обёртки» с предустановленным
+     * пропом — например, контурное сердце (muted) на плитке «Избранное» в профиле.
+     */
+    icon?: ComponentType<IconProps>;
     /** Счётчик справа (например, «мои объекты: 3»). Если не передан — рисуем стрелку. */
     count?: number;
     /** Дополнительные классы снаружи (например, отступ mt-6) — вклеиваются к базовым через cn. */

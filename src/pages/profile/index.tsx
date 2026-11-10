@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 
-import { BarChart, Calendar, Chat, Heart, Home, Settings } from '@/components/icons';
+import { BarChart, Calendar, Chat, Heart, Home, type IconProps, Settings } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { ClientHeader } from '@/components/layout/ClientHeader';
 import { TileLink } from '@/components/ui/TileLink';
@@ -29,6 +29,17 @@ type UserProfile = {
 // Неавторизованных отправляем на вход ещё на сервере
 export const getServerSideProps = requireAuth;
 
+// Сердце в плитке «Избранное» — значок РАЗДЕЛА: контур (muted), как сердце «Избранного»
+// в шапке сайта и на пустой странице избранного. Заливное сердце — состояние «в избранном»
+// на кнопке карточки квартиры, у декоративной плитки такого состояния нет.
+// Обёртка статична — создаётся один раз на уровне модуля (как SECTIONS в админке).
+const HeartSectionIcon = (props: IconProps) => (
+    <Heart
+        muted
+        {...props}
+    />
+);
+
 export default function ProfilePage() {
     const { data: session } = useSession();
     const userId = session?.user?.id ?? '';
@@ -49,6 +60,13 @@ export default function ProfilePage() {
             enabled: !!userId,
         },
     );
+
+    // Непрочитанные сообщения для плитки «Мои сообщения». Та же процедура, что
+    // в шапке сайта: react-query дедуплицирует запросы с одинаковым ключом —
+    // страница и шапка делят один кэш, лишнего похода на сервер нет.
+    const { data: unreadCount } = api.chat.unreadCount.useQuery(undefined, {
+        enabled: !!userId,
+    });
 
     const user: UserProfile = {
         id: userData?.id ?? session?.user.id ?? '',
@@ -80,8 +98,8 @@ export default function ProfilePage() {
     const tiles = [
         { href: '/my-apartments', label: 'Мои объекты', count: stats.totalApartments, Icon: Home },
         { href: '/profile/bookings', label: 'Мои бронирования', count: stats.totalBookings, Icon: Calendar },
-        { href: '/profile/favorites', label: 'Избранное', count: stats.totalFavorites, Icon: Heart },
-        { href: '/profile/chat', label: 'Мои сообщения', Icon: Chat },
+        { href: '/profile/favorites', label: 'Избранное', count: stats.totalFavorites, Icon: HeartSectionIcon },
+        { href: '/profile/chat', label: 'Мои сообщения', count: unreadCount ?? 0, Icon: Chat },
         ...(user.role !== 'user' ? [{ href: '/profile/statistics', label: 'Статистика', Icon: BarChart }] : []),
         { href: '/profile/settings', label: 'Настройки профиля', Icon: Settings },
     ];
