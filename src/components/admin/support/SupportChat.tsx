@@ -40,6 +40,9 @@ export function SupportChat({
     // Автопрокрутка вниз: при открытии заявки и при новых сообщениях.
     const messagesRef = useRef<HTMLDivElement>(null);
 
+    // Заявку ведёт другой админ: смотреть можно, отвечать нельзя.
+    const ledByOther = Boolean(selected?.assignedAdmin) && selected?.assignedAdmin?.id !== myId;
+
     useEffect(() => {
         const el = messagesRef.current;
         if (!el) {
@@ -50,7 +53,7 @@ export function SupportChat({
 
     return (
         <>
-            {/* Шапка окна: назад + кто ведёт + кнопки действий. */}
+            {/* Шапка окна: назад + номер заявки + кто ведёт + кнопки действий. */}
             <div className="flex flex-wrap items-center gap-3 border-b pb-4">
                 <button
                     type="button"
@@ -59,6 +62,9 @@ export function SupportChat({
                 >
                     <ArrowLeft className="h-6 w-6" />
                 </button>
+
+                {/* Номер заявки: маленький жирный, прижат к левому краю. */}
+                <span className="text-sm font-bold">Заявка #{selectedId}</span>
 
                 {/* Ведёт: имя + бейдж роли. */}
                 {selected?.assignedAdmin ? (
@@ -132,19 +138,27 @@ export function SupportChat({
                 ))}
             </div>
 
-            {/* Поле ввода + кнопка отправки. */}
+            {/* Поле ввода + кнопка отправки. Если заявку ведёт другой админ —
+                поле заблокировано и видна пометка. */}
+            {ledByOther && (
+                <p className="pt-3 text-sm text-muted-foreground">
+                    Заявку ведёт {selected?.assignedAdmin?.name ?? 'другой администратор'} — отвечать может только он.
+                </p>
+            )}
             <div className="mt-4 flex items-end gap-2 border-t pt-4">
                 <ChatTextarea
                     value={text}
                     onChange={onChangeText}
-                    placeholder="Ответ пользователю..."
+                    placeholder={ledByOther ? 'Отвечать может только ведущий заявку' : 'Ответ пользователю...'}
                     onSend={onSend}
+                    disabled={ledByOther}
                 />
                 <button
                     type="button"
                     onClick={onSend}
                     aria-label="Отправить"
-                    className="mb-6 flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
+                    disabled={ledByOther}
+                    className="mb-6 flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     <Send className="h-6 w-6" />
                 </button>

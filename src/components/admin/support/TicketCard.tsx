@@ -27,12 +27,14 @@ export function TicketCard({ item, expanded, onToggleId, onOpen }: TicketCardPro
                 className="flex w-full cursor-pointer flex-col text-left"
                 onClick={onOpen}
             >
-                <span className="text-sm font-semibold">Заявка #{item.id}</span>
-                {item.unreadCount > 0 && (
-                    <span className="mt-1 self-start rounded-full bg-destructive px-2.5 py-0.5 text-sm font-semibold text-destructive-foreground">
-                        {item.unreadCount}
-                    </span>
-                )}
+                <span className="flex w-full items-center justify-between gap-2">
+                    <span className="text-sm font-semibold">Заявка #{item.id}</span>
+                    {item.unreadCount > 0 && (
+                        <span className="shrink-0 rounded-full bg-destructive px-2.5 py-0.5 text-sm font-semibold text-destructive-foreground">
+                            {item.unreadCount}
+                        </span>
+                    )}
+                </span>
                 <span className="mt-1 text-sm text-muted-foreground">
                     Статус: {item.status} — {formatChatDate(item.createdAt)}
                 </span>

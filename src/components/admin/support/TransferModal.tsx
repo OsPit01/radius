@@ -29,28 +29,31 @@ export function TransferModal({
             title="Передать обращение"
         >
             <div className="flex flex-col gap-3">
-                <select
-                    value={transferTo}
-                    onChange={(e) => onChangeTransferTo(e.target.value)}
-                    className="w-full cursor-pointer rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
-                >
-                    <option value="">Выберите админа...</option>
-                    {admins
-                        ?.filter((a) => a.id !== myId)
-                        .map((a) => (
-                            <option
-                                key={a.id}
-                                value={a.id}
-                            >
-                                {a.name ?? a.email}
-                            </option>
-                        ))}
-                </select>
+                <label className="flex flex-col gap-1.5 text-sm font-medium text-foreground">
+                    Кому передать
+                    <select
+                        value={transferTo}
+                        onChange={(e) => onChangeTransferTo(e.target.value)}
+                        className="w-full cursor-pointer rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                    >
+                        <option value="">Выберите админа...</option>
+                        {admins
+                            ?.filter((a) => a.id !== myId)
+                            .map((a) => (
+                                <option
+                                    key={a.id}
+                                    value={a.id}
+                                >
+                                    {a.name ?? a.email}
+                                </option>
+                            ))}
+                    </select>
+                </label>
                 <button
                     type="button"
                     onClick={onTransfer}
                     disabled={!transferTo || isPending}
-                    className="mt-2 cursor-pointer rounded-[30px] bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="mt-2 w-full cursor-pointer rounded-[30px] bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     {isPending ? 'Передаём...' : 'Передать'}
                 </button>

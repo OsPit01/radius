@@ -398,9 +398,9 @@ export const apartmentRouter = createTRPCRouter({
                 await ctx.db.insert(notification).values({
                     userId: update.createdById, // кому - владелец
                     type: `status_${input.status}`, // тип — что случилось
-                    title: 'Статус объекта изменён',
+                    title: `Ваш объект «${update.title}»`,
                     // заголовок для глаз
-                    text: buildStatusNotificationText(input.status, update.title, input.rejectionReason),
+                    text: buildStatusNotificationText(input.status, input.rejectionReason),
                     apartmentId: input.id, // о каком объекте
                     link: `/apartments/${input.id}`, // куда ведёт уведомление
                 });

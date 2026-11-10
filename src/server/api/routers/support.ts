@@ -197,8 +197,8 @@ export const supportRouter = createTRPCRouter({
                         admins.map((admin) => ({
                             userId: admin.id,
                             type: 'support_new_message',
-                            title: 'Новое сообщение в поддержку',
-                            text: `Пользователь написал в поддержку. Заявка #${input.id}`,
+                            title: `Заявка #${input.id}`,
+                            text: 'Новое сообщение от пользователя',
                             link: '/admin/support',
                         })),
                     );
@@ -360,8 +360,8 @@ export const supportRouter = createTRPCRouter({
             await ctx.db.insert(notification).values({
                 userId: input.adminId,
                 type: 'support_assigned',
-                title: 'Вам передана заявка',
-                text: `Заявку #${input.id} передал ${ctx.session.user.name ?? 'администратор'}`,
+                title: `Заявка #${input.id}`,
+                text: `Вам её передал ${ctx.session.user.name ?? 'администратор'}`,
                 link: '/admin/support',
             });
 

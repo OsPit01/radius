@@ -21,12 +21,12 @@ export function getStatusInfo(status: string) {
     return isApartmentStatus(status) ? APARTMENT_STATUS_INFO[status] : APARTMENT_STATUS_INFO.moderation;
 }
 
-export function buildStatusNotificationText(status: ApartmentStatus, title: string, reason?: string): string {
+export function buildStatusNotificationText(status: ApartmentStatus, reason?: string): string {
     if (status === 'active') {
-        return `Ваш объект «${title}» прошёл модерацию, поздравляем!`;
+        return 'Прошёл модерацию, поздравляем!';
     }
     if (status === 'inactive') {
-        return reason ? `Ваш объект «${title}» отклонён. Причина: ${reason}` : `Ваш объект «${title}» отклонён`;
+        return reason ? `Отклонён. Причина: ${reason}` : 'Отклонён';
     }
-    return `Ваш объект «${title}» на модерации`;
+    return 'На модерации';
 }

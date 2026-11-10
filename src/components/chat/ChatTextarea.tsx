@@ -18,6 +18,8 @@ type ChatTextareaProps = {
     /** Если передать — Enter отправляет сообщение, Shift+Enter — новая строка
      *  (как в мессенджерах; ровно так же сделано в ChatWindow основного чата). */
     onSend?: () => void;
+    /** true — поле заблокировано (например, заявку ведёт другой админ). */
+    disabled?: boolean;
 };
 
 /**
@@ -32,7 +34,7 @@ type ChatTextareaProps = {
  * 3. Счётчик «N/500» — появляется только при длинном тексте (≈3–4 строки):
  *    в начале поле чистое, цифры не шумят рядом с кнопкой отправки.
  */
-export function ChatTextarea({ value, onChange, placeholder, onSend }: ChatTextareaProps) {
+export function ChatTextarea({ value, onChange, placeholder, onSend, disabled = false }: ChatTextareaProps) {
     // Ссылка на DOM-элемент: нужна для пересчёта высоты из useEffect.
     const ref = useRef<HTMLTextAreaElement>(null);
 
@@ -85,16 +87,17 @@ export function ChatTextarea({ value, onChange, placeholder, onSend }: ChatTexta
                 onKeyDown={(e) => {
                     // Enter — отправить, Shift+Enter — новая строка.
                     // preventDefault — чтобы Enter НЕ вставлял пустую строку перед отправкой.
-                    if (e.key === 'Enter' && !e.shiftKey && onSend) {
+                    if (e.key === 'Enter' && !e.shiftKey && onSend && !disabled) {
                         e.preventDefault();
                         onSend();
                     }
                 }}
                 maxLength={MAX_MESSAGE_LENGTH}
                 placeholder={placeholder}
+                disabled={disabled}
                 // overflow-hidden — ГЛАВНОЕ отличие: скроллбара НЕТ вообще
                 // (никаких стрелок Windows), прокрутка — программная, см. onChange.
-                className="max-h-[220px] w-full resize-none overflow-hidden rounded-xl border border-border bg-transparent p-3 text-[15px] leading-relaxed text-foreground outline-none focus:border-primary"
+                className="max-h-[220px] w-full resize-none overflow-hidden rounded-xl border border-border bg-transparent p-3 text-[15px] leading-relaxed text-foreground outline-none focus:border-primary disabled:cursor-not-allowed disabled:opacity-60"
             />
             {/* Счётчик символов: прижат вправо, мелкий, появляется при длинном тексте. */}
             <span

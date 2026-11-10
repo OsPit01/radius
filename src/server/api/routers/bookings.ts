@@ -333,8 +333,8 @@ export const bookingsRouter = createTRPCRouter({
                     .values({
                         userId: targetBooking.userId,
                         type: input.status === 'approved' ? 'booking_approved' : 'booking_rejected',
-                        title: input.status === 'approved' ? 'Заявка одобрена' : 'Заявка отклонена',
-                        text: `Ваша заявка на «${apartment.title}» ${input.status === 'approved' ? 'одобрена' : 'отклонена'}`,
+                        title: `Заявка на «${apartment.title}»`,
+                        text: input.status === 'approved' ? 'Одобрена' : 'Отклонена',
 
                         apartmentId: targetBooking.apartmentId,
                         link: '/profile/bookings',
