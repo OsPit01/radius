@@ -44,7 +44,7 @@ export default function StatisticsPage() {
                 <div className="min-h-screen bg-background px-5 py-10 max-md:px-3 max-md:py-4">
                     <div className="mx-auto max-w-[900px] rounded-[24px] bg-muted p-12 shadow-[0_20px_60px_rgba(0,0,0,0.08)] max-[480px]:rounded-2xl max-[480px]:p-4 max-md:rounded-[20px] max-md:p-6">
                         <h1 className="mb-6 flex items-center gap-3 text-[28px] font-bold text-foreground max-md:text-[22px]">
-                            <BarChart className="h-9 w-9" />
+                            <BarChart className="h-6 w-6" />
                             Статистика моих объектов
                         </h1>
 

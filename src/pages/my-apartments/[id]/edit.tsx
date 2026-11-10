@@ -200,7 +200,7 @@ export default function EditApartmentPage() {
                             {/* ИНФОРМАЦИЯ */}
                             <section className="mb-10 text-muted-foreground">
                                 <div className="mt-[35px] mb-[15px] flex items-center gap-2 border-b border-border pb-2 text-xl font-semibold text-foreground">
-                                    <Home className="h-7 w-7" />
+                                    <Home className="h-6 w-6" />
                                     Информация
                                 </div>
 

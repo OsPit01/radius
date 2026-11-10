@@ -1,10 +1,10 @@
 import Image from 'next/image';
-import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 
 import { BarChart, Calendar, Chat, Heart, Home, Settings } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { ClientHeader } from '@/components/layout/ClientHeader';
+import { TileLink } from '@/components/ui/TileLink';
 import { getRoleInfo } from '@/lib/constants/roles';
 import { getRoleColor } from '@/lib/theme';
 import { requireAuth } from '@/server/auth/require-auth';
@@ -128,22 +128,16 @@ export default function ProfilePage() {
                         </div>
 
                         <div className="mt-2 grid grid-cols-2 gap-4 max-[480px]:grid-cols-1">
+                            {/* Плитки-разделы: единый стиль с панелью управления —
+                                компонент TileLink (правка вида в одном месте) */}
                             {tiles.map(({ href, label, count, Icon }) => (
-                                <Link
+                                <TileLink
                                     key={href}
                                     href={href}
-                                    className="group flex cursor-pointer flex-col gap-2 rounded-2xl bg-card p-6 text-foreground no-underline transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_25px_color-mix(in_oklab,var(--primary)_10%,transparent)]"
-                                >
-                                    <div className="flex items-center gap-4">
-                                        <Icon className="h-8 w-8 shrink-0 text-primary" />
-                                        <p className="min-w-0 text-sm font-medium">{label}</p>
-                                        {count !== undefined && (
-                                            <p className="ml-auto shrink-0 bg-[linear-gradient(135deg,var(--foreground),var(--primary))] bg-clip-text text-lg font-extrabold whitespace-nowrap text-transparent">
-                                                {count}
-                                            </p>
-                                        )}
-                                    </div>
-                                </Link>
+                                    label={label}
+                                    icon={Icon}
+                                    count={count}
+                                />
                             ))}
                         </div>
                     </div>
