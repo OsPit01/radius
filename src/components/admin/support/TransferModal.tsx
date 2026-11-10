@@ -42,7 +42,7 @@ export function TransferModal({
                                 key={a.id}
                                 value={a.id}
                             >
-                                {a.name ?? '—'} · {a.email}
+                                {a.name ?? a.email}
                             </option>
                         ))}
                 </select>
