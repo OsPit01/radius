@@ -73,6 +73,7 @@ export default function Users() {
                             tabs={roleTabs}
                             active={activeRole}
                             onChange={setActiveRole}
+                            scrollOnMobile
                         />
                     </div>
                     <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-md:grid-cols-1">

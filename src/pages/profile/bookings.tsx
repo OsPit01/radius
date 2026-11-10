@@ -195,8 +195,10 @@ export default function BookingsPage() {
                                         className="rounded-2xl border border-border bg-card p-5 shadow-sm"
                                     >
                                         <div className="mb-3 flex items-start justify-between gap-3">
-                                            <p className="font-semibold text-foreground">{apartment.title}</p>
-                                            <span className="shrink-0 rounded-full bg-muted px-3 py-1 text-xs font-medium text-primary">
+                                            <p className="min-w-0 flex-1 font-semibold break-words text-foreground">
+                                                {apartment.title}
+                                            </p>
+                                            <span className="shrink-0 rounded-full bg-muted px-3 py-1 text-xs font-medium whitespace-nowrap text-primary">
                                                 {BOOKING_STATUS_LABELS[booking.status] ?? booking.status}
                                             </span>
                                         </div>
@@ -246,10 +248,8 @@ export default function BookingsPage() {
                                                 Гостей: {booking.guests}
                                                 {booking.children > 0 && ` (детей: ${booking.children})`}
                                             </p>
-                                            <p>
-                                                Заезд: {formatDate(booking.checkInDate)} — выезд:{' '}
-                                                {formatDate(booking.checkOutDate)}
-                                            </p>
+                                            <p>Заезд: {formatDate(booking.checkInDate)}</p>
+                                            <p>Выезд: {formatDate(booking.checkOutDate)}</p>
                                             {booking.message && (
                                                 <p className="pt-1 text-muted-foreground">«{booking.message}»</p>
                                             )}
@@ -261,7 +261,7 @@ export default function BookingsPage() {
 
                                         {/* Кнопки действия зависят от режима */}
                                         {currentMode === 'owner' && booking.status === 'new' && (
-                                            <div className="flex gap-2">
+                                            <div className="mt-5 flex flex-col gap-2 sm:flex-row">
                                                 <button
                                                     onClick={() =>
                                                         setConfirm({
