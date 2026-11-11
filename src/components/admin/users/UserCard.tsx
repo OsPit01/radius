@@ -1,14 +1,19 @@
 import { useState } from 'react';
 
-import Link from 'next/link';
-
 import { Eye } from '@/components/icons';
 import { Avatar } from '@/components/ui/Avatar';
-import { ImageWithFallback } from '@/components/ui/ImageWithFallback';
-import { Modal } from '@/components/ui/Modal';
 import { getRoleInfo, type RoleKey } from '@/lib/constants/roles';
 import { getRoleColor } from '@/lib/theme';
 import { api } from '@/trpc/react';
+
+import {
+    BanUserModal,
+    type EditUserForm,
+    EditUserModal,
+    type NotifyForm,
+    NotifyUserModal,
+    UserObjectsModal,
+} from './UserCardModals';
 
 type AdminUser = {
     id: string;
@@ -26,12 +31,18 @@ type UserCardProps = {
     allowedRoles: { value: string; label: string }[];
 };
 
+/**
+ * Компактная карточка пользователя в админке (4 колонки на десктопе).
+ * Здесь — состояние, мутации и сама карточка; модалки (редактирование,
+ * бан, уведомление, объекты) вынесены в UserCardModals.
+ * Минимум шрифта — 11px: мельче уже не читается.
+ */
 export function UserCard({ user, allowedRoles }: UserCardProps) {
     const roleInfo = getRoleInfo(user.role);
 
     const [selectedRole, setSelectedRole] = useState<RoleKey | ''>('');
     const [editOpen, setEditOpen] = useState(false);
-    const [editForm, setEditForm] = useState({
+    const [editForm, setEditForm] = useState<EditUserForm>({
         firstName: user.firstName ?? '',
         lastName: user.lastName ?? '',
         patronymic: user.patronymic ?? '',
@@ -43,7 +54,7 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
     const [banDays, setBanDays] = useState(7);
 
     const [notifyOpen, setNotifyOpen] = useState(false);
-    const [notifyForm, setNotifyForm] = useState({ title: '', text: '' });
+    const [notifyForm, setNotifyForm] = useState<NotifyForm>({ title: '', text: '' });
     const [objectsOpen, setObjectsOpen] = useState(false);
     const [showId, setShowId] = useState(false);
     const utils = api.useUtils();
@@ -102,25 +113,23 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
         });
     };
 
-    const inputClass =
-        'w-full rounded-lg border border-border px-3 py-2 text-sm text-foreground outline-none focus:border-primary';
-
     return (
         <>
-            <div className="flex flex-col rounded-2xl border border-border bg-card p-6 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
-                {/* Шапка: аватар + имя + email */}
-                <div className="flex items-center gap-3">
+            <div className="flex flex-col rounded-xl border border-border bg-card p-4 transition-colors hover:border-primary">
+                {/* Шапка: аватар + имя + email + id */}
+                <div className="flex items-center gap-2.5">
                     <Avatar
                         src={user.image}
                         name={user.firstName ?? user.email}
-                        size={56}
+                        size={40}
                     />
                     <div className="min-w-0">
-                        <p className="truncate text-lg font-semibold text-foreground">{user.firstName ?? user.email}</p>
-                        <p className="truncate text-sm text-muted-foreground">{user.email}</p>
-                        <div className="flex items-center gap-1.5">
+                        {/* truncate: длинные имя/email обрезаются, карточка не раздувается. */}
+                        <p className="truncate text-sm font-semibold text-foreground">{user.firstName ?? user.email}</p>
+                        <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+                        <div className="flex items-center gap-1">
                             <p
-                                className="text-xs text-muted-foreground"
+                                className="truncate text-[11px] text-muted-foreground"
                                 title={user.id}
                             >
                                 ID: {showId ? user.id : `${user.id.slice(0, 8)}…`}
@@ -129,9 +138,9 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
                                 type="button"
                                 onClick={() => setShowId((visible) => !visible)}
                                 aria-label={showId ? 'Скрыть ID' : 'Показать ID'}
-                                className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                                className="flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                             >
-                                <Eye className="size-4" />
+                                <Eye className="size-3.5" />
                             </button>
                         </div>
                     </div>
@@ -141,17 +150,17 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
                     текст — из домена (getRoleInfo). Разделение ответственности. */}
                 <span
                     style={{ background: getRoleColor(user.role) }}
-                    className="mt-4 inline-flex w-fit items-center rounded-full px-3 py-1 text-xs font-semibold tracking-wide text-white uppercase"
+                    className="mt-3 inline-flex w-fit items-center rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide text-white uppercase"
                 >
                     {roleInfo.label}
                 </span>
 
                 {/* Смена роли */}
-                <div className="mt-4 flex items-center gap-2">
+                <div className="mt-3 flex items-center gap-2">
                     <select
                         value={selectedRole}
                         onChange={(e) => setSelectedRole(e.target.value as RoleKey)}
-                        className="flex-1 cursor-pointer rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                        className="h-8 min-w-0 flex-1 cursor-pointer rounded-lg border border-border bg-card px-2 text-xs text-foreground outline-none focus:border-primary"
                     >
                         <option value="">Выбрать роль...</option>
                         {allowedRoles.map((r) => (
@@ -164,7 +173,7 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
                         ))}
                     </select>
                     <button
-                        className="cursor-pointer rounded-[30px] bg-foreground px-5 py-2 text-sm font-medium text-background transition-colors hover:bg-foreground/85"
+                        className="h-8 shrink-0 cursor-pointer rounded-[30px] bg-foreground px-3 text-xs font-medium text-background transition-colors hover:bg-foreground/85 disabled:cursor-not-allowed disabled:opacity-50"
                         onClick={() => {
                             if (!selectedRole) {
                                 return;
@@ -177,188 +186,73 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
                     </button>
                 </div>
 
-                {/* Кнопки: Редактировать + Забанить */}
-                <div className="mt-2 flex gap-2">
+                {/* Действия: 2×2 — компактно, но кнопки читаются (12px) */}
+                <div className="mt-3 grid grid-cols-2 gap-2">
                     <button
                         onClick={() => setEditOpen(true)}
-                        className="flex-1 cursor-pointer rounded-[30px] border border-border px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                        className="cursor-pointer rounded-[30px] border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary"
                     >
                         Редактировать
                     </button>
                     <button
                         onClick={() => setBanOpen(true)}
-                        className="flex-1 cursor-pointer rounded-[30px] border border-border px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
+                        className="cursor-pointer rounded-[30px] border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
                     >
                         Забанить
                     </button>
-                </div>
-
-                {/* Кнопки: Уведомить + Объекты */}
-                <div className="mt-2 flex gap-2">
                     <button
                         onClick={() => setNotifyOpen(true)}
-                        className="flex-1 cursor-pointer rounded-[30px] border border-border px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                        className="cursor-pointer rounded-[30px] border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary"
                     >
                         Уведомить
                     </button>
                     <button
                         onClick={() => setObjectsOpen(true)}
-                        className="flex-1 cursor-pointer rounded-[30px] border border-border px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                        className="cursor-pointer rounded-[30px] border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary"
                     >
                         Объекты
                     </button>
                 </div>
             </div>
 
-            {/* Модалка редактирования */}
-            <Modal
+            {/* Модалки: состояние и мутации живут ЗДЕСЬ (родитель),
+                сами модалки только показывают и отдают действия наверх. */}
+            <EditUserModal
                 open={editOpen}
                 onClose={() => setEditOpen(false)}
-                title="Редактировать пользователя"
-            >
-                <div className="flex flex-col gap-3">
-                    <input
-                        value={editForm.firstName}
-                        onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })}
-                        placeholder="Имя"
-                        className={inputClass}
-                    />
-                    <input
-                        value={editForm.lastName}
-                        onChange={(e) => setEditForm({ ...editForm, lastName: e.target.value })}
-                        placeholder="Фамилия"
-                        className={inputClass}
-                    />
-                    <input
-                        value={editForm.patronymic}
-                        onChange={(e) => setEditForm({ ...editForm, patronymic: e.target.value })}
-                        placeholder="Отчество"
-                        className={inputClass}
-                    />
-                    <input
-                        type="email"
-                        value={editForm.email}
-                        onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                        placeholder="Email"
-                        className={inputClass}
-                    />
-                    <input
-                        type="tel"
-                        value={editForm.phone}
-                        onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                        placeholder="Телефон"
-                        className={inputClass}
-                    />
-                    <button
-                        onClick={handleSave}
-                        disabled={updateUser.isPending}
-                        className="mt-2 cursor-pointer rounded-[30px] bg-foreground px-6 py-2.5 text-sm font-medium text-background transition-colors hover:bg-foreground/85"
-                    >
-                        {updateUser.isPending ? 'Сохранение...' : 'Сохранить'}
-                    </button>
-                </div>
-            </Modal>
-
-            {/* Модалка бана */}
-            <Modal
+                form={editForm}
+                onFieldChange={(field, value) => setEditForm((prev) => ({ ...prev, [field]: value }))}
+                onSave={handleSave}
+                isSaving={updateUser.isPending}
+            />
+            <BanUserModal
                 open={banOpen}
                 onClose={() => setBanOpen(false)}
-                title="Забанить пользователя"
-            >
-                <div className="flex flex-col gap-3">
-                    <p className="text-sm text-muted-foreground">{user.firstName ?? user.email}</p>
-                    <label className="flex flex-col gap-1.5 text-sm font-medium text-foreground">
-                        На сколько дней?
-                        <input
-                            type="number"
-                            min={1}
-                            max={3650}
-                            value={banDays}
-                            onChange={(e) => setBanDays(Math.max(1, Math.min(3650, Number(e.target.value))))}
-                            className={inputClass}
-                        />
-                    </label>
-                    <button
-                        onClick={() => banUser.mutate({ userId: user.id, days: banDays })}
-                        disabled={banUser.isPending}
-                        className="mt-2 cursor-pointer rounded-[30px] bg-destructive px-6 py-2.5 text-sm font-semibold text-destructive-foreground transition-colors hover:bg-destructive/90"
-                    >
-                        {banUser.isPending ? 'Баним...' : 'Забанить'}
-                    </button>
-                </div>
-            </Modal>
-
-            {/* Модалка уведомления */}
-            <Modal
+                userName={user.firstName ?? user.email}
+                days={banDays}
+                onDaysChange={setBanDays}
+                onBan={() => banUser.mutate({ userId: user.id, days: banDays })}
+                isPending={banUser.isPending}
+            />
+            <NotifyUserModal
                 open={notifyOpen}
                 onClose={() => setNotifyOpen(false)}
-                title="Уведомить пользователя"
-            >
-                <div className="flex flex-col gap-3">
-                    <input
-                        value={notifyForm.title}
-                        onChange={(e) => setNotifyForm({ ...notifyForm, title: e.target.value })}
-                        placeholder="Заголовок"
-                        className={inputClass}
-                    />
-                    <textarea
-                        value={notifyForm.text}
-                        onChange={(e) => setNotifyForm({ ...notifyForm, text: e.target.value })}
-                        placeholder="Текст уведомления"
-                        rows={3}
-                        className="resize-none rounded-lg border border-border px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
-                    />
-                    <button
-                        onClick={() =>
-                            notifyUser.mutate({
-                                userId: user.id,
-                                title: notifyForm.title.trim(),
-                                text: notifyForm.text.trim(),
-                            })
-                        }
-                        disabled={!notifyForm.title.trim() || !notifyForm.text.trim() || notifyUser.isPending}
-                        className="mt-2 cursor-pointer rounded-[30px] bg-foreground px-6 py-2.5 text-sm font-medium text-background transition-colors hover:bg-foreground/85 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground"
-                    >
-                        {notifyUser.isPending ? 'Отправляем...' : 'Отправить'}
-                    </button>
-                </div>
-            </Modal>
-
-            {/* Модалка объектов пользователя */}
-            <Modal
+                form={notifyForm}
+                onFieldChange={(field, value) => setNotifyForm((prev) => ({ ...prev, [field]: value }))}
+                onSend={() =>
+                    notifyUser.mutate({
+                        userId: user.id,
+                        title: notifyForm.title.trim(),
+                        text: notifyForm.text.trim(),
+                    })
+                }
+                isSending={notifyUser.isPending}
+            />
+            <UserObjectsModal
                 open={objectsOpen}
                 onClose={() => setObjectsOpen(false)}
-                title="Объекты пользователя"
-            >
-                <div className="flex max-h-[60vh] flex-col gap-2 overflow-y-auto">
-                    {userObjects?.length === 0 && (
-                        <p className="py-4 text-center text-sm text-muted-foreground">У пользователя нет объектов</p>
-                    )}
-                    {userObjects?.map((o) => (
-                        <div
-                            key={o.apartment.id}
-                            className="flex items-center justify-between gap-2 border-b border-border py-2"
-                        >
-                            <div className="flex min-w-0 items-center gap-3">
-                                <ImageWithFallback
-                                    src={o.apartment.images?.[0]}
-                                    alt=""
-                                    width={48}
-                                    height={48}
-                                    className="size-12 shrink-0 rounded-md object-cover"
-                                />
-                                <span className="text-sm text-muted-foreground">#{o.apartment.id}</span>
-                            </div>
-                            <Link
-                                href={`/my-apartments/${o.apartment.id}/edit`}
-                                className="shrink-0 cursor-pointer rounded-[30px] border border-primary px-4 py-1.5 text-sm font-medium text-primary no-underline transition-colors hover:bg-muted"
-                            >
-                                Редактировать
-                            </Link>
-                        </div>
-                    ))}
-                </div>
-            </Modal>
+                objects={userObjects}
+            />
         </>
     );
 }

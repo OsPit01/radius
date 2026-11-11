@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { useSession } from 'next-auth/react';
 
@@ -19,7 +19,19 @@ export default function SupportPage() {
     const { data: session } = useSession();
     const myId = session?.user?.id ?? '';
 
-    const { data: tickets } = api.support.listAll.useQuery(undefined, { refetchInterval: 5000 });
+    // ===== Очередь заявок с пагинацией (бесконечная лента) =====
+    // Сервер отдаёт по 50 штук за страницу; следующая догружается при прокрутке
+    // до низа (sentinel ниже). refetchInterval обновляет первую страницу —
+    // новые заявки всплывают наверх без перегрузки всей очереди.
+    const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = api.support.listAll.useInfiniteQuery(
+        { limit: 50 },
+        {
+            getNextPageParam: (lastPage) => lastPage.nextCursor,
+            refetchInterval: 5000,
+        },
+    );
+    // Все загруженные страницы — в один плоский список.
+    const tickets = data?.pages.flatMap((page) => page.items) ?? [];
 
     // Выбранная заявка: null — показываем список, число — открыта переписка.
     const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -64,6 +76,29 @@ export default function SupportPage() {
         },
     });
 
+    // ===== Догрузка при скролле =====
+    // Sentinel внизу списка: как только он появляется на экране (за 200px до
+    // конца — грузим заранее), запрашиваем следующую страницу.
+    // Один источник правды — hasNextPage с сервера.
+    const loadMoreRef = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        const el = loadMoreRef.current;
+        if (!el) {
+            return;
+        }
+        const observer = new IntersectionObserver(
+            (entries) => {
+                const entry = entries[0];
+                if (entry?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+                    void fetchNextPage();
+                }
+            },
+            { rootMargin: '200px' },
+        );
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
     // Отправить ответ: guard'ы — пустой текст, «чат не открыт» и «уже отправляем».
     const handleSend = async () => {
         if (!text.trim() || selectedId === null || sendMessage.isPending) {
@@ -84,7 +119,7 @@ export default function SupportPage() {
     }
 
     // Данные выбранной заявки (для «Ведёт: Имя» и кнопок взять/выйти).
-    const selected = tickets?.find((t) => t.id === selectedId) ?? null;
+    const selected = tickets.find((t) => t.id === selectedId) ?? null;
 
     return (
         <AuthGuard>
@@ -96,8 +131,10 @@ export default function SupportPage() {
                         <h1 className="pb-2 text-[25px] max-md:text-xl">Обращения в поддержку</h1>
                         <p className="pb-6 text-sm text-muted-foreground">Заявки пользователей: переписка и ответы.</p>
 
-                        <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-md:grid-cols-1">
-                            {tickets?.map((item) => (
+                        {/* 4 колонки на десктопе (компактные карточки), меньше на
+                            планшете, 1 колонка на телефоне — карточка не разъезжается. */}
+                        <div className="grid grid-cols-4 gap-4 max-lg:grid-cols-3 max-md:grid-cols-2 max-sm:grid-cols-1">
+                            {tickets.map((item) => (
                                 <TicketCard
                                     key={item.id}
                                     item={item}
@@ -110,6 +147,21 @@ export default function SupportPage() {
                                 />
                             ))}
                         </div>
+                        {tickets.length === 0 && (
+                            <p className="py-10 text-center text-muted-foreground">Заявок пока нет</p>
+                        )}
+                        {/* Sentinel: оказался на экране — догружаем следующую страницу. */}
+                        {hasNextPage && (
+                            <div
+                                ref={loadMoreRef}
+                                className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground"
+                            >
+                                {isFetchingNextPage && (
+                                    <span className="h-5 w-5 animate-spin rounded-full border-2 border-border border-t-primary" />
+                                )}
+                                {isFetchingNextPage ? 'Загружаем…' : 'Прокрутите вниз, чтобы загрузить ещё'}
+                            </div>
+                        )}
                     </>
                 ) : (
                     <SupportChat

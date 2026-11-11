@@ -95,14 +95,29 @@ export const supportRouter = createTRPCRouter({
 
     messages: protectedProcedure.input(z.object({ id: z.number() })).query(async ({ ctx, input }) => {
         const userId = ctx.session.user.id;
-        const [target] = await ctx.db.select().from(supportTicket).where(eq(supportTicket.id, input.id));
-        if (!target) {
+        // Один запрос вместо двух: заявка + проверка доступа + её сообщения
+        // с отправителями — всё через связи из relations.ts (leftJoin руками не нужен).
+        const ticket = await ctx.db.query.supportTicket.findFirst({
+            columns: { id: true, userId: true },
+            where: eq(supportTicket.id, input.id),
+            with: {
+                messages: {
+                    orderBy: asc(supportMessage.createdAt),
+                    with: {
+                        sender: {
+                            columns: { id: true, name: true, firstName: true, lastName: true, image: true },
+                        },
+                    },
+                },
+            },
+        });
+        if (!ticket) {
             throw new TRPCError({
                 code: 'NOT_FOUND',
                 message: 'Заявка не найдена',
             });
         }
-        const isOwner = target.userId === userId;
+        const isOwner = ticket.userId === userId;
         const isAdmin = isAdminRole(ctx.session.user.role);
         if (!isOwner && !isAdmin) {
             throw new TRPCError({
@@ -110,25 +125,8 @@ export const supportRouter = createTRPCRouter({
                 message: 'Нет доступа к этой заявке',
             });
         }
-        //leftJoin — формула одна: «приклей таблицу users ТАМ, где supportMessage.senderId совпадает с users.id»:
-        return (
-            ctx.db
-                // select({...}) = НАКЛАДНАЯ: как упаковать ответ фронту
-                .select({
-                    message: supportMessage,
-                    sender: {
-                        id: users.id,
-                        name: users.name,
-                        firstName: users.firstName,
-                        lastName: users.lastName,
-                        image: users.image,
-                    },
-                })
-                .from(supportMessage)
-                .leftJoin(users, eq(supportMessage.senderId, users.id))
-                .where(eq(supportMessage.ticketId, input.id))
-                .orderBy(asc(supportMessage.createdAt))
-        );
+        // Форма ответа прежняя ({ message, sender }) — клиенты не меняются.
+        return (ticket.messages ?? []).map((m) => ({ message: m, sender: m.sender }));
     }),
 
     markRead: protectedProcedure.input(z.object({ id: z.number() })).mutation(async ({ ctx, input }) => {
@@ -244,69 +242,87 @@ export const supportRouter = createTRPCRouter({
         const userId = ctx.session.user.id;
         return ctx.db.select().from(supportTicket).where(eq(supportTicket.userId, userId));
     }),
-    listAll: protectedProcedure.query(async ({ ctx }) => {
-        const userId = ctx.session.user.id;
-        if (!isAdminRole(ctx.session.user.role)) {
-            throw new TRPCError({
-                code: 'FORBIDDEN',
-                message: 'Только для администратора',
-            });
-        }
-        // Тикеты + ДАННЫЕ ВЛАДЕЛЬЦА (кто пишет обращение): email, id, имя.
-        // leftJoin: даже если пользователь удалён — тикет останется, owner будет null.
-        const tickets = await ctx.db
-            .select({
-                ticket: supportTicket,
-                owner: {
-                    id: users.id,
-                    name: users.name,
-                    firstName: users.firstName,
-                    email: users.email,
-                    image: users.image,
-                },
-                assignedAdmin: {
-                    id: assignedAdminUser.id,
-                    name: assignedAdminUser.name,
-                    firstName: assignedAdminUser.firstName,
-                    image: assignedAdminUser.image,
-                    // Роль ведущего (admin/superadmin/mainadmin) — для цветного бейджа статуса
-                    role: assignedAdminUser.role,
-                },
-            })
-            .from(supportTicket)
-            .leftJoin(users, eq(supportTicket.userId, users.id))
-            .leftJoin(assignedAdminUser, eq(supportTicket.assignedToId, assignedAdminUser.id));
-        const rows = await ctx.db
-            .select({ ticketId: supportMessage.ticketId, unread: count() })
-            .from(supportMessage)
-            .where(and(eq(supportMessage.isRead, false), ne(supportMessage.senderId, userId)))
-            .groupBy(supportMessage.ticketId);
-        // Когда было ПОСЛЕДНЕЕ сообщение в каждой заявке для сортивроки на верх
-        const unreadByTicket = new Map(rows.map((r) => [r.ticketId, r.unread]));
-        const lastRows = await ctx.db
-            .select({ ticketId: supportMessage.ticketId, lastAt: max(supportMessage.createdAt) })
-            .from(supportMessage)
-            .groupBy(supportMessage.ticketId);
-        // Словарь «id заявки → дата последнего сообщения»
-        const lastByTicket = new Map(lastRows.map((r) => [r.ticketId, r.lastAt]));
-        // Прячем ПУСТЫЕ заявки (без единого сообщения) из очереди админа:
-        // раньше заявка создавалась уже при открытии окна — таких накопилось.
-        // После ленивого создания (see openOrGetTicket / виджет) новых не будет;
-        // старые не мозолят глаза. Напишет юзер в пустую — у неё появится
-        // сообщение, и она тут же вернётся в очередь.
-        const withMessages = tickets.filter((t) => lastByTicket.has(t.ticket.id));
-        return withMessages
-            .map((t) => ({
-                // Разворачиваем поля самого тикета (id, status, createdAt...)
-                ...t.ticket,
-                // Кто написал обращение (для карточки в админке)
-                owner: t.owner,
-                assignedAdmin: t.assignedAdmin,
-                unreadCount: unreadByTicket.get(t.ticket.id) ?? 0,
-                lastActivity: lastByTicket.get(t.ticket.id) ?? t.ticket.createdAt,
-            }))
-            .sort((a, b) => b.lastActivity.getTime() - a.lastActivity.getTime());
-    }),
+    listAll: protectedProcedure
+        .input(
+            z.object({
+                // Пагинация НА СЕРВЕРЕ (табу «не отдавать лишнего»): клиент получает
+                // только одну страницу, а не тысячу заявок разом.
+                // limit — размер страницы, cursor — смещение (offset) для следующей.
+                limit: z.number().int().min(1).max(100).default(50),
+                cursor: z.number().int().min(0).nullish(),
+            }),
+        )
+        .query(async ({ ctx, input }) => {
+            const userId = ctx.session.user.id;
+            if (!isAdminRole(ctx.session.user.role)) {
+                throw new TRPCError({
+                    code: 'FORBIDDEN',
+                    message: 'Только для администратора',
+                });
+            }
+            // Тикеты + ДАННЫЕ ВЛАДЕЛЬЦА (кто пишет обращение): email, id, имя.
+            // leftJoin: даже если пользователь удалён — тикет останется, owner будет null.
+            const tickets = await ctx.db
+                .select({
+                    ticket: supportTicket,
+                    owner: {
+                        id: users.id,
+                        name: users.name,
+                        firstName: users.firstName,
+                        email: users.email,
+                        image: users.image,
+                    },
+                    assignedAdmin: {
+                        id: assignedAdminUser.id,
+                        name: assignedAdminUser.name,
+                        firstName: assignedAdminUser.firstName,
+                        image: assignedAdminUser.image,
+                        // Роль ведущего (admin/superadmin/mainadmin) — для цветного бейджа статуса
+                        role: assignedAdminUser.role,
+                    },
+                })
+                .from(supportTicket)
+                .leftJoin(users, eq(supportTicket.userId, users.id))
+                .leftJoin(assignedAdminUser, eq(supportTicket.assignedToId, assignedAdminUser.id));
+            const rows = await ctx.db
+                .select({ ticketId: supportMessage.ticketId, unread: count() })
+                .from(supportMessage)
+                .where(and(eq(supportMessage.isRead, false), ne(supportMessage.senderId, userId)))
+                .groupBy(supportMessage.ticketId);
+            // Когда было ПОСЛЕДНЕЕ сообщение в каждой заявке для сортивроки на верх
+            const unreadByTicket = new Map(rows.map((r) => [r.ticketId, r.unread]));
+            const lastRows = await ctx.db
+                .select({ ticketId: supportMessage.ticketId, lastAt: max(supportMessage.createdAt) })
+                .from(supportMessage)
+                .groupBy(supportMessage.ticketId);
+            // Словарь «id заявки → дата последнего сообщения»
+            const lastByTicket = new Map(lastRows.map((r) => [r.ticketId, r.lastAt]));
+            // Прячем ПУСТЫЕ заявки (без единого сообщения) из очереди админа:
+            // раньше заявка создавалась уже при открытии окна — таких накопилось.
+            // После ленивого создания (see openOrGetTicket / виджет) новых не будет;
+            // старые не мозолят глаза. Напишет юзер в пустую — у неё появится
+            // сообщение, и она тут же вернётся в очередь.
+            const sorted = tickets
+                .filter((t) => lastByTicket.has(t.ticket.id))
+                .map((t) => ({
+                    // Разворачиваем поля самого тикета (id, status, createdAt...)
+                    ...t.ticket,
+                    // Кто написал обращение (для карточки в админке)
+                    owner: t.owner,
+                    assignedAdmin: t.assignedAdmin,
+                    unreadCount: unreadByTicket.get(t.ticket.id) ?? 0,
+                    lastActivity: lastByTicket.get(t.ticket.id) ?? t.ticket.createdAt,
+                }))
+                .sort((a, b) => b.lastActivity.getTime() - a.lastActivity.getTime());
+            // Страница: срез от cursor до cursor + limit. nextCursor = null —
+            // всё показали, грузить больше нечего.
+            const offset = input.cursor ?? 0;
+            const nextCursor = offset + input.limit < sorted.length ? offset + input.limit : null;
+            return {
+                items: sorted.slice(offset, offset + input.limit),
+                nextCursor,
+            };
+        }),
     assign: protectedProcedure.input(z.object({ id: z.number() })).mutation(async ({ ctx, input }) => {
         if (!isAdminRole(ctx.session.user.role)) {
             throw new TRPCError({
@@ -391,7 +407,14 @@ export const supportRouter = createTRPCRouter({
         }
         const [updated] = await ctx.db
             .update(supportTicket)
-            .set({ status: 'closed' })
+            .set({
+                status: 'closed',
+                // Закрыли — значит никто больше не ведёт: админ не должен
+                // оставаться «подключённым» к закрытому чату. Пользователь
+                // напишет снова — заявка переоткроется БЕЗ ведущего, и любой
+                // админ сможет взять её заново.
+                assignedToId: null,
+            })
             .where(eq(supportTicket.id, input.id))
             .returning();
         // Уведомляем владельца: его обращение закрыто.

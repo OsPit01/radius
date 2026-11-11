@@ -76,7 +76,8 @@ export default function Users() {
                             scrollOnMobile
                         />
                     </div>
-                    <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-md:grid-cols-1">
+                    {/* 4 колонки на десктопе, меньше на планшете, 1 на телефоне. */}
+                    <div className="grid grid-cols-4 gap-4 max-lg:grid-cols-3 max-md:grid-cols-2 max-sm:grid-cols-1">
                         {visibleUsers.map((user) => (
                             <UserCard
                                 key={user.id}

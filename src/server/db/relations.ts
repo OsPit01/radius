@@ -2,6 +2,7 @@ import { relations } from 'drizzle-orm';
 
 import { accounts } from './schemas/account';
 import { sessions } from './schemas/session';
+import { supportMessage } from './schemas/support-message';
 import { supportTicket } from './schemas/support-ticket';
 import { users } from './schemas/user';
 
@@ -11,6 +12,7 @@ export const usersRelations = relations(users, ({ many }) => ({
     accounts: many(accounts),
     ownedSupportTickets: many(supportTicket, { relationName: 'supportTicketOwner' }),
     assignedSupportTickets: many(supportTicket, { relationName: 'supportTicketAssignedAdmin' }),
+    sentSupportMessages: many(supportMessage, { relationName: 'supportMessageSender' }),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -22,7 +24,8 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
 }));
 // Заявка поддержки: автор (owner) и ведущий админ (assignedAdmin) — ДВЕ связи
 // с users, поэтому обе получили relationName: по именам Drizzle их различает.
-export const supportTicketRelations = relations(supportTicket, ({ one }) => ({
+// messages: у заявки МНОГО сообщений — обратная сторона supportMessage.ticket.
+export const supportTicketRelations = relations(supportTicket, ({ one, many }) => ({
     owner: one(users, {
         fields: [supportTicket.userId],
         references: [users.id],
@@ -32,5 +35,19 @@ export const supportTicketRelations = relations(supportTicket, ({ one }) => ({
         fields: [supportTicket.assignedToId],
         references: [users.id],
         relationName: 'supportTicketAssignedAdmin',
+    }),
+    messages: many(supportMessage),
+}));
+
+// Сообщение поддержки: принадлежит ОДНОЙ заявке и написано ОДНИМ отправителем.
+export const supportMessageRelations = relations(supportMessage, ({ one }) => ({
+    ticket: one(supportTicket, {
+        fields: [supportMessage.ticketId],
+        references: [supportTicket.id],
+    }),
+    sender: one(users, {
+        fields: [supportMessage.senderId],
+        references: [users.id],
+        relationName: 'supportMessageSender',
     }),
 }));

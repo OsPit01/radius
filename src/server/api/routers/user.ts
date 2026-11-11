@@ -94,14 +94,7 @@ export const userRouter = createTRPCRouter({
         }),
     // 2. Получить одного пользователя по ID
     getById: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ ctx, input }) => {
-        // Безопасность: личные данные доступны только самому пользователю
-        // или администратору. Чужой id — запрещён.
-        if (input.id !== ctx.session.user.id && !isAdminRole(ctx.session.user.role)) {
-            throw new TRPCError({
-                code: 'FORBIDDEN',
-                message: 'Нет доступа к данным другого пользователя',
-            });
-        }
+        const isSelf = input.id === ctx.session.user.id;
 
         const [user] = await ctx.db
             .select({
@@ -127,6 +120,25 @@ export const userRouter = createTRPCRouter({
                 message: 'Пользователь не найден',
             });
         }
+
+        // Безопасность: личные данные доступны только САМОМУ пользователю
+        // или администратору. Иерархия ролей: админ не читает данные
+        // пользователя с равным или более высоким уровнем («читать наверх»).
+        if (!isSelf) {
+            if (!isAdminRole(ctx.session.user.role)) {
+                throw new TRPCError({
+                    code: 'FORBIDDEN',
+                    message: 'Нет доступа к данным другого пользователя',
+                });
+            }
+            if (getRoleInfo(user.role).level >= getRoleInfo(ctx.session.user.role).level) {
+                throw new TRPCError({
+                    code: 'FORBIDDEN',
+                    message: 'Нельзя читать данные пользователя с равным или более высоким уровнем',
+                });
+            }
+        }
+
         return user;
     }),
     // 3. Обновить роль пользователя (только для админа)
@@ -155,7 +167,9 @@ export const userRouter = createTRPCRouter({
                 .update(users)
                 .set({ role: input.role })
                 .where(eq(users.id, input.userId))
-                .returning();
+                // Только id: полная строка юзера содержит секретные поля
+                // (telegramLinkCode, telegramChatId) — их наружу не отдаём.
+                .returning({ id: users.id });
             return updatedUser;
         }),
 
@@ -264,7 +278,8 @@ export const userRouter = createTRPCRouter({
                     phone: input.phone ?? undefined,
                 })
                 .where(eq(users.id, input.userId))
-                .returning();
+                // Только id — секретные поля (telegram*) наружу не уходят.
+                .returning({ id: users.id });
             return updatedUser;
         }),
 
@@ -283,7 +298,8 @@ export const userRouter = createTRPCRouter({
                 .update(users)
                 .set({ bannedUntil: new Date(Date.now() + input.days * 86_400_000) })
                 .where(eq(users.id, input.userId))
-                .returning();
+                // Только id — секретные поля (telegram*) наружу не уходят.
+                .returning({ id: users.id });
             return updated;
         }),
 
@@ -295,7 +311,8 @@ export const userRouter = createTRPCRouter({
             .update(users)
             .set({ bannedUntil: null })
             .where(eq(users.id, input.userId))
-            .returning();
+            // Только id — секретные поля (telegram*) наружу не уходят.
+            .returning({ id: users.id });
         return updated;
     }),
 

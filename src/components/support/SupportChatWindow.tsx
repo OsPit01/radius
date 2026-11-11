@@ -13,19 +13,19 @@ type SupportChatWindowProps = {
     onClose: () => void;
 };
 
-/** Заметка о смене оператора в ленте («подключился» / «вышел»). */
-type OperatorNote = {
+/** Системная заметка в ленте: смена оператора или закрытие обращения. */
+type SupportNote = {
     id: number;
-    kind: 'join' | 'leave';
+    kind: 'join' | 'leave' | 'closed';
     text: string;
     /** id сообщения, ПОСЛЕ которого встаёт заметка; null — в начало ленты. */
     afterMessageId: number | null;
 };
 
-/** Элемент ленты: либо пузырь сообщения, либо заметка о смене оператора. */
+/** Элемент ленты: либо пузырь сообщения, либо системная заметка. */
 type FlowItem =
     | { kind: 'message'; row: RouterOutputs['support']['messages'][number] }
-    | { kind: 'note'; note: OperatorNote };
+    | { kind: 'note'; note: SupportNote };
 
 /**
  * Окно чата поддержки для ПОЛЬЗОВАТЕЛЯ (плавающий виджет).
@@ -123,21 +123,23 @@ export function SupportChatWindow({ onClose }: SupportChatWindowProps) {
     const lastMessage = messages && messages.length > 0 ? messages[messages.length - 1] : undefined;
     const isWaiting = myTicket?.status === 'open' && !operatorName && lastMessage?.message.senderId === myId;
 
-    // ===== Разовые заметки о смене оператора (строки в ленте) =====
-    // Сравниваем оператора между 5-секундными опросами myTicket:
+    // ===== Разовые системные заметки (строки в ленте) =====
+    // Сравниваем оператора и статус между 5-секундными опросами myTicket:
     // был null → появился: «Оператор Имя подключился к чату» (ОДИН раз);
     // был → стал null: «Оператор Имя вышел из чата»;
     // сменился Иван → Пётр (передача): только «Иван вышел из чата»,
-    // «подключился» при передаче НЕ показываем.
+    // «подключился» при передаче НЕ показываем;
+    // статус open → closed: «Обращение закрыто».
     // Каждая заметка ПРИВЯЗАНА к сообщению, после которого произошло
     // событие (afterMessageId): приходят новые сообщения — заметка
     // остаётся на своём месте, а не «ползёт» перед каждым новым.
-    const [operatorNotes, setOperatorNotes] = useState<OperatorNote[]>([]);
+    const [supportNotes, setSupportNotes] = useState<SupportNote[]>([]);
     const noteCounterRef = useRef(0);
     const prevOperatorRef = useRef<string | null | undefined>(undefined);
+    const prevStatusRef = useRef<string | null | undefined>(undefined);
     // id последнего сообщения из ПРЕДЫДУЩЕГО рендера — якорь для заметки.
-    // Обновляющий эффект объявлен ПОСЛЕ эффекта оператора: при смене
-    // оператора тот читает ещё не перезаписанное (прошлое) значение.
+    // Обновляющий эффект объявлен ПОСЛЕ эффектов событий: при смене
+    // оператора/статуса они читают ещё не перезаписанное (прошлое) значение.
     const prevLastMessageIdRef = useRef<number | null>(null);
     useEffect(() => {
         const current = operatorName;
@@ -164,12 +166,35 @@ export function SupportChatWindow({ onClose }: SupportChatWindowProps) {
             noteCounterRef.current += next.length;
             // Якорь — последнее сообщение ДО события (из прошлого рендера).
             const afterMessageId = prevLastMessageIdRef.current;
-            setOperatorNotes((existing) => [
+            setSupportNotes((existing) => [
                 ...existing,
                 ...next.map((note, index) => ({ id: startId + index + 1, afterMessageId, ...note })),
             ]);
         }
     }, [operatorName]);
+
+    // ===== Заметка о закрытии (разовая, в ленте) =====
+    // Статус сменился open → closed ПОКА ОКНО ОТКРЫТО — показать строку
+    // «Обращение закрыто» в том же дизайне, что и смену оператора.
+    // Открыл виджет уже ПОСЛЕ закрытия — заметки не будет (базовая линия),
+    // только постоянная строка «Ваше обращение закрыто» под шапкой.
+    useEffect(() => {
+        const current = myTicket?.status ?? null;
+        if (prevStatusRef.current === undefined) {
+            prevStatusRef.current = current;
+            return;
+        }
+        const prev = prevStatusRef.current;
+        prevStatusRef.current = current;
+        if (prev === 'open' && current === 'closed') {
+            noteCounterRef.current += 1;
+            const afterMessageId = prevLastMessageIdRef.current;
+            setSupportNotes((existing) => [
+                ...existing,
+                { id: noteCounterRef.current, kind: 'closed', text: 'Обращение закрыто', afterMessageId },
+            ]);
+        }
+    }, [myTicket?.status]);
 
     // Обновляем якорь ПОСЛЕ эффекта оператора (см. комментарий выше).
     useEffect(() => {
@@ -190,18 +215,18 @@ export function SupportChatWindow({ onClose }: SupportChatWindowProps) {
         />
     );
 
-    // Лента в хронологическом порядке: сообщения + заметки о смене оператора.
+    // Лента в хронологическом порядке: сообщения + системные заметки.
     // Заметка встаёт ПОСЛЕ сообщения-якоря и дальше не двигается —
     // показывается один раз, сколько бы новых сообщений ни пришло.
     const flowItems: FlowItem[] = [];
-    for (const note of operatorNotes) {
+    for (const note of supportNotes) {
         if (note.afterMessageId === null) {
             flowItems.push({ kind: 'note', note });
         }
     }
     for (const row of messages ?? []) {
         flowItems.push({ kind: 'message', row });
-        for (const note of operatorNotes) {
+        for (const note of supportNotes) {
             if (note.afterMessageId === row.message.id) {
                 flowItems.push({ kind: 'note', note });
             }
