@@ -89,5 +89,15 @@ export const apartments = pgTable(
                 ("payerType" <> 'individual' and ("unp" ~ '^[0-9]{9}$' or "unp" = ''))
             )`,
         ),
+        // Время заезда/выезда: формат ЧЧ:ММ или NULL. Тот же паттерн, что
+        // TIME_HHMM_REGEX: два текста — два РУБЕЖА защиты (zod + БД).
+        check(
+            'apartment_checkin_time_format',
+            sql`("checkInTime" IS NULL OR "checkInTime" ~ '^([01][0-9]|2[0-3]):[0-5][0-9]$')`,
+        ),
+        check(
+            'apartment_checkout_time_format',
+            sql`("checkOutTime" IS NULL OR "checkOutTime" ~ '^([01][0-9]|2[0-3]):[0-5][0-9]$')`,
+        ),
     ],
 );

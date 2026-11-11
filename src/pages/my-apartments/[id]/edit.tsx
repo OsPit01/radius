@@ -15,6 +15,7 @@ import { formatAddressLine } from '@/lib/address';
 import { AMENITIES, PARKING_TYPES } from '@/lib/constants';
 import { getUnpRule, PAYER_TYPE_OPTIONS } from '@/lib/constants/payer';
 import { isAdminRole } from '@/lib/constants/roles';
+import { TIME_OPTIONS } from '@/lib/constants/time';
 import { findNearestMetro, isMetroRegion } from '@/lib/metro';
 import { EDIT_INPUT_CLASS, sanitizeStreet, toggleAmenity } from '@/lib/utils';
 import { requireAuth } from '@/server/auth/require-auth';
@@ -23,8 +24,6 @@ import { requireAuth } from '@/server/auth/require-auth';
 import { Input } from '@/shared/ui/input';
 import { Textarea } from '@/shared/ui/textarea';
 import { api } from '@/trpc/react';
-
-const TIME_OPTIONS = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, '0')}:00`);
 
 function readFilesAsDataURL(files: FileList): Promise<string[]> {
     return Promise.all(
@@ -340,10 +339,10 @@ export default function EditApartmentPage() {
                                         >
                                             {TIME_OPTIONS.map((t) => (
                                                 <option
-                                                    key={t}
-                                                    value={t}
+                                                    key={t.value}
+                                                    value={t.value}
                                                 >
-                                                    {t}
+                                                    {t.label}
                                                 </option>
                                             ))}
                                         </select>
@@ -357,10 +356,10 @@ export default function EditApartmentPage() {
                                         >
                                             {TIME_OPTIONS.map((t) => (
                                                 <option
-                                                    key={t}
-                                                    value={t}
+                                                    key={t.value}
+                                                    value={t.value}
                                                 >
-                                                    {t}
+                                                    {t.label}
                                                 </option>
                                             ))}
                                         </select>

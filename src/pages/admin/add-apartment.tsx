@@ -9,6 +9,7 @@ import { Step3_Details } from '@/components/admin/add-apartment/steps/Step3_Deta
 import { Step4_Images } from '@/components/admin/add-apartment/steps/Step4_Images';
 import { ClientHeader } from '@/components/layout/ClientHeader';
 import { Modal } from '@/components/ui/Modal';
+import { CHECK_IN_TIME_DEFAULT, CHECK_OUT_TIME_DEFAULT } from '@/lib/constants/time';
 import { type AddressPatch, type FieldPath, type FormData, patchAddress, validateStep } from '@/lib/utils';
 import { requireAuth } from '@/server/auth/require-auth';
 
@@ -47,8 +48,8 @@ export default function AddApartmentPage() {
         amenities: [],
         parking: '',
         images: [],
-        checkInTime: '14:00',
-        checkOutTime: '12:00',
+        checkInTime: CHECK_IN_TIME_DEFAULT,
+        checkOutTime: CHECK_OUT_TIME_DEFAULT,
         payerType: 'individual',
         unp: '',
         payerName: '',

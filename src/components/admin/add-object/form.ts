@@ -1,6 +1,7 @@
 import type { FieldErrors, Resolver } from 'react-hook-form';
 
 import { isParkingType } from '@/lib/constants/parking';
+import { CHECK_IN_TIME_DEFAULT, CHECK_OUT_TIME_DEFAULT } from '@/lib/constants/time';
 import { isMetroRegion } from '@/lib/metro';
 import { isMetroWalkable } from '@/lib/metro-limit';
 import { type CreateApartmentInput, createApartmentInput } from '@/lib/schemas/apartment';
@@ -48,8 +49,8 @@ export function createEmptyApartmentForm(): ApartmentForm {
         amenities: [],
         parking: '',
         images: [],
-        checkInTime: '14:00',
-        checkOutTime: '12:00',
+        checkInTime: CHECK_IN_TIME_DEFAULT,
+        checkOutTime: CHECK_OUT_TIME_DEFAULT,
         payerType: 'individual',
         unp: '',
         payerName: '',

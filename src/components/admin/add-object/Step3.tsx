@@ -3,6 +3,7 @@ import { Controller, useFormContext } from 'react-hook-form';
 
 import { AMENITIES, BASE_CURRENCY_SYMBOL, PARKING_TYPES } from '@/lib/constants';
 import { PAYER_TYPE_OPTIONS } from '@/lib/constants/payer';
+import { TIME_OPTIONS } from '@/lib/constants/time';
 import { createApartmentInput } from '@/lib/schemas/apartment';
 import { Field, FieldError, FieldGroup, FieldLabel, FieldLegend, FieldRequired, FieldSet } from '@/shared/ui/field';
 import { Input } from '@/shared/ui/input';
@@ -19,11 +20,6 @@ const SLEEP_OPTIONS = Array.from({ length: 11 }, (_, i) => ({
     value: String(i),
     label: i === 0 ? 'Нет' : String(i),
 }));
-
-const TIME_OPTIONS = Array.from({ length: 24 }, (_, i) => {
-    const time = `${String(i).padStart(2, '0')}:00`;
-    return { value: time, label: time };
-});
 
 export function Step3() {
     const {

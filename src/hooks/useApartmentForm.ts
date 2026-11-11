@@ -7,6 +7,7 @@ import { isAmenity } from '@/lib/constants';
 import { isParkingType } from '@/lib/constants/parking';
 import { type PayerType } from '@/lib/constants/payer';
 import type { ApartmentType } from '@/lib/constants/property';
+import { CHECK_IN_TIME_DEFAULT, CHECK_OUT_TIME_DEFAULT } from '@/lib/constants/time';
 import { api } from '@/trpc/react';
 
 export type ApartmentFormData = {
@@ -74,8 +75,8 @@ const defaultFormData: ApartmentFormData = {
     amenities: [],
     parking: '',
     images: [],
-    checkInTime: '14:00',
-    checkOutTime: '12:00',
+    checkInTime: CHECK_IN_TIME_DEFAULT,
+    checkOutTime: CHECK_OUT_TIME_DEFAULT,
     payerType: 'individual',
     payerName: '',
     unp: '',
@@ -141,8 +142,8 @@ export function useApartmentForm(apartmentId: string) {
                 amenities: apt.amenities ?? [],
                 parking: apt.parking ?? '',
                 images: apt.images ?? [],
-                checkInTime: apt.checkInTime ?? '14:00',
-                checkOutTime: apt.checkOutTime ?? '12:00',
+                checkInTime: apt.checkInTime ?? CHECK_IN_TIME_DEFAULT,
+                checkOutTime: apt.checkOutTime ?? CHECK_OUT_TIME_DEFAULT,
                 payerType: apt.payerType ?? 'individual',
                 payerName: apt.payerName ?? '',
                 unp: apt.unp ?? '',

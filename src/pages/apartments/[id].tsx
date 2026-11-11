@@ -15,6 +15,7 @@ import { formatAddressLine } from '@/lib/address';
 import { parseApartmentId } from '@/lib/apartment-id';
 import { BASE_CURRENCY_SYMBOL, formatByn } from '@/lib/constants/currencies';
 import { DEFAULT_IMAGE_URL } from '@/lib/constants/images';
+import { CHECK_IN_TIME_DEFAULT, CHECK_OUT_TIME_DEFAULT } from '@/lib/constants/time';
 import { parseBookingChildren, parseBookingGuests } from '@/lib/search-params';
 import { getApartmentOgImagePath, SITE_URL } from '@/lib/seo';
 import { transliterate } from '@/lib/transliterate';
@@ -186,11 +187,11 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
                             <p className="text-sm text-foreground">
                                 Заселение после{' '}
                                 <span className="border-b-[1px] px-2 py-0.5 text-[13px] font-medium text-foreground">
-                                    {apartment.apartment.checkInTime ?? '14:00'}
+                                    {apartment.apartment.checkInTime ?? CHECK_IN_TIME_DEFAULT}
                                 </span>{' '}
                                 выезд до{' '}
                                 <span className="border-b-[1px] px-2 py-0.5 text-[13px] font-medium text-foreground">
-                                    {apartment.apartment.checkOutTime ?? '12:00'}
+                                    {apartment.apartment.checkOutTime ?? CHECK_OUT_TIME_DEFAULT}
                                 </span>
                             </p>
                         </div>

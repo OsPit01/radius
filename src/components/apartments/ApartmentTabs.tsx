@@ -4,6 +4,7 @@ import { ApartmentMap } from '@/components/apartments/ApartmentMap';
 import { AlarmClock, Check, Clipboard, Clock, MapView, Note, Sparkles } from '@/components/icons';
 import { SegmentedTabs } from '@/components/ui/SegmentedTabs';
 import { AMENITIES } from '@/lib/constants/amenities';
+import { CHECK_IN_TIME_DEFAULT, CHECK_OUT_TIME_DEFAULT } from '@/lib/constants/time';
 
 const TABS = [
     { id: 0, label: 'Описание', Icon: Note },
@@ -89,14 +90,14 @@ export function ApartmentTabs({
                                         <Clock className="h-5 w-5" />
                                         <span>Заселение после</span>
                                         <span className="ml-auto rounded-lg bg-primary px-2.5 py-1 text-sm font-semibold text-primary-foreground">
-                                            {checkInTime ?? '14:00'}
+                                            {checkInTime ?? CHECK_IN_TIME_DEFAULT}
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2.5 rounded-xl bg-muted px-3.5 py-3 text-sm text-foreground">
                                         <Clock className="h-5 w-5" />
                                         <span>Выезд до</span>
                                         <span className="ml-auto rounded-lg bg-primary px-2.5 py-1 text-sm font-semibold text-primary-foreground">
-                                            {checkOutTime ?? '12:00'}
+                                            {checkOutTime ?? CHECK_OUT_TIME_DEFAULT}
                                         </span>
                                     </div>
                                 </div>

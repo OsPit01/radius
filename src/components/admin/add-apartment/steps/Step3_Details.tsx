@@ -2,6 +2,7 @@ import { Car, Clipboard, Clock, Money, Note, Ruler, Sofa, Sparkles } from '@/com
 import { formatAddressLine } from '@/lib/address';
 import { AMENITIES, getTypeLabel, PARKING_TYPES } from '@/lib/constants';
 import { PAYER_TYPE_OPTIONS } from '@/lib/constants/payer';
+import { CHECK_IN_TIME_DEFAULT, CHECK_OUT_TIME_DEFAULT, TIME_OPTIONS } from '@/lib/constants/time';
 import type { StepProps } from '@/lib/utils';
 import { EDIT_INPUT_CLASS, INPUT_CLASS, toggleAmenity } from '@/lib/utils';
 
@@ -12,12 +13,6 @@ export function Step3_Details({ formData, updateField, error, errors }: StepProp
     const SLEEP_OPTIONS = Array.from({ length: 11 }, (_, i) => ({
         value: String(i),
         label: i === 0 ? 'Нет' : String(i),
-    }));
-
-    // ===== ОПЦИИ ДЛЯ ВЫБОРА ВРЕМЕНИ ЗАЕЗДА/ВЫЕЗДА (каждый час) =====
-    const TIME_OPTIONS = Array.from({ length: 24 }, (_, i) => ({
-        value: `${String(i).padStart(2, '0')}:00`,
-        label: `${String(i).padStart(2, '0')}:00`,
     }));
 
     // ===== ФУНКЦИЯ ДЛЯ ЧЕКБОКСОВ УДОБСТВ =====
@@ -372,7 +367,7 @@ export function Step3_Details({ formData, updateField, error, errors }: StepProp
                     </label>
                     <CustomSelect
                         options={TIME_OPTIONS}
-                        value={formData.checkInTime || '14:00'}
+                        value={formData.checkInTime || CHECK_IN_TIME_DEFAULT}
                         onChange={(value) => updateField('checkInTime', value)}
                     />
                 </div>
@@ -385,7 +380,7 @@ export function Step3_Details({ formData, updateField, error, errors }: StepProp
                     </label>
                     <CustomSelect
                         options={TIME_OPTIONS}
-                        value={formData.checkOutTime || '12:00'}
+                        value={formData.checkOutTime || CHECK_OUT_TIME_DEFAULT}
                         onChange={(value) => updateField('checkOutTime', value)}
                     />
                 </div>
