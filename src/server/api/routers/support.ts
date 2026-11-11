@@ -54,21 +54,18 @@ export const supportRouter = createTRPCRouter({
     // ============================================================
     myTicket: protectedProcedure.query(async ({ ctx }) => {
         const userId = ctx.session.user.id;
-        const [ticket] = await ctx.db
-            .select({
-                id: supportTicket.id,
-                status: supportTicket.status,
-                assignedAdmin: {
-                    name: assignedAdminUser.name,
-                    firstName: assignedAdminUser.firstName,
-                    email: assignedAdminUser.email,
-                },
-            })
-            .from(supportTicket)
-            .leftJoin(assignedAdminUser, eq(supportTicket.assignedToId, assignedAdminUser.id))
-            .where(eq(supportTicket.userId, userId))
-            .orderBy(desc(supportTicket.createdAt))
-            .limit(1);
+        // findFirst: первая подходящая строка или undefined. leftJoin и alias
+        // больше не нужны — связь assignedAdmin описана в relations.ts.
+        const ticket = await ctx.db.query.supportTicket.findFirst({
+            // Табу «не отдавать лишнего»: из заявки клиенту нужны только id и статус.
+            columns: { id: true, status: true },
+            where: eq(supportTicket.userId, userId),
+            orderBy: desc(supportTicket.createdAt),
+            // «Вместе с» ведущим админом — только имя, firstName и email.
+            with: {
+                assignedAdmin: { columns: { name: true, firstName: true, email: true } },
+            },
+        });
         return ticket ?? null;
     }),
 
