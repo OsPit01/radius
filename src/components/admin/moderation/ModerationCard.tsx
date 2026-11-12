@@ -45,7 +45,7 @@ export function ModerationCard({ item, canManage }: ModerationCardProps) {
         // overflow-hidden — чтобы фото не вылезало за скруглённые углы
         <>
             <div className="flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-                <div className="relative aspect-[16/9] w-full bg-muted">
+                <div className="relative aspect-[16/10] w-full bg-muted">
                     <ImageWithFallback
                         src={item.apartment.images?.[0]}
                         alt={item.apartment.title}
@@ -53,79 +53,80 @@ export function ModerationCard({ item, canManage }: ModerationCardProps) {
                         className="object-cover"
                     />
                 </div>
-                {/* ТЕКСТ. flex flex-col gap-2 — всё столбиком с промежутком 0.5rem.
-          flex-1 — растягивает блок, чтобы кнопки прижимались к низу карточки. */}
-                <div className="flex flex-1 flex-col gap-2 p-5">
-                    {/* заголовок */}
-                    <p className="text-lg font-semibold text-foreground">{item.apartment.title}</p>
+                {/* ТЕКСТ. Компактные поля p-3 — карточки в 4 колонки узкие, большие
+                    отступы съедали место. gap-1.5 — ровный мелкий шаг между строками. */}
+                <div className="flex flex-1 flex-col gap-1.5 p-3">
+                    {/* заголовок: line-clamp-2 — длинные названия не растягивают карточку */}
+                    <p className="line-clamp-2 text-sm leading-[1.3] font-semibold text-foreground">
+                        {item.apartment.title}
+                    </p>
                     {/* город + цена. "·" — просто разделитель-точка в тексте */}
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                         {item.apartment.city} · {formatByn(item.apartment.price)}
                     </p>
                     {/* СТАТУС — цветной бейдж. Цвет динамический, поэтому через style,
             а не через Tailwind (Tailwind не умеет динамические цвета). */}
                     <span
                         style={{ background: statusInfo.color }}
-                        className="w-fit rounded-full px-3 py-1 text-xs font-semibold tracking-wide text-white uppercase"
+                        className="w-fit rounded-full px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-white uppercase"
                     >
                         {statusInfo.label}
                     </span>
-                    {/* ВЛАДЕЛЕЦ. item.user может быть null (leftJoin), поэтому "?" */}
-                    <p className="text-sm break-words text-muted-foreground">
-                        Email: {item.user?.email ?? 'нет данных'}
-                    </p>
-                    <p className="break-word text-sm text-muted-foreground">ФИО: {item.user?.name}</p>
+                    {/* ВЛАДЕЛЕЦ. item.user может быть null (leftJoin), поэтому "?".
+                        Мелкий текст xs + truncate — почта не растянет карточку */}
+                    <p className="truncate text-xs text-muted-foreground">Email: {item.user?.email ?? 'нет данных'}</p>
+                    <p className="truncate text-xs text-muted-foreground">ФИО: {item.user?.name}</p>
                     {/* Юр данные */}
-                    <p className="text-sm text-muted-foreground">{getPayerLabel(item.apartment.payerType)}</p>
-                    <p className="text-[12px] break-words text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">{getPayerLabel(item.apartment.payerType)}</p>
+                    <p className="text-xs break-words text-muted-foreground">
                         УНП: {item.apartment.unp ?? 'не указан'}
                     </p>
-                    {/* //кнопки: ОДОБРОИТЬ/ОТКЛОНИТЬ  mt-auto прижимает к низу карточки.
-                        disabled: «Одобрить» не активна для уже одобренных,
-                        «Отклонить» — для уже отклонённых (бессмысленные действия). */}
-                    <div className="mt-auto flex gap-2 pt-4 max-[480px]:flex-col">
+                    {/* ===== НИЗ КАРТОЧКИ: единый ритм отступов =====
+                        mt-auto ТОЛЬКО здесь — прижимает кнопки к низу карточки.
+                        Кнопки компактные (px-2 py-1, text-[11px], truncate):
+                        в 4 колонках на кнопку ~120px — длинные подписи («Редактировать»)
+                        обрезаются многоточием, а не вылезают за границу. */}
+                    <div className="mt-auto flex gap-1.5 pt-3">
                         <button
                             onClick={() => updateStatus.mutate({ id: item.apartment.id, status: 'active' })}
                             disabled={isActive}
-                            // title — подсказка при наведении: ЧЕМУ кнопка не активна
                             title={isActive ? 'Объект уже одобрен' : undefined}
-                            className="flex-1 cursor-pointer rounded-[30px] bg-success px-5 py-2 text-sm font-semibold text-success-foreground transition-colors hover:bg-success/90 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="flex min-w-0 flex-1 justify-center overflow-hidden rounded-[30px] bg-success px-2 py-1 text-[11px] font-semibold text-success-foreground transition-colors hover:bg-success/90 disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                            Одобрить
+                            <span className="truncate">Одобрить</span>
                         </button>
                         <button
                             onClick={() => setRejectOpen(true)}
                             disabled={isInactive}
                             title={isInactive ? 'Объект уже отклонён' : undefined}
-                            className="flex-1 cursor-pointer rounded-[30px] border border-border px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-warning hover:text-warning disabled:cursor-not-allowed disabled:opacity-50"
+                            className="flex min-w-0 flex-1 justify-center overflow-hidden rounded-[30px] border border-border px-2 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:border-warning hover:text-warning disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                            Отклонить
+                            <span className="truncate">Отклонить</span>
                         </button>
                     </div>
                     {/* Кнопки: УДАЛИТЬ/РЕДАКТИРОВАТЬ — только для админа+ (canManage).
                         Модератору их не показываем: сервер эти действия для него
-                        закрывает (delete/update — admin+), кнопки бы просто врали. */}
+                        закрывает (delete/update — admin+), кнопки бы просто врали.
+                        «Редактировать» — Link со стилями кнопки (не button внутри Link):
+                        вложенный интерактив ломает клавиатуру и скринридеры. */}
                     {canManage && (
-                        <div className="mt-auto flex gap-2 pt-4 max-[480px]:flex-col">
+                        <div className="flex gap-1.5 pt-2">
                             <button
                                 onClick={() => setDeleteOpen(true)}
-                                className="flex-1 cursor-pointer rounded-[30px] border border-border px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
+                                className="flex min-w-0 flex-1 justify-center overflow-hidden rounded-[30px] border border-border px-2 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
                             >
-                                Удалить
+                                <span className="truncate">Удалить</span>
                             </button>
-
                             <Link
                                 href={`/my-apartments/${item.apartment.id}/edit`}
-                                className="flex-1 max-[480px]:w-full"
+                                className="flex min-w-0 flex-1 justify-center overflow-hidden rounded-[30px] border border-border px-2 py-1 text-[11px] font-medium text-muted-foreground no-underline transition-colors hover:border-primary hover:text-primary"
                             >
-                                <button className="w-full cursor-pointer rounded-[30px] border border-border px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary">
-                                    Редактировать
-                                </button>
+                                <span className="truncate">Редактировать</span>
                             </Link>
                         </div>
                     )}
-                    {/* ID ОБЪЕКТА */}
-                    <p className="text-sm text-muted-foreground">ID: {item.apartment.id}</p>
+                    {/* ID ОБЪЕКТА — мелкой строкой в общем ритме (gap-2), как ID в «моих объектах» */}
+                    <p className="pt-2 text-xs font-bold text-muted-foreground">ID: {item.apartment.id}</p>
                     {/*////////////////// Часть Modal //////////////////////*/}
                     <Modal
                         open={deleteOpen}

@@ -44,12 +44,13 @@ export default function FavoritesPage() {
                             </Link>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-2 gap-[50px] max-md:grid-cols-1 max-md:gap-5">
+                        <div className="grid grid-cols-4 gap-4 max-[520px]:grid-cols-1 max-lg:grid-cols-3 max-md:grid-cols-2">
                             {favorites.map((apartment) => (
                                 <ApartmentCard
                                     key={apartment.id}
                                     apartment={getApartmentCardData(apartment)}
                                     isFavorite={true}
+                                    compact
                                 />
                             ))}
                         </div>

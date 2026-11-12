@@ -51,7 +51,9 @@ export default function ModerationPage() {
                 <ClientHeader />
 
                 <div className="mx-auto max-w-[1200px] px-4 py-10">
-                    {/* ПОИСК ПО ID (INPUT) */}
+                    <h1 className="text-semibold pb-2 text-[25px] max-md:text-xl">Модерация объектов</h1>
+
+                    {/* ПОИСК ПО ID (INPUT) — под заголовком: заголовок всегда первый на странице */}
                     <div className="mb-5">
                         <input
                             type="text"
@@ -62,9 +64,8 @@ export default function ModerationPage() {
                             className={`${EDIT_INPUT_CLASS} w-full`}
                         />
                     </div>
-                    <h1 className="text-semibold pb-2 text-[25px] max-md:text-xl">Модерация объектов</h1>
 
-                    <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-md:grid-cols-1">
+                    <div className="grid grid-cols-4 gap-4 max-lg:grid-cols-2 max-md:grid-cols-1">
                         {filteredData.map((item) => (
                             <ModerationCard
                                 key={item.apartment.id}

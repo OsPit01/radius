@@ -14,11 +14,15 @@ export function ApartmentCard({
     isFavorite,
     guests,
     childrenCount,
+    compact = false,
 }: {
     apartment: ApartmentCardData;
     isFavorite: boolean;
     guests?: number;
     childrenCount?: number;
+    /** Компактный режим: фото ниже, текст и чипы мельче — для плотных сеток
+     *  личного кабинета (избранное). Витринный каталог использует полный размер. */
+    compact?: boolean;
 }) {
     //Сессия
     const { data: session } = useSession();
@@ -77,12 +81,15 @@ export function ApartmentCard({
                 href={href}
                 className="overflow-hidden rounded-2xl border border-border bg-card p-0.5"
             >
-                <div className="relative h-[350px] w-full overflow-hidden max-md:h-[250px]">
+                <div
+                    className={`relative w-full overflow-hidden ${compact ? 'h-[180px] max-md:h-[200px]' : 'h-[350px] max-md:h-[250px]'}`}
+                >
                     <ImageWithFallback
                         src={apartment.images[0]}
                         alt={apartment.title}
                         fill
                         className="rounded-[15px] object-cover"
+                        sizes={compact ? '(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw' : undefined}
                     />
                     <button
                         type="button"
@@ -110,40 +117,60 @@ export function ApartmentCard({
                         {formatByn(apartment.price)}
                     </span>
                 </div>
-                <div className="px-2.5 pt-3 pb-1">
-                    <h3 className="text-[18px] font-semibold break-words max-md:text-base">{apartment.title}</h3>
+                <div className={compact ? 'px-2.5 pt-2 pb-0.5' : 'px-2.5 pt-3 pb-1'}>
+                    <h3
+                        className={`font-semibold break-words ${compact ? 'line-clamp-2 text-sm leading-[1.3]' : 'text-[18px]'} max-md:text-base`}
+                    >
+                        {apartment.title}
+                    </h3>
                 </div>
-                <div className="flex px-3.5 pt-1 pt-4 pb-2 text-sm font-normal break-words">
+                <div
+                    className={`flex font-normal break-words ${compact ? 'px-2.5 pt-1 text-xs' : 'px-3.5 pt-1 pt-4 pb-2 text-sm'}`}
+                >
                     {apartment.city}
                     {apartment.district ? `, ${apartment.district}` : ''}
                 </div>
+                {/* Чипы характеристик: в компактном режиме — короткие подписи и мелкий шрифт,
+                    чтобы чипы не расползались в узкой карточке */}
                 <div className="flex flex-wrap gap-1.5 px-2.5 pt-2">
-                    <span className="rounded-[15px] border border-border bg-muted px-2.5 py-1 text-sm font-normal">
+                    <span
+                        className={`rounded-[15px] border border-border bg-muted font-normal ${compact ? 'px-2 py-0.5 text-xs' : 'px-2.5 py-1 text-sm'}`}
+                    >
                         {' '}
-                        количество комнат: {apartment.rooms}
+                        {compact ? 'комн:' : 'количество комнат:'} {apartment.rooms}
                     </span>
-                    <span className="rounded-[15px] border border-border bg-muted px-2.5 py-1 text-sm font-normal">
+                    <span
+                        className={`rounded-[15px] border border-border bg-muted font-normal ${compact ? 'px-2 py-0.5 text-xs' : 'px-2.5 py-1 text-sm'}`}
+                    >
                         {apartment.capacity} {pluralRu(apartment.capacity, 'гость', 'гостя', 'гостей')}
                     </span>
                 </div>
                 <div className="flex flex-wrap gap-1.5 px-2.5 pt-1.5">
                     {apartment.beds > 0 && (
-                        <span className="rounded-[15px] border border-border bg-muted px-2.5 py-1 text-sm font-normal">
+                        <span
+                            className={`rounded-[15px] border border-border bg-muted font-normal ${compact ? 'px-2 py-0.5 text-xs' : 'px-2.5 py-1 text-sm'}`}
+                        >
                             Кровать: {apartment.beds}
                         </span>
                     )}
                     {apartment.singleBeds > 0 && (
-                        <span className="rounded-[15px] border border-border bg-muted px-2.5 py-1 text-sm font-normal">
+                        <span
+                            className={`rounded-[15px] border border-border bg-muted font-normal ${compact ? 'px-2 py-0.5 text-xs' : 'px-2.5 py-1 text-sm'}`}
+                        >
                             Односпальная: {apartment.singleBeds}
                         </span>
                     )}
                     {apartment.doubleSofas > 0 && (
-                        <span className="rounded-[15px] border border-border bg-muted px-2.5 py-1 text-sm font-normal">
+                        <span
+                            className={`rounded-[15px] border border-border bg-muted font-normal ${compact ? 'px-2 py-0.5 text-xs' : 'px-2.5 py-1 text-sm'}`}
+                        >
                             Дв. диван: {apartment.doubleSofas}
                         </span>
                     )}
                     {apartment.singleSofas > 0 && (
-                        <span className="rounded-[15px] border border-border bg-muted px-2.5 py-1 text-sm font-normal">
+                        <span
+                            className={`rounded-[15px] border border-border bg-muted font-normal ${compact ? 'px-2 py-0.5 text-xs' : 'px-2.5 py-1 text-sm'}`}
+                        >
                             Одн. диван: {apartment.singleSofas}
                         </span>
                     )}
