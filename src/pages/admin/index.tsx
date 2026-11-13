@@ -25,7 +25,7 @@ const SECTIONS: readonly { href: string; label: string; icon: IconComponent; min
     { href: '/admin/conversations', label: 'Все беседы', icon: Chat, minRole: 'admin' },
     { href: '/admin/statistics', label: 'Общая статистика', icon: BarChart, minRole: 'admin' },
     { href: '/admin/requisites', label: 'Реквизиты сайта', icon: Settings, minRole: 'admin' },
-    { href: '/admin/add-apartment', label: 'Добавить квартиру', icon: Home, minRole: 'admin' },
+    { href: '/my-apartments/new', label: 'Добавить квартиру', icon: Home, minRole: 'admin' },
 ];
 
 export default function AdminPage() {
