@@ -127,3 +127,22 @@ export const selectApartmentPublic = (db: Database) =>
         })
         .from(apartments)
         .leftJoin(users, eq(apartments.createdById, users.id));
+
+/** Одна квартира + данные владельца — для ПРИВАТНЫХ процедур (владелец / модерация). */
+export const selectApartmentWithUser = (db: Database) =>
+    db
+        .select({
+            apartment: apartmentPrivateColumns,
+            user: {
+                id: users.id,
+                name: users.name,
+                email: users.email,
+                image: users.image,
+                phone: users.phone,
+                firstName: users.firstName,
+                lastName: users.lastName,
+                patronymic: users.patronymic,
+            },
+        })
+        .from(apartments)
+        .leftJoin(users, eq(apartments.createdById, users.id));

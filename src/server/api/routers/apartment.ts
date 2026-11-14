@@ -1,13 +1,14 @@
 import { TRPCError } from '@trpc/server';
-import { and, eq, gt, gte, ilike, lte, or, type SQL, sql } from 'drizzle-orm';
-import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { and, eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { formatAddressLine } from '@/lib/address';
-import { APARTMENT_STATUS_VALUES, buildStatusNotificationText } from '@/lib/constants/apartment-status';
+import { APARTMENT_STATUS_VALUES } from '@/lib/constants/apartment-status';
 import { isAdminRole, isStaffRole } from '@/lib/constants/roles';
 import { createApartmentInput, updateApartmentInput } from '@/lib/schemas/apartment';
 import { isAddressChanged } from '@/server/apartment-address';
+import { buildCatalogConditions, catalogFiltersSchema } from '@/server/apartment-filters';
+import { notifyOwnerAboutStatusChange } from '@/server/apartment-moderation';
 import {
     apartmentPrivateColumns,
     hideTestApartments,
@@ -15,126 +16,33 @@ import {
     selectApartmentCards,
     selectApartmentOwnList,
     selectApartmentPublic,
+    selectApartmentWithUser,
 } from '@/server/apartment-selects';
 import { createTRPCRouter, protectedProcedure, publicProcedure } from '@/server/api/trpc';
-import type * as schema from '@/server/db/schemas';
-import { apartments, notification, users } from '@/server/db/schemas';
+import { apartments } from '@/server/db/schemas';
 import { getSupabaseAdmin } from '@/server/supabase';
-
-type Database = PostgresJsDatabase<typeof schema>;
 
 // ===== ОБЩИЕ СХЕМЫ ВВОДА =====
 const apartmentIdInput = z.object({
     id: z.number().int().positive('Некорректный идентификатор объекта'),
 });
 
-// ===== ЗАПРОС ДЛЯ ПРИВАТНЫХ ПРОЦЕДУР (владелец / админ) =====
-// Здесь отдаём квартиру целиком: нужны все поля, включая служебные (кроме места в выдаче — rank).
-// Публичные процедуры (главная, страница объекта) так делать НЕ должны —
-// они используют selectApartmentCards / selectApartmentPublic из
-// src/server/apartment-selects.ts, где список безопасных полей один на всех.
-const selectApartmentWithUser = (db: Database) =>
-    db
-        .select({
-            apartment: apartmentPrivateColumns,
-            user: {
-                id: users.id,
-                name: users.name,
-                email: users.email,
-                image: users.image,
-                phone: users.phone,
-                firstName: users.firstName,
-                lastName: users.lastName,
-                patronymic: users.patronymic,
-            },
-        })
-        .from(apartments)
-        .leftJoin(users, eq(apartments.createdById, users.id));
-
 // Схемы ввода объекта строятся из таблицы apartments — см. src/lib/schemas/apartment.ts
 export const apartmentRouter = createTRPCRouter({
     // 1. Получить все квартиры (с фильтрами для SEO-страниц каталога)
-    getAll: publicProcedure
-        .input(
-            z
-                .object({
-                    // Свободный поиск: город, улица или микрорайон содержит строку.
-                    city: z.string().trim().min(1).optional(),
-                    // Точное название города (apartments.city) — для страниц каталога /rent/flat/{город}/...
-                    exactCity: z.string().trim().min(1).optional(),
-                    // Точное название микрорайона, без учёта регистра: в БД оно набрано руками
-                    // («Новая боровая»), а на сайте пишется «Новая Боровая».
-                    microdistrict: z.string().trim().min(1).optional(),
-                    guests: z.number().int().min(1).optional(),
-                    priceMin: z.number().int().min(0).optional(),
-                    priceMax: z.number().int().min(0).optional(),
-                    rooms: z.number().int().min(1).optional(),
-                    beds: z.number().int().min(1).optional(),
-                    sofas: z.number().int().min(1).optional(),
-                    metro: z.number().int().min(1).optional(),
-                    limit: z.number().int().min(1).max(100).optional(),
-                    offset: z.number().int().min(0).optional(),
-                })
-                .optional(),
-        )
-        .query(async ({ ctx, input }) => {
-            const conditions: (SQL | undefined)[] = [
-                eq(apartments.status, 'active'),
-                hideTestApartments(ctx.session?.user.role),
-            ];
+    getAll: publicProcedure.input(catalogFiltersSchema.optional()).query(async ({ ctx, input }) => {
+        const conditions = buildCatalogConditions(input, ctx.session?.user.role);
 
-            if (input?.city) {
-                conditions.push(
-                    or(
-                        ilike(apartments.city, `%${input.city}%`),
-                        ilike(apartments.street, `%${input.city}%`),
-                        ilike(apartments.microdistrict, `%${input.city}%`),
-                    ),
-                );
-            }
-            if (input?.exactCity) {
-                conditions.push(eq(apartments.city, input.exactCity));
-            }
-            if (input?.microdistrict) {
-                conditions.push(sql`lower(trim(${apartments.microdistrict})) = lower(${input.microdistrict})`);
-            }
-            if (input?.guests && input.guests > 1) {
-                conditions.push(gte(apartments.capacity, input.guests));
-            }
-            if (input?.priceMin) {
-                conditions.push(gte(apartments.price, input.priceMin));
-            }
-            if (input?.priceMax) {
-                conditions.push(lte(apartments.price, input.priceMax));
-            }
-            if (input?.rooms) {
-                // 4 = "4+", всё что от 4 и больше
-                if (input.rooms >= 4) {
-                    conditions.push(gte(apartments.rooms, input.rooms));
-                } else {
-                    conditions.push(eq(apartments.rooms, input.rooms));
-                }
-            }
-            if (input?.beds) {
-                conditions.push(gte(sql`${apartments.beds} + ${apartments.singleBeds}`, input.beds));
-            }
-            if (input?.sofas) {
-                conditions.push(gte(sql`${apartments.doubleSofas} + ${apartments.singleSofas}`, input.sofas));
-            }
-            if (input?.metro) {
-                conditions.push(and(gt(apartments.minsToMetro, 0), lte(apartments.minsToMetro, input.metro)));
-            }
-
-            // Публично отдаём только карточку: без данных владельца и служебных полей.
-            // Порядок: сначала объекты с местом в выдаче (rank 0, 1, 2…), остальные — в случайном порядке,
-            // чтобы все владельцы получали равное внимание. Случайность заново при каждой загрузке страницы.
-            // Пагинация: защищает от раздувания ответа при росте каталога.
-            return await selectApartmentCards(ctx.db)
-                .where(and(...conditions))
-                .orderBy(listingRank, sql`random()`)
-                .limit(input?.limit ?? 50)
-                .offset(input?.offset ?? 0);
-        }),
+        // Публично отдаём только карточку: без данных владельца и служебных полей.
+        // Порядок: сначала объекты с местом в выдаче (rank 0, 1, 2…), остальные — в случайном порядке,
+        // чтобы все владельцы получали равное внимание. Случайность заново при каждой загрузке страницы.
+        // Пагинация: защищает от раздувания ответа при росте каталога.
+        return await selectApartmentCards(ctx.db)
+            .where(and(...conditions))
+            .orderBy(listingRank, sql`random()`)
+            .limit(input?.limit ?? 50)
+            .offset(input?.offset ?? 0);
+    }),
     getCatalogLocations: publicProcedure.query(async ({ ctx }) => {
         const rows = await ctx.db
             .select({ city: apartments.city, microdistrict: apartments.microdistrict })
@@ -394,25 +302,8 @@ export const apartmentRouter = createTRPCRouter({
                     message: 'Объект не найден!',
                 });
             }
-            if (update.createdById) {
-                await ctx.db.insert(notification).values({
-                    userId: update.createdById, // кому - владелец
-                    type: `status_${input.status}`, // тип — что случилось
-                    title: `Ваш объект «${update.title}»`,
-                    // заголовок для глаз
-                    text: buildStatusNotificationText(input.status, input.rejectionReason),
-                    apartmentId: input.id, // о каком объекте
-                    link: `/apartments/${input.id}`, // куда ведёт уведомление
-                });
-            }
-            if (input.status === 'active' && update.createdById) {
-                // Меняем роль владельца объявления на "lessor"
-
-                await ctx.db
-                    .update(users)
-                    .set({ role: 'lessor' })
-                    .where(and(eq(users.id, update.createdById), eq(users.role, 'user')));
-            }
+            // Уведомить владельца и, при одобрении, сделать его арендодателем.
+            await notifyOwnerAboutStatusChange(ctx.db, update, input.status, input.rejectionReason);
             return update;
         }),
 });
