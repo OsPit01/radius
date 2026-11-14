@@ -1,10 +1,35 @@
 import { TRPCError } from '@trpc/server';
-import { count, eq, inArray } from 'drizzle-orm';
+import { and, count, eq, inArray } from 'drizzle-orm';
+import type { GetServerSidePropsContext } from 'next';
 import { z } from 'zod';
 
 import { isAdminRole } from '@/lib/constants/roles';
+import { hideTestApartments } from '@/server/apartment-selects';
 import { createTRPCRouter, protectedProcedure, publicProcedure } from '@/server/api/trpc';
 import { apartments, apartmentView, booking, favorites, siteVisit, users } from '@/server/db/schemas';
+import { enforceRateLimit } from '@/server/rate-limit';
+
+// ===== Защита публичных трекеров от накрутки =====
+// Ключ лимита — IP посетителя, а НЕ visitorId: бот может генерировать
+// бесконечные случайные UUID (у каждого — свой счётчик), а IP ограничивает
+// поток целиком. Лимиты щедрые для NAT/CGNAT (у мобильных операторов сотни
+// реальных пользователей делят один IP).
+const VISIT_RATE_LIMIT = 30; // записей о переходе на сайт с одного IP в час
+const VIEW_RATE_LIMIT = 100; // просмотров квартир с одного IP в час
+const TRACK_RATE_WINDOW_MS = 60 * 60 * 1000;
+
+// Приложение стоит за nginx (обратный прокси): без этого заголовка все запросы
+// выглядели бы «с nginx». x-forwarded-for бывает цепочкой «клиент, прокси, …» —
+// берём первый адрес. Fallback — прямой адрес соединения (локальная разработка).
+function getClientIp(req: GetServerSidePropsContext['req']): string {
+    const forwarded = req.headers['x-forwarded-for'];
+    const first = Array.isArray(forwarded) ? forwarded[0] : forwarded?.split(',')[0];
+    const ip = first?.trim();
+    if (ip) {
+        return ip;
+    }
+    return req.socket.remoteAddress ?? 'unknown';
+}
 
 export const analyticsRouter = createTRPCRouter({
     // Уникальный переход на сайт. Один браузер = одна запись (первичный ключ
@@ -12,6 +37,13 @@ export const analyticsRouter = createTRPCRouter({
     trackSiteVisit: publicProcedure
         .input(z.object({ visitorId: z.string().uuid() }))
         .mutation(async ({ ctx, input }) => {
+            // Флуд-защита ДО записи: бот со случайными UUID упрётся в лимит IP.
+            await enforceRateLimit(
+                ctx.db,
+                `analytics-visit:${getClientIp(ctx.req)}`,
+                VISIT_RATE_LIMIT,
+                TRACK_RATE_WINDOW_MS,
+            );
             await ctx.db.insert(siteVisit).values({ visitorId: input.visitorId }).onConflictDoNothing();
             return { ok: true };
         }),
@@ -26,6 +58,32 @@ export const analyticsRouter = createTRPCRouter({
             }),
         )
         .mutation(async ({ ctx, input }) => {
+            // Флуд-защита до любых запросов к БД.
+            await enforceRateLimit(
+                ctx.db,
+                `analytics-view:${getClientIp(ctx.req)}`,
+                VIEW_RATE_LIMIT,
+                TRACK_RATE_WINDOW_MS,
+            );
+
+            // Записываем просмотры только ПУБЛИЧНО существующих объектов:
+            // активных и не тестовых. Просмотр скрытой/несуществующей — не ошибка
+            // клиента (вкладка могла остаться открытой после снятия с публикации):
+            // тихо не записываем и отвечаем ok, не выдавая «оракула» на перебор id.
+            const [visible] = await ctx.db
+                .select({ id: apartments.id })
+                .from(apartments)
+                .where(
+                    and(
+                        eq(apartments.id, input.apartmentId),
+                        eq(apartments.status, 'active'),
+                        hideTestApartments(ctx.session?.user?.role),
+                    ),
+                );
+            if (!visible) {
+                return { ok: true };
+            }
+
             await ctx.db
                 .insert(apartmentView)
                 .values({
