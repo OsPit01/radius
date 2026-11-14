@@ -235,6 +235,18 @@ export const apartmentRouter = createTRPCRouter({
             });
         }
         await ctx.db.delete(apartments).where(eq(apartments.id, input.id));
+
+        // Фото живут в Supabase Storage, а не в БД: каскады БД про них не знают —
+        // строку удалили, теперь стираем и файлы, тем же способом, что в update.
+        // ПОСЛЕ удаления строки, а не до: если remove упадёт, максимум останется
+        // мусор в хранилище (объект уже удалён) — а не живой объект с битыми фото.
+        const fileNames = (existing.images ?? [])
+            .map((url) => url.split('/').pop())
+            .filter((name): name is string => !!name);
+        if (fileNames.length > 0) {
+            await getSupabaseAdmin().storage.from('apartments').remove(fileNames);
+        }
+
         return { success: true };
     }),
 
