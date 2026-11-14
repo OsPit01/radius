@@ -3,15 +3,15 @@ import 'react-phone-number-input/style.css';
 import { useEffect, useRef, useState } from 'react';
 import PhoneInput from 'react-phone-number-input';
 
-import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 
-import { CheckCircle, User } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { ClientHeader } from '@/components/layout/ClientHeader';
 import { AppearanceSettings } from '@/components/settings/AppearanceSettings';
-import { Modal } from '@/components/ui/Modal';
+import { ProfilePhotoSection } from '@/components/settings/ProfilePhotoSection';
+import { TelegramConnectModal } from '@/components/settings/TelegramConnectModal';
+import { TelegramSection } from '@/components/settings/TelegramSection';
 import { readFileAsDataURL } from '@/lib/file';
 import { getCountryCodePrefixFromNumber, isValidPhoneNumber, toE164 } from '@/lib/phone';
 import { canCustomizeTheme } from '@/lib/theme';
@@ -163,26 +163,16 @@ export default function SettingsPage() {
                         <h1 className="text-[28px] font-bold text-foreground max-md:text-[22px]">
                             Редактирование профиля
                         </h1>
-                        <button
-                            type="button"
-                            onClick={() => setModalOpen(true)}
-                            className="absolute top-10 right-10 cursor-pointer rounded-full transition-opacity hover:opacity-80"
-                            aria-label="Изменить фото профиля"
-                        >
-                            {form.image === '' ? (
-                                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
-                                    <User className="h-8 w-8 text-muted-foreground" />
-                                </div>
-                            ) : (
-                                <Image
-                                    src={form.image}
-                                    alt="avatar"
-                                    width={56}
-                                    height={56}
-                                    className="h-14 w-14 rounded-full object-cover"
-                                />
-                            )}
-                        </button>
+                        {/* Изменить фото профиля */}
+                        <ProfilePhotoSection
+                            image={form.image}
+                            modalOpen={modalOpen}
+                            onOpenModal={() => setModalOpen(true)}
+                            onCloseModal={() => setModalOpen(false)}
+                            fileInputRef={fileInputRef}
+                            onFileChange={handleFileChange}
+                        />
+
                         {/*ФОРМА*/}
 
                         <form
@@ -243,36 +233,13 @@ export default function SettingsPage() {
                                 )}
                             </div>
                             {/* Telegram уведомления о бронированиях */}
-                            <div className="mb-5">
-                                <p className="text-[17px]">Telegram-уведомления о бронированиях:</p>
-                                {user?.telegramChatId ? (
-                                    <div className="mt-2 flex items-center gap-3">
-                                        <span className="inline-flex items-center gap-1 rounded-full bg-success/20 px-3 py-1 text-[13px] text-success">
-                                            Подключено
-                                        </span>
-                                        <button
-                                            type="button"
-                                            onClick={() => clearTelegramLink.mutate()}
-                                            className="cursor-pointer rounded-full border border-border px-4 py-1.5 text-[13px] text-foreground/80 hover:text-foreground"
-                                        >
-                                            Отвязать
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <button
-                                        type="button"
-                                        onClick={() => startTelegramLink.mutate()}
-                                        disabled={startTelegramLink.isPending}
-                                        className="mt-2 cursor-pointer rounded-[30px] bg-muted px-6 py-2.5 text-base font-semibold text-foreground hover:bg-border disabled:opacity-60"
-                                    >
-                                        {startTelegramLink.isPending ? 'Подключаем...' : 'Подключить Telegram'}
-                                    </button>
-                                )}
-                                <p className="pt-2 text-[13px] text-foreground/60">
-                                    Новые заявки с сайта будут приходить вам в Telegram бот{' '}
-                                    <span className="text-foreground/80">@radius_booking_bot</span>
-                                </p>
-                            </div>
+                            <TelegramSection
+                                connected={!!user?.telegramChatId}
+                                isConnecting={startTelegramLink.isPending}
+                                onConnect={() => startTelegramLink.mutate()}
+                                onDisconnect={() => clearTelegramLink.mutate()}
+                            />
+
                             <button
                                 className="mt-10 cursor-pointer rounded-[30px] bg-primary px-8 py-3 text-base font-semibold text-primary-foreground hover:bg-primary/90"
                                 type="submit"
@@ -286,88 +253,19 @@ export default function SettingsPage() {
                     {canCustomizeTheme(session?.user?.role) && <AppearanceSettings />}
                 </div>
 
-                <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleFileChange}
-                />
-
-                <Modal
-                    open={modalOpen}
-                    onClose={() => setModalOpen(false)}
-                >
-                    <div className="text-center">
-                        <p className="text-lg text-foreground">Хотите поменять фотографию профиля?</p>
-                        <div className="mt-6 flex justify-center gap-3">
-                            <button
-                                type="button"
-                                onClick={() => fileInputRef.current?.click()}
-                                className="cursor-pointer rounded-[30px] bg-primary px-6 py-2.5 text-base font-semibold text-primary-foreground hover:bg-primary/90"
-                            >
-                                Выбрать фото
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setModalOpen(false)}
-                                className="cursor-pointer rounded-[30px] border border-border px-6 py-2.5 text-base font-semibold text-foreground hover:bg-muted"
-                            >
-                                Отмена
-                            </button>
-                        </div>
-                    </div>
-                </Modal>
-
                 {/* Модалка привязки Telegram */}
-                <Modal
+                <TelegramConnectModal
                     open={!!linkCode}
                     onClose={() => setLinkCode('')}
-                >
-                    {confirmTelegramLink.isSuccess ? (
-                        <div className="flex flex-col items-center gap-3 py-4 text-center">
-                            <CheckCircle className="h-16 w-16 text-success" />
-                            <p className="text-lg font-semibold text-foreground">Telegram подключен!</p>
-                            <p className="text-sm text-muted-foreground">
-                                Теперь заявки на ваши квартиры будут приходить вам в бот @radius_booking_bot
-                            </p>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    confirmTelegramLink.reset();
-                                    setLinkCode('');
-                                }}
-                                className="mt-2 cursor-pointer rounded-[30px] bg-primary px-6 py-2.5 text-base font-semibold text-primary-foreground hover:bg-primary/90"
-                            >
-                                Готово
-                            </button>
-                        </div>
-                    ) : (
-                        <div className="text-center">
-                            <p className="text-[17px] font-semibold text-foreground">Подключение Telegram</p>
-                            <p className="mt-3 text-sm text-muted-foreground">
-                                1. Мы открыли бота <span className="font-medium text-primary">@radius_booking_bot</span>{' '}
-                                в Telegram
-                            </p>
-                            <p className="mt-1 text-sm text-muted-foreground">
-                                2. Нажмите в нём кнопку «Запустить» (Start)
-                            </p>
-                            <button
-                                type="button"
-                                onClick={() => confirmTelegramLink.mutate()}
-                                disabled={confirmTelegramLink.isPending}
-                                className="mt-5 cursor-pointer rounded-[30px] bg-primary px-6 py-2.5 text-base font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
-                            >
-                                {confirmTelegramLink.isPending ? 'Проверяем...' : 'Я нажал «Запустить» — проверить'}
-                            </button>
-                            {confirmTelegramLink.error && (
-                                <p className="mx-auto mt-3 max-w-xs text-sm text-destructive">
-                                    {confirmTelegramLink.error.message}
-                                </p>
-                            )}
-                        </div>
-                    )}
-                </Modal>
+                    isSuccess={confirmTelegramLink.isSuccess}
+                    isPending={confirmTelegramLink.isPending}
+                    errorMessage={confirmTelegramLink.error?.message ?? null}
+                    onConfirm={() => confirmTelegramLink.mutate()}
+                    onDone={() => {
+                        confirmTelegramLink.reset();
+                        setLinkCode('');
+                    }}
+                />
             </AuthGuard>
         </>
     );
