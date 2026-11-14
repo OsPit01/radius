@@ -129,7 +129,9 @@ export default function SupportPage() {
                 {selectedId === null ? (
                     <>
                         <h1 className="pb-2 text-[25px] max-md:text-xl">Обращения в поддержку</h1>
-                        <p className="pb-6 text-sm text-muted-foreground">Заявки пользователей: переписка и ответы.</p>
+                        <p className="pb-6 text-sm text-muted-foreground">
+                            Обращения пользователей: переписка и ответы.
+                        </p>
 
                         {/* 4 колонки на десктопе (компактные карточки), меньше на
                             планшете, 1 колонка на телефоне — карточка не разъезжается. */}

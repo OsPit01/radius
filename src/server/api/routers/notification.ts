@@ -4,6 +4,7 @@ import { z } from 'zod';
 
 import { isAdminRole } from '@/lib/constants/roles';
 import { notification } from '@/server/db/schemas';
+import { notifyUser } from '@/server/notify';
 
 import { createTRPCRouter, protectedProcedure } from '../trpc';
 
@@ -92,7 +93,10 @@ export const notificationRouter = createTRPCRouter({
                 });
             }
 
-            await ctx.db.insert(notification).values({
+            // notifyUser (хелпер) = колокольчик в БД + дублирование в телеграм.
+            // ВАЖНО: это роутер называется notifyUser, а внутри зовём хелпер
+            // с тем же именем из '@/server/notify' — не путать.
+            await notifyUser(ctx.db, {
                 userId: input.userId,
                 type: 'admin_message',
                 title: input.title,

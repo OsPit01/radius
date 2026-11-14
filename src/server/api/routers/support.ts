@@ -6,7 +6,8 @@ import z from 'zod';
 import { MAX_MESSAGE_LENGTH } from '@/lib/chat';
 import { ADMIN_ROLES, hasPermission, isAdminRole } from '@/lib/constants/roles';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
-import { notification, supportMessage, supportTicket, users } from '@/server/db/schemas';
+import { supportMessage, supportTicket, users } from '@/server/db/schemas';
+import { notifyMany, notifyUser } from '@/server/notify';
 import { enforceRateLimit } from '@/server/rate-limit';
 // Антифлуд: сколько сообщений может отправить один пользователь за окно времени.
 const CHAT_RATE_LIMIT = 30;
@@ -114,7 +115,7 @@ export const supportRouter = createTRPCRouter({
         if (!ticket) {
             throw new TRPCError({
                 code: 'NOT_FOUND',
-                message: 'Заявка не найдена',
+                message: 'Обращение не найдено',
             });
         }
         const isOwner = ticket.userId === userId;
@@ -122,7 +123,7 @@ export const supportRouter = createTRPCRouter({
         if (!isOwner && !isAdmin) {
             throw new TRPCError({
                 code: 'FORBIDDEN',
-                message: 'Нет доступа к этой заявке',
+                message: 'Нет доступа к этому обращению',
             });
         }
         // Форма ответа прежняя ({ message, sender }) — клиенты не меняются.
@@ -141,7 +142,7 @@ export const supportRouter = createTRPCRouter({
         const isOwner = target.userId === userId;
         const isAdmin = isAdminRole(ctx.session.user.role);
         if (!isOwner && !isAdmin) {
-            throw new TRPCError({ code: 'FORBIDDEN', message: 'Нет доступа к этой заявке' });
+            throw new TRPCError({ code: 'FORBIDDEN', message: 'Нет доступа к этому обращению' });
         }
         await ctx.db
             .update(supportMessage)
@@ -171,7 +172,7 @@ export const supportRouter = createTRPCRouter({
             if (!isOwner && !isAdmin) {
                 throw new TRPCError({
                     code: 'FORBIDDEN',
-                    message: 'Нет доступа к этой заявке',
+                    message: 'Нет доступа к этому обращению',
                 });
             }
             // В закрытую заявку писать нельзя — админу. А вот ВЛАДЕЛЕЦ
@@ -183,7 +184,7 @@ export const supportRouter = createTRPCRouter({
                 } else {
                     throw new TRPCError({
                         code: 'FORBIDDEN',
-                        message: 'Заявка закрыта',
+                        message: 'Обращение закрыто',
                     });
                 }
             }
@@ -196,7 +197,7 @@ export const supportRouter = createTRPCRouter({
                 } else if (target.assignedToId !== userId) {
                     throw new TRPCError({
                         code: 'FORBIDDEN',
-                        message: 'Заявку ведет другой администратор',
+                        message: 'Обращение ведет другой администратор',
                     });
                 }
             }
@@ -221,19 +222,38 @@ export const supportRouter = createTRPCRouter({
                     .where(inArray(users.role, [...ADMIN_ROLES]));
 
                 // Каждому админу — уведомление о новом сообщении.
-                // Batch-вставка: ОДИН запрос с массивом значений вместо N запросов в цикле
-                // (N поездок в БД — это медленно и нагружает базу).
+                // notifyMany: batch-вставка в БД + параллельная рассылка в телеграм
+                // тем админам, у кого он подключён (см. src/server/notify.ts)
                 if (admins.length > 0) {
-                    await ctx.db.insert(notification).values(
+                    await notifyMany(
+                        ctx.db,
                         admins.map((admin) => ({
                             userId: admin.id,
                             type: 'support_new_message',
-                            title: `Заявка #${input.id}`,
+                            title: `Обращение в поддержку №${input.id}`,
                             text: 'Новое сообщение от пользователя',
                             link: '/admin/support',
                         })),
                     );
                 }
+            }
+
+            // ===== Уведомляем ВЛАДЕЛЬЦА заявки — если написал АДМИН =====
+            // Симметрия: пользователь написал → админам (блок выше),
+            // админ ответил → пользователю (здесь). Без этой ветки человек
+            // не узнавал об ответе НИ по одному каналу и должен был сам
+            // заглядывать в чат поддержки — молчание выглядело как игнор.
+            // isOwner-проверка: админ-владелец заявки не получает своё же сообщение.
+            // link: прямой страницы обращения пока нет (задача Ч4) — ведём в профиль,
+            // где висит виджет поддержки.
+            if (isAdmin && !isOwner) {
+                await notifyUser(ctx.db, {
+                    userId: target.userId,
+                    type: 'support_answer',
+                    title: `Обращение в поддержку №${input.id}`,
+                    text: 'Новый ответ от поддержки',
+                    link: '/profile',
+                });
             }
 
             return created;
@@ -334,21 +354,21 @@ export const supportRouter = createTRPCRouter({
         if (!target) {
             throw new TRPCError({
                 code: 'NOT_FOUND',
-                message: 'Заявка не найдена',
+                message: 'Обращение не найдено',
             });
         }
         // Закрытую заявку брать в работу нельзя — она уже решена.
         if (target.status !== 'open') {
             throw new TRPCError({
                 code: 'FORBIDDEN',
-                message: 'Заявка закрыта',
+                message: 'Обращение закрыто',
             });
         }
         // Если заявку уже ведёт другой админ — перехватывать её нельзя.
         if (target.assignedToId !== null && target.assignedToId !== ctx.session.user.id) {
             throw new TRPCError({
                 code: 'FORBIDDEN',
-                message: 'Заявку ведёт другой администратор',
+                message: 'Обращение ведёт другой администратор',
             });
         }
         const [updated] = await ctx.db
@@ -359,7 +379,7 @@ export const supportRouter = createTRPCRouter({
         if (!updated) {
             throw new TRPCError({
                 code: 'NOT_FOUND',
-                message: 'Заявка не найдена',
+                message: 'Обращение не найдено',
             });
         }
         return updated;
@@ -382,7 +402,7 @@ export const supportRouter = createTRPCRouter({
         if (!updated) {
             throw new TRPCError({
                 code: 'NOT_FOUND',
-                message: 'Вы не ведёте эту заявку',
+                message: 'Вы не ведёте это обращение',
             });
         }
         return updated;
@@ -399,7 +419,7 @@ export const supportRouter = createTRPCRouter({
         }
         const [target] = await ctx.db.select().from(supportTicket).where(eq(supportTicket.id, input.id));
         if (!target) {
-            throw new TRPCError({ code: 'NOT_FOUND', message: 'Заявка не найдена' });
+            throw new TRPCError({ code: 'NOT_FOUND', message: 'Обращение не найдено' });
         }
         // Если заявку ведёт другой админ — закрывать может только он.
         if (target.assignedToId !== null && target.assignedToId !== ctx.session.user.id) {
@@ -421,10 +441,11 @@ export const supportRouter = createTRPCRouter({
         // Структура уведомления: субъект в title, действие в text.
         // link появится вместе со страницей «Мои обращения» (Ч4) —
         // пока ссылки нет, оставляем без неё, чтобы не вести на 404.
-        await ctx.db.insert(notification).values({
+        // notifyUser = колокольчик + телеграм, если подключён
+        await notifyUser(ctx.db, {
             userId: target.userId,
             type: 'support_closed',
-            title: `Заявка #${input.id}`,
+            title: `Обращение в поддержку №${input.id}`,
             text: 'Закрыта службой поддержки',
         });
         return updated;
@@ -453,7 +474,7 @@ export const supportRouter = createTRPCRouter({
                 .where(eq(supportTicket.id, input.id))
                 .returning({ id: supportTicket.id });
             if (!deleted) {
-                throw new TRPCError({ code: 'NOT_FOUND', message: 'Заявка не найдена' });
+                throw new TRPCError({ code: 'NOT_FOUND', message: 'Обращение не найдено' });
             }
         });
         return { ok: true };
@@ -478,10 +499,10 @@ export const supportRouter = createTRPCRouter({
             // Закрытую заявку передавать бессмысленно — она уже решена.
             const [target] = await ctx.db.select().from(supportTicket).where(eq(supportTicket.id, input.id));
             if (!target) {
-                throw new TRPCError({ code: 'NOT_FOUND', message: 'Заявка не найдена' });
+                throw new TRPCError({ code: 'NOT_FOUND', message: 'Обращение не найдено' });
             }
             if (target.status !== 'open') {
-                throw new TRPCError({ code: 'FORBIDDEN', message: 'Заявка закрыта' });
+                throw new TRPCError({ code: 'FORBIDDEN', message: 'Обращение закрыто' });
             }
             // Граница доверия: adminId обязан быть реальным админом.
             const [targetAdmin] = await ctx.db
@@ -497,14 +518,15 @@ export const supportRouter = createTRPCRouter({
                 .where(eq(supportTicket.id, input.id))
                 .returning();
             if (!updated) {
-                throw new TRPCError({ code: 'NOT_FOUND', message: 'Заявка не найдена' });
+                throw new TRPCError({ code: 'NOT_FOUND', message: 'Обращение не найдено' });
             }
             // Сигнал новому ведущему: заявку передали именно ему.
             // Имя передавшего — firstName (без фамилии), иначе name.
-            await ctx.db.insert(notification).values({
+            // notifyUser = колокольчик + телеграм, если подключён
+            await notifyUser(ctx.db, {
                 userId: input.adminId,
                 type: 'support_assigned',
-                title: `Заявка #${input.id}`,
+                title: `Обращение в поддержку №${input.id}`,
                 text: `Вам её передал ${ctx.session.user.firstName ?? ctx.session.user.name ?? 'администратор'}`,
                 link: '/admin/support',
             });

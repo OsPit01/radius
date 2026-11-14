@@ -4,7 +4,8 @@ import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { ApartmentStatus } from '@/lib/constants/apartment-status';
 import { buildStatusNotificationText } from '@/lib/constants/apartment-status';
 import type * as schema from '@/server/db/schemas';
-import { notification, users } from '@/server/db/schemas';
+import { users } from '@/server/db/schemas';
+import { notifyUser } from '@/server/notify';
 
 type Database = PostgresJsDatabase<typeof schema>;
 
@@ -23,7 +24,9 @@ export async function notifyOwnerAboutStatusChange(
         return;
     }
 
-    await db.insert(notification).values({
+    // notifyUser = единая точка: колокольчик в БД + дублирование в Telegram
+    // владельцу, если он его подключил (см. src/server/notify.ts)
+    await notifyUser(db, {
         userId: apartment.createdById, // кому — владелец
         type: `status_${status}`, // тип — что случилось
         title: `Ваш объект «${apartment.title}»`, // субъект в заголовке

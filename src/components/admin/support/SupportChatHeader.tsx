@@ -60,7 +60,7 @@ export function SupportChatHeader({
             </button>
 
             {/* Номер заявки: маленький жирный, прижат к левому краю. */}
-            <span className="text-sm font-bold">Заявка #{selectedId}</span>
+            <span className="text-sm font-bold">Обращение в поддержку №{selectedId}</span>
 
             {/* Закрытую заявку помечаем бейджем — сразу видно, что она решена. */}
             {isClosed && (

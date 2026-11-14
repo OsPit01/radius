@@ -36,7 +36,7 @@ export function TicketCard({ item, expanded, onToggleId, onOpen }: TicketCardPro
                 onClick={onOpen}
             >
                 <span className="flex w-full items-center justify-between gap-2">
-                    <span className="text-sm font-semibold">Заявка #{item.id}</span>
+                    <span className="text-sm font-semibold">Обращение в поддержку №{item.id}</span>
                     {item.unreadCount > 0 && (
                         <span className="shrink-0 rounded-full bg-destructive px-1.5 py-0.5 text-[11px] font-semibold text-destructive-foreground">
                             {item.unreadCount}

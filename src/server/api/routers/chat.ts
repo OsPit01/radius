@@ -1,12 +1,14 @@
 import { TRPCError } from '@trpc/server';
-import { and, asc, count, eq, max, ne, or } from 'drizzle-orm';
+import { and, asc, count, eq, inArray, max, ne, or } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import z from 'zod';
 
 import { MAX_MESSAGE_LENGTH } from '@/lib/chat';
 import { isAdminRole } from '@/lib/constants/roles';
+import { sendTelegramMessage } from '@/lib/telegram';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import { apartments, booking, conversation, message, users } from '@/server/db/schemas';
+import { escapeHtml } from '@/server/notify';
 import { enforceRateLimit } from '@/server/rate-limit';
 
 // Антифлуд: сколько сообщений может отправить один пользователь за окно времени.
@@ -346,6 +348,58 @@ export const chatRouter = createTRPCRouter({
                     text: input.text,
                 })
                 .returning();
+
+            // ===== Телеграм-дубль сообщения УЧАСТНИКАМ =====
+            // В чате НЕТ уведомлений-колокольчиков (там свой механизм — бейдж
+            // непрочитанных), поэтому полный notifyUser не подходит: он создал бы
+            // лишнюю запись. Сюда — только телеграм, напрямую через sendTelegramMessage.
+            //
+            // Получатели: ВСЕ участники диалога, КРОМЕ отправителя.
+            // Обычный участник пишет → получатель один (собеседник).
+            // Админ-модератор пишет в чужой диалог → получателей ДВА (гость и
+            // владелец) — раньше владелец узнал бы, а гость нет.
+            // null-фильтр: userId колонки nullable, а слать некому — не ошибка.
+            const recipientIds = [target.guestId, target.ownerId].filter(
+                (id): id is string => id !== null && id !== userId,
+            );
+
+            if (recipientIds.length > 0) {
+                // chatId всех получателей одним запросом (inArray = WHERE id IN (…))
+                const recipients = await ctx.db
+                    .select({ id: users.id, telegramChatId: users.telegramChatId })
+                    .from(users)
+                    .where(inArray(users.id, recipientIds));
+                const chatById = new Map(recipients.map((r) => [r.id, r.telegramChatId]));
+
+                // Параллельные отправки: каждая в своём try/catch — сбой одной
+                // не отменяет остальные; сообщение уже сохранено в БД, телеграм
+                // побочен и ронять отправку не должен.
+                const senderName = ctx.session.user.firstName ?? ctx.session.user.name ?? 'Собеседник';
+                await Promise.all(
+                    recipientIds.map(async (recipientId) => {
+                        const chatId = chatById.get(recipientId);
+                        if (!chatId) {
+                            return; // телеграм не подключён — только бейдж непрочитанных
+                        }
+                        try {
+                            await sendTelegramMessage(
+                                chatId,
+                                [
+                                    `<b>Новое сообщение от ${escapeHtml(senderName)}</b>`,
+                                    '',
+                                    escapeHtml(input.text),
+                                ].join('\n'),
+                            );
+                        } catch (error) {
+                            console.error(
+                                `Не удалось отправить телеграм-уведомление о сообщении пользователю ${recipientId}`,
+                                error instanceof Error ? error.message : error,
+                            );
+                        }
+                    }),
+                );
+            }
+
             return created;
         }),
 });

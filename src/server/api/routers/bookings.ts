@@ -4,11 +4,11 @@ import { z } from 'zod';
 
 import { MAX_BOOKING_GUESTS, MIN_BOOKING_GUESTS } from '@/lib/constants/booking';
 import { isValidPhoneNumber } from '@/lib/phone';
-import { sendTelegramMessage } from '@/lib/telegram';
 import { hideTestApartments } from '@/server/apartment-selects';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import { expireStaleBookings } from '@/server/booking-expiry';
-import { apartments, booking, conversation, message, notification, users } from '@/server/db/schemas';
+import { apartments, booking, conversation, message, users } from '@/server/db/schemas';
+import { escapeHtml, notifyUser } from '@/server/notify';
 import { enforceRateLimit } from '@/server/rate-limit';
 
 // Защита от флуда: сколько заявок один гость может оставить за одно окно.
@@ -159,41 +159,33 @@ export const bookingsRouter = createTRPCRouter({
             text: summary,
         });
 
-        const [createNotification] = await ctx.db
-            .insert(notification)
-            .values({
-                userId: owner?.id,
-                type: 'booking_new',
-                title: 'Новая заявка на бронирование',
-                text: `Заявка на бронирование «${apartment.title}». Заезд: ${input.checkInDate.toLocaleDateString('ru-RU')} выезд: ${input.checkOutDate.toLocaleDateString('ru-RU')} имя гостя: ${input.guestName} номер телефона гостя: ${input.guestPhone} взрослых: ${adults} детей: ${input.children ?? 0}`,
-                apartmentId: input.apartmentId,
-                link: '/profile/bookings',
-            })
-            .returning();
-        if (!createNotification) {
-            throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+        // notifyUser = единая точка: колокольчик в БД + телеграм владельцу.
+        // В telegramText собираем красивый формат с деталями (в БД он не идёт —
+        // там свой text выше). apartment.title экранируем: в нём может быть < или &.
+        const telegramLines = [
+            `<b>Новая заявка на бронирование</b>`,
+            ``,
+            `<b>Квартира:</b> ${escapeHtml(apartment.title)}`,
+            `<b>Гость:</b> ${escapeHtml(input.guestName)}`,
+            `<b>Телефон:</b> ${escapeHtml(input.guestPhone)}`,
+            `<b>Взрослых:</b> ${adults}`,
+            `<b>Детей:</b> ${input.children ?? 0}`,
+            `<b>Заезд:</b> ${input.checkInDate.toLocaleDateString('ru-RU')}`,
+            `<b>Выезд:</b> ${input.checkOutDate.toLocaleDateString('ru-RU')}`,
+        ];
+        if (input.message) {
+            telegramLines.push(``, `<b>Комментарий:</b> ${escapeHtml(input.message)}`);
         }
 
-        const chatId = owner?.telegramChatId;
-
-        if (chatId) {
-            const text = [
-                `<b>Новая заявка на бронирование</b>`,
-                ``,
-                `<b>Квартира:</b> ${apartment.title}`,
-                `<b>Гость:</b> ${input.guestName}`,
-                `<b>Телефон:</b> ${input.guestPhone}`,
-                `<b>Взрослых:</b> ${adults}`,
-                `<b>Детей:</b> ${input.children ?? 0}`,
-                `<b>Заезд:</b> ${input.checkInDate.toLocaleDateString('ru-RU')}`,
-                `<b>Выезд:</b> ${input.checkOutDate.toLocaleDateString('ru-RU')}`,
-            ];
-            if (input.message) {
-                text.push(``, `<b>Комментарий:</b> ${input.message}`);
-            }
-
-            await sendTelegramMessage(chatId, text.join('\n'));
-        }
+        await notifyUser(ctx.db, {
+            userId: owner.id,
+            type: 'booking_new',
+            title: 'Новая заявка на бронирование',
+            text: `Заявка на бронирование «${apartment.title}». Заезд: ${input.checkInDate.toLocaleDateString('ru-RU')} выезд: ${input.checkOutDate.toLocaleDateString('ru-RU')} имя гостя: ${input.guestName} номер телефона гостя: ${input.guestPhone} взрослых: ${adults} детей: ${input.children ?? 0}`,
+            apartmentId: input.apartmentId,
+            link: '/profile/bookings',
+            telegramText: telegramLines.join('\n'),
+        });
     }),
 
     listForOwner: protectedProcedure.query(async ({ ctx }) => {
@@ -270,7 +262,8 @@ export const bookingsRouter = createTRPCRouter({
             .returning();
 
         if (apartment?.createdById) {
-            await ctx.db.insert(notification).values({
+            // notifyUser = колокольчик + телеграм владельцу, если подключён
+            await notifyUser(ctx.db, {
                 userId: apartment.createdById,
                 type: 'booking_cancelled',
                 title: 'Бронь отменена гостем',
@@ -326,20 +319,17 @@ export const bookingsRouter = createTRPCRouter({
                 .set({ status: input.status })
                 .where(eq(booking.id, input.bookingId))
                 .returning();
-            //уведомляем гостя если он авторизован
+            //уведомляем гостя если он авторизован (колокольчик + телеграм)
             if (targetBooking.userId) {
-                await ctx.db
-                    .insert(notification)
-                    .values({
-                        userId: targetBooking.userId,
-                        type: input.status === 'approved' ? 'booking_approved' : 'booking_rejected',
-                        title: `Заявка на «${apartment.title}»`,
-                        text: input.status === 'approved' ? 'Одобрена' : 'Отклонена',
+                await notifyUser(ctx.db, {
+                    userId: targetBooking.userId,
+                    type: input.status === 'approved' ? 'booking_approved' : 'booking_rejected',
+                    title: `Заявка на «${apartment.title}»`,
+                    text: input.status === 'approved' ? 'Одобрена' : 'Отклонена',
 
-                        apartmentId: targetBooking.apartmentId,
-                        link: '/profile/bookings',
-                    })
-                    .returning();
+                    apartmentId: targetBooking.apartmentId,
+                    link: '/profile/bookings',
+                });
             }
             return updated;
         }),

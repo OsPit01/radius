@@ -56,7 +56,7 @@ export function SupportChatComposer({
             ) : (
                 ledByOther && (
                     <p className="pt-3 text-sm text-muted-foreground">
-                        Заявку ведёт {leadName ?? 'другой администратор'} — отвечать может только он.
+                        Обращение ведёт {leadName ?? 'другой администратор'} — отвечать может только он.
                     </p>
                 )
             )}
@@ -68,7 +68,7 @@ export function SupportChatComposer({
                         isClosed
                             ? 'Обращение закрыто'
                             : ledByOther
-                              ? 'Отвечать может только ведущий заявку'
+                              ? 'Отвечать может только ведущий обращение'
                               : 'Ответ пользователю...'
                     }
                     onSend={onSend}
