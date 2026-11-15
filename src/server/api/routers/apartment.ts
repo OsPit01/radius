@@ -8,6 +8,7 @@ import { isAdminRole, isStaffRole } from '@/lib/constants/roles';
 import { createApartmentInput, updateApartmentInput } from '@/lib/schemas/apartment';
 import { isAddressChanged } from '@/server/apartment-address';
 import { buildCatalogConditions, catalogFiltersSchema } from '@/server/apartment-filters';
+import { removeApartmentImages } from '@/server/apartment-images';
 import { notifyOwnerAboutStatusChange } from '@/server/apartment-moderation';
 import {
     apartmentPrivateColumns,
@@ -20,7 +21,6 @@ import {
 } from '@/server/apartment-selects';
 import { createTRPCRouter, protectedProcedure, publicProcedure } from '@/server/api/trpc';
 import { apartments } from '@/server/db/schemas';
-import { getSupabaseAdmin } from '@/server/supabase';
 
 // ===== ОБЩИЕ СХЕМЫ ВВОДА =====
 const apartmentIdInput = z.object({
@@ -209,13 +209,7 @@ export const apartmentRouter = createTRPCRouter({
 
         // Файлы, которые убрали из списка, удаляем и из хранилища — иначе они
         // останутся «висеть» в Supabase Storage и занимать место.
-        const removedImages = (existing.images ?? []).filter((url) => !(input.images ?? []).includes(url));
-        if (removedImages.length > 0) {
-            const fileNames = removedImages.map((url) => url.split('/').pop()).filter((name): name is string => !!name);
-            if (fileNames.length > 0) {
-                await getSupabaseAdmin().storage.from('apartments').remove(fileNames);
-            }
-        }
+        await removeApartmentImages((existing.images ?? []).filter((url) => !(input.images ?? []).includes(url)));
 
         return updated;
     }),
@@ -237,15 +231,10 @@ export const apartmentRouter = createTRPCRouter({
         await ctx.db.delete(apartments).where(eq(apartments.id, input.id));
 
         // Фото живут в Supabase Storage, а не в БД: каскады БД про них не знают —
-        // строку удалили, теперь стираем и файлы, тем же способом, что в update.
-        // ПОСЛЕ удаления строки, а не до: если remove упадёт, максимум останется
-        // мусор в хранилище (объект уже удалён) — а не живой объект с битыми фото.
-        const fileNames = (existing.images ?? [])
-            .map((url) => url.split('/').pop())
-            .filter((name): name is string => !!name);
-        if (fileNames.length > 0) {
-            await getSupabaseAdmin().storage.from('apartments').remove(fileNames);
-        }
+        // строку удалили, теперь стираем и файлы. ПОСЛЕ удаления строки, а не до:
+        // если remove упадёт, максимум останется мусор в хранилище (объект уже
+        // удалён) — а не живой объект с битыми фото.
+        await removeApartmentImages(existing.images ?? []);
 
         return { success: true };
     }),

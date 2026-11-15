@@ -17,6 +17,7 @@
         "db:studio": "drizzle-kit studio",
         "dev": "next dev",
         "images:recompress": "npx tsx scripts/recompress-images.ts",
+        "images:cleanup": "npx tsx scripts/cleanup-orphan-files.ts",
         "og:generate": "npx tsx scripts/generate-og-images.ts",
         "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
         "format:write": "prettier --write \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
