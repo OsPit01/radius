@@ -105,6 +105,7 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
                 description={metaDescription}
                 canonical={`/apartments/${rawId}`}
                 image={cover?.startsWith('http') ? getApartmentOgImagePath(a.id, cover) : undefined}
+                type="article"
             />
             <JsonLd data={lodgingSchema} />
             <ClientHeader />

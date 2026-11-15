@@ -73,7 +73,7 @@ export default function MicrodistrictPage({ city, name, apartments }: Microdistr
     return (
         <>
             <Seo
-                absoluteTitle={`Квартиры на сутки в микрорайоне ${name} — ${city} | NaRadare`}
+                absoluteTitle={`Квартиры на сутки в микрорайоне ${name} — ${city}`}
                 description={`Снять квартиру на сутки в микрорайоне ${name} (${city}). Актуальные фото, цены, бронирование онлайн напрямую от собственников.`}
                 canonical={`${SITE_URL}/rent/flat/${transliterate(city)}/microdistrict/${transliterate(name)}`}
             />

@@ -14,6 +14,8 @@ type SeoProps = {
     image?: string;
     /** Закрыть страницу от индексации. */
     noindex?: boolean;
+    /** Тип контента для og:type. По умолчанию «website»; для страницы объекта — «article». */
+    type?: string;
 };
 
 /**
@@ -23,9 +25,19 @@ type SeoProps = {
  * отрисовав свой <Seo>. У каждого тега есть `key` — по нему next/head оставляет
  * только последний (самый «глубокий») тег, а не дублирует их.
  */
-export function Seo({ title, absoluteTitle, description = SITE_DESCRIPTION, canonical, image, noindex }: SeoProps) {
+export function Seo({
+    title,
+    absoluteTitle,
+    description = SITE_DESCRIPTION,
+    canonical,
+    image,
+    noindex,
+    type,
+}: SeoProps) {
     const ogTitle = title ?? absoluteTitle ?? HOME_TITLE;
-    const documentTitle = title ? `${title} | ${SITE_NAME}` : ogTitle;
+    // Бренд добавляем ОДИН раз и только в <title>: og:title остаётся «чистым»,
+    // потому что в карточке соцсетей бренд уже показан отдельно через og:site_name.
+    const documentTitle = ogTitle.endsWith(` | ${SITE_NAME}`) ? ogTitle : `${ogTitle} | ${SITE_NAME}`;
     const ogImage = absoluteUrl(image ?? DEFAULT_OG_IMAGE);
     const canonicalUrl = canonical ? absoluteUrl(canonical) : undefined;
 
@@ -55,7 +67,7 @@ export function Seo({ title, absoluteTitle, description = SITE_DESCRIPTION, cano
             <meta
                 key="og:type"
                 property="og:type"
-                content="website"
+                content={type ?? 'website'}
             />
             <meta
                 key="og:locale"

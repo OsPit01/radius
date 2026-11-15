@@ -3,7 +3,7 @@ export const SITE_DESCRIPTION =
     'Посуточная аренда квартир напрямую от собственников. Фото, цены, бронирование онлайн без посредников и переплат.';
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://naradare.by';
 
-export const HOME_TITLE = 'Посуточная аренда квартир — снять на сутки | NaRadare';
+export const HOME_TITLE = 'Посуточная аренда квартир — снять на сутки';
 export const HOME_DESCRIPTION =
     'Посуточная аренда квартир напрямую от собственников. Актуальные фото, честные цены, бронирование онлайн. Снимите квартиру на сутки недорого и удобно в любом городе.';
 
