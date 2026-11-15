@@ -34,34 +34,12 @@ function buildRemotePatterns() {
 /**
  * Заголовки безопасности для всех страниц.
  *
- * CSP собран по фактам кода:
- *  - внешние скрипты: Google Analytics (googletagmanager.com) и Яндекс Карты (api-maps.yandex.ru,
- *    подключается динамически в src/lib/yandex-maps.ts);
- *  - 'unsafe-inline' для script/style нужен Next.js (инлайн-скрипты __next_f/__NEXT_DATA__) и
- *    инлайн-стилям (React style={} + Tailwind);
- *  - img-src https: — картинки из Supabase/Google аватарок и тайлы карт (загружаются как <img>);
- *  - connect-src https: — gtag и тайлы Яндекс Карт (fetch к разным доменам карт).
- *
- * CSP применяется ТОЛЬКО в production: в dev-режиме Next.js использует eval (HMR/React Refresh),
- * и строгая политика ломала бы локальную разработку.
+ * Только «безопасные» заголовки, которые НИЧЕГО не блокируют (не влияют на
+ * скрипты/карты/картинки). CSP намеренно НЕ добавляем: Яндекс Карты грузят
+ * скрипты с нескольких доменов, и строгий script-src ломает карту — добавлять
+ * CSP нужно отдельно, с аккуратной проверкой карты и аналитики.
  */
 async function securityHeaders() {
-    const isProduction = process.env.NODE_ENV === 'production';
-
-    const csp = [
-        "default-src 'self'",
-        "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://api-maps.yandex.ru",
-        "style-src 'self' 'unsafe-inline'",
-        "img-src 'self' data: blob: https:",
-        "font-src 'self' data:",
-        "connect-src 'self' https:",
-        "worker-src 'self' blob:",
-        "frame-ancestors 'none'",
-        "object-src 'none'",
-        "base-uri 'self'",
-        "form-action 'self'",
-    ].join('; ');
-
     const headers = [
         // Запрет определять MIME-тип «на глаз» — защита от подмены типа загружаемых файлов.
         { key: 'X-Content-Type-Options', value: 'nosniff' },
@@ -76,10 +54,6 @@ async function securityHeaders() {
         // Всегда HTTPS. preload НЕ включаем: домен недавно переехал, подключать к preload-списку рано.
         { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains' },
     ];
-
-    if (isProduction) {
-        headers.push({ key: 'Content-Security-Policy', value: csp });
-    }
 
     return [{ source: '/(.*)', headers }];
 }
