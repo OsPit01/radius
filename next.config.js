@@ -59,7 +59,7 @@ async function securityHeaders() {
         "img-src 'self' data: blob: https:",
         "font-src 'self' data: https:",
         "connect-src 'self' https:",
-        "worker-src 'self' blob: https:",
+        "worker-src 'self' blob: https: data:",
         // Реальная защита — эти директивы (их не трогаем):
         "frame-ancestors 'none'",
         "object-src 'none'",
