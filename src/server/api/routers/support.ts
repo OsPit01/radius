@@ -5,6 +5,7 @@ import z from 'zod';
 
 import { MAX_MESSAGE_LENGTH } from '@/lib/chat';
 import { ADMIN_ROLES, hasPermission, isAdminRole } from '@/lib/constants/roles';
+import { idSchema } from '@/lib/schemas/common';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import { supportMessage, supportTicket, users } from '@/server/db/schemas';
 import { notifyMany, notifyUser } from '@/server/notify';
@@ -94,7 +95,7 @@ export const supportRouter = createTRPCRouter({
         return row?.value ?? 0;
     }),
 
-    messages: protectedProcedure.input(z.object({ id: z.number() })).query(async ({ ctx, input }) => {
+    messages: protectedProcedure.input(z.object({ id: idSchema })).query(async ({ ctx, input }) => {
         const userId = ctx.session.user.id;
         // Один запрос вместо двух: заявка + проверка доступа + её сообщения
         // с отправителями — всё через связи из relations.ts (leftJoin руками не нужен).
@@ -130,7 +131,7 @@ export const supportRouter = createTRPCRouter({
         return (ticket.messages ?? []).map((m) => ({ message: m, sender: m.sender }));
     }),
 
-    markRead: protectedProcedure.input(z.object({ id: z.number() })).mutation(async ({ ctx, input }) => {
+    markRead: protectedProcedure.input(z.object({ id: idSchema })).mutation(async ({ ctx, input }) => {
         const userId = ctx.session.user.id;
         const [target] = await ctx.db.select().from(supportTicket).where(eq(supportTicket.id, input.id));
         if (!target) {
@@ -154,7 +155,7 @@ export const supportRouter = createTRPCRouter({
     send: protectedProcedure
         .input(
             z.object({
-                id: z.number(),
+                id: idSchema,
                 text: z.string().trim().min(1).max(MAX_MESSAGE_LENGTH),
             }),
         )
@@ -343,7 +344,7 @@ export const supportRouter = createTRPCRouter({
                 nextCursor,
             };
         }),
-    assign: protectedProcedure.input(z.object({ id: z.number() })).mutation(async ({ ctx, input }) => {
+    assign: protectedProcedure.input(z.object({ id: idSchema })).mutation(async ({ ctx, input }) => {
         if (!isAdminRole(ctx.session.user.role)) {
             throw new TRPCError({
                 code: 'FORBIDDEN',
@@ -385,7 +386,7 @@ export const supportRouter = createTRPCRouter({
         return updated;
     }),
 
-    leave: protectedProcedure.input(z.object({ id: z.number() })).mutation(async ({ ctx, input }) => {
+    leave: protectedProcedure.input(z.object({ id: idSchema })).mutation(async ({ ctx, input }) => {
         if (!isAdminRole(ctx.session.user.role)) {
             throw new TRPCError({
                 code: 'FORBIDDEN',
@@ -413,7 +414,7 @@ export const supportRouter = createTRPCRouter({
     // После закрытия писать в заявку нельзя (см. проверку в send),
     // а пользователь при следующем обращении получит НОВУЮ заявку.
     // ============================================================
-    close: protectedProcedure.input(z.object({ id: z.number() })).mutation(async ({ ctx, input }) => {
+    close: protectedProcedure.input(z.object({ id: idSchema })).mutation(async ({ ctx, input }) => {
         if (!isAdminRole(ctx.session.user.role)) {
             throw new TRPCError({ code: 'FORBIDDEN', message: 'Только для Администратора' });
         }
@@ -457,7 +458,7 @@ export const supportRouter = createTRPCRouter({
     // (сообщения + заявка), либо ничего — частичного состояния не бывает
     // (ошибка внутри — Drizzle откатит все операции).
     // ============================================================
-    delete: protectedProcedure.input(z.object({ id: z.number() })).mutation(async ({ ctx, input }) => {
+    delete: protectedProcedure.input(z.object({ id: idSchema })).mutation(async ({ ctx, input }) => {
         if (!hasPermission(ctx.session.user.role, 'superadmin')) {
             throw new TRPCError({
                 code: 'FORBIDDEN',
@@ -491,7 +492,7 @@ export const supportRouter = createTRPCRouter({
     }),
     // Передать заявку другому админу.
     transfer: protectedProcedure
-        .input(z.object({ id: z.number(), adminId: z.string() }))
+        .input(z.object({ id: idSchema, adminId: z.string() }))
         .mutation(async ({ ctx, input }) => {
             if (!isAdminRole(ctx.session.user.role)) {
                 throw new TRPCError({ code: 'FORBIDDEN', message: 'Только для Администратора' });

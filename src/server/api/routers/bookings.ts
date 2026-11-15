@@ -4,6 +4,7 @@ import { z } from 'zod';
 
 import { MAX_BOOKING_GUESTS, MIN_BOOKING_GUESTS } from '@/lib/constants/booking';
 import { isValidPhoneNumber } from '@/lib/phone';
+import { idSchema } from '@/lib/schemas/common';
 import { hideTestApartments } from '@/server/apartment-selects';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import { expireStaleBookings } from '@/server/booking-expiry';
@@ -238,7 +239,7 @@ export const bookingsRouter = createTRPCRouter({
             .innerJoin(users, eq(apartments.createdById, users.id))
             .where(eq(booking.userId, userId));
     }),
-    cancel: protectedProcedure.input(z.object({ bookingId: z.number() })).mutation(async ({ ctx, input }) => {
+    cancel: protectedProcedure.input(z.object({ bookingId: idSchema })).mutation(async ({ ctx, input }) => {
         const userId = ctx.session.user.id;
 
         const [targetBooking] = await ctx.db.select().from(booking).where(eq(booking.id, input.bookingId));
@@ -278,15 +279,19 @@ export const bookingsRouter = createTRPCRouter({
 
     // Ленивая автоотмена просроченных заявок: вызывается со страницы «Мои брони»
     // при загрузке, чтобы таймер работал без внешнего cron (Vercel cron платный).
-    expireBookings: protectedProcedure.mutation(async () => {
+    expireBookings: protectedProcedure.mutation(async ({ ctx }) => {
+        // Тяжёлый запрос (сканирует все просроченные брони) — раньше его мог
+        // дёргать без счёта любой авторизованный. Лимит: 6 раз в минуту на
+        // пользователя — страница зовёт процедуру один раз при загрузке,
+        // шести вызовов хватает с запасом (переключение вкладок и т.п.).
+        await enforceRateLimit(ctx.db, `expire-bookings:${ctx.session.user.id}`, 6, 60_000);
         const expired = await expireStaleBookings();
         return { expired };
     }),
-
     setStatus: protectedProcedure
         .input(
             z.object({
-                bookingId: z.number(),
+                bookingId: idSchema,
                 status: z.enum(['approved', 'rejected'] as const),
             }),
         )

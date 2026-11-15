@@ -6,6 +6,7 @@ import { formatAddressLine } from '@/lib/address';
 import { APARTMENT_STATUS_VALUES } from '@/lib/constants/apartment-status';
 import { isAdminRole, isStaffRole } from '@/lib/constants/roles';
 import { createApartmentInput, updateApartmentInput } from '@/lib/schemas/apartment';
+import { idSchema } from '@/lib/schemas/common';
 import { isAddressChanged } from '@/server/apartment-address';
 import { buildCatalogConditions, catalogFiltersSchema } from '@/server/apartment-filters';
 import { removeApartmentImages } from '@/server/apartment-images';
@@ -274,7 +275,7 @@ export const apartmentRouter = createTRPCRouter({
     updateStatus: protectedProcedure
         .input(
             z.object({
-                id: z.number(),
+                id: idSchema,
                 status: z.enum(APARTMENT_STATUS_VALUES),
                 rejectionReason: z.string().optional(),
             }),

@@ -3,6 +3,7 @@ import { and, asc, count, desc, eq } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { isAdminRole } from '@/lib/constants/roles';
+import { idSchema } from '@/lib/schemas/common';
 import { notification } from '@/server/db/schemas';
 import { notifyUser } from '@/server/notify';
 
@@ -27,7 +28,7 @@ export const notificationRouter = createTRPCRouter({
             .where(eq(notification.userId, userId))
             .orderBy(asc(notification.isRead), desc(notification.createdAt));
     }),
-    markAsRead: protectedProcedure.input(z.object({ id: z.number() })).mutation(async ({ ctx, input }) => {
+    markAsRead: protectedProcedure.input(z.object({ id: idSchema })).mutation(async ({ ctx, input }) => {
         const userId = ctx.session.user.id;
         const [existing] = await ctx.db.select().from(notification).where(eq(notification.id, input.id));
         if (!existing) {
@@ -58,7 +59,7 @@ export const notificationRouter = createTRPCRouter({
 
     // Удалить ОДНО своё уведомление. Где userId = мой И id = указанный:
     // чужое уведомление удалить нельзя — условие просто не совпадёт.
-    delete: protectedProcedure.input(z.object({ id: z.number() })).mutation(async ({ ctx, input }) => {
+    delete: protectedProcedure.input(z.object({ id: idSchema })).mutation(async ({ ctx, input }) => {
         const userId = ctx.session.user.id;
         const [deleted] = await ctx.db
             .delete(notification)

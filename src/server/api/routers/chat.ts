@@ -5,6 +5,7 @@ import z from 'zod';
 
 import { MAX_MESSAGE_LENGTH } from '@/lib/chat';
 import { isAdminRole } from '@/lib/constants/roles';
+import { idSchema } from '@/lib/schemas/common';
 import { sendTelegramMessage } from '@/lib/telegram';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import { apartments, booking, conversation, message, users } from '@/server/db/schemas';
@@ -102,7 +103,7 @@ export const chatRouter = createTRPCRouter({
     // ============================================================
     // messages — все сообщения конкретного диалога (старые сверху).
     // ============================================================
-    messages: protectedProcedure.input(z.object({ conversationId: z.number() })).query(async ({ ctx, input }) => {
+    messages: protectedProcedure.input(z.object({ conversationId: idSchema })).query(async ({ ctx, input }) => {
         const userId = ctx.session.user.id;
 
         // Сначала проверяем, что я вообще участник этого диалога.
@@ -218,7 +219,7 @@ export const chatRouter = createTRPCRouter({
     // ============================================================
     // markRead — отметить сообщения собеседника прочитанными при открытии чата.
     // ============================================================
-    markRead: protectedProcedure.input(z.object({ conversationId: z.number() })).mutation(async ({ ctx, input }) => {
+    markRead: protectedProcedure.input(z.object({ conversationId: idSchema })).mutation(async ({ ctx, input }) => {
         const userId = ctx.session.user.id;
 
         const [target] = await ctx.db.select().from(conversation).where(eq(conversation.id, input.conversationId));
@@ -245,7 +246,7 @@ export const chatRouter = createTRPCRouter({
     // setConversationActive — заблокировать / разблокировать беседу (только админ).
     // ============================================================
     setConversationActive: protectedProcedure
-        .input(z.object({ conversationId: z.number(), isActive: z.boolean() }))
+        .input(z.object({ conversationId: idSchema, isActive: z.boolean() }))
         .mutation(async ({ ctx, input }) => {
             if (!isAdminRole(ctx.session.user.role)) {
                 throw new TRPCError({
@@ -274,7 +275,7 @@ export const chatRouter = createTRPCRouter({
     // Сообщения удаляются каскадом (FK onDelete: cascade).
     // ============================================================
     deleteConversation: protectedProcedure
-        .input(z.object({ conversationId: z.number() }))
+        .input(z.object({ conversationId: idSchema }))
         .mutation(async ({ ctx, input }) => {
             if (!isAdminRole(ctx.session.user.role)) {
                 throw new TRPCError({
@@ -290,7 +291,7 @@ export const chatRouter = createTRPCRouter({
     // ============================================================
     // deleteMessage — удалить одно сообщение (только админ).
     // ============================================================
-    deleteMessage: protectedProcedure.input(z.object({ messageId: z.number() })).mutation(async ({ ctx, input }) => {
+    deleteMessage: protectedProcedure.input(z.object({ messageId: idSchema })).mutation(async ({ ctx, input }) => {
         if (!isAdminRole(ctx.session.user.role)) {
             throw new TRPCError({
                 code: 'FORBIDDEN',
@@ -308,7 +309,7 @@ export const chatRouter = createTRPCRouter({
     send: protectedProcedure
         .input(
             z.object({
-                conversationId: z.number(),
+                conversationId: idSchema,
                 text: z.string().trim().min(1).max(MAX_MESSAGE_LENGTH),
             }),
         )
