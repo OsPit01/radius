@@ -95,6 +95,7 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
             addressLocality: a.city,
             addressCountry: 'BY',
         },
+        ...(a.lat && a.lon ? { geo: { '@type': 'GeoCoordinates', latitude: a.lat, longitude: a.lon } } : {}),
         priceRange: formatByn(a.price),
     };
 
@@ -105,7 +106,9 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
                 description={metaDescription}
                 canonical={`/apartments/${rawId}`}
                 image={cover?.startsWith('http') ? getApartmentOgImagePath(a.id, cover) : undefined}
-                type="article"
+                type="place"
+                latitude={a.lat ?? undefined}
+                longitude={a.lon ?? undefined}
             />
             <JsonLd data={lodgingSchema} />
             <ClientHeader />

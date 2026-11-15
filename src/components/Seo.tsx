@@ -1,6 +1,6 @@
 import Head from 'next/head';
 
-import { absoluteUrl, DEFAULT_OG_IMAGE, HOME_TITLE, OG_IMAGE_SIZE, SITE_DESCRIPTION, SITE_NAME } from '@/lib/seo';
+import { absoluteUrl, DEFAULT_OG_IMAGE, OG_IMAGE_SIZE, SITE_DESCRIPTION, SITE_NAME } from '@/lib/seo';
 
 type SeoProps = {
     /** Короткий заголовок: в <title> получит суффикс « | NaRadare», в og:title — нет. */
@@ -14,8 +14,11 @@ type SeoProps = {
     image?: string;
     /** Закрыть страницу от индексации. */
     noindex?: boolean;
-    /** Тип контента для og:type. По умолчанию «website»; для страницы объекта — «article». */
+    /** Тип контента для og:type. По умолчанию «website»; для страницы объекта — «place». */
     type?: string;
+    /** Координаты объекта (для og:type="place" → place:location:latitude/longitude). */
+    latitude?: number;
+    longitude?: number;
 };
 
 /**
@@ -33,11 +36,16 @@ export function Seo({
     image,
     noindex,
     type,
+    latitude,
+    longitude,
 }: SeoProps) {
-    const ogTitle = title ?? absoluteTitle ?? HOME_TITLE;
+    // Фолбэк — просто бренд: страницы без своего заголовка (например, 404)
+    // не должны «притворяться» главной.
+    const ogTitle = title ?? absoluteTitle ?? SITE_NAME;
     // Бренд добавляем ОДИН раз и только в <title>: og:title остаётся «чистым»,
     // потому что в карточке соцсетей бренд уже показан отдельно через og:site_name.
-    const documentTitle = ogTitle.endsWith(` | ${SITE_NAME}`) ? ogTitle : `${ogTitle} | ${SITE_NAME}`;
+    const documentTitle =
+        ogTitle === SITE_NAME || ogTitle.endsWith(` | ${SITE_NAME}`) ? ogTitle : `${ogTitle} | ${SITE_NAME}`;
     const ogImage = absoluteUrl(image ?? DEFAULT_OG_IMAGE);
     const canonicalUrl = canonical ? absoluteUrl(canonical) : undefined;
 
@@ -118,6 +126,20 @@ export function Seo({
                 property="og:image:alt"
                 content={ogTitle}
             />
+            {latitude !== undefined && longitude !== undefined && (
+                <>
+                    <meta
+                        key="place:location:latitude"
+                        property="place:location:latitude"
+                        content={String(latitude)}
+                    />
+                    <meta
+                        key="place:location:longitude"
+                        property="place:location:longitude"
+                        content={String(longitude)}
+                    />
+                </>
+            )}
 
             <meta
                 key="twitter:card"
