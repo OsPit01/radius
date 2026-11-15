@@ -50,12 +50,17 @@ async function securityHeaders() {
 
     const csp = [
         "default-src 'self'",
-        "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://api-maps.yandex.ru https://*.yandex.ru https://*.yandex.net https://yastatic.net",
-        "style-src 'self' 'unsafe-inline'",
+        // Скрипты и стили по https: — Яндекс Карты и Google Ads грузят ресурсы
+        // с множества своих доменов (yastatic.net, doubleclick.net и т.п.),
+        // перечислять их вручную = бесконечно ломать сайт. 'unsafe-inline' нужен
+        // Next.js (инлайн-скрипты __next_f/__NEXT_DATA__) и инлайн-стилям.
+        "script-src 'self' 'unsafe-inline' https:",
+        "style-src 'self' 'unsafe-inline' https:",
         "img-src 'self' data: blob: https:",
         "font-src 'self' data: https:",
         "connect-src 'self' https:",
         "worker-src 'self' blob: https:",
+        // Реальная защита — эти директивы (их не трогаем):
         "frame-ancestors 'none'",
         "object-src 'none'",
         "base-uri 'self'",
