@@ -34,12 +34,34 @@ function buildRemotePatterns() {
 /**
  * Заголовки безопасности для всех страниц.
  *
- * Только «безопасные» заголовки, которые НИЧЕГО не блокируют (не влияют на
- * скрипты/карты/картинки). CSP намеренно НЕ добавляем: Яндекс Карты грузят
- * скрипты с нескольких доменов, и строгий script-src ломает карту — добавлять
- * CSP нужно отдельно, с аккуратной проверкой карты и аналитики.
+ * CSP собран так, чтобы НЕ ломать Яндекс Карты и аналитику:
+ *  - script-src строгий: только наш домен + Google Analytics (googletagmanager.com)
+ *    + Яндекс Карты (api-maps.yandex.ru) — это и есть защита от XSS;
+ *  - 'unsafe-inline' для script/style нужен Next.js (инлайн-скрипты __next_f/__NEXT_DATA__)
+ *    и инлайн-стилям (React style={} + Tailwind);
+ *  - воркеры, картинки, шрифты и сетевые запросы разрешены по https: — карта Яндекса
+ *    грузит их со своих поддоменов (core-renderer-maps, yastatic и т.п.), и перечислять
+ *    их все руками = риск снова сломать карту.
+ *
+ * CSP применяется ТОЛЬКО в production: в dev-режиме Next.js использует eval (HMR/React Refresh).
  */
 async function securityHeaders() {
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    const csp = [
+        "default-src 'self'",
+        "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://api-maps.yandex.ru https://*.yandex.ru https://*.yandex.net https://yastatic.net",
+        "style-src 'self' 'unsafe-inline'",
+        "img-src 'self' data: blob: https:",
+        "font-src 'self' data: https:",
+        "connect-src 'self' https:",
+        "worker-src 'self' blob: https:",
+        "frame-ancestors 'none'",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+    ].join('; ');
+
     const headers = [
         // Запрет определять MIME-тип «на глаз» — защита от подмены типа загружаемых файлов.
         { key: 'X-Content-Type-Options', value: 'nosniff' },
@@ -54,6 +76,10 @@ async function securityHeaders() {
         // Всегда HTTPS. preload НЕ включаем: домен недавно переехал, подключать к preload-списку рано.
         { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains' },
     ];
+
+    if (isProduction) {
+        headers.push({ key: 'Content-Security-Policy', value: csp });
+    }
 
     return [{ source: '/(.*)', headers }];
 }
