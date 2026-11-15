@@ -46,7 +46,7 @@ export default function Home() {
 
                 <CityTiles />
 
-                <section className="mx-auto mt-12 max-w-3xl text-center text-[0.95rem] leading-relaxed text-muted-foreground max-md:mt-8 max-md:text-sm">
+                <div className="mx-auto mt-12 max-w-3xl text-center text-[0.95rem] leading-relaxed text-muted-foreground max-md:mt-8 max-md:text-sm">
                     <p className="mb-4">
                         NaRadare — удобный способ снять квартиру на сутки. У нас только проверенные объекты от
                         собственников: актуальные фотографии, честные цены и бронирование за пару минут. Выберите район,
@@ -57,7 +57,7 @@ export default function Home() {
                         проверен, у каждого есть подробное описание и рейтинг. Снимайте квартиру на сутки надёжно —
                         напрямую от владельцев.
                     </p>
-                </section>
+                </div>
             </main>
         </>
     );
