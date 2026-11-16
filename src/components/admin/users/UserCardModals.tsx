@@ -220,3 +220,97 @@ export function UserObjectsModal({ open, onClose, objects }: UserObjectsModalPro
         </Modal>
     );
 }
+
+/** Строка «метка — значение» в карточке удаления. */
+function InfoRow({ label, value }: { label: string; value: string }) {
+    return (
+        <div className="flex items-start justify-between gap-4">
+            <span className="shrink-0 text-muted-foreground">{label}</span>
+            <span className="min-w-0 text-right font-medium break-all text-foreground">{value}</span>
+        </div>
+    );
+}
+
+type DeleteUserModalProps = {
+    open: boolean;
+    onClose: () => void;
+    /** Данные юзера для карточки (email, id, имя, объекты, дата регистрации). */
+    data: RouterOutputs['user']['getDeleteInfo'] | null;
+    onConfirm: () => void;
+    isPending: boolean;
+};
+
+/** Модалка «удалить пользователя»: карточка с данными + Удалить/Отмена. */
+export function DeleteUserModal({ open, onClose, data, onConfirm, isPending }: DeleteUserModalProps) {
+    if (!data) {
+        return null;
+    }
+    const joined = [data.firstName, data.lastName].filter(Boolean).join(' ');
+    const fullName = joined || (data.name ?? '—');
+    const registeredAt = new Date(data.createdAt).toLocaleDateString('ru-RU', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+    });
+
+    return (
+        <Modal
+            open={open}
+            onClose={onClose}
+            title="Удалить пользователя"
+        >
+            <div className="flex flex-col gap-3">
+                <p className="text-sm text-muted-foreground">
+                    Пользователь будет удалён безвозвратно — вместе с объявлениями, бронями, перепиской и фото.
+                </p>
+                <div className="flex flex-col gap-2 rounded-lg bg-muted p-4 text-sm">
+                    <InfoRow
+                        label="Имя"
+                        value={fullName}
+                    />
+                    <InfoRow
+                        label="Email"
+                        value={data.email}
+                    />
+                    <InfoRow
+                        label="ID"
+                        value={data.id}
+                    />
+                    <InfoRow
+                        label="Объектов"
+                        value={String(data.totalApartments)}
+                    />
+                    <InfoRow
+                        label="Бронирований"
+                        value={String(data.totalBookings)}
+                    />
+                    <InfoRow
+                        label="В избранном"
+                        value={String(data.totalFavorites)}
+                    />
+                    <InfoRow
+                        label="Регистрация"
+                        value={registeredAt}
+                    />
+                </div>
+                <div className="mt-2 flex gap-2">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="flex-1 cursor-pointer rounded-[30px] border border-border px-6 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+                    >
+                        Отмена
+                    </button>
+                    <button
+                        type="button"
+                        onClick={onConfirm}
+                        disabled={isPending}
+                        className="flex-1 cursor-pointer rounded-[30px] bg-destructive px-6 py-2.5 text-sm font-semibold text-destructive-foreground transition-colors hover:bg-destructive/90 disabled:opacity-60"
+                    >
+                        {isPending ? 'Удаляем...' : 'Удалить'}
+                    </button>
+                </div>
+            </div>
+        </Modal>
+    );
+}

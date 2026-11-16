@@ -3,7 +3,8 @@ import { and, count, eq, ilike, or } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { z } from 'zod';
 
-import { getRoleInfo, isAdminRole, ROLE_VALUES_TUPLE } from '@/lib/constants/roles';
+import { getRoleInfo, hasPermission, isAdminRole, ROLE_VALUES_TUPLE } from '@/lib/constants/roles';
+import { removeApartmentImages } from '@/server/apartment-images';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import type * as schema from '@/server/db/schemas';
 import { apartments, booking, favorites, users } from '@/server/db/schemas';
@@ -314,6 +315,71 @@ export const userRouter = createTRPCRouter({
             // Только id — секретные поля (telegram*) наружу не уходят.
             .returning({ id: users.id });
         return updated;
+    }),
+
+    // 9. Удалить пользователя: каскадно удаляет все его данные.
+    // Только супер админ / главный админ — удаление безвозвратно.
+    deleteUser: protectedProcedure.input(z.object({ userId: z.string() })).mutation(async ({ ctx, input }) => {
+        if (!hasPermission(ctx.session.user.role, 'superadmin')) {
+            throw new TRPCError({
+                code: 'FORBIDDEN',
+                message: 'Только супер админ или главный админ может удалять пользователей',
+            });
+        }
+        // Общие проверки: не самого себя, цель существует и ниже уровнем.
+        await requireTargetUser(ctx.db, ctx.session.user.role, ctx.session.user.id, input.userId);
+
+        // 1. СОБИРАЕМ фото квартир юзера ДО удаления: после cascade их уже не достать.
+        const owned = await ctx.db
+            .select({ images: apartments.images })
+            .from(apartments)
+            .where(eq(apartments.createdById, input.userId));
+        const imageUrls = owned.flatMap((a) => a.images ?? []);
+
+        // 2. Удаляем юзера — каскады (onDelete: cascade) сносят квартиры,
+        //    брони, избранное, сообщения, уведомления и т.д.
+        await ctx.db.delete(users).where(eq(users.id, input.userId));
+
+        // 3. Фото жили в Storage, а не в БД — стираем файлы отдельно.
+        await removeApartmentImages(imageUrls);
+
+        return { success: true };
+    }),
+
+    // 10. Данные юзера для модалки «удалить пользователя».
+    // Мутация (а не query): вызывается по клику «Удалить» и отдаёт данные для карточки.
+    getDeleteInfo: protectedProcedure.input(z.object({ userId: z.string() })).mutation(async ({ ctx, input }) => {
+        if (!hasPermission(ctx.session.user.role, 'superadmin')) {
+            throw new TRPCError({
+                code: 'FORBIDDEN',
+                message: 'Только супер админ или главный админ может удалять пользователей',
+            });
+        }
+        if (input.userId === ctx.session.user.id) {
+            throw new TRPCError({ code: 'FORBIDDEN', message: 'Нельзя удалить самого себя' });
+        }
+        const [target] = await ctx.db.select().from(users).where(eq(users.id, input.userId));
+        if (!target) {
+            throw new TRPCError({ code: 'NOT_FOUND', message: 'Пользователь не найден' });
+        }
+        if (getRoleInfo(target.role).level >= getRoleInfo(ctx.session.user.role).level) {
+            throw new TRPCError({
+                code: 'FORBIDDEN',
+                message: 'Нельзя удалить пользователя с равным или более высоким уровнем',
+            });
+        }
+        return {
+            id: target.id,
+            email: target.email,
+            name: target.name,
+            firstName: target.firstName,
+            lastName: target.lastName,
+            role: target.role,
+            createdAt: target.createdAt,
+            totalApartments: target.totalApartments,
+            totalBookings: target.totalBookings,
+            totalFavorites: target.totalFavorites,
+        };
     }),
 
     // 8. Telegram: начать привязку (генерируем одноразовый код)

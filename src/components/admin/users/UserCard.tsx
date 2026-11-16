@@ -1,13 +1,16 @@
 import { useState } from 'react';
 
+import { useSession } from 'next-auth/react';
+
 import { Eye } from '@/components/icons';
 import { Avatar } from '@/components/ui/Avatar';
-import { getRoleInfo, type RoleKey } from '@/lib/constants/roles';
+import { getRoleInfo, hasPermission, type RoleKey } from '@/lib/constants/roles';
 import { getRoleColor } from '@/lib/theme';
-import { api } from '@/trpc/react';
+import { api, type RouterOutputs } from '@/trpc/react';
 
 import {
     BanUserModal,
+    DeleteUserModal,
     type EditUserForm,
     EditUserModal,
     type NotifyForm,
@@ -39,6 +42,13 @@ type UserCardProps = {
  */
 export function UserCard({ user, allowedRoles }: UserCardProps) {
     const roleInfo = getRoleInfo(user.role);
+    const { data: session } = useSession();
+
+    // Могу ли удалить этого юзера: я супер/главный админ, это не я, уровень выше.
+    const canDelete =
+        hasPermission(session?.user?.role ?? '', 'superadmin') &&
+        session?.user?.id !== user.id &&
+        getRoleInfo(session?.user?.role ?? '').level > roleInfo.level;
 
     const [selectedRole, setSelectedRole] = useState<RoleKey | ''>('');
     const [editOpen, setEditOpen] = useState(false);
@@ -57,6 +67,12 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
     const [notifyForm, setNotifyForm] = useState<NotifyForm>({ title: '', text: '' });
     const [objectsOpen, setObjectsOpen] = useState(false);
     const [showId, setShowId] = useState(false);
+    // Удаление — трёхшаговое: «Удалить» → «Точно удалить?» → серверная проверка прав
+    // → карточка с данными юзера. Шаг подтверждения живёт в confirmDelete (bool),
+    // сама карточка — в deleteOpen; её данные приходят из deleteInfo.
+    const [deleteOpen, setDeleteOpen] = useState(false);
+    const [deleteInfo, setDeleteInfo] = useState<RouterOutputs['user']['getDeleteInfo'] | null>(null);
+    const [confirmDelete, setConfirmDelete] = useState(false);
     const utils = api.useUtils();
 
     const updateRole = api.user.updateRole.useMutation({
@@ -93,6 +109,32 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
         onSuccess: () => {
             setNotifyOpen(false);
             setNotifyForm({ title: '', text: '' });
+        },
+        onError: (error) => {
+            alert(error.message);
+        },
+    });
+
+    // Вторая проверка прав + данные юзера для карточки удаления.
+    const getDeleteInfo = api.user.getDeleteInfo.useMutation({
+        onSuccess: (data) => {
+            setDeleteInfo(data);
+            setDeleteOpen(true);
+        },
+        onError: (error) => {
+            // Прав нет или юзера нет — возвращаем кнопку в исходное «Удалить».
+            setConfirmDelete(false);
+            alert(error.message);
+        },
+    });
+
+    // Удаление пользователя: каскадно и безвозвратно.
+    const deleteUser = api.user.deleteUser.useMutation({
+        onSuccess: () => {
+            setDeleteOpen(false);
+            setDeleteInfo(null);
+            setConfirmDelete(false);
+            void utils.user.getAll.invalidate();
         },
         onError: (error) => {
             alert(error.message);
@@ -213,6 +255,35 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
                         Объекты
                     </button>
                 </div>
+
+                {/* Удалить пользователя — серая кнопка, краснеет при наведении.
+                    Первый клик переводит в «Точно удалить?», второй — серверная
+                    проверка прав → карточка с данными юзера. */}
+                {canDelete && (
+                    <div className="mt-2">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                if (confirmDelete) {
+                                    // Второй клик: серверная проверка прав → карточка.
+                                    getDeleteInfo.mutate({ userId: user.id });
+                                } else {
+                                    // Первый клик: просто просим подтверждение.
+                                    setConfirmDelete(true);
+                                }
+                            }}
+                            disabled={getDeleteInfo.isPending}
+                            className={
+                                'w-full cursor-pointer rounded-[30px] border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-60 ' +
+                                (confirmDelete
+                                    ? 'border-destructive text-destructive hover:bg-destructive/10'
+                                    : 'border-border text-muted-foreground hover:border-destructive hover:bg-destructive/10 hover:text-destructive')
+                            }
+                        >
+                            {getDeleteInfo.isPending ? 'Проверка...' : confirmDelete ? 'Точно удалить?' : 'Удалить'}
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* Модалки: состояние и мутации живут ЗДЕСЬ (родитель),
@@ -252,6 +323,17 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
                 open={objectsOpen}
                 onClose={() => setObjectsOpen(false)}
                 objects={userObjects}
+            />
+            <DeleteUserModal
+                open={deleteOpen}
+                onClose={() => {
+                    setDeleteOpen(false);
+                    setDeleteInfo(null);
+                    setConfirmDelete(false);
+                }}
+                data={deleteInfo}
+                onConfirm={() => deleteUser.mutate({ userId: user.id })}
+                isPending={deleteUser.isPending}
             />
         </>
     );

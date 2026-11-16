@@ -14,11 +14,11 @@ export const conversation = pgTable(
         guestId: d
             .varchar({ length: 255 })
             .notNull()
-            .references(() => users.id),
+            .references(() => users.id, { onDelete: 'cascade' }),
         ownerId: d
             .varchar({ length: 255 })
             .notNull()
-            .references(() => users.id),
+            .references(() => users.id, { onDelete: 'cascade' }),
         isActive: d.boolean().notNull().default(true), // true = переписка активна; false = заблокирована администратором (участники видят беседу, но не могут отправлять сообщения).
         // Присутствие участников: когда гость/владелец последний раз читал диалог.
         // Анти-спам телеграма: кто читал недавно (окно PRESENCE_WINDOW_MS в chat.ts)

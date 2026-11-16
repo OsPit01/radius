@@ -57,7 +57,7 @@ export const apartments = pgTable(
         // Место в выдаче каталога: чем меньше число, тем выше (0 или 1 — первое место). NULL — после всех с номером,
         // в случайном порядке. Ставится ТОЛЬКО руками в базе: в формах и API его нет (SERVER_OWNED_FIELDS), наружу не отдаётся.
         rank: d.integer(),
-        createdById: d.varchar({ length: 255 }).references(() => users.id),
+        createdById: d.varchar({ length: 255 }).references(() => users.id, { onDelete: 'cascade' }),
         status: apartmentStatusEnum('status').notNull().default('moderation'),
         rejectionReason: d.text(),
         payerType: payerTypeEnum('payerType').notNull().default('individual'),

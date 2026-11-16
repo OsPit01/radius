@@ -15,7 +15,7 @@ export const booking = pgTable(
             .integer()
             .notNull()
             .references(() => apartments.id, { onDelete: 'cascade' }),
-        userId: d.varchar({ length: 255 }).references(() => users.id),
+        userId: d.varchar({ length: 255 }).references(() => users.id, { onDelete: 'cascade' }),
         guestName: d.varchar({ length: 255 }).notNull(),
         guestPhone: d.varchar({ length: 50 }).notNull(),
         guests: d.integer().notNull(),

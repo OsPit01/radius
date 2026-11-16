@@ -17,7 +17,7 @@ export const supportMessage = pgTable(
         senderId: d
             .varchar({ length: 255 })
             .notNull()
-            .references(() => users.id),
+            .references(() => users.id, { onDelete: 'cascade' }),
         text: d.text().notNull(),
         isRead: d.boolean().default(false).notNull(),
         createdAt: d

@@ -24,6 +24,9 @@ export const users = pgTable(
         }),
         image: d.text(),
         role: userRoleEnum('role').notNull().default('user'),
+        // Дата регистрации: ставится БД при вставке (default now) — для показа
+        // в карточке «удалить пользователя» и будущих админ-отчётов.
+        createdAt: d.timestamp({ withTimezone: true }).notNull().defaultNow(),
         totalBookings: d.integer().notNull().default(0),
         totalFavorites: d.integer().notNull().default(0),
         totalApartments: d.integer().notNull().default(0),

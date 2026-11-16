@@ -15,8 +15,9 @@ export const supportTicket = pgTable(
         userId: d
             .varchar({ length: 255 })
             .notNull()
-            .references(() => users.id),
-        assignedToId: d.varchar({ length: 255 }).references(() => users.id),
+            .references(() => users.id, { onDelete: 'cascade' }),
+        // assignedToId → set null (заявка остаётся, ведущего нет)
+        assignedToId: d.varchar({ length: 255 }).references(() => users.id, { onDelete: 'set null' }),
         status: supportTicketStatusEnum('status').notNull().default('open'),
         createdAt: d
             .timestamp({ withTimezone: true })

@@ -14,7 +14,7 @@ export const message = pgTable(
         senderId: d
             .varchar({ length: 255 })
             .notNull()
-            .references(() => users.id),
+            .references(() => users.id, { onDelete: 'cascade' }),
         text: d.text().notNull(),
         isRead: d.boolean().notNull().default(false), // Прочитал ли получатель это сообщение (для счётчика непрочитанных).
         createdAt: d

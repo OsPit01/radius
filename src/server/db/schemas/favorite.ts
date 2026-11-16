@@ -9,7 +9,7 @@ export const favorites = pgTable(
         userId: d
             .varchar({ length: 255 })
             .notNull()
-            .references(() => users.id),
+            .references(() => users.id, { onDelete: 'cascade' }),
         apartmentId: d
             .integer()
             .notNull()
