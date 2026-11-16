@@ -9,7 +9,7 @@ export const accounts = pgTable(
         userId: d
             .varchar({ length: 255 })
             .notNull()
-            .references(() => users.id),
+            .references(() => users.id, { onDelete: 'cascade' }),
         type: d.varchar({ length: 255 }).$type<AdapterAccount['type']>().notNull(),
         provider: d.varchar({ length: 255 }).notNull(),
         providerAccountId: d.varchar({ length: 255 }).notNull(),
