@@ -99,9 +99,9 @@ export const analyticsRouter = createTRPCRouter({
     getMyApartmentStats: protectedProcedure.query(async ({ ctx }) => {
         const userId = ctx.session.user.id;
 
-        // Мои квартиры (id + название).
+        // Мои квартиры (id + название + обложка для карточки статистики).
         const myApartments = await ctx.db
-            .select({ id: apartments.id, title: apartments.title })
+            .select({ id: apartments.id, title: apartments.title, images: apartments.images })
             .from(apartments)
             .where(eq(apartments.createdById, userId));
         const myIds = myApartments.map((a) => a.id);
@@ -143,10 +143,11 @@ export const analyticsRouter = createTRPCRouter({
         const favoritesMap = toMap(favoritesRows);
         const bookingsMap = toMap(bookingsRows);
 
-        // Собираем итог: каждая квартира + все три её показателя.
+        // Собираем итог: каждая квартира + все три её показателя + обложка.
         const perApartment = myApartments.map((a) => ({
             apartmentId: a.id,
             title: a.title,
+            cover: a.images?.[0] ?? null,
             views: viewsMap.get(a.id) ?? 0,
             favorites: favoritesMap.get(a.id) ?? 0,
             bookings: bookingsMap.get(a.id) ?? 0,

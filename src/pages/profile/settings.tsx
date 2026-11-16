@@ -181,56 +181,66 @@ export default function SettingsPage() {
                         >
                             {/* Имя */}
                             <div className="mb-5">
-                                <label className="pr-5 text-[17px]">Имя:</label>
-                                <input
-                                    className="cursor-pointer border-b border-border bg-transparent p-1 pl-2 text-[15px] text-foreground outline-none focus:border-primary"
-                                    type="text"
-                                    value={form.firstName}
-                                    onChange={(e) => setForm({ ...form, firstName: e.target.value })}
-                                ></input>
-                                {form.firstName !== (user?.firstName ?? '') && (
-                                    <span className="ml-2 inline-block h-2.5 w-2.5 rounded-full bg-success"></span>
-                                )}
+                                <label className="text-[17px]">Имя:</label>
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        className="w-full cursor-pointer border-b border-border bg-transparent p-1 text-[15px] text-foreground outline-none focus:border-primary"
+                                        type="text"
+                                        value={form.firstName}
+                                        onChange={(e) => setForm({ ...form, firstName: e.target.value })}
+                                    />
+                                    {form.firstName !== (user?.firstName ?? '') && (
+                                        <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-success" />
+                                    )}
+                                </div>
                             </div>
-                            {/* фамилия */}
+                            {/* Фамилия */}
                             <div className="mb-5">
-                                <label className="pr-5 text-[17px]">Фамилия:</label>
-                                <input
-                                    className="cursor-pointer border-b border-border bg-transparent p-1 pl-2 text-[15px] text-foreground outline-none focus:border-primary"
-                                    type="text"
-                                    value={form.lastName}
-                                    onChange={(e) => setForm({ ...form, lastName: e.target.value })}
-                                ></input>
-                                {form.lastName !== (user?.lastName ?? '') && (
-                                    <span className="ml-2 inline-block h-2.5 w-2.5 rounded-full bg-success"></span>
-                                )}
+                                <label className="text-[17px]">Фамилия:</label>
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        className="w-full cursor-pointer border-b border-border bg-transparent p-1 text-[15px] text-foreground outline-none focus:border-primary"
+                                        type="text"
+                                        value={form.lastName}
+                                        onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+                                    />
+                                    {form.lastName !== (user?.lastName ?? '') && (
+                                        <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-success" />
+                                    )}
+                                </div>
                             </div>
 
-                            <div className="mb-5 text-[17px]">
-                                <label className="pr-5">Отчество:</label>
-                                <input
-                                    className="cursor-pointer border-b border-border bg-transparent p-1 pl-2 text-[15px] text-foreground outline-none focus:border-primary"
-                                    type="text"
-                                    value={form.patronymic}
-                                    onChange={(e) => setForm({ ...form, patronymic: e.target.value })}
-                                ></input>
-                                {form.patronymic !== (user?.patronymic ?? '') && (
-                                    <span className="ml-2 inline-block h-2.5 w-2.5 rounded-full bg-success"></span>
-                                )}
+                            {/* Отчество */}
+                            <div className="mb-5">
+                                <label className="text-[17px]">Отчество:</label>
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        className="w-full cursor-pointer border-b border-border bg-transparent p-1 text-[15px] text-foreground outline-none focus:border-primary"
+                                        type="text"
+                                        value={form.patronymic}
+                                        onChange={(e) => setForm({ ...form, patronymic: e.target.value })}
+                                    />
+                                    {form.patronymic !== (user?.patronymic ?? '') && (
+                                        <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-success" />
+                                    )}
+                                </div>
                             </div>
-                            <div className="mb-5 text-[17px]">
-                                <label className="pr-5">Номер телефона:</label>
-                                <PhoneInput
-                                    international
-                                    defaultCountry="BY"
-                                    limitMaxLength
-                                    value={form.phone}
-                                    onChange={handlePhoneChange}
-                                    className="w-full border-b border-border bg-transparent p-1 pl-2 text-[15px] md:w-1/2"
-                                />
-                                {form.phone !== toE164(user?.phone) && (
-                                    <span className="ml-2 inline-block h-2.5 w-2.5 rounded-full bg-success"></span>
-                                )}
+                            {/* Телефон */}
+                            <div className="mb-5">
+                                <label className="text-[17px]">Номер телефона:</label>
+                                <div className="flex items-center gap-2">
+                                    <PhoneInput
+                                        international
+                                        defaultCountry="BY"
+                                        limitMaxLength
+                                        value={form.phone}
+                                        onChange={handlePhoneChange}
+                                        className="w-full border-b border-border bg-transparent p-1 text-[15px]"
+                                    />
+                                    {form.phone !== toE164(user?.phone) && (
+                                        <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-success" />
+                                    )}
+                                </div>
                             </div>
                             {/* Telegram уведомления о бронированиях */}
                             <TelegramSection

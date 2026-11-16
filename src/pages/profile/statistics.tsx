@@ -3,6 +3,7 @@ import { useSession } from 'next-auth/react';
 import { BarChart, Calendar, Eye, Heart } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { ClientHeader } from '@/components/layout/ClientHeader';
+import { ImageWithFallback } from '@/components/ui/ImageWithFallback';
 import { requireAuth } from '@/server/auth/require-auth';
 import { api } from '@/trpc/react';
 
@@ -74,27 +75,36 @@ export default function StatisticsPage() {
                                 {apartments.map((a) => (
                                     <li
                                         key={a.apartmentId}
-                                        className="flex flex-col gap-2 rounded-[14px] bg-card p-4"
+                                        className="flex items-start gap-3 rounded-[14px] bg-card p-4"
                                     >
-                                        <span className="min-w-0 font-medium break-words text-foreground">
-                                            {a.title}
-                                        </span>
-                                        <div className="flex flex-wrap gap-2">
-                                            <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-sm font-semibold text-primary">
-                                                <Eye className="h-4 w-4" />
-                                                {a.views} просмотров
+                                        <ImageWithFallback
+                                            src={a.cover ?? undefined}
+                                            alt={a.title}
+                                            width={48}
+                                            height={48}
+                                            className="size-12 shrink-0 rounded-md object-cover"
+                                        />
+                                        <div className="flex min-w-0 flex-1 flex-col gap-2">
+                                            <span className="min-w-0 font-medium break-words text-foreground">
+                                                {a.title}
                                             </span>
-                                            <span className="inline-flex items-center gap-1.5 rounded-full bg-destructive/10 px-3 py-1 text-sm font-semibold text-destructive">
-                                                <Heart
-                                                    muted
-                                                    className="h-4 w-4"
-                                                />
-                                                {a.favorites} в избранном
-                                            </span>
-                                            <span className="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-3 py-1 text-sm font-semibold text-success">
-                                                <Calendar className="h-4 w-4" />
-                                                {a.bookings} броней
-                                            </span>
+                                            <div className="flex flex-wrap gap-2">
+                                                <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-sm font-semibold text-primary">
+                                                    <Eye className="h-4 w-4" />
+                                                    {a.views} просмотров
+                                                </span>
+                                                <span className="inline-flex items-center gap-1.5 rounded-full bg-destructive/10 px-3 py-1 text-sm font-semibold text-destructive">
+                                                    <Heart
+                                                        muted
+                                                        className="h-4 w-4"
+                                                    />
+                                                    {a.favorites} в избранном
+                                                </span>
+                                                <span className="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-3 py-1 text-sm font-semibold text-success">
+                                                    <Calendar className="h-4 w-4" />
+                                                    {a.bookings} броней
+                                                </span>
+                                            </div>
                                         </div>
                                     </li>
                                 ))}
