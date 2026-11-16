@@ -7,8 +7,6 @@ import { expireStaleBookings } from '@/server/booking-expiry';
  *
  * Кто его вызывает: системный crontab на сервере (см. scripts/cron-setup.md)
  * каждые 10 минут: curl с заголовком Authorization: Bearer <CRON_SECRET>.
- * В vercel.json тоже есть запись (раз в сутки, 03:00) — она историческая,
- * основной таймер — серверный crontab.
  *
  * Авторизация: если CRON_SECRET задан (в проде — обязателен), проверяем
  * заголовок Bearer, чтобы посторонние не могли дёргать эндпоинт и грузить БД.

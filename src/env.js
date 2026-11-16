@@ -21,7 +21,7 @@ export const env = createEnv({
         // Яндекс Геосаджест (подсказки адреса при вводе) — отдельный продукт со своими ключами. Тоже только на сервере.
         YANDEX_GEOSUGGEST_API_KEY: z.string().optional(),
         YANDEX_GEOSUGGEST_API_KEY_RESERVE: z.string().optional(),
-        // Секрет для cron-эндпоинтов (Vercel Cron). В проде обязателен.
+        // Секрет для cron-эндпоинтов (системный crontab на сервере, см. scripts/cron-setup.md).
         CRON_SECRET: z.string().optional(),
         DATABASE_URL: z.string().url(),
         NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
