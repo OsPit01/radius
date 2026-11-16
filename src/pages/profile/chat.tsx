@@ -37,9 +37,13 @@ export default function ChatPage() {
     const [selectedId, setSelectedId] = useState<number | null>(null);
 
     // ===== Сообщения выбранного диалога =====
+    // Опрос каждые 5 сек пока диалог открыт: входящие появляются сами (без F5),
+    // а каждый опрос = «я в чате» (presence на сервере). БЕЗ refetchIntervalInBackground:
+    // свёрнутая вкладка не считается присутствием — через 2 мин absence
+    // телеграм-уведомления возобновляются (см. PRESENCE_WINDOW_MS в chat.ts).
     const { data: messages } = api.chat.messages.useQuery(
         { conversationId: selectedId ?? 0 },
-        { enabled: selectedId !== null },
+        { enabled: selectedId !== null, refetchInterval: 5000 },
     );
 
     const utils = api.useUtils();

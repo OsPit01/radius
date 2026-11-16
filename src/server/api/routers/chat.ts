@@ -16,6 +16,21 @@ import { enforceRateLimit } from '@/server/rate-limit';
 const CHAT_RATE_LIMIT = 30;
 const CHAT_RATE_WINDOW_MS = 60 * 1000;
 
+// ===== Присутствие в чате (анти-спам телеграма) =====
+// Кто читал диалог или писал в него недавно — «в чате»: дубль сообщения
+// в телеграм ему НЕ отправляется (он и так видит текст на экране).
+const PRESENCE_WINDOW_MS = 2 * 60 * 1000;
+
+// Как часто можно записывать присутствие в БД: клиент опрашивает сообщения
+// каждые 5 секунд, но писать UPDATE при каждом опросе расточительно —
+// достаточно «я здесь» раз в 30 секунд (окно 2 минуты с большим запасом).
+const PRESENCE_WRITE_INTERVAL_MS = 30 * 1000;
+
+/** Был ли участник в диалоге недавно (внутри окна присутствия)? */
+function isRecentlySeen(lastSeen: Date | null): boolean {
+    return lastSeen !== null && Date.now() - lastSeen.getTime() < PRESENCE_WINDOW_MS;
+}
+
 // Диалог ссылается на ДВУХ пользователей (гостя и владельца), поэтому таблицу
 // users присоединяем к запросу дважды — через два «псевдонима» (alias).
 // Это как две копии одной таблицы: одна отвечает на вопрос «кто гость»,
@@ -118,6 +133,20 @@ export const chatRouter = createTRPCRouter({
                 code: 'FORBIDDEN',
                 message: 'Нет доступа к этому чату',
             });
+        }
+
+        // ===== Присутствие: кто читает диалог — тот «в диалоге» =====
+        // Клиент опрашивает эту процедуру каждые 5 сек, пока диалог открыт и
+        // вкладка активна — значит чтение = живой признак присутствия.
+        // Порог PRESENCE_WRITE_INTERVAL_MS: пишем не чаще раза в 30 сек,
+        // чтобы поллинг не превращался в поток UPDATE-запросов.
+        // Админ-модератор не участник — присутствие не отмечает.
+        const myLastSeen = target.guestId === userId ? target.guestLastSeenAt : target.ownerLastSeenAt;
+        if (!myLastSeen || Date.now() - myLastSeen.getTime() >= PRESENCE_WRITE_INTERVAL_MS) {
+            await ctx.db
+                .update(conversation)
+                .set(target.guestId === userId ? { guestLastSeenAt: new Date() } : { ownerLastSeenAt: new Date() })
+                .where(eq(conversation.id, input.conversationId));
         }
 
         return ctx.db
@@ -350,26 +379,44 @@ export const chatRouter = createTRPCRouter({
                 })
                 .returning();
 
+            // ===== Присутствие отправителя =====
+            // Написал сообщение = точно в чате: отметим, чтобы ответ собеседника
+            // в ближайшие PRESENCE_WINDOW_MS не прилетал нам же в телеграм.
+            // (Админ-модератор не участник — у него нет поля присутствия.)
+            if (isParticipant) {
+                await ctx.db
+                    .update(conversation)
+                    .set(target.guestId === userId ? { guestLastSeenAt: new Date() } : { ownerLastSeenAt: new Date() })
+                    .where(eq(conversation.id, input.conversationId));
+            }
+
             // ===== Телеграм-дубль сообщения УЧАСТНИКАМ =====
             // В чате НЕТ уведомлений-колокольчиков (там свой механизм — бейдж
             // непрочитанных), поэтому полный notifyUser не подходит: он создал бы
             // лишнюю запись. Сюда — только телеграм, напрямую через sendTelegramMessage.
             //
-            // Получатели: ВСЕ участники диалога, КРОМЕ отправителя.
-            // Обычный участник пишет → получатель один (собеседник).
-            // Админ-модератор пишет в чужой диалог → получателей ДВА (гость и
-            // владелец) — раньше владелец узнал бы, а гость нет.
-            // null-фильтр: userId колонки nullable, а слать некому — не ошибка.
+            // Получатели: участники диалога, КРОМЕ отправителя И КРОМЕ тех, кто
+            // сейчас в чате (анти-спам: прочитал недавно — сам увидит текст,
+            // телефон звенеть не должен).
+            // Обычный участник пишет → получатель максимум один (собеседник).
+            // Админ-модератор пишет в чужой диалог → кандидаты ДВА (гость и
+            // владелец), каждому — по присутствию.
             const recipientIds = [target.guestId, target.ownerId].filter(
                 (id): id is string => id !== null && id !== userId,
             );
 
-            if (recipientIds.length > 0) {
+            // Присутствие кандидата: «в чате» = его lastSeen внутри окна.
+            const isPresent = (id: string): boolean =>
+                target.guestId === id ? isRecentlySeen(target.guestLastSeenAt) : isRecentlySeen(target.ownerLastSeenAt);
+
+            const notifiableIds = recipientIds.filter((id) => !isPresent(id));
+
+            if (notifiableIds.length > 0) {
                 // chatId всех получателей одним запросом (inArray = WHERE id IN (…))
                 const recipients = await ctx.db
                     .select({ id: users.id, telegramChatId: users.telegramChatId })
                     .from(users)
-                    .where(inArray(users.id, recipientIds));
+                    .where(inArray(users.id, notifiableIds));
                 const chatById = new Map(recipients.map((r) => [r.id, r.telegramChatId]));
 
                 // Параллельные отправки: каждая в своём try/catch — сбой одной
@@ -377,7 +424,7 @@ export const chatRouter = createTRPCRouter({
                 // побочен и ронять отправку не должен.
                 const senderName = ctx.session.user.firstName ?? ctx.session.user.name ?? 'Собеседник';
                 await Promise.all(
-                    recipientIds.map(async (recipientId) => {
+                    notifiableIds.map(async (recipientId) => {
                         const chatId = chatById.get(recipientId);
                         if (!chatId) {
                             return; // телеграм не подключён — только бейдж непрочитанных

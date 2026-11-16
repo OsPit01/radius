@@ -20,6 +20,12 @@ export const conversation = pgTable(
             .notNull()
             .references(() => users.id),
         isActive: d.boolean().notNull().default(true), // true = переписка активна; false = заблокирована администратором (участники видят беседу, но не могут отправлять сообщения).
+        // Присутствие участников: когда гость/владелец последний раз читал диалог.
+        // Анти-спам телеграма: кто читал недавно (окно PRESENCE_WINDOW_MS в chat.ts)
+        // — тому дубль сообщения в телеграм НЕ отправляется, он и так в чате.
+        // Обновляется при чтении сообщений (chat.messages) и при отправке (chat.send).
+        guestLastSeenAt: d.timestamp({ withTimezone: true }),
+        ownerLastSeenAt: d.timestamp({ withTimezone: true }),
         createdAt: d
             .timestamp({ withTimezone: true })
             .$defaultFn(() => new Date())
