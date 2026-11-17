@@ -4,16 +4,19 @@
 import { eq, inArray } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 
+import { type NotificationType } from '@/lib/constants/notification';
 import { sendTelegramMessage } from '@/lib/telegram';
 import type * as schema from '@/server/db/schemas';
 import { notification, users } from '@/server/db/schemas';
 
 type Database = PostgresJsDatabase<typeof schema>;
 
-// Поля, которые нужны для записи в radius_notification (схема notification)
+// Поля, которые нужны для записи в radius_notification (схема notification).
+// type — НЕ произвольная строка, а NotificationType: колонка в БД теперь enum,
+// и опечатка в типе уведомления ловится компилятором, а не «тихо» уезжает в БД.
 type NotifyData = {
     userId: string;
-    type: string;
+    type: NotificationType;
     title: string;
     text: string;
     apartmentId?: number;
