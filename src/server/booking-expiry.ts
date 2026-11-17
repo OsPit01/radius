@@ -1,7 +1,7 @@
 import { and, eq, lt } from 'drizzle-orm';
 
 import { db } from '@/server/db';
-import { apartments, booking } from '@/server/db/schemas';
+import { booking } from '@/server/db/schemas';
 import { notifyUser } from '@/server/notify';
 
 // Сколько часов заявка «живёт» без реакции владельца. После этого — автоотмена.
@@ -23,21 +23,16 @@ export async function expireStaleBookings(): Promise<number> {
     const cutoff = new Date(Date.now() - BOOKING_EXPIRY_HOURS * 60 * 60 * 1000);
 
     // Находим просроченные заявки со статусом "new" + данные квартиры.
+    // db.query + relations: бронь сама подтягивает свой объект (связь booking.apartment).
+    // columns ограничивает выборку двумя нужными полями — не тащим лишние (images и т.п.).
     // ChatId владельца здесь больше не нужен — его смотрит notifyUser сам.
-    const stale = await db
-        .select({
-            booking: booking,
-            apartment: {
-                title: apartments.title,
-                createdById: apartments.createdById,
-            },
-        })
-        .from(booking)
-        .innerJoin(apartments, eq(booking.apartmentId, apartments.id))
-        .where(and(eq(booking.status, 'new'), lt(booking.createdAt, cutoff)));
+    const stale = await db.query.booking.findMany({
+        where: and(eq(booking.status, 'new'), lt(booking.createdAt, cutoff)),
+        with: { apartment: { columns: { title: true, createdById: true } } },
+    });
 
-    for (const row of stale) {
-        const { booking: b, apartment } = row;
+    for (const b of stale) {
+        const { apartment } = b;
 
         // 1) Меняем статус заявки на "expired".
         await db.update(booking).set({ status: 'expired' }).where(eq(booking.id, b.id));
