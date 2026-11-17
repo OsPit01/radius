@@ -3,7 +3,6 @@ import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod/v4';
 
 import { getRegion } from '@/lib/constants/belarus-locations';
-import { TIME_HHMM_REGEX } from '@/lib/constants/time';
 import { getMetroStation } from '@/lib/metro';
 import { apartments } from '@/server/db/schemas/apartment';
 
@@ -63,8 +62,12 @@ const apartmentInsertSchema = createInsertSchema(apartments, {
     capacity: (s) => s.min(1, 'Гостей: от 1 до 20').max(20, 'Гостей: от 1 до 20'),
     price: (s) => s.positive('Цена должна быть положительной'),
     rooms: (s) => s.min(1, 'Комнат: от 1 до 10').max(10, 'Комнат: от 1 до 10'),
-    checkInTime: (s) => s.regex(TIME_HHMM_REGEX, 'Время заезда в формате ЧЧ:ММ').optional(),
-    checkOutTime: (s) => s.regex(TIME_HHMM_REGEX, 'Время выезда в формате ЧЧ:ММ').optional(),
+    // Время заезда/выезда: колонка теперь enum check_time (значения из TIME_OPTIONS)
+    // — drizzle-zod сам строит проверку «значение из списка». Прежний regex
+    // (TIME_HHMM_REGEX) убран: у enum-схемы нет .regex, а смысл проверки
+    // (только валидные часы) enum даёт строже и из одного источника.
+    checkInTime: (s) => s.optional(),
+    checkOutTime: (s) => s.optional(),
     beds: (s) => s.min(0).max(20).optional(),
     singleBeds: (s) => s.min(0).max(20).optional(),
     doubleSofas: (s) => s.min(0).max(20).optional(),

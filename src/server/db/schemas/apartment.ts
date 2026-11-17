@@ -6,6 +6,7 @@ import { AMENITY_VALUES } from '@/lib/constants/amenities';
 import { APARTMENT_STATUS_VALUES } from '@/lib/constants/apartment-status';
 import { PARKING_TYPE_VALUES } from '@/lib/constants/parking';
 import { PAYER_TYPE_VALUES } from '@/lib/constants/payer';
+import { CHECK_TIME_VALUES } from '@/lib/constants/time';
 
 import { users } from './user';
 
@@ -15,6 +16,9 @@ export const payerTypeEnum = pgEnum('payer_type', PAYER_TYPE_VALUES);
 export const apartmentTypeEnum = pgEnum('apartment_type', APARTMENT_TYPE_VALUES);
 export const parkingTypeEnum = pgEnum('parking_type', PARKING_TYPE_VALUES);
 export const amenityEnum = pgEnum('amenity', AMENITY_VALUES);
+// Часы заезда/выезда: конечный набор (целые часы) — те же значения, что в
+// селектах форм (CHECK_TIME_VALUES выводится из TIME_OPTIONS).
+export const checkTimeEnum = pgEnum('check_time', CHECK_TIME_VALUES);
 export const apartments = pgTable(
     'radius_apartment',
     (d) => ({
@@ -35,8 +39,8 @@ export const apartments = pgTable(
         price: d.integer().notNull(), // цена за сутки в BYN (BASE_CURRENCY); валюта не выбирается — закон РБ
         description: d.text(),
         rules: d.text(),
-        checkInTime: d.varchar({ length: 50 }),
-        checkOutTime: d.varchar({ length: 50 }),
+        checkInTime: checkTimeEnum('checkInTime'),
+        checkOutTime: checkTimeEnum('checkOutTime'),
         reviewsCount: d.integer(),
         rating: d.doublePrecision().default(0),
         rooms: d.integer().notNull(),
