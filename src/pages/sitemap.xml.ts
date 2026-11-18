@@ -2,6 +2,8 @@ import { and, eq } from 'drizzle-orm';
 import type { GetServerSideProps } from 'next';
 
 import { getRegion, getRegionByLocality } from '@/lib/constants/belarus-locations';
+import { getCatalogCity } from '@/lib/constants/city-aliases';
+import { getCanonicalMicrodistrict } from '@/lib/constants/microdistricts';
 import { SITE_URL } from '@/lib/seo';
 import { transliterate } from '@/lib/transliterate';
 import { hideTestApartments } from '@/server/apartment-selects';
@@ -103,21 +105,38 @@ async function buildEntries(): Promise<SitemapEntry[]> {
         });
     }
 
-    // Страницы микрорайонов /rent/flat/{город}/microdistrict/{район} — только непустые районы активных квартир.
+    // Страницы микрорайонов /rent/flat/{город}/microdistrict/{район} —
+    // ТОЛЬКО каноничные пары: микрорайон пропускаем через справочник
+    // (getCanonicalMicrodistrict), город — через карту алиасов (getCatalogCity).
+    // Почему это важно: карта из сырых строк БД однажды выдала бы Google
+    // URL, которые на деле 404/301 (мусор в БД, легаси-написания) —
+    // Google перестаёт доверять такой карте. Канонизация та же, что у
+    // каталога: карта и сайт врят в унисон.
     const seen = new Set<string>();
     const microdistrictUrls: SitemapEntry[] = [];
     for (const a of rows) {
         if (!a.microdistrict) {
             continue;
         }
-        const key = `${a.city}::${a.microdistrict}`;
+        // Каноничное название района: не нашлось в справочнике → страницы
+        // района не существует → в карту НЕ кладём (404 в карте = яд).
+        const canonicalDistrict = getCanonicalMicrodistrict(a.city, a.microdistrict);
+        if (!canonicalDistrict) {
+            continue;
+        }
+        // Каноничный город: алиасы пригородов (Копище → Минск) применяем
+        // и здесь — иначе карта отправит Google на несуществующий город.
+        const canonicalCity = getCatalogCity(a.city);
+        const key = `${canonicalCity}::${canonicalDistrict}`;
         if (seen.has(key)) {
             continue;
         }
         seen.add(key);
         microdistrictUrls.push({
-            url: `${SITE_URL}/rent/flat/${transliterate(a.city)}/microdistrict/${transliterate(a.microdistrict)}`,
-            lastModified: new Date(),
+            url: `${SITE_URL}/rent/flat/${transliterate(canonicalCity)}/microdistrict/${transliterate(canonicalDistrict)}`,
+            // lastModified из реального updatedAt квартиры района — карта не
+            // врёт о свежести (new Date() = «всё изменено сегодня», это ложь).
+            lastModified: a.updatedAt ?? new Date(),
             changeFrequency: 'daily',
             priority: 0.9,
         });

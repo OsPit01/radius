@@ -1,4 +1,5 @@
 import type { GetServerSideProps } from 'next';
+import Head from 'next/head';
 
 import { ApartmentsList } from '@/components/apartments/ApartmentsList';
 import { ClientHeader } from '@/components/layout/ClientHeader';
@@ -138,6 +139,39 @@ export default function MicrodistrictPage({ city, name, apartments }: Microdistr
     // Рукописное описание района из справочника (или null — район без описания).
     const blurb = getMicrodistrictBlurb(city, name);
 
+    // ===== Типы квартир района — тоже вычисляем из данных, не пишем руками =====
+    // rooms каждой квартиры → человекочитаемый тип. Слова «студии», «однокомнатные»,
+    // «двухкомнатные» — это буквально поисковые запросы («студия на сутки в уручье»),
+    // их наличие в тексте делает страницу релевантнее по этим запросам.
+    // Set убирает дубли: три 1-комнатные квартиры → один тип.
+    const roomTypes = new Set(apartments.map((a) => a.rooms));
+    // Словарь «комнат → название»: 1 комната = и студия, и однокомнатная —
+    // владельцы называют по-разному, пишем обе формы. 4+ — числом.
+    const typeWords = Array.from(roomTypes)
+        .flatMap((rooms) =>
+            rooms === 1
+                ? ['студии и однокомнатные']
+                : rooms === 2
+                  ? ['двухкомнатные']
+                  : rooms === 3
+                    ? ['трехкомнатные']
+                    : [`${rooms}-комнатные`],
+        )
+        .sort(); // стабильный порядок: текст одинаков при каждой загрузке
+    // Фраза для абзаца: пусто (нет квартир) → не пишем вовсе.
+    const typePhrase = typeWords.length > 0 ? `: ${typeWords.join(', ')}` : '';
+
+    // ===== Тексты FAQ: собираем ОДИН раз — и для видимого блока, и для =====
+    // ===== микроразметки ниже. Правило Google: размечаем только видимый  =====
+    // ===== контент, тексты обязаны совпадать. Одна переменная = совпадение  =====
+    // ===== физически гарантировано (разъехаться не могут).
+    const faqPriceAnswer = `${priceRange} за ночь${typePhrase}.`;
+    const faqMetroAnswer =
+        minMetro !== null
+            ? `До ближайшей станции ${minMetro} ${pluralRu(minMetro, 'минута', 'минуты', 'минут')} пешком.`
+            : 'Район вдали от метро — удобнее добираться на машине или общественном транспорте.';
+    const faqBookingAnswer = 'Да: выберите даты в карточке квартиры и отправьте заявку — собственник ответит в чате.';
+
     return (
         <>
             <Seo
@@ -145,6 +179,41 @@ export default function MicrodistrictPage({ city, name, apartments }: Microdistr
                 description={`Снять квартиру на сутки ${districtIn} (${city}). Актуальные фото, цены, бронирование онлайн напрямую от собственников.`}
                 canonical={`${SITE_URL}/rent/flat/${transliterate(city)}/microdistrict/${transliterate(name)}`}
             />
+            {/* FAQPage-разметка (JSON-LD): Google вытаскивает вопросы-ответы
+                прямо в сниппет выдачи — раскрывающийся блок под ссылкой =
+                больше кликов при той же позиции. Тексты — те же переменные,
+                что в видимом FAQ ниже (faqPriceAnswer и др.): правило Google
+                «размечаем только видимый контент» соблюдено автоматически.
+                dangerouslySetInnerHTML безопасен: всё внутри — наши константы,
+                пользовательских строк нет (район — из справочника, цены — числа). */}
+            <Head>
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{
+                        __html: JSON.stringify({
+                            '@context': 'https://schema.org',
+                            '@type': 'FAQPage',
+                            mainEntity: [
+                                {
+                                    '@type': 'Question',
+                                    name: `Сколько стоит квартира на сутки ${districtIn}?`,
+                                    acceptedAnswer: { '@type': 'Answer', text: faqPriceAnswer },
+                                },
+                                {
+                                    '@type': 'Question',
+                                    name: 'Как добраться до метро?',
+                                    acceptedAnswer: { '@type': 'Answer', text: faqMetroAnswer },
+                                },
+                                {
+                                    '@type': 'Question',
+                                    name: 'Можно ли забронировать онлайн?',
+                                    acceptedAnswer: { '@type': 'Answer', text: faqBookingAnswer },
+                                },
+                            ],
+                        }),
+                    }}
+                />
+            </Head>
             <ClientHeader />
 
             <main className="mx-auto min-h-screen max-w-[1400px] px-20 pt-5 pb-[60px] max-lg:px-10 max-md:px-5 max-md:py-[30px]">
@@ -166,7 +235,7 @@ export default function MicrodistrictPage({ city, name, apartments }: Microdistr
                         в начале текста, это ценнее; дальше живые данные. */}
                     <p>
                         {blurb && <>{blurb} </>}
-                        Квартиры на сутки {districtIn} ({city}) {priceRange} за ночь.
+                        Квартиры на сутки {districtIn} ({city}) {priceRange} за ночь{typePhrase}.
                         {minMetro !== null && (
                             <>
                                 {' '}
@@ -176,6 +245,23 @@ export default function MicrodistrictPage({ city, name, apartments }: Microdistr
                         Фото, честные цены и онлайн-бронирование напрямую от собственников — без посредников и скрытых
                         комиссий.
                     </p>
+
+                    {/* FAQ: заголовки H3 = реальные поисковые запросы (голосовые и
+                        длинные: «сколько стоит квартира на сутки в уручье» находят
+                        точное совпадение). Ответы — те же переменные, что в JSON-LD
+                        выше: тексты размеченного и видимого совпадают по построению.
+                        text-left: FAQ — читают, а не сканируют глазами, выравнивание
+                        по левому краю удобнее центра. */}
+                    <div className="mt-6 flex flex-col gap-2 text-left">
+                        <h3 className="text-base font-semibold text-foreground">
+                            Сколько стоит квартира на сутки {districtIn}?
+                        </h3>
+                        <p className="text-sm text-muted-foreground">{faqPriceAnswer}</p>
+                        <h3 className="mt-2 text-base font-semibold text-foreground">Как добраться до метро?</h3>
+                        <p className="text-sm text-muted-foreground">{faqMetroAnswer}</p>
+                        <h3 className="mt-2 text-base font-semibold text-foreground">Можно ли забронировать онлайн?</h3>
+                        <p className="text-sm text-muted-foreground">{faqBookingAnswer}</p>
+                    </div>
                 </section>
             </main>
         </>

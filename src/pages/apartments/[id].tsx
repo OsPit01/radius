@@ -15,6 +15,7 @@ import { formatAddressLine } from '@/lib/address';
 import { parseApartmentId } from '@/lib/apartment-id';
 import { BASE_CURRENCY_SYMBOL, formatByn } from '@/lib/constants/currencies';
 import { DEFAULT_IMAGE_URL } from '@/lib/constants/images';
+import { getCanonicalMicrodistrict } from '@/lib/constants/microdistricts';
 import { CHECK_IN_TIME_DEFAULT, CHECK_OUT_TIME_DEFAULT } from '@/lib/constants/time';
 import { parseBookingChildren, parseBookingGuests } from '@/lib/search-params';
 import { getApartmentOgImagePath, SITE_URL } from '@/lib/seo';
@@ -132,12 +133,30 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
                                 {apartment.apartment.microdistrict && (
                                     <>
                                         {', '}
-                                        <Link
-                                            href={`/rent/flat/${transliterate(apartment.apartment.city)}/microdistrict/${transliterate(apartment.apartment.microdistrict)}`}
-                                            className="text-foreground underline underline-offset-2 transition-colors hover:text-primary"
-                                        >
-                                            {apartment.apartment.microdistrict}
-                                        </Link>
+                                        {/* Ссылку строим ТОЛЬКО по каноничному названию из
+                                            справочника (getCanonicalMicrodistrict): сырая строка
+                                            из БД может быть мусором («Вокзал», «юго-запад») —
+                                            ссылка из неё вела бы на 404. Не канонизировалось —
+                                            показываем просто текст, без ссылки: страница района
+                                            не существует, врать ссылкой нельзя. */}
+                                        {(() => {
+                                            const canonicalDistrict = getCanonicalMicrodistrict(
+                                                apartment.apartment.city,
+                                                apartment.apartment.microdistrict,
+                                            );
+                                            return canonicalDistrict ? (
+                                                <Link
+                                                    href={`/rent/flat/${transliterate(apartment.apartment.city)}/microdistrict/${transliterate(canonicalDistrict)}`}
+                                                    className="text-foreground underline underline-offset-2 transition-colors hover:text-primary"
+                                                >
+                                                    {canonicalDistrict}
+                                                </Link>
+                                            ) : (
+                                                <span className="text-foreground">
+                                                    {apartment.apartment.microdistrict}
+                                                </span>
+                                            );
+                                        })()}
                                     </>
                                 )}
                                 {', '}

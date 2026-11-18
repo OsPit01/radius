@@ -19,6 +19,8 @@ type CatalogPlacePageProps =
     | {
           mode: 'city';
           city: string;
+          // Районы города с активными квартирами — блок «Квартиры по районам».
+          microdistricts: string[];
           apartments: ApartmentCardData[];
       }
     | {
@@ -89,6 +91,9 @@ export const getServerSideProps: GetServerSideProps<CatalogPlacePageProps> = asy
         props: {
             mode: 'city',
             city: decodedCity,
+            // Районы города (из того же locations, что уже загружен выше) —
+            // для блока «Квартиры по районам» и перелинковки на район-страницы.
+            microdistricts: match.microdistricts,
             apartments: data.map((apartment) => getApartmentCardData(apartment)),
         },
     };
@@ -105,6 +110,7 @@ export default function CatalogPlacePage(props: CatalogPlacePageProps) {
     ) : (
         <CityCatalogPage
             city={props.city}
+            microdistricts={props.microdistricts}
             apartments={props.apartments}
         />
     );
