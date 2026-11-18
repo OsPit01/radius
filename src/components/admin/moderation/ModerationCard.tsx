@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 import { ImageWithFallback } from '@/components/ui/ImageWithFallback';
 import { Modal } from '@/components/ui/Modal';
-import { formatByn, getMicrodistricts } from '@/lib/constants';
+import { formatByn, getMicrodistricts, microdistrictName } from '@/lib/constants';
 import { getStatusInfo } from '@/lib/constants/apartment-status';
 import { getPayerLabel } from '@/lib/constants/payer';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
@@ -88,12 +88,12 @@ export function ModerationCard({ item, canManage }: ModerationCardProps) {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="">Не выбран</SelectItem>
-                                {microdistricts.map((name) => (
+                                {microdistricts.map((entry) => (
                                     <SelectItem
-                                        key={name}
-                                        value={name}
+                                        key={microdistrictName(entry)}
+                                        value={microdistrictName(entry)}
                                     >
-                                        {name}
+                                        {microdistrictName(entry)}
                                     </SelectItem>
                                 ))}
                             </SelectContent>

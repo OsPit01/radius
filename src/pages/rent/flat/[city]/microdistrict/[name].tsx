@@ -4,7 +4,9 @@ import { ApartmentsList } from '@/components/apartments/ApartmentsList';
 import { ClientHeader } from '@/components/layout/ClientHeader';
 import { Seo } from '@/components/Seo';
 import { type ApartmentCardData, getApartmentCardData } from '@/lib/apartment-format';
+import { getMicrodistrictBlurb } from '@/lib/constants';
 import { formatByn } from '@/lib/constants/currencies';
+import { districtInPrepositional } from '@/lib/declension';
 import { pluralRu } from '@/lib/plural';
 import { SITE_URL } from '@/lib/seo';
 import { transliterate } from '@/lib/transliterate';
@@ -113,22 +115,41 @@ export const getServerSideProps: GetServerSideProps<MicrodistrictPageProps> = as
 };
 
 export default function MicrodistrictPage({ city, name, apartments }: MicrodistrictPageProps) {
+    // Район в предложном падеже с предлогом: «Маяк Минска» → «на Маяке Минска».
+    // Слово «микрорайон» из заголовков убрано: в поисковых запросах его не пишут.
+    const districtIn = districtInPrepositional(name);
     const cheapest = apartments.reduce((min, a) => (a.price < min.price ? a : min));
+
+    // ===== Живые данные для SEO-абзаца: вычисляем, а не пишем руками =====
+    // (не устаревают никогда — всегда соответствуют реальным квартирам).
+    // Самая дорогая квартира: reduce «оставь ту, что дороже» (как cheapest, наоборот).
+    const priciest = apartments.reduce((max, a) => (a.price > max.price ? a : max));
+    // Диапазон цен: одна цена → «от 155 Br»; разброс → «от 155 до 300 Br».
+    const priceRange =
+        cheapest.price === priciest.price
+            ? `от ${formatByn(cheapest.price)}`
+            : `от ${formatByn(cheapest.price)} до ${formatByn(priciest.price)}`;
+    // Метро: минимум по квартирам, где указано (minsToMetro > 0).
+    // null = ни у одной квартиры метро нет → блок про метро не пишем вовсе.
+    const minMetro = apartments.reduce<number | null>(
+        (min, a) => (a.minsToMetro && a.minsToMetro > 0 ? Math.min(min ?? a.minsToMetro, a.minsToMetro) : min),
+        null,
+    );
+    // Рукописное описание района из справочника (или null — район без описания).
+    const blurb = getMicrodistrictBlurb(city, name);
 
     return (
         <>
             <Seo
-                absoluteTitle={`Квартиры на сутки в микрорайоне ${name} — ${city}`}
-                description={`Снять квартиру на сутки в микрорайоне ${name} (${city}). Актуальные фото, цены, бронирование онлайн напрямую от собственников.`}
+                absoluteTitle={`Квартиры на сутки ${districtIn} — ${city}`}
+                description={`Снять квартиру на сутки ${districtIn} (${city}). Актуальные фото, цены, бронирование онлайн напрямую от собственников.`}
                 canonical={`${SITE_URL}/rent/flat/${transliterate(city)}/microdistrict/${transliterate(name)}`}
             />
             <ClientHeader />
 
             <main className="mx-auto min-h-screen max-w-[1400px] px-20 pt-5 pb-[60px] max-lg:px-10 max-md:px-5 max-md:py-[30px]">
                 <div className="mb-6 text-center">
-                    <h1 className="text-[2rem] font-bold max-md:text-[1.5rem]">
-                        Квартиры на сутки в микрорайоне {name}
-                    </h1>
+                    <h1 className="text-[2rem] font-bold max-md:text-[1.5rem]">Квартиры на сутки {districtIn}</h1>
                     <p className="mt-3 text-[1.1rem] text-muted-foreground max-md:text-base">
                         Найдено {apartments.length} {pluralRu(apartments.length, 'квартира', 'квартиры', 'квартир')}
                     </p>
@@ -138,13 +159,21 @@ export default function MicrodistrictPage({ city, name, apartments }: Microdistr
 
                 <section className="mx-auto mt-12 max-w-3xl text-center text-[0.95rem] leading-relaxed text-muted-foreground max-md:mt-8 max-md:text-sm">
                     <h2 className="mb-4 text-[1.4rem] font-semibold text-foreground">
-                        Снять квартиру на сутки в микрорайоне {name}
+                        Снять квартиру на сутки {districtIn}
                     </h2>
-                    {/* SEO-текст: БЕЗ количества (устаревает) — вместо него польза:
-                        что за квартиры, от какой цены, привязка к городу (поисковое слово). */}
+                    {/* SEO-текст — сборка из частей (каждая часть описана ниже):
+                        рукописный блоб первым — уникальное слово Google видит
+                        в начале текста, это ценнее; дальше живые данные. */}
                     <p>
-                        Квартиры на сутки в микрорайоне {name} ({city}) от {formatByn(cheapest.price)} за ночь: фото,
-                        честные цены и онлайн-бронирование напрямую от собственников — без посредников и скрытых
+                        {blurb && <>{blurb} </>}
+                        Квартиры на сутки {districtIn} ({city}) {priceRange} за ночь.
+                        {minMetro !== null && (
+                            <>
+                                {' '}
+                                До метро {minMetro} {pluralRu(minMetro, 'минута', 'минуты', 'минут')} пешком.
+                            </>
+                        )}{' '}
+                        Фото, честные цены и онлайн-бронирование напрямую от собственников — без посредников и скрытых
                         комиссий.
                     </p>
                 </section>
