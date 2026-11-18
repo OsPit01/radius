@@ -165,8 +165,9 @@ export function CityCatalogPage({ city, microdistricts, apartments }: CityCatalo
 
                     {/* FAQ: заголовки H3 = реальные поисковые вопросы
                         («сколько стоит квартира на сутки в минске» — точное
-                        совпадение). text-left: FAQ читают, не сканируют. */}
-                    <div className="mt-6 flex flex-col gap-2 text-left">
+                        совпадение). Выравнивание по центру — как у всего
+                        SEO-блока страницы: единый визуальный ритм. */}
+                    <div className="mt-6 flex flex-col gap-2 text-center">
                         <h3 className="text-base font-semibold text-foreground">
                             Сколько стоит квартира на сутки в {cityIn}?
                         </h3>

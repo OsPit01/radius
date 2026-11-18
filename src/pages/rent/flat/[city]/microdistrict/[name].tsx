@@ -250,9 +250,8 @@ export default function MicrodistrictPage({ city, name, apartments }: Microdistr
                         длинные: «сколько стоит квартира на сутки в уручье» находят
                         точное совпадение). Ответы — те же переменные, что в JSON-LD
                         выше: тексты размеченного и видимого совпадают по построению.
-                        text-left: FAQ — читают, а не сканируют глазами, выравнивание
-                        по левому краю удобнее центра. */}
-                    <div className="mt-6 flex flex-col gap-2 text-left">
+                        Выравнивание по центру — как у всего SEO-блока страницы. */}
+                    <div className="mt-6 flex flex-col gap-2 text-center">
                         <h3 className="text-base font-semibold text-foreground">
                             Сколько стоит квартира на сутки {districtIn}?
                         </h3>
