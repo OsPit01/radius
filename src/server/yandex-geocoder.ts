@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 import { env } from '@/env';
 import { BELARUS_REGIONS, getCityDistricts } from '@/lib/constants/belarus-locations';
+import { getCatalogCity } from '@/lib/constants/city-aliases';
 import { createKeyRotation } from '@/server/yandex-keys';
 
 /**
@@ -122,7 +123,14 @@ export function resolveLocation(components: Component[]): Location | null {
     const district = region?.districts.find((d) => areaName && normalize(d.name) === normalize(areaName));
     const knownCity = district?.localities.find((l) => normalize(l.name) === normalize(city));
 
-    return { region: region?.value ?? '', district: district?.name ?? areaName ?? '', city: knownCity?.name ?? city };
+    // Пригороды считаются городом каталога (Копище → Минск, см. city-aliases.ts):
+    // применяем В КОНЦЕ, когда район/область уже найдены по настоящему имени пункта.
+    // Ветку областных центров выше алиасы не трогают: там city уже канонический.
+    return {
+        region: region?.value ?? '',
+        district: district?.name ?? areaName ?? '',
+        city: getCatalogCity(knownCity?.name ?? city),
+    };
 }
 
 /** «27.549955 53.902321» (lon lat) → { lat, lon } */

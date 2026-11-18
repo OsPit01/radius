@@ -16,6 +16,14 @@ type MicrodistrictPageProps = {
     apartments: ApartmentCardData[];
 };
 
+// Старые написания районов, которые могли попасть в индекс поисковиков до
+// склейки данных (например, «Маяк Минск» жил по адресу mayak-minsk, а канон
+// «Маяк Минска» — mayak-minska). Ключ — старый слаг, значение — канонический.
+// 301 (permanent) переводит вес старой страницы на новую, а не теряет его.
+const MICRODISTRICT_SLUG_ALIASES: Record<string, string> = {
+    'minsk/mayak-minsk': 'minsk/mayak-minska',
+};
+
 export const getServerSideProps: GetServerSideProps<MicrodistrictPageProps> = async (ctx) => {
     const citySlug = ctx.params?.city;
     const nameSlug = ctx.params?.name;
@@ -30,6 +38,18 @@ export const getServerSideProps: GetServerSideProps<MicrodistrictPageProps> = as
         return {
             redirect: {
                 destination: `/rent/flat/${normalizedCity}/microdistrict/${normalizedName}`,
+                permanent: true,
+            },
+        };
+    }
+
+    // Устаревшее написание района (могло остаться в индексе) → 301 на канон.
+    // Смотрим ДО запроса к БД: это просто редирект, данные не нужны.
+    const aliased = MICRODISTRICT_SLUG_ALIASES[`${citySlug}/${nameSlug}`];
+    if (aliased) {
+        return {
+            redirect: {
+                destination: `/rent/flat/${aliased.split('/')[0]}/microdistrict/${aliased.split('/')[1]}`,
                 permanent: true,
             },
         };
