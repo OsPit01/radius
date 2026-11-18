@@ -24,6 +24,18 @@ const MICRODISTRICT_SLUG_ALIASES: Record<string, string> = {
     'minsk/mayak-minsk': 'minsk/mayak-minska',
 };
 
+// «Кладбище» районов: районы, которые УДАЛЕНЫ из справочника, но их страницы
+// могли попасть в индекс поисковиков. Значение — слаг города, куда ведём 301:
+// район исчез → человеку с поиска логичнее показать все квартиры города.
+// Отдельная таблица (а не в SLUG_ALIASES выше), потому что адрес назначения
+// другого формата: город (/rent/flat/minsk), а не район (/microdistrict/...).
+const RETIRED_MICRODISTRICT_SLUGS: Record<string, string> = {
+    // «Вокзал» убран из справочника (оставили только «ЖД Вокзал»): у трёх
+    // квартир в БД район ещё прописан, но страницей района он больше не
+    // канонизируется → похоронен с 301 на город.
+    vokzal: 'minsk',
+};
+
 export const getServerSideProps: GetServerSideProps<MicrodistrictPageProps> = async (ctx) => {
     const citySlug = ctx.params?.city;
     const nameSlug = ctx.params?.name;
@@ -50,6 +62,19 @@ export const getServerSideProps: GetServerSideProps<MicrodistrictPageProps> = as
         return {
             redirect: {
                 destination: `/rent/flat/${aliased.split('/')[0]}/microdistrict/${aliased.split('/')[1]}`,
+                permanent: true,
+            },
+        };
+    }
+
+    // Похороненный район (удалён из справочника): страницу уже не построить —
+    // 301 на страницу города, чтобы вес из поиска не пропал в 404.
+    // Тоже ДО запроса к БД: редиректу данные не нужны.
+    const retiredCity = RETIRED_MICRODISTRICT_SLUGS[nameSlug];
+    if (retiredCity) {
+        return {
+            redirect: {
+                destination: `/rent/flat/${retiredCity}`,
                 permanent: true,
             },
         };
@@ -115,11 +140,12 @@ export default function MicrodistrictPage({ city, name, apartments }: Microdistr
                     <h2 className="mb-4 text-[1.4rem] font-semibold text-foreground">
                         Снять квартиру на сутки в микрорайоне {name}
                     </h2>
+                    {/* SEO-текст: БЕЗ количества (устаревает) — вместо него польза:
+                        что за квартиры, от какой цены, привязка к городу (поисковое слово). */}
                     <p>
-                        В микрорайоне {name} доступно {apartments.length}{' '}
-                        {pluralRu(apartments.length, 'квартира', 'квартиры', 'квартир')} на сутки — от{' '}
-                        {formatByn(cheapest.price)} за ночь. Все объекты сдаются напрямую от собственников: актуальные
-                        фотографии, честные цены, онлайн-бронирование без посредников и скрытых комиссий.
+                        Квартиры на сутки в микрорайоне {name} ({city}) от {formatByn(cheapest.price)} за ночь: фото,
+                        честные цены и онлайн-бронирование напрямую от собственников — без посредников и скрытых
+                        комиссий.
                     </p>
                 </section>
             </main>

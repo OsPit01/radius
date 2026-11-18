@@ -4,9 +4,10 @@ import Link from 'next/link';
 
 import { ImageWithFallback } from '@/components/ui/ImageWithFallback';
 import { Modal } from '@/components/ui/Modal';
-import { formatByn } from '@/lib/constants';
+import { formatByn, getMicrodistricts } from '@/lib/constants';
 import { getStatusInfo } from '@/lib/constants/apartment-status';
 import { getPayerLabel } from '@/lib/constants/payer';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { api, type RouterOutputs } from '@/trpc/react';
 type ModerationItem = RouterOutputs['apartment']['getForModeration'][number];
 
@@ -32,6 +33,12 @@ export function ModerationCard({ item, canManage }: ModerationCardProps) {
         },
     });
     const deleteApartment = api.apartment.delete.useMutation({
+        onSuccess: () => {
+            void utils.apartment.getForModeration.invalidate();
+        },
+    });
+    const microdistricts = getMicrodistricts(item.apartment.city);
+    const setMicrodistrict = api.apartment.setMicrodistrict.useMutation({
         onSuccess: () => {
             void utils.apartment.getForModeration.invalidate();
         },
@@ -64,6 +71,34 @@ export function ModerationCard({ item, canManage }: ModerationCardProps) {
                     <p className="text-xs text-muted-foreground">
                         {item.apartment.city} · {formatByn(item.apartment.price)}
                     </p>
+                    {/* Select выбор районов */}
+                    {microdistricts.length > 0 && (
+                        <Select
+                            value={item.apartment.microdistrict ?? ''}
+                            disabled={setMicrodistrict.isPending}
+                            onValueChange={(value) =>
+                                setMicrodistrict.mutate({ id: item.apartment.id, microdistrict: value || null })
+                            }
+                        >
+                            <SelectTrigger
+                                size="sm"
+                                className="w-full"
+                            >
+                                <SelectValue placeholder="Район не выбран" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="">Не выбран</SelectItem>
+                                {microdistricts.map((name) => (
+                                    <SelectItem
+                                        key={name}
+                                        value={name}
+                                    >
+                                        {name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    )}
                     {/* СТАТУС — цветной бейдж. Цвет динамический, поэтому через style,
             а не через Tailwind (Tailwind не умеет динамические цвета). */}
                     <span

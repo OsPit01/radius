@@ -3,7 +3,9 @@ import { and, eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { formatAddressLine } from '@/lib/address';
+import { getCanonicalMicrodistrict } from '@/lib/constants';
 import { APARTMENT_STATUS_VALUES } from '@/lib/constants/apartment-status';
+import { getRegion, getRegionByLocality } from '@/lib/constants/belarus-locations';
 import { isAdminRole, isStaffRole } from '@/lib/constants/roles';
 import { createApartmentInput, updateApartmentInput } from '@/lib/schemas/apartment';
 import { idSchema } from '@/lib/schemas/common';
@@ -46,24 +48,48 @@ export const apartmentRouter = createTRPCRouter({
     }),
     getCatalogLocations: publicProcedure.query(async ({ ctx }) => {
         const rows = await ctx.db
-            .select({ city: apartments.city, microdistrict: apartments.microdistrict })
+            .select({
+                city: apartments.city,
+                region: apartments.region,
+                microdistrict: apartments.microdistrict,
+            })
             .from(apartments)
             .where(and(eq(apartments.status, 'active'), hideTestApartments(ctx.session?.user.role)));
 
-        // Группируем микрорайоны по городу
-        const byCity = new Map<string, string[]>();
+        // Город попадает ВСЕГДА, даже без микрорайонов — иначе он исчезнет из каталога.
+        // region: колонка бывает пустой у легаси-объектов — восстанавливаем по
+        // справочнику (область, в которой числится такой населённый пункт).
+        // count: сколько активных квартир в городе — для плиток каталога.
+        const byCity = new Map<
+            string,
+            { microdistricts: string[]; region: ReturnType<typeof getRegion> | null; count: number }
+        >();
         for (const row of rows) {
-            if (!row.microdistrict) {
-                continue;
-            } // пустые пропускаем
-            const list = byCity.get(row.city) ?? [];
-            list.push(row.microdistrict);
-            byCity.set(row.city, list);
+            const entry = byCity.get(row.city) ?? {
+                microdistricts: [],
+                region: getRegion(row.region ?? '') ?? null,
+                count: 0,
+            };
+            // У легаси-объектов region бывает пуст — восстанавливаем по справочнику
+            // (область, в которой числится такой населённый пункт).
+            entry.region ??= getRegionByLocality(row.city);
+            // Микрорайон отдаём ТОЛЬКО если он есть в справочнике для этого города,
+            // и всегда в каноничном написании из справочника:
+            // берём не как лежит в БД (с мусором/регистром), а из справочника.
+            const canonical = row.microdistrict ? getCanonicalMicrodistrict(row.city, row.microdistrict) : null;
+            if (canonical) {
+                entry.microdistricts.push(canonical);
+            }
+            entry.count += 1;
+            byCity.set(row.city, entry);
         }
-
-        return Array.from(byCity, ([city, microdistricts]) => ({
+        return Array.from(byCity, ([city, entry]) => ({
             city,
-            microdistricts: Array.from(new Set(microdistricts)),
+            microdistricts: Array.from(new Set(entry.microdistricts)),
+            count: entry.count,
+            region: entry.region
+                ? { value: entry.region.value, label: entry.region.label, center: entry.region.center.name }
+                : null,
         }));
     }),
 
@@ -307,5 +333,44 @@ export const apartmentRouter = createTRPCRouter({
             // Уведомить владельца и, при одобрении, сделать его арендодателем.
             await notifyOwnerAboutStatusChange(ctx.db, update, input.status, input.rejectionReason);
             return update;
+        }),
+    // Назначить микрорайон объекту. Модерация: модератор и выше ставят/меняют район
+    // независимо от статуса. Пустая строка или null = сброс (объект «просто город»).
+    setMicrodistrict: protectedProcedure
+        .input(
+            z.object({
+                id: z.number().int().positive('Некорректный идентификатор объекта'),
+                microdistrict: z.string().trim().max(200).nullable(),
+            }),
+        )
+        .mutation(async ({ ctx, input }) => {
+            // Назначение района — работа персонала (модератор и выше).
+            if (!isStaffRole(ctx.session.user.role)) {
+                throw new TRPCError({ code: 'FORBIDDEN', message: 'У вас нет прав на назначение микрорайона' });
+            }
+            const [existing] = await ctx.db
+                .select({ id: apartments.id, city: apartments.city })
+                .from(apartments)
+                .where(eq(apartments.id, input.id));
+            if (!existing) {
+                throw new TRPCError({ code: 'NOT_FOUND', message: 'Объект не найден' });
+            }
+            // Пустое значение (null или '') → сброс района.
+            const canonical = input.microdistrict
+                ? getCanonicalMicrodistrict(existing.city, input.microdistrict)
+                : null;
+            if (input.microdistrict && !canonical) {
+                throw new TRPCError({
+                    code: 'BAD_REQUEST',
+                    message: `Микрорайон «${input.microdistrict}» не задан для города «${existing.city}»`,
+                });
+            }
+            // Сохраняем каноничное написание из справочника (или null при сбросе).
+            const [updated] = await ctx.db
+                .update(apartments)
+                .set({ microdistrict: canonical })
+                .where(eq(apartments.id, input.id))
+                .returning(apartmentPrivateColumns);
+            return updated;
         }),
 });

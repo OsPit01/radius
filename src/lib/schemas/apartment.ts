@@ -6,7 +6,7 @@ import { getRegion } from '@/lib/constants/belarus-locations';
 import { getMetroStation } from '@/lib/metro';
 import { apartments } from '@/server/db/schemas/apartment';
 
-import { AMENITY_VALUES, APARTMENT_TYPE_VALUES, PARKING_TYPE_VALUES } from '../constants';
+import { AMENITY_VALUES, APARTMENT_TYPE_VALUES, isMicrodistrictForCity, PARKING_TYPE_VALUES } from '../constants';
 import { PAYER_TYPE_VALUES, type PayerType, UNP_RULES } from '../constants/payer';
 
 // Сообщения, которые мы не задали сами (границы чисел, длина строк из колонок), — по-русски, а не по-английски
@@ -38,7 +38,56 @@ function checkUnpByPayerType(
         ctx.addIssue({ code: 'custom', path: ['unp'], message: rule.message });
     }
 }
-
+/**
+ * Зависимая проверка МИКРОРАЙОНА: «если вписан — он обязан существовать
+ * в справочнике районов этого города» (см. microdistricts.ts).
+ *
+ * Зачем нужна отдельная функция: правило зависит сразу от ДВУХ полей —
+ * города и микрорайона. Встроенные проверки zod (min/max/regex) смотрят
+ * на одно поле, а зависимость «район ↔ город» так не выразить — нужна
+ * своя функция, подключаемая к схеме через superRefine (см. внизу файла).
+ *
+ * Как работает построчно — см. внутри. Где срабатывает: НЕ вызывается
+ * руками — её зовёт zod при каждом прогоне схемы (а схему гонят ДВАЖДЫ:
+ * форма в браузере при «Далее» и сервер при сохранении — браузерную
+ * проверку можно обойти злым запросом в обход формы, серверную нельзя).
+ */
+function checkMicrodistrict(
+    // city — обязателен (строка), microdistrict — все три состояния «нет значения»:
+    // undefined (поле не прислали), null (в БД колонка nullable) и '' (пустая строка
+    // из формы). Проверка обязана пережить все три — см. выход ниже.
+    data: { city: string; microdistrict?: string | null | undefined },
+    // ctx — «бланк для ошибок» от zod: сюда вписываем, ЧТО и ГДЕ не так.
+    // zod собирает все проблемы разом (не падает на первой) и отдаёт форме
+    // полный список — человек видит сразу все свои ошибки.
+    ctx: z.RefinementCtx,
+): void {
+    // Достаём микрорайон и сразу обрезаем пробелы по краям.
+    // ?. — «если поле null/undefined, не падай, верни undefined» (обычный
+    // .trim() на null уронил бы проверку). Пробелы срезаем, чтобы '  Маяк '
+    // не сравнивался с 'Маяк' с мусором по краям.
+    const value = data.microdistrict?.trim();
+    if (!value) {
+        // Пусто (undefined / null / '' после trim) → микрорайон НЕ ЗАДАН.
+        // Поле необязательное: квартира без района — нормальное состояние.
+        // Тихо выходим («всё нормально») — это не ошибка, а валидная пустота.
+        return;
+    }
+    // Сюда попали = район ВПИСАН. Теперь проверяем его на честность:
+    // isMicrodistrictForCity (см. microdistricts.ts) прогонит значение через
+    // «утюг» (trim/lowercase/ё→е) и поищет совпадение в справочнике районов
+    // этого города. true — существует, false — нет.
+    if (!isMicrodistrictForCity(data.city, value)) {
+        // Инвертировали (!): заходим именно при НЕНАЙДЕННОМ районе — есть ошибка.
+        // Вписываем её в бланк:
+        ctx.addIssue({
+            code: 'custom', // «наша собственная проверка», не встроенная zod'ом
+            path: ['microdistrict'], // АДРЕС ошибки: подсветится именно это поле,
+            // а не форма целиком — человек видит, ГДЕ исправлять
+            message: `Микрорайон ${value} не задан для города ${data.city}`, // текст с конкретикой
+        });
+    }
+}
 /**
  * Единый источник правил для объекта — таблица `apartments` (src/server/db/schema.ts).
  * Типы, обязательность, значения по умолчанию и максимальная длина строк (`varchar({ length })`) берутся из неё сами.
@@ -121,7 +170,8 @@ export const createApartmentInput = apartmentInput
     .extend({
         images: z.array(z.string()).min(1, PHOTO_REQUIRED_MESSAGE),
     })
-    .superRefine(checkUnpByPayerType);
+    .superRefine(checkUnpByPayerType)
+    .superRefine(checkMicrodistrict);
 
 /**
  * Редактирование: тип объекта не меняем. Область, координаты и станцию метро
@@ -137,7 +187,8 @@ export const updateApartmentInput = apartmentInput
     })
     // Тот же формат УНП по типу плательщика, что и при создании: владелец
     // легаси-объекта с пустым/неправильным УНП обязан вписать корректный при сохранении.
-    .superRefine(checkUnpByPayerType);
+    .superRefine(checkUnpByPayerType)
+    .superRefine(checkMicrodistrict);
 
 export type CreateApartmentInput = z.input<typeof createApartmentInput>;
 export type UpdateApartmentInput = z.input<typeof updateApartmentInput>;

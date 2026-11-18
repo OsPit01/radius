@@ -16,6 +16,9 @@ export const catalogFiltersSchema = z.object({
     // Точное название микрорайона, без учёта регистра: в БД оно набрано руками
     // («Новая боровая»), а на сайте пишется «Новая Боровая».
     microdistrict: z.string().trim().min(1).optional(),
+    // Область (region value, например 'vitebsk-region') — для страниц областей
+    // каталога /rent/flat/{область}: все квартиры области, включая её центр.
+    region: z.string().trim().min(1).optional(),
     guests: z.number().int().min(1).optional(),
     priceMin: z.number().int().min(0).optional(),
     priceMax: z.number().int().min(0).optional(),
@@ -50,6 +53,9 @@ export function buildCatalogConditions(input: CatalogFilters | undefined, role?:
     }
     if (input?.microdistrict) {
         conditions.push(sql`lower(trim(${apartments.microdistrict})) = lower(${input.microdistrict})`);
+    }
+    if (input?.region) {
+        conditions.push(eq(apartments.region, input.region));
     }
     if (input?.guests && input.guests > 1) {
         conditions.push(gte(apartments.capacity, input.guests));

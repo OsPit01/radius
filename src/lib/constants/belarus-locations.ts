@@ -393,3 +393,16 @@ const sameName = (a: string, b: string) =>
 export function getCityDistricts(cityName: string): string[] | undefined {
     return BELARUS_REGIONS.find((r) => sameName(r.center.name, cityName))?.center.cityDistricts;
 }
+
+/**
+ * Область населённого пункта по его имени: ищем среди областных центров и всех
+ * localities районов (сравнение без регистра и ё). Не нашли (пункт вне справочника) — undefined.
+ * Нужна как фолбэк: у легаси-квартир колонка region бывает пустой, а каталог
+ * группируется по областям — область восстанавливается по имени города.
+ */
+export function getRegionByLocality(localityName: string): Region | undefined {
+    return (
+        BELARUS_REGIONS.find((r) => sameName(r.center.name, localityName)) ??
+        BELARUS_REGIONS.find((r) => r.districts.some((d) => d.localities.some((l) => sameName(l.name, localityName))))
+    );
+}

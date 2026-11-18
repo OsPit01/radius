@@ -1,6 +1,7 @@
 import { and, eq } from 'drizzle-orm';
 import type { GetServerSideProps } from 'next';
 
+import { getRegion, getRegionByLocality } from '@/lib/constants/belarus-locations';
 import { SITE_URL } from '@/lib/seo';
 import { transliterate } from '@/lib/transliterate';
 import { hideTestApartments } from '@/server/apartment-selects';
@@ -45,6 +46,7 @@ async function buildEntries(): Promise<SitemapEntry[]> {
         .select({
             id: apartments.id,
             city: apartments.city,
+            region: apartments.region,
             updatedAt: apartments.updatedAt,
             microdistrict: apartments.microdistrict,
         })
@@ -66,6 +68,40 @@ async function buildEntries(): Promise<SitemapEntry[]> {
         changeFrequency: 'daily',
         priority: 0.9,
     }));
+
+    // Страницы областей /rent/flat/{region}. Область попадает в карту, когда в ней
+    // есть активные пункты КРОМЕ областного центра — иначе страница области
+    // дублировала бы страницу центра. Region у легаси-квартир бывает пуст —
+    // восстанавливаем по справочнику (область, где числится такой пункт).
+    const regionByCity = new Map<string, string>();
+    for (const city of cities) {
+        const raw = rows.find((a) => a.city === city)?.region;
+        regionByCity.set(city, raw ?? getRegionByLocality(city)?.value ?? '');
+    }
+    const regionUrls: SitemapEntry[] = [];
+    const seenRegions = new Set<string>();
+    for (const [, regionValue] of regionByCity) {
+        if (!regionValue || seenRegions.has(regionValue)) {
+            continue;
+        }
+        seenRegions.add(regionValue);
+        const region = getRegion(regionValue);
+        if (!region) {
+            continue;
+        }
+        const hasOtherThanCenter = Array.from(regionByCity.entries()).some(
+            ([c, rv]) => rv === regionValue && c !== region.center.name,
+        );
+        if (!hasOtherThanCenter) {
+            continue;
+        }
+        regionUrls.push({
+            url: `${SITE_URL}/rent/flat/${regionValue}`,
+            lastModified: new Date(),
+            changeFrequency: 'daily',
+            priority: 0.9,
+        });
+    }
 
     // Страницы микрорайонов /rent/flat/{город}/microdistrict/{район} — только непустые районы активных квартир.
     const seen = new Set<string>();
@@ -112,6 +148,7 @@ async function buildEntries(): Promise<SitemapEntry[]> {
             priority: 1,
         },
         ...cityUrls,
+        ...regionUrls,
         ...microdistrictUrls,
         // Информационные страницы
         staticPage('/about', 0.3),

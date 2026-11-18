@@ -55,3 +55,10 @@ const PREPOSITIONAL: Record<string, string> = {
 export function cityInPrepositional(name: string): string | null {
     return PREPOSITIONAL[name] ?? null;
 }
+
+/** Области: «Витебская область» → «Витебской области» (предложный падеж).
+ *  Все 6 областей заканчиваются на «…ская область» — одно правило закрывает все.
+ *  Незнакомый формат replace оставит как есть (без совпадения строка не меняется). */
+export function regionInPrepositional(label: string): string {
+    return label.replace(/ская область$/u, 'ской области');
+}

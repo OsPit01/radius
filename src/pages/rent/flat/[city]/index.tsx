@@ -1,21 +1,37 @@
 import type { GetServerSideProps } from 'next';
 
-import { ApartmentsList } from '@/components/apartments/ApartmentsList';
-import { ClientHeader } from '@/components/layout/ClientHeader';
-import { Seo } from '@/components/Seo';
+import { CityCatalogPage } from '@/components/catalog/CityCatalogPage';
+import { RegionCatalogPage } from '@/components/catalog/RegionCatalogPage';
 import { type ApartmentCardData, getApartmentCardData } from '@/lib/apartment-format';
-import { formatByn } from '@/lib/constants/currencies';
-import { cityInPrepositional } from '@/lib/declension';
-import { pluralRu } from '@/lib/plural';
-import { SITE_URL } from '@/lib/seo';
+import { getRegion } from '@/lib/constants/belarus-locations';
 import { transliterate } from '@/lib/transliterate';
 import { createServerCaller } from '@/trpc/server';
-type CityPageProps = {
-    city: string;
-    apartments: ApartmentCardData[];
-};
 
-export const getServerSideProps: GetServerSideProps<CityPageProps> = async (ctx) => {
+// Две разновидности страницы по одному адресу /rent/flat/{слаг}:
+// 1) город: /rent/flat/minsk, /rent/flat/zamostochye — квартиры одного населённого пункта;
+// 2) область: /rent/flat/vitebsk-region — все квартиры области + список её пунктов.
+// Различаем по слагу: значения областей ('vitebsk-region') не пересекаются
+// с транслитом названий городов ('vitebsk').
+//
+// Файл — только «маршрутизатор»: определить, что за слаг, собрать данные,
+// позвать нужный компонент. Вся разметка — в компонентах каталога.
+type CatalogPlacePageProps =
+    | {
+          mode: 'city';
+          city: string;
+          apartments: ApartmentCardData[];
+      }
+    | {
+          mode: 'region';
+          regionValue: string;
+          regionLabel: string;
+          // Населённые пункты области с активными квартирами (центр исключён —
+          // он уже показан плиткой в первом ряду главной).
+          localities: { city: string; count: number }[];
+          apartments: ApartmentCardData[];
+      };
+
+export const getServerSideProps: GetServerSideProps<CatalogPlacePageProps> = async (ctx) => {
     const city = ctx.params?.city;
     if (typeof city !== 'string') {
         return { notFound: true };
@@ -26,7 +42,37 @@ export const getServerSideProps: GetServerSideProps<CityPageProps> = async (ctx)
         return { redirect: { destination: `/rent/flat/${slug}`, permanent: true } };
     }
     const api = await createServerCaller(ctx);
-    // Берём список всех городов и ищем тот, чей транслит совпадает со слагом.
+
+    // ===== Режим ОБЛАСТЬ: слаг совпал со значением области ('vitebsk-region') =====
+    const region = getRegion(slug);
+    if (region) {
+        const locations = await api.apartment.getCatalogLocations();
+        // Пункты области КРОМЕ её центра: центру место в первом ряду главной,
+        // повторять его внутри области — дубль.
+        const regionLocalities = locations.filter(
+            (l) => l.region?.value === region.value && l.city !== region.center.name,
+        );
+        // Пустых страниц не держим: область существует, только пока в ней есть
+        // активные квартиры вне центра.
+        if (regionLocalities.length === 0) {
+            return { notFound: true };
+        }
+        const data = await api.apartment.getAll({ region: region.value });
+        if (data.length === 0) {
+            return { notFound: true };
+        }
+        return {
+            props: {
+                mode: 'region',
+                regionValue: region.value,
+                regionLabel: region.label,
+                localities: regionLocalities.map((l) => ({ city: l.city, count: l.count })),
+                apartments: data.map((apartment) => getApartmentCardData(apartment)),
+            },
+        };
+    }
+
+    // ===== Режим ГОРОД: слаг — транслит названия населённого пункта =====
     const locations = await api.apartment.getCatalogLocations();
     const match = locations.find((l) => transliterate(l.city) === slug);
     if (!match) {
@@ -41,49 +87,25 @@ export const getServerSideProps: GetServerSideProps<CityPageProps> = async (ctx)
 
     return {
         props: {
+            mode: 'city',
             city: decodedCity,
             apartments: data.map((apartment) => getApartmentCardData(apartment)),
         },
     };
 };
 
-export default function CityPage({ city, apartments }: CityPageProps) {
-    // Предложный падеж: «Минске». Неизвестный словарю город → «городе Минск»
-    // (null словаря подменяем безопасной формой через ??).
-    const cityIn = cityInPrepositional(city) ?? `городе ${city}`;
-    const cheapest = apartments.reduce((min, a) => (a.price < min.price ? a : min));
-
-    return (
-        <>
-            <Seo
-                absoluteTitle={`Квартиры на сутки в ${cityIn} — снять`}
-                description={`Снять квартиру на сутки в ${cityIn}. Актуальные фото, цены, бронирование онлайн напрямую от собственников.`}
-                canonical={`${SITE_URL}/rent/flat/${transliterate(city)}`}
-            />
-            <ClientHeader />
-
-            <main className="mx-auto min-h-screen max-w-[1400px] px-20 pt-5 pb-[60px] max-lg:px-10 max-md:px-5 max-md:py-[30px]">
-                <div className="mb-6 text-center">
-                    <h1 className="text-[2rem] font-bold max-md:text-[1.5rem]">Квартиры на сутки в {cityIn}</h1>
-                    <p className="mt-3 text-[1.1rem] text-muted-foreground max-md:text-base">
-                        Найдено {apartments.length} {pluralRu(apartments.length, 'квартира', 'квартиры', 'квартир')}
-                    </p>
-                </div>
-
-                <ApartmentsList apartments={apartments} />
-
-                <section className="mx-auto mt-12 max-w-3xl text-center text-[0.95rem] leading-relaxed text-muted-foreground max-md:mt-8 max-md:text-sm">
-                    <h2 className="mb-4 text-[1.4rem] font-semibold text-foreground">
-                        Снять квартиру на сутки в {cityIn}
-                    </h2>
-                    <p>
-                        В {cityIn} доступно {apartments.length}{' '}
-                        {pluralRu(apartments.length, 'квартира', 'квартиры', 'квартир')} на сутки — от{' '}
-                        {formatByn(cheapest.price)} за ночь. Все объекты сдаются напрямую от собственников: актуальные
-                        фотографии, честные цены, онлайн-бронирование без посредников и скрытых комиссий.
-                    </p>
-                </section>
-            </main>
-        </>
+export default function CatalogPlacePage(props: CatalogPlacePageProps) {
+    return props.mode === 'region' ? (
+        <RegionCatalogPage
+            regionValue={props.regionValue}
+            regionLabel={props.regionLabel}
+            localities={props.localities}
+            apartments={props.apartments}
+        />
+    ) : (
+        <CityCatalogPage
+            city={props.city}
+            apartments={props.apartments}
+        />
     );
 }
