@@ -6,10 +6,16 @@ import { rectSortingStrategy, SortableContext } from '@dnd-kit/sortable';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import Image from 'next/image';
+
+import { Close, Star } from '@/components/icons';
+
 type SortableImageGridProps = {
     images: string[];
     onReorder: (from: number, to: number) => void;
     onRemove: (index: number) => void;
+    /** «Сделать заглавным» (фото встаёт первым). Не передан — кнопки нет
+     *  (например, в редактировании порядок меняют только перетаскиванием). */
+    onMakeMain?: (index: number) => void;
 
     children?: ReactNode;
 };
@@ -18,11 +24,13 @@ function SortableImageItem({
     index,
     isMain,
     onRemove,
+    onMakeMain,
 }: {
     src: string;
     index: number;
     isMain: boolean;
     onRemove: (index: number) => void;
+    onMakeMain?: (index: number) => void;
 }) {
     const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: src });
     const style = {
@@ -36,11 +44,16 @@ function SortableImageItem({
             {...attributes}
             className={`relative aspect-square overflow-hidden rounded-lg border-2 border-border ${isMain ? 'border-warning' : ''}`}
         >
-            {/* «Ручка»: listeners только здесь — палец на картинке таскает, на кнопках жмёт */}
+            {/* «Ручка»: listeners только здесь — палец на картинке таскает, на кнопках жмёт.
+                touch-none (touch-action: none) — ОБЯЗАТЕЛЬНОЕ требование документации
+                dnd-kit для мобильных: без него браузер перехватывает движение пальца
+                как скролл страницы и отменяет drag раньше, чем TouchSensor дождётся
+                своего delay (250 мс). На десктопе мышь со скроллом не конфликтует,
+                поэтому баг виден только на телефоне. */}
             <button
                 type="button"
                 {...listeners}
-                className="relative block h-full w-full cursor-grab"
+                className="relative block h-full w-full cursor-grab touch-none"
             >
                 <Image
                     src={src}
@@ -56,21 +69,38 @@ function SortableImageItem({
                 </div>
             )}
 
+            {/* Кнопки поверх «ручки»: тап по ним НЕ запускает drag —
+                TouchSensor активируется только после 250 мс удержания,
+                короткий тап проходит как клик. */}
             <div className="absolute top-1 right-1 z-10 flex flex-col gap-1">
+                {onMakeMain && !isMain && (
+                    <button
+                        type="button"
+                        onClick={() => onMakeMain(index)}
+                        className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border-none bg-black/60 p-0 text-[15px] text-white/80 max-md:h-4 max-md:w-4 max-md:text-[8px]"
+                        title="Сделать заглавным"
+                        aria-label={`Сделать фото ${index + 1} заглавным`}
+                    >
+                        <Star
+                            muted
+                            className="size-3"
+                        />
+                    </button>
+                )}
                 <button
                     type="button"
                     onClick={() => onRemove(index)}
                     className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border-none bg-black/60 p-0 text-[15px] text-white/80 max-md:h-4 max-md:w-4 max-md:text-[8px]"
                     aria-label="Удалить фото"
                 >
-                    ✕
+                    <Close className="size-3" />
                 </button>
             </div>
         </div>
     );
 }
 
-export function SortableImageGrid({ images, onReorder, onRemove, children }: SortableImageGridProps) {
+export function SortableImageGrid({ images, onReorder, onRemove, onMakeMain, children }: SortableImageGridProps) {
     const mouseSensor = useSensor(MouseSensor, {
         activationConstraint: {
             distance: 10,
@@ -118,6 +148,7 @@ export function SortableImageGrid({ images, onReorder, onRemove, children }: Sor
                             index={index}
                             isMain={index === 0}
                             onRemove={onRemove}
+                            onMakeMain={onMakeMain}
                         />
                     ))}
 

@@ -1,10 +1,8 @@
 import React, { type ChangeEvent, type DragEvent } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 
-import Image from 'next/image';
-
-import { Camera, Close, Hourglass, Star } from '@/components/icons';
-import { Button } from '@/shared/ui/button';
+import { SortableImageGrid } from '@/components/apartments/SortableImageGrid';
+import { Camera, Hourglass } from '@/components/icons';
 import { FieldDescription, FieldError, FieldLegend, FieldRequired, FieldSet } from '@/shared/ui/field';
 import { api } from '@/trpc/react';
 
@@ -41,7 +39,6 @@ export function Step4({ onUploadingChange }: Step4Props) {
 
     const [isUploading, setIsUploading] = React.useState(false);
     const [uploadError, setUploadError] = React.useState<string | null>(null);
-    const [dragIndex, setDragIndex] = React.useState<number | null>(null);
 
     const setImages = (next: string[]) => {
         setValue('images', next);
@@ -97,31 +94,21 @@ export function Step4({ onUploadingChange }: Step4Props) {
         setImages([image, ...current.filter((_, i) => i !== index)]);
     };
 
-    const handleDragStart = (e: DragEvent<HTMLLIElement>, index: number) => {
-        // Firefox не начинает перетаскивание, пока в dataTransfer ничего нет
-        e.dataTransfer.setData('text/plain', String(index));
-        e.dataTransfer.effectAllowed = 'move';
-        setDragIndex(index);
-    };
-
-    // Фото уступает место тому, над которым его держат: порядок меняется прямо во время перетаскивания
-    const handleDragOver = (e: DragEvent<HTMLLIElement>, overIndex: number) => {
-        e.preventDefault();
-        if (dragIndex === null || dragIndex === overIndex) {
+    // Перестановка из SortableImageGrid (dnd-kit): работает и мышью, и пальцем —
+    // нативный HTML5 drag (draggable/onDragStart), стоявший здесь раньше, на
+    // мобильных платформах не поддерживается ВООБЩЕ (iOS/Android игнорируют
+    // drag-события от касаний) — фото тасковались только на десктопе.
+    const handleReorder = (from: number, to: number) => {
+        if (from === to || from < 0 || to < 0) {
             return;
         }
-        const reordered = [...getValues('images')];
-        const [moved] = reordered.splice(dragIndex, 1);
+        const current = [...getValues('images')];
+        const [moved] = current.splice(from, 1);
         if (moved === undefined) {
             return;
         }
-        reordered.splice(overIndex, 0, moved);
-        setImages(reordered);
-        setDragIndex(overIndex);
-    };
-
-    const handleDragEnd = () => {
-        setDragIndex(null);
+        current.splice(to, 0, moved);
+        setImages(current);
     };
 
     const photoError = uploadError ?? errors.images?.message;
@@ -177,63 +164,31 @@ export function Step4({ onUploadingChange }: Step4Props) {
                         <p className="text-sm font-medium">
                             Фотографии ({images.length}){' '}
                             <span className="font-normal text-muted-foreground">
-                                — перетаскивайте, чтобы изменить порядок
+                                — удерживайте и перетаскивайте, чтобы изменить порядок
                             </span>
                         </p>
-                        <ul className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-4">
-                            {images.map((image, index) => (
-                                <li
-                                    key={image}
-                                    draggable
-                                    onDragStart={(e) => handleDragStart(e, index)}
-                                    onDragOver={(e) => handleDragOver(e, index)}
-                                    onDragEnd={handleDragEnd}
-                                    className={`relative aspect-square cursor-grab overflow-hidden rounded-xl border-2 bg-background transition-[border-color,box-shadow] ${
-                                        index === 0
-                                            ? 'border-warning shadow-[0_0_0_2px_var(--warning)]'
-                                            : 'border-border hover:border-primary'
-                                    }`}
-                                >
-                                    <Image
-                                        src={image}
-                                        alt={`Фото ${index + 1}`}
-                                        width={200}
-                                        height={200}
-                                        className="size-full object-cover"
-                                    />
-                                    {index === 0 && (
-                                        <span className="pointer-events-none absolute top-2 left-2 inline-flex items-center gap-1 rounded bg-warning px-2 py-0.5 text-[10px] font-semibold text-warning-foreground">
-                                            <Star className="size-3" />
-                                            Заглавное
-                                        </span>
-                                    )}
-                                    <div className="absolute top-2 right-2 flex flex-col gap-1.5">
-                                        <Button
-                                            type="button"
-                                            variant="secondary"
-                                            size="icon-sm"
-                                            title="Удалить"
-                                            aria-label={`Удалить фото ${index + 1}`}
-                                            onClick={() => handleRemove(index)}
-                                        >
-                                            <Close />
-                                        </Button>
-                                        {index !== 0 && (
-                                            <Button
-                                                type="button"
-                                                variant="secondary"
-                                                size="icon-sm"
-                                                title="Сделать заглавным"
-                                                aria-label={`Сделать фото ${index + 1} заглавным`}
-                                                onClick={() => handleMakeMain(index)}
-                                            >
-                                                <Star muted />
-                                            </Button>
-                                        )}
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
+                        <SortableImageGrid
+                            images={images}
+                            onReorder={handleReorder}
+                            onRemove={handleRemove}
+                            onMakeMain={handleMakeMain}
+                        >
+                            {/* Дети сетки: плитка «добавить ещё» — рядом с фото,
+                                общий вид с редактированием объекта. */}
+                            <label className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-border text-center text-xs text-muted-foreground transition-colors hover:border-primary">
+                                <input
+                                    type="file"
+                                    name="photos-more"
+                                    accept="image/*"
+                                    multiple
+                                    disabled={isUploading}
+                                    onChange={handleFilesChange}
+                                    className="sr-only"
+                                />
+                                <Camera className="size-6" />
+                                Ещё фото
+                            </label>
+                        </SortableImageGrid>
                     </>
                 )}
             </FieldSet>
