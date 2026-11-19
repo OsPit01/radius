@@ -37,6 +37,12 @@ const RETIRED_MICRODISTRICT_SLUGS: Record<string, string> = {
     // квартир в БД район ещё прописан, но страницей района он больше не
     // канонизируется → похоронен с 301 на город.
     vokzal: 'minsk',
+    // «Веснянка» и «Юго-Запад» — районы, что индексировались в октябре
+    // (тогда их вводили руками), а теперь их нет ни в справочнике, ни у
+    // активных квартир. Google успел их увидеть (GSC: «страница с
+    // переадресацией»/404) → 301 на Минск, чтобы вес не умер на 404.
+    vesnyanka: 'minsk',
+    'yugo-zapad': 'minsk',
 };
 
 export const getServerSideProps: GetServerSideProps<MicrodistrictPageProps> = async (ctx) => {
