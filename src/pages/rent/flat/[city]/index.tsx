@@ -7,6 +7,20 @@ import { getRegion } from '@/lib/constants/belarus-locations';
 import { transliterate } from '@/lib/transliterate';
 import { createServerCaller } from '@/trpc/server';
 
+// «Кладбище» легаси-слагов ГОРОДА: слаг, который городом каталога никогда не
+// был — сырой мусор из колонки city прошлых лет («Минская область» — владелец
+// ввёл область вместо города) или пригород до его склейки с большим городом
+// («Копище» — см. CITY_ALIASES в lib/constants/city-aliases.ts). Страницы по
+// этим адресам успели попасть в индекс поисковиков; после чистки БД они стали
+// 404 и теряли SEO-вес. 301 на канонический город передаёт вес новой странице.
+// Родственный механизм для РАЙОНОВ — RETIRED_MICRODISTRICT_SLUGS в
+// microdistrict/[name].tsx (там назначение — город, здесь — тоже город,
+// но приходят по адресу без /microdistrict/...).
+const LEGACY_CITY_SLUGS: Record<string, string> = {
+    'minskaya-oblast': 'minsk',
+    kopische: 'minsk',
+};
+
 // Две разновидности страницы по одному адресу /rent/flat/{слаг}:
 // 1) город: /rent/flat/minsk, /rent/flat/zamostochye — квартиры одного населённого пункта;
 // 2) область: /rent/flat/vitebsk-region — все квартиры области + список её пунктов.
@@ -43,6 +57,19 @@ export const getServerSideProps: GetServerSideProps<CatalogPlacePageProps> = asy
     if (slug !== city) {
         return { redirect: { destination: `/rent/flat/${slug}`, permanent: true } };
     }
+
+    // Легаси-слаг города (мусорное/устаревшее значение, проиндексированное до
+    // чистки БД) → 301 на канонический город. Смотрим ДО запроса к БД:
+    // редиректу данные не нужны. Object.hasOwn — только собственный ключ карты
+    // (слаг 'constructor' не должен ловить унаследованный конструктор).
+    // Важно: НЕ вести на страницу области (minsk-region) — она существует,
+    // только пока в области есть пункты кроме центра, иначе получим
+    // редирект на 404 (это хуже, чем сразу честный 404).
+    const legacyCity = Object.hasOwn(LEGACY_CITY_SLUGS, slug) ? LEGACY_CITY_SLUGS[slug] : undefined;
+    if (legacyCity) {
+        return { redirect: { destination: `/rent/flat/${legacyCity}`, permanent: true } };
+    }
+
     const api = await createServerCaller(ctx);
 
     // ===== Режим ОБЛАСТЬ: слаг совпал со значением области ('vitebsk-region') =====

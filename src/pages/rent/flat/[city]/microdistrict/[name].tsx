@@ -60,7 +60,13 @@ export const getServerSideProps: GetServerSideProps<MicrodistrictPageProps> = as
 
     // Устаревшее написание района (могло остаться в индексе) → 301 на канон.
     // Смотрим ДО запроса к БД: это просто редирект, данные не нужны.
-    const aliased = MICRODISTRICT_SLUG_ALIASES[`${citySlug}/${nameSlug}`];
+    // Object.hasOwn — ищем только СОБСТВЕННЫЙ ключ карты: слаг вроде
+    // 'constructor' без проверки нашёл бы унаследованный конструктор из
+    // Object.prototype (truthy-мусор) и отправил «редирект» в никуда.
+    const aliasKey = `${citySlug}/${nameSlug}`;
+    const aliased = Object.hasOwn(MICRODISTRICT_SLUG_ALIASES, aliasKey)
+        ? MICRODISTRICT_SLUG_ALIASES[aliasKey]
+        : undefined;
     if (aliased) {
         return {
             redirect: {
@@ -73,7 +79,9 @@ export const getServerSideProps: GetServerSideProps<MicrodistrictPageProps> = as
     // Похороненный район (удалён из справочника): страницу уже не построить —
     // 301 на страницу города, чтобы вес из поиска не пропал в 404.
     // Тоже ДО запроса к БД: редиректу данные не нужны.
-    const retiredCity = RETIRED_MICRODISTRICT_SLUGS[nameSlug];
+    const retiredCity = Object.hasOwn(RETIRED_MICRODISTRICT_SLUGS, nameSlug)
+        ? RETIRED_MICRODISTRICT_SLUGS[nameSlug]
+        : undefined;
     if (retiredCity) {
         return {
             redirect: {
@@ -87,6 +95,29 @@ export const getServerSideProps: GetServerSideProps<MicrodistrictPageProps> = as
     const locations = await api.apartment.getCatalogLocations();
     const cityMatch = locations.find((l) => transliterate(l.city) === citySlug);
     if (!cityMatch) {
+        // Город каталогу неизвестен. ДО того как отдать 404, пробуем спасти
+        // посетителя и SEO-вес со старой ссылки: префикс города мог быть
+        // мусором из БД прошлых лет («Минская область» вместо города,
+        // «Копище» до склейки с Минском) — такие URL успели попасть в индекс,
+        // а сам район теперь живёт под каноническим городом.
+        // Ищем во ВСЕМ каталоге города, у которых есть район с этим слагом.
+        const districtOwners = locations.filter((l) => l.microdistricts.some((m) => transliterate(m) === nameSlug));
+        // Редиректим, только если владелец района РОВНО ОДИН: при неоднозначности
+        // (два города с одноимённым районом) угадывать нельзя — честный 404.
+        // Деструктуризация + проверка на undefined — требование строгого
+        // noUncheckedIndexedAccess (элемент массива «может отсутствовать»).
+        const [owner] = districtOwners;
+        if (districtOwners.length === 1 && owner) {
+            return {
+                redirect: {
+                    // nameSlug уже нормализован (транслит проверен выше),
+                    // transliterate(owner.city) — канонический слаг города:
+                    // редирект ведёт напрямую на живую страницу, без цепочек.
+                    destination: `/rent/flat/${transliterate(owner.city)}/microdistrict/${nameSlug}`,
+                    permanent: true,
+                },
+            };
+        }
         return { notFound: true };
     }
     const city = cityMatch.city;
