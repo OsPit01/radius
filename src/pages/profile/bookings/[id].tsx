@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -11,7 +13,6 @@ import { cancelledByLabel } from '@/lib/constants/cancel-reasons';
 import { pluralRu } from '@/lib/plural';
 import { requireAuth } from '@/server/auth/require-auth';
 import { api } from '@/trpc/react';
-
 export const getServerSideProps = requireAuth;
 
 // «26 окт., пн» — дата + день недели.
@@ -49,7 +50,8 @@ export default function BookingDetailPage() {
     const utils = api.useUtils();
     const { data: session } = useSession();
     const userId = session?.user?.id ?? '';
-
+    // Какое действие ждёт подтверждения: null = модалка закрыта.
+    const [confirmAction, setConfirmAction] = useState<'approve' | 'reject' | 'cancel' | null>(null);
     // id из адреса → число. Мусор в URL → страница покажет «не найдено».
     const rawId = typeof router.query.id === 'string' ? router.query.id : '';
     const bookingId = Number(rawId);
@@ -57,13 +59,19 @@ export default function BookingDetailPage() {
 
     const { data, isPending } = api.bookings.getById.useQuery({ bookingId }, { enabled: isValidId });
 
-    // Подтвердить заявку (действие владельца, если заявка ждёт ответа).
-    const approve = api.bookings.setStatus.useMutation({
+    // Владелец: подтвердить или отклонить (один хук на оба действия — разный status).
+    const setStatus = api.bookings.setStatus.useMutation({
         onSuccess: () => {
             void utils.bookings.getById.invalidate({ bookingId });
         },
     });
 
+    // Гость: отменить бронь.
+    const cancelBooking = api.bookings.cancel.useMutation({
+        onSuccess: () => {
+            void utils.bookings.getById.invalidate({ bookingId });
+        },
+    });
     if (!isValidId || (!isPending && !data)) {
         return (
             <AuthGuard>
@@ -191,16 +199,60 @@ export default function BookingDetailPage() {
                             </p>
                         </div>
 
-                        {/* Подтвердить бронирование — только владелец, когда заявка ждёт */}
-                        {isOwner && booking.status === 'new' && (
-                            <button
-                                type="button"
-                                onClick={() => approve.mutate({ bookingId: booking.id, status: 'approved' })}
-                                disabled={approve.isPending}
-                                className="mt-5 w-full cursor-pointer rounded-2xl bg-foreground px-6 py-3 font-semibold text-background transition-colors hover:bg-foreground/85 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                Подтвердить бронирование
-                            </button>
+                        {/* Действия доступны только когда заявка ждёт решения (status === 'new') */}
+                        {booking.status === 'new' && (
+                            <div className="mt-5 flex flex-col gap-2">
+                                {isOwner ? (
+                                    <>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                if (confirmAction === 'approve') {
+                                                    setStatus.mutate({ bookingId: booking.id, status: 'approved' });
+                                                    setConfirmAction(null);
+                                                } else {
+                                                    setConfirmAction('approve');
+                                                }
+                                            }}
+                                            disabled={setStatus.isPending}
+                                            className="w-full cursor-pointer rounded-2xl border border-black px-6 py-3 font-semibold text-black transition-colors hover:bg-green-900 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                                        >
+                                            {confirmAction === 'approve'
+                                                ? 'Точно подтвердить?'
+                                                : 'Подтвердить бронирование'}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                if (confirmAction === 'reject') {
+                                                    setStatus.mutate({ bookingId: booking.id, status: 'rejected' });
+                                                    setConfirmAction(null);
+                                                } else {
+                                                    setConfirmAction('reject');
+                                                }
+                                            }}
+                                            className="rounded-2xl border border-destructive px-6 py-3 font-semibold text-destructive transition-colors hover:bg-red-900 hover:text-white"
+                                        >
+                                            {confirmAction === 'reject' ? 'Точно отклонить?' : 'Отклонить заявку'}
+                                        </button>
+                                    </>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (confirmAction === 'cancel') {
+                                                cancelBooking.mutate({ bookingId: booking.id });
+                                                setConfirmAction(null);
+                                            } else {
+                                                setConfirmAction('cancel');
+                                            }
+                                        }}
+                                        className="rounded-2xl border border-destructive px-6 py-3 font-semibold text-destructive transition-colors hover:bg-destructive/10"
+                                    >
+                                        {confirmAction === 'cancel' ? 'Точно отменить?' : 'Отменить бронирование'}
+                                    </button>
+                                )}
+                            </div>
                         )}
                     </>
                 )}

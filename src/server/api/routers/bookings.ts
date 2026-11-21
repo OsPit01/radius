@@ -1,8 +1,9 @@
 import { TRPCError } from '@trpc/server';
-import { and, eq } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { MAX_BOOKING_GUESTS, MIN_BOOKING_GUESTS } from '@/lib/constants/booking';
+import { isAdminRole } from '@/lib/constants/roles';
 import { isValidPhoneNumber } from '@/lib/phone';
 import { idSchema } from '@/lib/schemas/common';
 import { hideTestApartments } from '@/server/apartment-selects';
@@ -229,7 +230,8 @@ export const bookingsRouter = createTRPCRouter({
             .from(booking)
             .innerJoin(apartments, eq(booking.apartmentId, apartments.id))
             .innerJoin(users, eq(apartments.createdById, users.id))
-            .where(eq(apartments.createdById, userId));
+            .where(eq(apartments.createdById, userId))
+            .orderBy(desc(booking.createdAt));
     }),
     listForUser: protectedProcedure.query(async ({ ctx }) => {
         const userId = ctx.session.user.id;
@@ -256,7 +258,8 @@ export const bookingsRouter = createTRPCRouter({
             .from(booking)
             .innerJoin(apartments, eq(booking.apartmentId, apartments.id))
             .innerJoin(users, eq(apartments.createdById, users.id))
-            .where(eq(booking.userId, userId));
+            .where(eq(booking.userId, userId))
+            .orderBy(desc(booking.createdAt));
     }),
 
     // Детали одной брони для страницы /profile/bookings/[id].
@@ -410,19 +413,14 @@ export const bookingsRouter = createTRPCRouter({
 
     // Удалить бронь из БД. Гость удаляет свою бронь, владелец — заявку на свою квартиру.
     delete: protectedProcedure.input(z.object({ bookingId: idSchema })).mutation(async ({ ctx, input }) => {
-        const userId = ctx.session.user.id;
+        // Удалять может ТОЛЬКО админ и выше.
+        if (!isAdminRole(ctx.session.user.role)) {
+            throw new TRPCError({ code: 'FORBIDDEN', message: 'Недостаточно прав' });
+        }
 
         const [targetBooking] = await ctx.db.select().from(booking).where(eq(booking.id, input.bookingId));
         if (!targetBooking) {
             throw new TRPCError({ code: 'NOT_FOUND' });
-        }
-
-        // Право удалять: гость — только свою бронь, владелец — только заявку на свой объект.
-        const [apartment] = await ctx.db.select().from(apartments).where(eq(apartments.id, targetBooking.apartmentId));
-        const isGuest = targetBooking.userId === userId;
-        const isOwner = apartment?.createdById === userId;
-        if (!isGuest && !isOwner) {
-            throw new TRPCError({ code: 'FORBIDDEN' });
         }
 
         await ctx.db.delete(booking).where(eq(booking.id, input.bookingId));

@@ -2,15 +2,18 @@ import { useState } from 'react';
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 
 import { CheckCircle, Close, Hourglass } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { ClientHeader } from '@/components/layout/ClientHeader';
 import { FilterTabs } from '@/components/ui/FilterTabs';
+import { Modal } from '@/components/ui/Modal';
 import { SegmentedTabs } from '@/components/ui/SegmentedTabs';
 import { BOOKING_STATUS_LABELS } from '@/lib/constants/booking';
 import { cancelledByLabel } from '@/lib/constants/cancel-reasons';
 import { formatByn } from '@/lib/constants/currencies';
+import { isAdminRole } from '@/lib/constants/roles';
 import { requireRole } from '@/server/auth/require-auth';
 import { api } from '@/trpc/react';
 
@@ -20,9 +23,16 @@ export const getServerSideProps = requireRole('lessor');
 
 // ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (чистые: приняли данные → вернули строку/цвет) =====
 
-// «15 ноября 2026» — дата заявки (день + полный месяц + год).
+// «21 ноября 2026 г., 09:45» — дата создания (день + месяц + год + время):
+// время нужно, чтобы был виден порядок заявок, созданных в один день.
 function formatFullDate(value: Date | string): string {
-    return new Date(value).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+    return new Date(value).toLocaleString('ru-RU', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+    });
 }
 
 // «15 ноября» — даты проживания (день + полный месяц, без года).
@@ -94,6 +104,11 @@ export default function ManageBookingsPage() {
     // underTab — какой ФИЛЬТР выбран внутри «Моих заявок» (Все / Для подтверждения / …).
     // По умолчанию 'all' — «Все».
     const [underTab, setUnderTab] = useState('all');
+    const { data: session } = useSession();
+    // Удалять может только админ и выше — крестик виден только ему.
+    const canDelete = isAdminRole(session?.user?.role);
+    // Какую заявку подтверждаем удалить (null = модалка закрыта).
+    const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
     // ===== ДАННЫЕ С СЕРВЕРА =====
     // useQuery — «сходи на сервер и верни данные»: пока сервер отвечает, isPending = true.
@@ -202,57 +217,52 @@ export default function ManageBookingsPage() {
                                 {filtered.map(({ booking, apartment }) => (
                                     <div
                                         key={booking.id}
-                                        className="grid grid-cols-1 gap-3 border-b border-border px-3 py-4 md:grid-cols-[150px_1fr_180px_200px] md:items-center md:gap-4 md:px-2 md:py-3"
+                                        className="flex items-center border-b border-border"
                                     >
-                                        {/* Дата заявки. Вложенный span с md:hidden — подпись
-                                            «Дата:», видимая ТОЛЬКО на мобилке (на десктопе
-                                            подпись уже есть в шапке таблицы). */}
-                                        <span className="text-sm text-muted-foreground">
-                                            <span className="font-medium text-foreground md:hidden">Дата: </span>
-                                            {formatFullDate(booking.createdAt)}
-                                        </span>
+                                        {/* ВСЯ строка (кроме кнопки удаления) — ссылка на детали
+                                            заявки: клик по любому месту открывает /profile/bookings/{id}. */}
+                                        <Link
+                                            href={`/profile/bookings/${booking.id}`}
+                                            className="grid min-w-0 flex-1 grid-cols-1 gap-3 px-3 py-4 no-underline md:grid-cols-[150px_1fr_180px_200px] md:items-center md:gap-4 md:px-2 md:py-3"
+                                        >
+                                            {/* Дата заявки (подпись — на мобилке) */}
+                                            <span className="text-sm text-muted-foreground">
+                                                <span className="font-medium text-foreground md:hidden">Дата: </span>
+                                                {formatFullDate(booking.createdAt)}
+                                            </span>
 
-                                        {/* Объект: фото + заголовок + цена */}
-                                        <div className="flex min-w-0 items-center gap-3">
-                                            {apartment.images?.[0] && (
-                                                <Image
-                                                    src={apartment.images[0]}
-                                                    alt=""
-                                                    width={48}
-                                                    height={48}
-                                                    className="h-12 w-12 shrink-0 rounded-lg object-cover"
-                                                />
-                                            )}
-                                            <div className="min-w-0">
-                                                {/* Заголовок квартиры — ССЫЛКА на страницу деталей
-                                                    заявки /profile/bookings/{id}: владелец открывает
-                                                    её и там подтверждает или смотрит причину. */}
-                                                <Link
-                                                    href={`/profile/bookings/${booking.id}`}
-                                                    className="block truncate font-medium text-foreground no-underline hover:text-primary"
-                                                >
-                                                    {apartment.title}
-                                                </Link>
-                                                <p className="text-sm text-muted-foreground">
-                                                    {formatByn(apartment.price)}
-                                                </p>
+                                            {/* Объект: фото + заголовок + цена */}
+                                            <div className="flex min-w-0 items-center gap-3">
+                                                {apartment.images?.[0] && (
+                                                    <Image
+                                                        src={apartment.images[0]}
+                                                        alt=""
+                                                        width={48}
+                                                        height={48}
+                                                        className="h-12 w-12 shrink-0 rounded-lg object-cover"
+                                                    />
+                                                )}
+                                                <div className="min-w-0">
+                                                    <p className="truncate font-medium text-foreground">
+                                                        {apartment.title}
+                                                    </p>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        {formatByn(apartment.price)}/сутки
+                                                    </p>
+                                                </div>
                                             </div>
-                                        </div>
 
-                                        {/* Проживание: даты заезда/выезда (подпись — на мобилке) */}
-                                        <span className="text-sm text-muted-foreground">
-                                            <span className="font-medium text-foreground md:hidden">Проживание: </span>
-                                            {formatShortDate(booking.checkInDate)} —{' '}
-                                            {formatShortDate(booking.checkOutDate)}
-                                        </span>
+                                            {/* Проживание: даты заезда/выезда (подпись — на мобилке) */}
+                                            <span className="text-sm text-muted-foreground">
+                                                <span className="font-medium text-foreground md:hidden">
+                                                    Проживание:{' '}
+                                                </span>
+                                                {formatShortDate(booking.checkInDate)} —{' '}
+                                                {formatShortDate(booking.checkOutDate)}
+                                            </span>
 
-                                        {/* Статус + причина + удаление */}
-                                        <div className="flex items-center justify-between gap-2">
+                                            {/* Статус + причина */}
                                             <div className="min-w-0">
-                                                {/* Две ветки:
-                                                    — заявка ОТМЕНЕНА (есть cancelledBy) → показываем
-                                                      «кто отменил» (заголовок) + причину;
-                                                    — заявка живая → статус с иконкой. */}
                                                 {cancelledByLabel(booking.cancelledBy) ? (
                                                     <>
                                                         <p
@@ -278,20 +288,20 @@ export default function ManageBookingsPage() {
                                                     </p>
                                                 )}
                                             </div>
+                                        </Link>
 
-                                            {/* Кнопка удаления. Цепочка: клик → onClick →
-                                                deleteBooking.mutate({ bookingId }) → процедура
-                                                bookings.delete на сервере → успех → onSuccess
-                                                → invalidate → список перечитался без удалённой заявки. */}
+                                        {/* Кнопка удаления — СНАРУЖИ ссылки, чтобы клик по крестику
+                                            не переходил на страницу деталей. */}
+                                        {canDelete && (
                                             <button
                                                 type="button"
-                                                onClick={() => deleteBooking.mutate({ bookingId: booking.id })}
+                                                onClick={() => setConfirmDeleteId(booking.id)}
                                                 aria-label="Удалить заявку"
-                                                className="shrink-0 rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                                                className="shrink-0 rounded-full p-1.5 pr-3 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                                             >
                                                 <Close className="h-5 w-5" />
                                             </button>
-                                        </div>
+                                        )}
                                     </div>
                                 ))}
                             </div>
@@ -304,6 +314,36 @@ export default function ManageBookingsPage() {
                 {tab === 'info' && <p>Информация — в разработке</p>}
                 {tab === 'settings' && <p>Настройки — в разработке</p>}
             </div>
+
+            {/* Модалка подтверждения удаления */}
+            <Modal
+                open={confirmDeleteId !== null}
+                onClose={() => setConfirmDeleteId(null)}
+                title="Удалить заявку?"
+            >
+                <p>Вы уверены, что хотите удалить эту заявку? Действие необратимо.</p>
+                <div className="mt-6 flex justify-center gap-3">
+                    <button
+                        type="button"
+                        onClick={() => {
+                            if (confirmDeleteId !== null) {
+                                deleteBooking.mutate({ bookingId: confirmDeleteId });
+                            }
+                            setConfirmDeleteId(null);
+                        }}
+                        className="cursor-pointer rounded-[25px] border border-destructive px-10 py-2.5 text-foreground transition-all duration-300 hover:bg-destructive/90 hover:text-destructive-foreground"
+                    >
+                        Удалить
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setConfirmDeleteId(null)}
+                        className="cursor-pointer rounded-[25px] border border-border px-10 py-2.5 text-foreground transition-all duration-300 hover:bg-muted"
+                    >
+                        Отмена
+                    </button>
+                </div>
+            </Modal>
         </AuthGuard>
     );
 }

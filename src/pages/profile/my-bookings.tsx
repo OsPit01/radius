@@ -2,22 +2,32 @@ import { useState } from 'react';
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 
 import { Calendar, CheckCircle, Close, Home, Hourglass } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { ClientHeader } from '@/components/layout/ClientHeader';
+import { Modal } from '@/components/ui/Modal';
 import { SegmentedTabs } from '@/components/ui/SegmentedTabs';
 import { GUEST_BOOKING_STATUS_LABELS } from '@/lib/constants/booking';
 import { cancelledByLabel } from '@/lib/constants/cancel-reasons';
 import { formatByn } from '@/lib/constants/currencies';
+import { isAdminRole } from '@/lib/constants/roles';
 import { requireAuth } from '@/server/auth/require-auth';
 import { api } from '@/trpc/react';
 
 export const getServerSideProps = requireAuth;
 
-// «15 ноября 2026» — дата заявки (день + полный месяц + год).
+// «21 ноября 2026 г., 09:45» — дата создания (день + месяц + год + время):
+// время нужно, чтобы был виден порядок заявок, созданных в один день.
 function formatFullDate(value: Date | string): string {
-    return new Date(value).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+    return new Date(value).toLocaleString('ru-RU', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+    });
 }
 
 // «15 ноября» — даты проживания (день + полный месяц, без года).
@@ -68,6 +78,11 @@ export default function MyBookingsPage() {
     const [housingType, setHousingType] = useState('flat');
     // Статус брони.
     const [tab, setTab] = useState('pending');
+    const { data: session } = useSession();
+    // Удалять может только админ и выше — крестик виден только ему.
+    const canDelete = isAdminRole(session?.user?.role);
+    // Какую заявку подтверждаем удалить (null = модалка закрыта).
+    const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
     // Мои брони как гостя.
     const { data: bookings, isPending } = api.bookings.listForUser.useQuery();
@@ -185,19 +200,52 @@ export default function MyBookingsPage() {
                                     </div>
                                 </Link>
 
-                                {/* Удалить заявку */}
-                                <button
-                                    type="button"
-                                    onClick={() => deleteBooking.mutate({ bookingId: booking.id })}
-                                    aria-label="Удалить заявку"
-                                    className="shrink-0 rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-                                >
-                                    <Close className="h-5 w-5" />
-                                </button>
+                                {/* Удалить заявку — крестик виден ТОЛЬКО админу и выше.
+                                    Клик не удаляет сразу, а открывает модалку подтверждения. */}
+                                {canDelete && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setConfirmDeleteId(booking.id)}
+                                        aria-label="Удалить заявку"
+                                        className="shrink-0 rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                                    >
+                                        <Close className="h-5 w-5" />
+                                    </button>
+                                )}
                             </li>
                         ))}
                     </ul>
                 )}
+
+                {/* Модалка подтверждения удаления */}
+                <Modal
+                    open={confirmDeleteId !== null}
+                    onClose={() => setConfirmDeleteId(null)}
+                    title="Удалить заявку?"
+                >
+                    <p>Вы уверены, что хотите удалить эту заявку? Действие необратимо.</p>
+                    <div className="mt-6 flex justify-center gap-3">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                if (confirmDeleteId !== null) {
+                                    deleteBooking.mutate({ bookingId: confirmDeleteId });
+                                }
+                                setConfirmDeleteId(null);
+                            }}
+                            className="cursor-pointer rounded-[25px] border border-destructive px-10 py-2.5 text-foreground transition-all duration-300 hover:bg-destructive/90 hover:text-destructive-foreground"
+                        >
+                            Удалить
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setConfirmDeleteId(null)}
+                            className="cursor-pointer rounded-[25px] border border-border px-10 py-2.5 text-foreground transition-all duration-300 hover:bg-muted"
+                        >
+                            Отмена
+                        </button>
+                    </div>
+                </Modal>
             </div>
         </AuthGuard>
     );
