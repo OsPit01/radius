@@ -17,6 +17,7 @@ import { BASE_CURRENCY_SYMBOL, formatByn } from '@/lib/constants/currencies';
 import { DEFAULT_IMAGE_URL } from '@/lib/constants/images';
 import { getCanonicalMicrodistrict } from '@/lib/constants/microdistricts';
 import { CHECK_IN_TIME_DEFAULT, CHECK_OUT_TIME_DEFAULT } from '@/lib/constants/time';
+import { cityInPrepositional } from '@/lib/declension';
 import { parseBookingChildren, parseBookingGuests } from '@/lib/search-params';
 import { getApartmentOgImagePath, SITE_URL } from '@/lib/seo';
 import { transliterate } from '@/lib/transliterate';
@@ -103,7 +104,7 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
     return (
         <>
             <Seo
-                title={`${a.title} — снять на сутки в ${a.city ?? 'Минске'}`}
+                title={`${a.title} — снять на сутки в ${cityInPrepositional(a.city) ?? `городе ${a.city}`}`}
                 description={metaDescription}
                 canonical={`/apartments/${rawId}`}
                 image={cover?.startsWith('http') ? getApartmentOgImagePath(a.id, cover) : undefined}

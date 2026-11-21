@@ -1,0 +1,210 @@
+import Image from 'next/image';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { useSession } from 'next-auth/react';
+
+import { CheckCircle, Hourglass } from '@/components/icons';
+import { AuthGuard } from '@/components/layout/AuthGuard';
+import { ClientHeader } from '@/components/layout/ClientHeader';
+import { BOOKING_STATUS_LABELS, GUEST_BOOKING_STATUS_LABELS } from '@/lib/constants/booking';
+import { cancelledByLabel } from '@/lib/constants/cancel-reasons';
+import { pluralRu } from '@/lib/plural';
+import { requireAuth } from '@/server/auth/require-auth';
+import { api } from '@/trpc/react';
+
+export const getServerSideProps = requireAuth;
+
+// «26 окт., пн» — дата + день недели.
+function formatDateWithWeekday(value: Date | string): string {
+    return new Date(value).toLocaleDateString('ru-RU', {
+        day: 'numeric',
+        month: 'short',
+        weekday: 'short',
+    });
+}
+
+// Сколько ночей между заездом и выездом.
+function nightsBetween(checkInDate: Date, checkOutDate: Date): number {
+    return Math.round((new Date(checkOutDate).getTime() - new Date(checkInDate).getTime()) / 86_400_000);
+}
+
+// Цвет статуса: подтверждена — зелёный, ждёт — жёлтый, отменена — красный.
+function statusColor(status: string): string {
+    switch (status) {
+        case 'approved':
+            return 'text-success';
+        case 'new':
+            return 'text-warning';
+        case 'cancelled':
+        case 'rejected':
+        case 'expired':
+            return 'text-destructive';
+        default:
+            return 'text-foreground';
+    }
+}
+
+export default function BookingDetailPage() {
+    const router = useRouter();
+    const utils = api.useUtils();
+    const { data: session } = useSession();
+    const userId = session?.user?.id ?? '';
+
+    // id из адреса → число. Мусор в URL → страница покажет «не найдено».
+    const rawId = typeof router.query.id === 'string' ? router.query.id : '';
+    const bookingId = Number(rawId);
+    const isValidId = Number.isInteger(bookingId) && bookingId > 0;
+
+    const { data, isPending } = api.bookings.getById.useQuery({ bookingId }, { enabled: isValidId });
+
+    // Подтвердить заявку (действие владельца, если заявка ждёт ответа).
+    const approve = api.bookings.setStatus.useMutation({
+        onSuccess: () => {
+            void utils.bookings.getById.invalidate({ bookingId });
+        },
+    });
+
+    if (!isValidId || (!isPending && !data)) {
+        return (
+            <AuthGuard>
+                <ClientHeader />
+                <div className="mx-auto max-w-[1400px] px-6 py-10 max-md:px-5">
+                    <p className="text-center text-muted-foreground">Заявка не найдена.</p>
+                </div>
+            </AuthGuard>
+        );
+    }
+
+    const { booking, apartment } = data ?? {};
+    const isOwner = apartment?.createdById === userId;
+
+    return (
+        <AuthGuard>
+            <ClientHeader />
+            <div className="mx-auto max-w-3xl px-6 py-6 max-md:px-5">
+                {isPending || !booking || !apartment ? (
+                    <p className="py-8 text-center text-muted-foreground">Загрузка…</p>
+                ) : (
+                    <>
+                        {/* Заголовок-статус: отменена → кто отменил; иначе — статус */}
+                        {cancelledByLabel(booking.cancelledBy) ? (
+                            <h1 className={`text-xl font-bold ${statusColor(booking.status)}`}>
+                                {cancelledByLabel(booking.cancelledBy)}
+                            </h1>
+                        ) : (
+                            <h1 className={`flex items-center gap-2 text-xl font-bold ${statusColor(booking.status)}`}>
+                                {booking.status === 'approved' && <CheckCircle className="h-5 w-5" />}
+                                {booking.status === 'new' && <Hourglass className="h-5 w-5" />}
+                                {(isOwner ? BOOKING_STATUS_LABELS : GUEST_BOOKING_STATUS_LABELS)[booking.status] ??
+                                    booking.status}
+                            </h1>
+                        )}
+
+                        {/* Оплата при заселении */}
+                        <p className="mt-1 text-sm text-muted-foreground">Оплата при заселении</p>
+
+                        {/* Причина отмены */}
+                        {booking.cancelReason && (
+                            <p className="mt-2 text-sm text-muted-foreground">
+                                Причина отмены: «{booking.cancelReason}»
+                            </p>
+                        )}
+
+                        {/* Квартира: фото + название + адрес + рейтинг */}
+                        <div className="mt-5 flex gap-4 rounded-2xl border border-border bg-card p-4">
+                            {apartment.images?.[0] && (
+                                <Image
+                                    src={apartment.images[0]}
+                                    alt=""
+                                    width={96}
+                                    height={96}
+                                    className="h-24 w-24 shrink-0 rounded-xl object-cover max-md:h-20 max-md:w-20"
+                                />
+                            )}
+                            <div className="min-w-0">
+                                <Link
+                                    href={`/apartments/${apartment.id}`}
+                                    className="font-semibold text-foreground no-underline hover:text-primary"
+                                >
+                                    {apartment.title}
+                                </Link>
+                                <p className="mt-1 text-sm break-words text-muted-foreground">
+                                    {apartment.formattedAddress ?? 'Адрес не указан'}
+                                </p>
+                                {(apartment.rating ?? 0) > 0 && (
+                                    <p className="mt-1 text-sm text-muted-foreground">
+                                        {(apartment.rating ?? 0).toFixed(1).replace('.', ',')} · Оценка
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Заезд / ночи / Выезд */}
+                        <div className="mt-4 flex items-center gap-4 rounded-2xl border border-border bg-card p-4">
+                            <div className="flex-1">
+                                <p className="text-sm text-muted-foreground">Заезд</p>
+                                <p className="font-medium text-foreground">
+                                    {formatDateWithWeekday(booking.checkInDate)}
+                                </p>
+                                <p className="text-sm text-foreground">{apartment.checkInTime ?? '—'}</p>
+                            </div>
+                            <div className="text-center">
+                                <p className="text-sm text-muted-foreground">
+                                    {nightsBetween(booking.checkInDate, booking.checkOutDate)}{' '}
+                                    {pluralRu(
+                                        nightsBetween(booking.checkInDate, booking.checkOutDate),
+                                        'ночь',
+                                        'ночи',
+                                        'ночей',
+                                    )}
+                                </p>
+                            </div>
+                            <div className="flex-1 text-right">
+                                <p className="text-sm text-muted-foreground">Выезд</p>
+                                <p className="font-medium text-foreground">
+                                    {formatDateWithWeekday(booking.checkOutDate)}
+                                </p>
+                                <p className="text-sm text-foreground">{apartment.checkOutTime ?? '—'}</p>
+                            </div>
+                        </div>
+
+                        {/* Детали бронирования */}
+                        <div className="mt-4 rounded-2xl border border-border bg-card p-4">
+                            <h2 className="font-semibold text-foreground">Детали бронирования</h2>
+
+                            <p className="mt-3 text-sm font-medium text-foreground">
+                                Предполагаемое время заезда и выезда
+                            </p>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                Заезд: {apartment.checkInTime ?? '—'} (Стандартное время)
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                                Выезд: {apartment.checkOutTime ?? '—'} (Стандартное время)
+                            </p>
+
+                            <p className="mt-3 text-sm font-medium text-foreground">Цель поездки</p>
+                            <p className="mt-1 text-sm text-muted-foreground">{booking.tripPurpose ?? 'Не указана'}</p>
+
+                            <p className="mt-3 text-sm font-medium text-foreground">Правила отмены</p>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                Бесплатная отмена — до заезда. После заезда возврат не производится.
+                            </p>
+                        </div>
+
+                        {/* Подтвердить бронирование — только владелец, когда заявка ждёт */}
+                        {isOwner && booking.status === 'new' && (
+                            <button
+                                type="button"
+                                onClick={() => approve.mutate({ bookingId: booking.id, status: 'approved' })}
+                                disabled={approve.isPending}
+                                className="mt-5 w-full cursor-pointer rounded-2xl bg-foreground px-6 py-3 font-semibold text-background transition-colors hover:bg-foreground/85 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                Подтвердить бронирование
+                            </button>
+                        )}
+                    </>
+                )}
+            </div>
+        </AuthGuard>
+    );
+}

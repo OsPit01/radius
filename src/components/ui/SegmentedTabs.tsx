@@ -22,7 +22,7 @@ export function SegmentedTabs<T extends string | number>({ tabs, active, onChang
                     role="tab"
                     aria-selected={active === tab.id}
                     onClick={() => onChange(tab.id)}
-                    className={`mb-4 inline-flex cursor-pointer items-center gap-2 border-b-2 px-12 pb-2.5 text-base font-medium whitespace-nowrap transition-colors max-md:px-2 ${
+                    className={`mb-4 inline-flex shrink-0 cursor-pointer items-center gap-2 border-b-2 px-12 pb-2.5 text-base font-medium whitespace-nowrap transition-colors max-lg:px-4 max-md:px-2 ${
                         index === 0 ? 'ml-auto' : ''
                     } ${index === tabs.length - 1 ? 'mr-auto' : ''} ${
                         active === tab.id

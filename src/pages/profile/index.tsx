@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 
-import { BarChart, Calendar, Chat, Clipboard, Heart, Home, type IconProps, Settings, Star } from '@/components/icons';
+import { BarChart, Bed, Chat, Clipboard, Heart, Home, type IconProps, Settings, Star } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { ClientHeader } from '@/components/layout/ClientHeader';
 import { TileLink } from '@/components/ui/TileLink';
@@ -13,6 +13,7 @@ import { api } from '@/trpc/react';
 type UserStats = {
     totalApartments: number;
     totalBookings: number;
+    totalMyBookings: number;
     totalFavorites: number;
 };
 type UserProfile = {
@@ -93,6 +94,7 @@ export default function ProfilePage() {
     const stats: UserStats = {
         totalApartments: statsData?.stats?.totalApartments ?? 0,
         totalBookings: statsData?.stats?.totalBookings ?? 0,
+        totalMyBookings: statsData?.stats?.totalMyBookings ?? 0,
         totalFavorites: statsData?.stats?.totalFavorites ?? 0,
     };
     const tiles = [
@@ -100,12 +102,19 @@ export default function ProfilePage() {
         { href: '/profile/chat', label: 'Мои сообщения', count: unreadCount ?? 0, Icon: Chat },
 
         { href: '/profile/favorites', label: 'Избранное', count: stats.totalFavorites, Icon: HeartSectionIcon },
-        { href: '/profile/my-bookings', label: 'Мои бронирования', count: stats.totalBookings, Icon: Calendar },
+        { href: '/profile/my-bookings', label: 'Мои бронирования', count: stats.totalMyBookings, Icon: Bed },
 
         ...(user.role !== 'user' ? [{ href: '/profile/statistics', label: 'Статистика', Icon: BarChart }] : []),
         //мои бронирования
         ...(user.role !== 'user'
-            ? [{ href: '/profile/manage-bookings', label: 'Управление бронированиями', Icon: Clipboard }]
+            ? [
+                  {
+                      href: '/profile/manage-bookings',
+                      label: 'Управление бронированиями',
+                      count: stats.totalBookings,
+                      Icon: Clipboard,
+                  },
+              ]
             : []),
         { href: '/profile/settings', label: 'Настройки профиля', Icon: Settings },
 

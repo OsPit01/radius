@@ -1,18 +1,24 @@
 import { useState } from 'react';
 
 import Image from 'next/image';
+import Link from 'next/link';
 
-import { Close } from '@/components/icons';
+import { CheckCircle, Close, Hourglass } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { ClientHeader } from '@/components/layout/ClientHeader';
 import { FilterTabs } from '@/components/ui/FilterTabs';
 import { SegmentedTabs } from '@/components/ui/SegmentedTabs';
 import { BOOKING_STATUS_LABELS } from '@/lib/constants/booking';
+import { cancelledByLabel } from '@/lib/constants/cancel-reasons';
 import { formatByn } from '@/lib/constants/currencies';
 import { requireRole } from '@/server/auth/require-auth';
 import { api } from '@/trpc/react';
 
+// Страница доступна только арендодателю и выше (lessor+).
+// Обычному пользователю (role "user") отдаётся 404 ещё на сервере.
 export const getServerSideProps = requireRole('lessor');
+
+// ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (чистые: приняли данные → вернули строку/цвет) =====
 
 // «15 ноября 2026» — дата заявки (день + полный месяц + год).
 function formatFullDate(value: Date | string): string {
@@ -24,8 +30,25 @@ function formatShortDate(value: Date | string): string {
     return new Date(value).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
 }
 
-// Подходит ли заявка под выбранный фильтр. Одна функция — и для счётчиков,
-// и для списка: правило живёт в одном месте, разъехаться не может.
+// Цвет статуса: подтверждена — зелёный, ждёт ответа — жёлтый, отменена — красный.
+function statusColor(status: string): string {
+    switch (status) {
+        case 'approved':
+            return 'text-success';
+        case 'new':
+            return 'text-warning';
+        case 'cancelled':
+        case 'rejected':
+        case 'expired':
+            return 'text-destructive';
+        default:
+            return 'text-foreground';
+    }
+}
+
+// Подходит ли заявка под выбранный фильтр.
+// Одна функция — и для счётчиков, и для списка: правило живёт в одном месте,
+// счётчик и список физически не могут разъехаться.
 function matchesFilter(status: string, checkInDate: Date, checkOutDate: Date, filter: string, now: Date): boolean {
     const checkIn = new Date(checkInDate);
     const checkOut = new Date(checkOutDate);
@@ -49,7 +72,7 @@ function matchesFilter(status: string, checkInDate: Date, checkOutDate: Date, fi
     }
 }
 
-// Набор фильтров — один список: и для счётчиков, и для вкладок.
+// Набор фильтров — один список: и для вкладок, и для счётчиков.
 const FILTERS = [
     { id: 'all', label: 'Все' },
     { id: 'pending', label: 'Для подтверждения' },
@@ -60,22 +83,45 @@ const FILTERS = [
 ] as const;
 
 export default function ManageBookingsPage() {
-    const utils = api.useUtils();
+    // ===== СОСТОЯНИЕ СТРАНИЦЫ (useState) =====
+    // useState('значение') возвращает ПАРУ: [текущее значение, функция-сменщик].
+    // Пока значение меняется через функцию — React автоматически перерисовывает страницу.
+
+    // tab — какая из ВЕРХНИХ вкладок открыта (Информация / Мои заявки / Календарь / Настройки).
+    // По умолчанию 'requests' — «Мои заявки».
     const [tab, setTab] = useState('requests');
+
+    // underTab — какой ФИЛЬТР выбран внутри «Моих заявок» (Все / Для подтверждения / …).
+    // По умолчанию 'all' — «Все».
     const [underTab, setUnderTab] = useState('all');
-    // Заявки на мои квартиры (я — владелец).
+
+    // ===== ДАННЫЕ С СЕРВЕРА =====
+    // useQuery — «сходи на сервер и верни данные»: пока сервер отвечает, isPending = true.
+    // listForOwner возвращает заявки НА МОИ КВАРТИРЫ (я — владелец).
+    // Кнопки одобрить/отклонить на этой странице НЕ нужны: их заменила кнопка
+    // «Подтвердить бронирование» на странице деталей /profile/bookings/[id].
     const { data: bookings, isPending } = api.bookings.listForOwner.useQuery();
 
-    // Удаление заявки из БД.
+    // ===== УДАЛЕНИЕ ЗАЯВКИ =====
+    // useMutation — «выполни действие на сервере» (в отличие от useQuery, который только читает).
+    // deleteBooking.mutate({ bookingId }) — САМ ВЫЗОВ удаления (срабатывает по клику на крестик ниже).
+    // onSuccess — что сделать ПОСЛЕ успешного удаления: invalidate («сбрось кэш и перечитай
+    // список заново»), иначе список в кэше останется старым, и удалённая заявка «не исчезнет».
+    const utils = api.useUtils();
     const deleteBooking = api.bookings.delete.useMutation({
         onSuccess: () => {
             void utils.bookings.listForOwner.invalidate();
         },
     });
 
+    // «Сейчас» — одна дата для всей страницы (фильтры сравнивают с ней заезд/выезд).
     const now = new Date();
 
-    // Счётчики: сколько заявок подходит под каждый фильтр.
+    // ===== СЧЁТЧИКИ =====
+    // Для КАЖДОГО фильтра считаем, сколько заявок под него подходит.
+    // FILTERS.map — «пройдись по всем фильтрам», для каждого:
+    //   filter(...).length — посчитай подходящие заявки.
+    // На выходе — массив { id, label, count }, его мы отдаём в FilterTabs (числа в скобках).
     const counts = FILTERS.map((f) => {
         const count = (bookings ?? []).filter(({ booking }) =>
             matchesFilter(booking.status, booking.checkInDate, booking.checkOutDate, f.id, now),
@@ -83,7 +129,9 @@ export default function ManageBookingsPage() {
         return { id: f.id, label: f.label, count };
     });
 
-    // Список под выбранный фильтр.
+    // ===== ОТФИЛЬТРОВАННЫЙ СПИСОК =====
+    // То же правило matchesFilter, но с ВЫБРАННЫМ фильтром (underTab):
+    // кликнули «Отменённые» → underTab стал 'cancelled' → здесь остаются только отменённые.
     const filtered = (bookings ?? []).filter(({ booking }) =>
         matchesFilter(booking.status, booking.checkInDate, booking.checkOutDate, underTab, now),
     );
@@ -92,6 +140,13 @@ export default function ManageBookingsPage() {
         <AuthGuard>
             <ClientHeader />
             <div className="mx-auto max-w-[1400px] px-6 py-4 max-md:px-5">
+                {/* ===== ВЕРХНИЕ ВКЛАДКИ =====
+                    SegmentedTabs рисует кнопки из массива tabs.
+                    active={tab} — «какая кнопка подсвечена» (текущее значение state).
+                    onChange={setTab} — «при клике по кнопке вызови setTab с её id».
+                    Цепочка: клик → SegmentedTabs вызывает onChange(id) → setTab(id)
+                    → tab сменился → React перерисовал → вкладка подсветилась
+                    и внизу (условный рендер) показался нужный блок. */}
                 <SegmentedTabs
                     tabs={[
                         { id: 'info', label: 'Информация' },
@@ -103,14 +158,26 @@ export default function ManageBookingsPage() {
                     onChange={setTab}
                 />
 
+                {/* ===== КОНТЕНТ ВКЛАДКИ «МОИ ЗАЯВКИ» =====
+                    Условный рендер: `tab === 'requests' && (...)` —
+                    «если открыта вкладка "Мои заявки", покажи блок; иначе ничего». */}
                 {tab === 'requests' && (
                     <>
+                        {/* ===== ФИЛЬТРЫ-ТАБЛЕТКИ =====
+                            FilterTabs — тот же механизм, что SegmentedTabs, но другой вид.
+                            tabs={counts} — наши фильтры СО СЧЁТЧИКАМИ (числа в скобках).
+                            active={underTab} / onChange={setUnderTab} — связка та же:
+                            клик по «Отменённые» → setUnderTab('cancelled') → фильтр применился. */}
                         <FilterTabs
                             tabs={counts}
                             active={underTab}
                             onChange={setUnderTab}
                         />
 
+                        {/* ===== ТРИ СОСТОЯНИЯ СПИСКА =====
+                            1) сервер ещё отвечает → «Загрузка…»;
+                            2) после фильтра пусто → «По заданным фильтрам ничего не найдено»;
+                            3) есть что показать → таблица. */}
                         {isPending ? (
                             <p className="py-8 text-center text-muted-foreground">Загрузка…</p>
                         ) : filtered.length === 0 ? (
@@ -119,7 +186,8 @@ export default function ManageBookingsPage() {
                             </p>
                         ) : (
                             <div className="mt-4">
-                                {/* Шапка таблицы — тот же grid, что и у строк, чтобы колонки совпали */}
+                                {/* Шапка таблицы. hidden md:grid — на мобилке скрыта (подписи
+                                    у значений рисуются отдельно, классом md:hidden ниже). */}
                                 <div className="hidden border-b border-border px-2 pb-2 text-sm font-medium text-muted-foreground md:grid md:grid-cols-[150px_1fr_180px_200px] md:gap-4">
                                     <span>Дата</span>
                                     <span>Объект</span>
@@ -127,13 +195,20 @@ export default function ManageBookingsPage() {
                                     <span>Статус</span>
                                 </div>
 
+                                {/* ===== СТРОКИ ТАБЛИЦЫ =====
+                                    filtered.map(({ booking, apartment }) => ...) —
+                                    «для каждой заявки нарисуй строку». Деструктуризация
+                                    { booking, apartment } достаёт два вложенных объекта ответа. */}
                                 {filtered.map(({ booking, apartment }) => (
                                     <div
                                         key={booking.id}
                                         className="grid grid-cols-1 gap-3 border-b border-border px-3 py-4 md:grid-cols-[150px_1fr_180px_200px] md:items-center md:gap-4 md:px-2 md:py-3"
                                     >
-                                        {/* Дата заявки */}
+                                        {/* Дата заявки. Вложенный span с md:hidden — подпись
+                                            «Дата:», видимая ТОЛЬКО на мобилке (на десктопе
+                                            подпись уже есть в шапке таблицы). */}
                                         <span className="text-sm text-muted-foreground">
+                                            <span className="font-medium text-foreground md:hidden">Дата: </span>
                                             {formatFullDate(booking.createdAt)}
                                         </span>
 
@@ -149,17 +224,24 @@ export default function ManageBookingsPage() {
                                                 />
                                             )}
                                             <div className="min-w-0">
-                                                <p className="truncate font-medium text-foreground">
+                                                {/* Заголовок квартиры — ССЫЛКА на страницу деталей
+                                                    заявки /profile/bookings/{id}: владелец открывает
+                                                    её и там подтверждает или смотрит причину. */}
+                                                <Link
+                                                    href={`/profile/bookings/${booking.id}`}
+                                                    className="block truncate font-medium text-foreground no-underline hover:text-primary"
+                                                >
                                                     {apartment.title}
-                                                </p>
+                                                </Link>
                                                 <p className="text-sm text-muted-foreground">
                                                     {formatByn(apartment.price)}
                                                 </p>
                                             </div>
                                         </div>
 
-                                        {/* Проживание: даты заезда/выезда */}
+                                        {/* Проживание: даты заезда/выезда (подпись — на мобилке) */}
                                         <span className="text-sm text-muted-foreground">
+                                            <span className="font-medium text-foreground md:hidden">Проживание: </span>
                                             {formatShortDate(booking.checkInDate)} —{' '}
                                             {formatShortDate(booking.checkOutDate)}
                                         </span>
@@ -167,15 +249,40 @@ export default function ManageBookingsPage() {
                                         {/* Статус + причина + удаление */}
                                         <div className="flex items-center justify-between gap-2">
                                             <div className="min-w-0">
-                                                <p className="text-sm font-medium text-foreground">
-                                                    {BOOKING_STATUS_LABELS[booking.status] ?? booking.status}
-                                                </p>
-                                                {booking.cancelReason && (
-                                                    <p className="text-xs text-muted-foreground">
-                                                        Причина: {booking.cancelReason}
+                                                {/* Две ветки:
+                                                    — заявка ОТМЕНЕНА (есть cancelledBy) → показываем
+                                                      «кто отменил» (заголовок) + причину;
+                                                    — заявка живая → статус с иконкой. */}
+                                                {cancelledByLabel(booking.cancelledBy) ? (
+                                                    <>
+                                                        <p
+                                                            className={`text-sm font-bold ${statusColor(booking.status)}`}
+                                                        >
+                                                            {cancelledByLabel(booking.cancelledBy)}
+                                                        </p>
+                                                        {booking.cancelReason && (
+                                                            <p className="text-xs text-muted-foreground">
+                                                                Причина отмены: «{booking.cancelReason}»
+                                                            </p>
+                                                        )}
+                                                    </>
+                                                ) : (
+                                                    <p
+                                                        className={`flex items-center gap-1.5 text-sm font-bold ${statusColor(booking.status)}`}
+                                                    >
+                                                        {booking.status === 'approved' && (
+                                                            <CheckCircle className="h-4 w-4" />
+                                                        )}
+                                                        {booking.status === 'new' && <Hourglass className="h-4 w-4" />}
+                                                        {BOOKING_STATUS_LABELS[booking.status] ?? booking.status}
                                                     </p>
                                                 )}
                                             </div>
+
+                                            {/* Кнопка удаления. Цепочка: клик → onClick →
+                                                deleteBooking.mutate({ bookingId }) → процедура
+                                                bookings.delete на сервере → успех → onSuccess
+                                                → invalidate → список перечитался без удалённой заявки. */}
                                             <button
                                                 type="button"
                                                 onClick={() => deleteBooking.mutate({ bookingId: booking.id })}
@@ -192,6 +299,7 @@ export default function ManageBookingsPage() {
                     </>
                 )}
 
+                {/* Остальные вкладки — заглушки «в разработке» */}
                 {tab === 'calendar' && <p>Календарь — в разработке</p>}
                 {tab === 'info' && <p>Информация — в разработке</p>}
                 {tab === 'settings' && <p>Настройки — в разработке</p>}

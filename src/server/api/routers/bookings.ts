@@ -40,6 +40,7 @@ const createBookingSchema = z.object({
     checkInDate: z.coerce.date(),
     checkOutDate: z.coerce.date(),
     message: z.string().trim().max(1000).optional(),
+    tripPurpose: z.string().trim().max(100).optional(),
 });
 
 export const bookingsRouter = createTRPCRouter({
@@ -139,6 +140,7 @@ export const bookingsRouter = createTRPCRouter({
                 checkInDate: input.checkInDate,
                 checkOutDate: input.checkOutDate,
                 message: input.message ?? null,
+                tripPurpose: input.tripPurpose ?? null,
             })
             .returning();
 
@@ -256,6 +258,44 @@ export const bookingsRouter = createTRPCRouter({
             .innerJoin(users, eq(apartments.createdById, users.id))
             .where(eq(booking.userId, userId));
     }),
+
+    // Детали одной брони для страницы /profile/bookings/[id].
+    // Права: гость видит свою бронь, владелец — заявку на свой объект.
+    getById: protectedProcedure.input(z.object({ bookingId: idSchema })).query(async ({ ctx, input }) => {
+        const userId = ctx.session.user.id;
+
+        const [row] = await ctx.db
+            .select({
+                booking: booking,
+                apartment: {
+                    id: apartments.id,
+                    title: apartments.title,
+                    formattedAddress: apartments.formattedAddress,
+                    images: apartments.images,
+                    rating: apartments.rating,
+                    checkInTime: apartments.checkInTime,
+                    checkOutTime: apartments.checkOutTime,
+                    price: apartments.price,
+                    createdById: apartments.createdById,
+                },
+            })
+            .from(booking)
+            .innerJoin(apartments, eq(booking.apartmentId, apartments.id))
+            .where(eq(booking.id, input.bookingId));
+
+        if (!row) {
+            throw new TRPCError({ code: 'NOT_FOUND', message: 'Заявка не найдена' });
+        }
+
+        const isGuest = row.booking.userId === userId;
+        const isOwner = row.apartment.createdById === userId;
+        if (!isGuest && !isOwner) {
+            throw new TRPCError({ code: 'FORBIDDEN' });
+        }
+
+        return row;
+    }),
+
     cancel: protectedProcedure
         .input(z.object({ bookingId: idSchema, reason: z.string().trim().max(500).optional() }))
         .mutation(async ({ ctx, input }) => {

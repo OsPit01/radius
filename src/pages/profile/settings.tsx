@@ -13,7 +13,13 @@ import { ProfilePhotoSection } from '@/components/settings/ProfilePhotoSection';
 import { TelegramConnectModal } from '@/components/settings/TelegramConnectModal';
 import { TelegramSection } from '@/components/settings/TelegramSection';
 import { readFileAsDataURL } from '@/lib/file';
-import { getCountryCodePrefixFromNumber, isValidPhoneNumber, toE164 } from '@/lib/phone';
+import {
+    getCountryCodePrefixFromNumber,
+    getExamplePhoneNumber,
+    isValidPhoneNumber,
+    limitNationalNumberLength,
+    toE164,
+} from '@/lib/phone';
 import { canCustomizeTheme } from '@/lib/theme';
 import { requireAuth } from '@/server/auth/require-auth';
 import { api } from '@/trpc/react';
@@ -65,6 +71,9 @@ export default function SettingsPage() {
     // код, если пользователь его стёр. Работает для любой страны.
     const lastPhonePrefixRef = useRef('+375');
     const fileInputRef = useRef<HTMLInputElement>(null);
+    // Выбранная страна телефона (ISO2) — чтобы показывать формат под флагом.
+    const [country, setCountry] = useState('BY');
+    const exampleNumber = getExamplePhoneNumber(country);
     // Состояние формы
     const [form, setForm] = useState({
         name: '',
@@ -97,7 +106,7 @@ export default function SettingsPage() {
     const handleSubmit = (e: React.SyntheticEvent) => {
         e.preventDefault();
         if (form.phone && !isValidPhoneNumber(form.phone)) {
-            alert('Введите корректный номер телефона');
+            alert(`Введите корректный номер (например: ${exampleNumber ?? '+375 29 123-45-67'})`);
             return;
         }
         updateMutation.mutate({
@@ -112,7 +121,8 @@ export default function SettingsPage() {
 
     // Код страны телефона стирать нельзя, причём для ЛЮБОЙ страны (не только BY/RU).
     const handlePhoneChange = (value?: string) => {
-        const next = value ?? '';
+        // Обрезаем национальную часть до длины, допустимой для страны (для BY — 9 цифр).
+        const next = limitNationalNumberLength(value ?? '');
         if (next.startsWith('+')) {
             const prefix = getCountryCodePrefixFromNumber(next);
             if (prefix) {
@@ -231,16 +241,23 @@ export default function SettingsPage() {
                                 <div className="flex items-center gap-2">
                                     <PhoneInput
                                         international
+                                        country={country}
+                                        onCountryChange={(c) => c && setCountry(c)}
                                         defaultCountry="BY"
                                         limitMaxLength
+                                        maxLength={exampleNumber?.length}
                                         value={form.phone}
                                         onChange={handlePhoneChange}
+                                        placeholder={exampleNumber ?? '+375 29 123-45-67'}
                                         className="w-full border-b border-border bg-transparent p-1 text-[15px]"
                                     />
                                     {form.phone !== toE164(user?.phone) && (
                                         <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-success" />
                                     )}
                                 </div>
+                                {exampleNumber && (
+                                    <p className="mt-1 text-xs text-muted-foreground">Формат: {exampleNumber}</p>
+                                )}
                             </div>
                             {/* Telegram уведомления о бронированиях */}
                             <TelegramSection

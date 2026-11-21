@@ -28,6 +28,8 @@ export const booking = pgTable(
         cancelledBy: d.varchar({ length: 20 }),
         // Причина отмены/отклонения («Даты уже забронированы»).
         cancelReason: d.text(),
+        // Цель поездки («Рабочая поездка», «Отдых»…) — заполнит гость при бронировании.
+        tripPurpose: d.varchar({ length: 100 }),
         createdAt: d
             .timestamp({ withTimezone: true })
             .$defaultFn(() => new Date())

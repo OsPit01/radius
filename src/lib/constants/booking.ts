@@ -28,6 +28,15 @@ export const BOOKING_STATUS_LABELS: Record<BookingStatus, string> = {
     cancelled: 'Отменена',
     expired: 'Истекла',
 };
+// Подписи статусов с точки зрения ГОСТЯ (он видит СВОЮ бронь):
+// «Новая заявка» — взгляд владельца, гость в это время ждёт подтверждения.
+export const GUEST_BOOKING_STATUS_LABELS: Record<BookingStatus, string> = {
+    new: 'Ожидает подтверждения',
+    approved: 'Подтверждена',
+    rejected: 'Отклонена',
+    cancelled: 'Отменена',
+    expired: 'Истекла',
+};
 // Для статистики: «Новые», «Подтверждены»..
 export const BOOKING_STATUS_PLURAL_LABELS: Record<BookingStatus, string> = {
     new: 'Новые',

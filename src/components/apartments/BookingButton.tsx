@@ -10,7 +10,13 @@ import { CheckCircle, Minus, Plus } from '@/components/icons';
 import { Modal } from '@/components/ui/Modal';
 import { reportConversion } from '@/lib/analytics';
 import { DEFAULT_BOOKING_GUESTS, MAX_BOOKING_GUESTS, MIN_BOOKING_GUESTS } from '@/lib/constants/booking';
-import { getCountryCodePrefixFromNumber, isValidPhoneNumber, toE164 } from '@/lib/phone';
+import {
+    getCountryCodePrefixFromNumber,
+    getExamplePhoneNumber,
+    isValidPhoneNumber,
+    limitNationalNumberLength,
+    toE164,
+} from '@/lib/phone';
 import { pluralRu } from '@/lib/plural';
 import { api } from '@/trpc/react';
 
@@ -62,6 +68,9 @@ export function BookingButton({
     const [open, setOpen] = useState(false);
     const [guestName, setGuestName] = useState('');
     const [guestPhone, setGuestPhone] = useState('');
+    // Выбранная страна телефона (ISO2-код). Нужна, чтобы показывать формат
+    // номера под конкретным флагом (placeholder и подсказка меняются со страной).
+    const [country, setCountry] = useState('BY');
     // Последний известный "+код" страны ("+375", "+7" и т.д.). Храним в ref,
     // чтобы восстановить код, если пользователь его стёр. Работает для любой страны.
     const lastPhonePrefixRef = useRef('+375');
@@ -81,6 +90,8 @@ export function BookingButton({
     const [checkOutDate, setCheckOutDate] = useState('');
     // Выезд не раньше заезда+1 день; пока заезд не выбран — не раньше завтра.
     const minCheckOut = checkInDate ? addDaysISO(checkInDate, 1) : addDaysISO(today, 1);
+    // Пример номера под выбранным флагом (для placeholder и сообщения об ошибке).
+    const exampleNumber = getExamplePhoneNumber(country);
     const [message, setMessage] = useState('');
     const [errors, setErrors] = useState<bookingFormErrors>({});
 
@@ -117,7 +128,9 @@ export function BookingButton({
     // Код страны стирать нельзя, причём для ЛЮБОЙ страны (не только BY/RU).
     // Если код потерян — восстанавливаем последний известный "+код".
     const handlePhoneChange = (value?: string) => {
-        const next = value ?? '';
+        // Обрезаем национальную часть до длины, допустимой для страны (для BY — 9 цифр),
+        // чтобы лишние цифры физически не вводились.
+        const next = limitNationalNumberLength(value ?? '');
 
         // Начинается с «+» — запоминаем код страны (если удалось распознать)
         // и просто сохраняем значение.
@@ -144,7 +157,7 @@ export function BookingButton({
             newErrors.name = 'Укажите имя';
         }
         if (!isValidPhoneNumber(guestPhone)) {
-            newErrors.phone = 'Введите корректный номер телефона';
+            newErrors.phone = `Введите корректный номер (например: ${exampleNumber ?? '+375 29 123-45-67'})`;
         }
         if (!checkInDate || !checkOutDate) {
             newErrors.dates = 'Укажите даты заезда и выезда';
@@ -232,13 +245,21 @@ export function BookingButton({
                             Телефон
                             <PhoneInput
                                 international
+                                country={country}
+                                onCountryChange={(c) => c && setCountry(c)}
                                 defaultCountry="BY"
                                 limitMaxLength
+                                maxLength={exampleNumber?.length}
                                 value={guestPhone}
                                 onChange={handlePhoneChange}
-                                placeholder="Введите номер телефона"
+                                placeholder={exampleNumber ?? '+375 29 123-45-67'}
                                 className="rounded-xl border border-border px-4 py-3 text-base text-foreground"
                             />
+                            {exampleNumber && (
+                                <span className="text-xs font-normal text-muted-foreground">
+                                    Формат: {exampleNumber}
+                                </span>
+                            )}
                         </label>
                         {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
                         {/* Гости: взрослые и дети — отдельными степперами */}

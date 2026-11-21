@@ -1,12 +1,14 @@
 import { useState } from 'react';
 
 import Image from 'next/image';
+import Link from 'next/link';
 
-import { Close } from '@/components/icons';
+import { Calendar, CheckCircle, Close, Home, Hourglass } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { ClientHeader } from '@/components/layout/ClientHeader';
 import { SegmentedTabs } from '@/components/ui/SegmentedTabs';
-import { BOOKING_STATUS_LABELS } from '@/lib/constants/booking';
+import { GUEST_BOOKING_STATUS_LABELS } from '@/lib/constants/booking';
+import { cancelledByLabel } from '@/lib/constants/cancel-reasons';
 import { formatByn } from '@/lib/constants/currencies';
 import { requireAuth } from '@/server/auth/require-auth';
 import { api } from '@/trpc/react';
@@ -46,11 +48,13 @@ function matchesFilter(status: string, checkInDate: Date, checkOutDate: Date, fi
     const isCancelled = status === 'cancelled' || status === 'rejected' || status === 'expired';
 
     switch (filter) {
-        case 'upcoming':
-            return (status === 'new' || status === 'approved') && checkIn > now;
-        case 'past':
+        case 'pending': // ждёт подтверждения владельца
+            return status === 'new';
+        case 'upcoming': // подтверждена и заезд впереди
+            return status === 'approved' && checkIn > now;
+        case 'past': // уже прожил: выезд был, бронь не отменена
             return checkOut < now && !isCancelled;
-        case 'cancelled':
+        case 'cancelled': // отменена / отклонена / истекла
             return isCancelled;
         case 'all':
         default:
@@ -63,7 +67,7 @@ export default function MyBookingsPage() {
     // Тип жилья (сейчас только квартиры, дальше — дома, отели…).
     const [housingType, setHousingType] = useState('flat');
     // Статус брони.
-    const [tab, setTab] = useState('upcoming');
+    const [tab, setTab] = useState('pending');
 
     // Мои брони как гостя.
     const { data: bookings, isPending } = api.bookings.listForUser.useQuery();
@@ -85,18 +89,21 @@ export default function MyBookingsPage() {
             <ClientHeader />
             <div className="mx-auto max-w-[1400px] px-6 py-4 max-md:px-5">
                 {/* Тип жилья (перспектива: дома, отели…) */}
-                <SegmentedTabs
-                    tabs={[{ id: 'flat', label: 'Квартиры' }]}
-                    active={housingType}
-                    onChange={setHousingType}
-                />
+                <div className="mb-5 pt-5">
+                    <SegmentedTabs
+                        tabs={[{ id: 'flat', label: 'Квартиры', Icon: Home }]}
+                        active={housingType}
+                        onChange={setHousingType}
+                    />
+                </div>
 
                 {/* Статусы брони гостя */}
                 <SegmentedTabs
                     tabs={[
-                        { id: 'upcoming', label: 'Предстоящие' },
-                        { id: 'past', label: 'Прошлые' },
-                        { id: 'cancelled', label: 'Отменённые' },
+                        { id: 'pending', label: 'Ожидает подтверждения', Icon: Hourglass },
+                        { id: 'upcoming', label: 'Предстоящие', Icon: Calendar },
+                        { id: 'past', label: 'Прошлые', Icon: CheckCircle },
+                        { id: 'cancelled', label: 'Отменённые', Icon: Close },
                     ]}
                     active={tab}
                     onChange={setTab}
@@ -113,47 +120,70 @@ export default function MyBookingsPage() {
                                 key={booking.id}
                                 className="flex items-start gap-4 rounded-2xl border border-border bg-card p-5 max-md:gap-3 max-md:p-4"
                             >
-                                {/* Фото */}
-                                {apartment.images?.[0] && (
-                                    <Image
-                                        src={apartment.images[0]}
-                                        alt=""
-                                        width={80}
-                                        height={80}
-                                        className="h-20 w-20 shrink-0 rounded-xl object-cover max-md:h-16 max-md:w-16"
-                                    />
-                                )}
-
-                                <div className="flex min-w-0 flex-1 flex-col gap-2.5">
-                                    {/* Дата заявки */}
-                                    <p className="text-xs text-muted-foreground">
-                                        Дата: {formatFullDate(booking.createdAt)}
-                                    </p>
-                                    {/* Адрес */}
-                                    <p className="truncate font-medium text-foreground">
-                                        {apartment.street}, {apartment.numberHome}
-                                    </p>
-                                    {/* Цена */}
-                                    <p className="text-sm text-muted-foreground">{formatByn(apartment.price)}</p>
-
-                                    {/* Заезд — Выезд */}
-                                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
-                                        <span className="text-muted-foreground">Заезд:</span>
-                                        <span className="text-foreground">{formatShortDate(booking.checkInDate)}</span>
-                                        <span className="text-muted-foreground">—</span>
-                                        <span className="text-muted-foreground">Выезд:</span>
-                                        <span className="text-foreground">{formatShortDate(booking.checkOutDate)}</span>
-                                    </div>
-
-                                    {/* Статус */}
-                                    <p className={`font-bold ${statusColor(booking.status)}`}>
-                                        Статус: {BOOKING_STATUS_LABELS[booking.status] ?? booking.status}
-                                    </p>
-                                    {/* Причина отмены (если была) */}
-                                    {booking.cancelReason && (
-                                        <p className="text-sm text-muted-foreground">Причина: {booking.cancelReason}</p>
+                                {/* Фото + контент — ссылка на детали брони */}
+                                <Link
+                                    href={`/profile/bookings/${booking.id}`}
+                                    className="flex min-w-0 flex-1 items-start gap-4 no-underline max-md:gap-3"
+                                >
+                                    {/* Фото */}
+                                    {apartment.images?.[0] && (
+                                        <Image
+                                            src={apartment.images[0]}
+                                            alt=""
+                                            width={80}
+                                            height={80}
+                                            className="h-20 w-20 shrink-0 rounded-xl object-cover max-md:h-16 max-md:w-16"
+                                        />
                                     )}
-                                </div>
+
+                                    <div className="flex min-w-0 flex-1 flex-col gap-2.5">
+                                        {/* Дата заявки */}
+                                        <p className="text-xs text-muted-foreground">
+                                            Дата: {formatFullDate(booking.createdAt)}
+                                        </p>
+                                        {/* Адрес */}
+                                        <p className="truncate font-medium text-foreground">
+                                            {apartment.street}, {apartment.numberHome}
+                                        </p>
+                                        {/* Цена */}
+                                        <p className="text-sm text-muted-foreground">{formatByn(apartment.price)}</p>
+
+                                        {/* Заезд — Выезд */}
+                                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+                                            <span className="text-muted-foreground">Заезд:</span>
+                                            <span className="text-foreground">
+                                                {formatShortDate(booking.checkInDate)}
+                                            </span>
+                                            <span className="text-muted-foreground">—</span>
+                                            <span className="text-muted-foreground">Выезд:</span>
+                                            <span className="text-foreground">
+                                                {formatShortDate(booking.checkOutDate)}
+                                            </span>
+                                        </div>
+
+                                        {/* Статус: отменена → кто и почему; иначе — статус с иконкой */}
+                                        {cancelledByLabel(booking.cancelledBy) ? (
+                                            <>
+                                                <p className={`font-bold ${statusColor(booking.status)}`}>
+                                                    {cancelledByLabel(booking.cancelledBy)}
+                                                </p>
+                                                {booking.cancelReason && (
+                                                    <p className="text-sm text-muted-foreground">
+                                                        Причина отмены: «{booking.cancelReason}»
+                                                    </p>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <p
+                                                className={`flex items-center gap-1.5 font-bold ${statusColor(booking.status)}`}
+                                            >
+                                                {booking.status === 'approved' && <CheckCircle className="h-4 w-4" />}
+                                                {booking.status === 'new' && <Hourglass className="h-4 w-4" />}
+                                                {GUEST_BOOKING_STATUS_LABELS[booking.status] ?? booking.status}
+                                            </p>
+                                        )}
+                                    </div>
+                                </Link>
 
                                 {/* Удалить заявку */}
                                 <button

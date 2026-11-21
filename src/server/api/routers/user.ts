@@ -199,19 +199,26 @@ export const userRouter = createTRPCRouter({
             .from(favorites)
             .where(eq(favorites.userId, userId));
 
-        // Заявки на бронирование квартир этого пользователя (как арендодателя).
-        // На плитке профиля показываем только НОВЫЕ (status='new' — ждут решения):
-        // общее число за всю историю не информативно, важно, сколько ждёт ответа.
+        // Заявки на квартиры этого пользователя (он — арендодатель) —
+        // только ЖДУЩИЕ решения (status='new'): важно, сколько ждёт ответа владельца.
         const [bookingsCount] = await ctx.db
             .select({ count: count() })
             .from(booking)
             .innerJoin(apartments, eq(booking.apartmentId, apartments.id))
             .where(and(eq(apartments.createdById, userId), eq(booking.status, 'new')));
 
+        // Брони этого пользователя как ГОСТЯ (он снимает жильё) —
+        // только ожидающие подтверждения (status='new').
+        const [myBookingsCount] = await ctx.db
+            .select({ count: count() })
+            .from(booking)
+            .where(and(eq(booking.userId, userId), eq(booking.status, 'new')));
+
         return {
             stats: {
                 totalApartments: apartmentsCount?.count ?? 0,
                 totalBookings: bookingsCount?.count ?? 0,
+                totalMyBookings: myBookingsCount?.count ?? 0,
                 totalFavorites: favoritesCount?.count ?? 0,
             },
         };
