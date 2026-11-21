@@ -76,7 +76,7 @@ export default function App({ Component, pageProps }: AppProps) {
                 {/* Согласие на cookie: единый источник для GA, счётчика
                     визитов, баннера и окна настроек (см. components/consent). */}
                 <CookieConsentProvider>
-                    <div className="flex min-h-screen flex-col">
+                    <div className="flex min-h-dvh flex-col">
                         <GoogleAnalytics />
 
                         <SessionProvider>
@@ -92,7 +92,9 @@ export default function App({ Component, pageProps }: AppProps) {
                                 <VisitTracker />
                             </TRPCReactProvider>
                         </SessionProvider>
-                        <Footer />
+                        {/* Футер — только на публичных страницах. Закрытые разделы
+                            (личный кабинет, админка, вход) — без маркетинговой навигации. */}
+                        {!noindex && <Footer />}
                     </div>
                 </CookieConsentProvider>
             </ThemeProvider>

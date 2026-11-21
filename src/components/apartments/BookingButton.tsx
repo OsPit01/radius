@@ -14,6 +14,25 @@ import { getCountryCodePrefixFromNumber, isValidPhoneNumber, toE164 } from '@/li
 import { pluralRu } from '@/lib/plural';
 import { api } from '@/trpc/react';
 
+// «Сегодня» в локальном часовом поясе браузера, в формате YYYY-MM-DD.
+// Нужен для min у input[type=date]: раньше этой даты выбрать нельзя.
+function todayISO(): string {
+    const now = new Date();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${now.getFullYear()}-${month}-${day}`;
+}
+
+// Прибавить N дней к дате вида YYYY-MM-DD и вернуть так же YYYY-MM-DD.
+// Нужен для min выезда: выезд не раньше, чем заезд + 1 день.
+function addDaysISO(iso: string, days: number): string {
+    const date = new Date(`${iso}T00:00:00`);
+    date.setDate(date.getDate() + days);
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${date.getFullYear()}-${month}-${day}`;
+}
+
 type BookingButtonProps = {
     apartmentId: number;
     apartmentTitle: string;
@@ -48,6 +67,8 @@ export function BookingButton({
     const lastPhonePrefixRef = useRef('+375');
     // Не больше, чем вмещает квартира, но и не больше общего лимита площадки.
     const maxGuests = Math.min(apartmentCapacity ?? MAX_BOOKING_GUESTS, MAX_BOOKING_GUESTS);
+    // Минимально допустимая дата заезда — сегодня (локально).
+    const today = todayISO();
     // Стартовые значения гостей (приходят из поиска через URL ?guests&children).
     const initialChildrenCount = Math.min(Math.max(initialChildren, 0), maxGuests - MIN_BOOKING_GUESTS);
     const initialAdultsCount = Math.min(
@@ -58,6 +79,8 @@ export function BookingButton({
     const [children, setChildren] = useState(initialChildrenCount);
     const [checkInDate, setCheckInDate] = useState('');
     const [checkOutDate, setCheckOutDate] = useState('');
+    // Выезд не раньше заезда+1 день; пока заезд не выбран — не раньше завтра.
+    const minCheckOut = checkInDate ? addDaysISO(checkInDate, 1) : addDaysISO(today, 1);
     const [message, setMessage] = useState('');
     const [errors, setErrors] = useState<bookingFormErrors>({});
 
@@ -125,6 +148,11 @@ export function BookingButton({
         }
         if (!checkInDate || !checkOutDate) {
             newErrors.dates = 'Укажите даты заезда и выезда';
+        } else if (checkInDate < today) {
+            // Строки вида YYYY-MM-DD сравниваются лексикографически — это и есть сравнение дат.
+            newErrors.dates = 'Дата заезда не может быть в прошлом';
+        } else if (checkOutDate <= checkInDate) {
+            newErrors.dates = 'Дата выезда должна быть позже даты заезда';
         }
         setErrors(newErrors);
         if (Object.keys(newErrors).length > 0) {
@@ -283,7 +311,15 @@ export function BookingButton({
                                 <input
                                     type="date"
                                     value={checkInDate}
-                                    onChange={(e) => setCheckInDate(e.target.value)}
+                                    min={today}
+                                    onChange={(e) => {
+                                        const next = e.target.value;
+                                        setCheckInDate(next);
+                                        // Заезд сдвинули так, что выезд стал не позже него — сбрасываем выезд.
+                                        if (checkOutDate && checkOutDate <= next) {
+                                            setCheckOutDate('');
+                                        }
+                                    }}
                                     className="rounded-xl border border-border px-3 py-3 text-base text-foreground outline-none focus:border-primary"
                                 />
                             </label>
@@ -293,6 +329,7 @@ export function BookingButton({
                                 <input
                                     type="date"
                                     value={checkOutDate}
+                                    min={minCheckOut}
                                     onChange={(e) => setCheckOutDate(e.target.value)}
                                     className="rounded-xl border border-border px-3 py-3 text-base text-foreground outline-none focus:border-primary"
                                 />

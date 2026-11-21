@@ -116,7 +116,7 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
 
             <ApartmentViewTracker apartmentId={apartment.apartment.id} />
 
-            <div className="mx-auto mt-5.5 max-w-5xl px-4 pb-[60px]">
+            <div className="mx-auto mt-5.5 max-w-5xl px-6 pb-[60px] max-md:px-5">
                 <h1 className="mb-6 text-3xl font-bold text-foreground">{apartment.apartment.title}</h1>
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                     <PhotoGallery

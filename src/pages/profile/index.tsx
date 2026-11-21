@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 
-import { BarChart, Calendar, Chat, Heart, Home, type IconProps, Settings } from '@/components/icons';
+import { BarChart, Calendar, Chat, Clipboard, Heart, Home, type IconProps, Settings, Star } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { ClientHeader } from '@/components/layout/ClientHeader';
 import { TileLink } from '@/components/ui/TileLink';
@@ -97,17 +97,25 @@ export default function ProfilePage() {
     };
     const tiles = [
         { href: '/my-apartments', label: 'Мои объекты', count: stats.totalApartments, Icon: Home },
-        { href: '/profile/bookings', label: 'Мои бронирования', count: stats.totalBookings, Icon: Calendar },
-        { href: '/profile/favorites', label: 'Избранное', count: stats.totalFavorites, Icon: HeartSectionIcon },
         { href: '/profile/chat', label: 'Мои сообщения', count: unreadCount ?? 0, Icon: Chat },
+
+        { href: '/profile/favorites', label: 'Избранное', count: stats.totalFavorites, Icon: HeartSectionIcon },
+        { href: '/profile/my-bookings', label: 'Мои бронирования', count: stats.totalBookings, Icon: Calendar },
+
         ...(user.role !== 'user' ? [{ href: '/profile/statistics', label: 'Статистика', Icon: BarChart }] : []),
+        //мои бронирования
+        ...(user.role !== 'user'
+            ? [{ href: '/profile/manage-bookings', label: 'Управление бронированиями', Icon: Clipboard }]
+            : []),
         { href: '/profile/settings', label: 'Настройки профиля', Icon: Settings },
+
+        { href: '/profile/reviews', label: 'Мои отзывы', Icon: Star },
     ];
     return (
         <>
             <AuthGuard>
                 <ClientHeader />
-                <div className="min-h-screen bg-background px-5 py-10 max-md:px-3 max-md:py-4">
+                <div className="bg-background px-5 py-10 max-md:px-3 max-md:py-4">
                     <div className="mx-auto max-w-[900px] rounded-[24px] p-12 shadow-[0_20px_60px_rgba(0,0,0,0.08)] max-[480px]:rounded-2xl max-[480px]:p-4 max-md:rounded-[20px] max-md:p-6">
                         {/* ====
                1. ШАПКА ПРОФИЛЯ (АВАТАР + ИМЯ + ПОЧТА + РОЛЬ)

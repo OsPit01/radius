@@ -73,7 +73,6 @@ export default function Users() {
                             tabs={roleTabs}
                             active={activeRole}
                             onChange={setActiveRole}
-                            scrollOnMobile
                         />
                     </div>
                     {/* 4 колонки на десктопе, меньше на планшете, 1 на телефоне. */}

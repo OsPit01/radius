@@ -13,7 +13,7 @@ import { api } from '@/trpc/react';
 const mobileLinks = [
     { href: '/profile', label: 'Личный кабинет' },
     { href: '/my-apartments', label: 'Мои объекты' },
-    { href: '/profile/bookings', label: 'Мои бронирования' },
+    { href: '/profile/my-bookings', label: 'Мои бронирования' },
     { href: '/profile/chat', label: 'Сообщения' },
     { href: '/my-apartments/new', label: 'Добавить квартиру' },
     { href: '/profile/settings', label: 'Настройки' },

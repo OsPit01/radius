@@ -1,0 +1,174 @@
+import { useState } from 'react';
+
+import Image from 'next/image';
+
+import { Close } from '@/components/icons';
+import { AuthGuard } from '@/components/layout/AuthGuard';
+import { ClientHeader } from '@/components/layout/ClientHeader';
+import { SegmentedTabs } from '@/components/ui/SegmentedTabs';
+import { BOOKING_STATUS_LABELS } from '@/lib/constants/booking';
+import { formatByn } from '@/lib/constants/currencies';
+import { requireAuth } from '@/server/auth/require-auth';
+import { api } from '@/trpc/react';
+
+export const getServerSideProps = requireAuth;
+
+// «15 ноября 2026» — дата заявки (день + полный месяц + год).
+function formatFullDate(value: Date | string): string {
+    return new Date(value).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+// «15 ноября» — даты проживания (день + полный месяц, без года).
+function formatShortDate(value: Date | string): string {
+    return new Date(value).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+}
+
+// Цвет статуса: подтверждена — зелёный, ждёт ответа — жёлтый, отменена — красный.
+function statusColor(status: string): string {
+    switch (status) {
+        case 'approved':
+            return 'text-success';
+        case 'new':
+            return 'text-warning';
+        case 'cancelled':
+        case 'rejected':
+        case 'expired':
+            return 'text-destructive';
+        default:
+            return 'text-foreground';
+    }
+}
+
+// Подходит ли бронь под фильтр (гость: предстоящие / прошлые / отменённые).
+function matchesFilter(status: string, checkInDate: Date, checkOutDate: Date, filter: string, now: Date): boolean {
+    const checkIn = new Date(checkInDate);
+    const checkOut = new Date(checkOutDate);
+    const isCancelled = status === 'cancelled' || status === 'rejected' || status === 'expired';
+
+    switch (filter) {
+        case 'upcoming':
+            return (status === 'new' || status === 'approved') && checkIn > now;
+        case 'past':
+            return checkOut < now && !isCancelled;
+        case 'cancelled':
+            return isCancelled;
+        case 'all':
+        default:
+            return true;
+    }
+}
+
+export default function MyBookingsPage() {
+    const utils = api.useUtils();
+    // Тип жилья (сейчас только квартиры, дальше — дома, отели…).
+    const [housingType, setHousingType] = useState('flat');
+    // Статус брони.
+    const [tab, setTab] = useState('upcoming');
+
+    // Мои брони как гостя.
+    const { data: bookings, isPending } = api.bookings.listForUser.useQuery();
+
+    // Удаление заявки из БД.
+    const deleteBooking = api.bookings.delete.useMutation({
+        onSuccess: () => {
+            void utils.bookings.listForUser.invalidate();
+        },
+    });
+
+    const now = new Date();
+    const filtered = (bookings ?? []).filter(({ booking }) =>
+        matchesFilter(booking.status, booking.checkInDate, booking.checkOutDate, tab, now),
+    );
+
+    return (
+        <AuthGuard>
+            <ClientHeader />
+            <div className="mx-auto max-w-[1400px] px-6 py-4 max-md:px-5">
+                {/* Тип жилья (перспектива: дома, отели…) */}
+                <SegmentedTabs
+                    tabs={[{ id: 'flat', label: 'Квартиры' }]}
+                    active={housingType}
+                    onChange={setHousingType}
+                />
+
+                {/* Статусы брони гостя */}
+                <SegmentedTabs
+                    tabs={[
+                        { id: 'upcoming', label: 'Предстоящие' },
+                        { id: 'past', label: 'Прошлые' },
+                        { id: 'cancelled', label: 'Отменённые' },
+                    ]}
+                    active={tab}
+                    onChange={setTab}
+                />
+
+                {isPending ? (
+                    <p className="py-8 text-center text-muted-foreground">Загрузка…</p>
+                ) : filtered.length === 0 ? (
+                    <p className="py-8 text-center text-muted-foreground">По заданным фильтрам ничего не найдено.</p>
+                ) : (
+                    <ul className="mt-4 flex flex-col gap-3">
+                        {filtered.map(({ booking, apartment }) => (
+                            <li
+                                key={booking.id}
+                                className="flex items-start gap-4 rounded-2xl border border-border bg-card p-5 max-md:gap-3 max-md:p-4"
+                            >
+                                {/* Фото */}
+                                {apartment.images?.[0] && (
+                                    <Image
+                                        src={apartment.images[0]}
+                                        alt=""
+                                        width={80}
+                                        height={80}
+                                        className="h-20 w-20 shrink-0 rounded-xl object-cover max-md:h-16 max-md:w-16"
+                                    />
+                                )}
+
+                                <div className="flex min-w-0 flex-1 flex-col gap-2.5">
+                                    {/* Дата заявки */}
+                                    <p className="text-xs text-muted-foreground">
+                                        Дата: {formatFullDate(booking.createdAt)}
+                                    </p>
+                                    {/* Адрес */}
+                                    <p className="truncate font-medium text-foreground">
+                                        {apartment.street}, {apartment.numberHome}
+                                    </p>
+                                    {/* Цена */}
+                                    <p className="text-sm text-muted-foreground">{formatByn(apartment.price)}</p>
+
+                                    {/* Заезд — Выезд */}
+                                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+                                        <span className="text-muted-foreground">Заезд:</span>
+                                        <span className="text-foreground">{formatShortDate(booking.checkInDate)}</span>
+                                        <span className="text-muted-foreground">—</span>
+                                        <span className="text-muted-foreground">Выезд:</span>
+                                        <span className="text-foreground">{formatShortDate(booking.checkOutDate)}</span>
+                                    </div>
+
+                                    {/* Статус */}
+                                    <p className={`font-bold ${statusColor(booking.status)}`}>
+                                        Статус: {BOOKING_STATUS_LABELS[booking.status] ?? booking.status}
+                                    </p>
+                                    {/* Причина отмены (если была) */}
+                                    {booking.cancelReason && (
+                                        <p className="text-sm text-muted-foreground">Причина: {booking.cancelReason}</p>
+                                    )}
+                                </div>
+
+                                {/* Удалить заявку */}
+                                <button
+                                    type="button"
+                                    onClick={() => deleteBooking.mutate({ bookingId: booking.id })}
+                                    aria-label="Удалить заявку"
+                                    className="shrink-0 rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                                >
+                                    <Close className="h-5 w-5" />
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </div>
+        </AuthGuard>
+    );
+}

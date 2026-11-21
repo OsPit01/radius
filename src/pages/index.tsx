@@ -27,7 +27,7 @@ export default function Home() {
             <JsonLd data={websiteSchema} />
             <ClientHeader />
 
-            <main className="mx-auto min-h-screen max-w-[1400px] px-20 pt-5 pb-[60px] max-lg:px-10 max-lg:pb-10 max-md:px-5 max-md:py-[30px]">
+            <main className="mx-auto max-w-[1400px] px-20 pt-5 pb-[60px] max-lg:px-10 max-lg:pb-10 max-md:px-5 max-md:py-[30px]">
                 <RadarHero />
 
                 <div className="mx-auto max-w-[1400px] pt-6 pb-10 text-center">

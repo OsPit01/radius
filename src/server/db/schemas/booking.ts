@@ -24,6 +24,10 @@ export const booking = pgTable(
         checkOutDate: d.date({ mode: 'date' }).notNull(),
         message: d.text(),
         status: bookingStatusEnum('status').notNull().default('new'),
+        // Кто отменил бронь: 'guest' (гость) или 'owner' (владелец). Пусто = не отменялась.
+        cancelledBy: d.varchar({ length: 20 }),
+        // Причина отмены/отклонения («Даты уже забронированы»).
+        cancelReason: d.text(),
         createdAt: d
             .timestamp({ withTimezone: true })
             .$defaultFn(() => new Date())

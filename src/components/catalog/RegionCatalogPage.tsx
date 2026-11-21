@@ -39,7 +39,7 @@ export function RegionCatalogPage({ regionValue, regionLabel, localities, apartm
             />
             <ClientHeader />
 
-            <main className="mx-auto min-h-screen max-w-[1400px] px-20 pt-5 pb-[60px] max-lg:px-10 max-md:px-5 max-md:py-[30px]">
+            <main className="mx-auto max-w-[1400px] px-20 pt-5 pb-[60px] max-lg:px-10 max-md:px-5 max-md:py-[30px]">
                 <div className="mb-6 text-center">
                     <h1 className="text-[2rem] font-bold max-md:text-[1.5rem]">Квартиры на сутки в {regionIn}</h1>
                     <p className="mt-3 text-[1.1rem] text-muted-foreground max-md:text-base">

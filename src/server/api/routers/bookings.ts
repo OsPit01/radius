@@ -74,6 +74,19 @@ export const bookingsRouter = createTRPCRouter({
             });
         }
 
+        // Заезд не может быть в прошлом. Сервер живёт в UTC, а клиент передаёт дату
+        // как YYYY-MM-DD → z.coerce.date() даёт полночь UTC. Сравниваем с началом
+        // сегодняшних суток UTC: всё, что раньше, — уже прошло. Это серверный рубеж,
+        // который нельзя обойти через DevTools (min в форме — только удобство).
+        const todayStart = new Date();
+        todayStart.setUTCHours(0, 0, 0, 0);
+        if (input.checkInDate < todayStart) {
+            throw new TRPCError({
+                code: 'BAD_REQUEST',
+                message: 'Дата заезда не может быть в прошлом',
+            });
+        }
+
         if (apartment.capacity > 0 && input.guests > apartment.capacity) {
             throw new TRPCError({
                 code: 'BAD_REQUEST',
@@ -184,7 +197,7 @@ export const bookingsRouter = createTRPCRouter({
             title: 'Новая заявка на бронирование',
             text: `Заявка на бронирование «${apartment.title}». Заезд: ${input.checkInDate.toLocaleDateString('ru-RU')} выезд: ${input.checkOutDate.toLocaleDateString('ru-RU')} имя гостя: ${input.guestName} номер телефона гостя: ${input.guestPhone} взрослых: ${adults} детей: ${input.children ?? 0}`,
             apartmentId: input.apartmentId,
-            link: '/profile/bookings',
+            link: '/profile/my-bookings',
             telegramText: telegramLines.join('\n'),
         });
     }),
@@ -200,6 +213,8 @@ export const bookingsRouter = createTRPCRouter({
                     city: apartments.city,
                     street: apartments.street,
                     numberHome: apartments.numberHome,
+                    images: apartments.images,
+                    price: apartments.price,
                 },
                 owner: {
                     id: apartments.createdById,
@@ -225,6 +240,8 @@ export const bookingsRouter = createTRPCRouter({
                     city: apartments.city,
                     street: apartments.street,
                     numberHome: apartments.numberHome,
+                    images: apartments.images,
+                    price: apartments.price,
                 },
                 owner: {
                     id: apartments.createdById,
@@ -239,43 +256,48 @@ export const bookingsRouter = createTRPCRouter({
             .innerJoin(users, eq(apartments.createdById, users.id))
             .where(eq(booking.userId, userId));
     }),
-    cancel: protectedProcedure.input(z.object({ bookingId: idSchema })).mutation(async ({ ctx, input }) => {
-        const userId = ctx.session.user.id;
+    cancel: protectedProcedure
+        .input(z.object({ bookingId: idSchema, reason: z.string().trim().max(500).optional() }))
+        .mutation(async ({ ctx, input }) => {
+            const userId = ctx.session.user.id;
 
-        const [targetBooking] = await ctx.db.select().from(booking).where(eq(booking.id, input.bookingId));
-        if (!targetBooking) {
-            throw new TRPCError({ code: 'NOT_FOUND' });
-        }
+            const [targetBooking] = await ctx.db.select().from(booking).where(eq(booking.id, input.bookingId));
+            if (!targetBooking) {
+                throw new TRPCError({ code: 'NOT_FOUND' });
+            }
 
-        const [apartment] = await ctx.db.select().from(apartments).where(eq(apartments.id, targetBooking.apartmentId));
-        if (!apartment) {
-            throw new TRPCError({ code: 'NOT_FOUND' });
-        }
+            const [apartment] = await ctx.db
+                .select()
+                .from(apartments)
+                .where(eq(apartments.id, targetBooking.apartmentId));
+            if (!apartment) {
+                throw new TRPCError({ code: 'NOT_FOUND' });
+            }
 
-        if (targetBooking.userId !== userId) {
-            throw new TRPCError({ code: 'FORBIDDEN' });
-        }
+            if (targetBooking.userId !== userId) {
+                throw new TRPCError({ code: 'FORBIDDEN' });
+            }
 
-        const [updated] = await ctx.db
-            .update(booking)
-            .set({ status: 'cancelled' })
-            .where(eq(booking.id, input.bookingId))
-            .returning();
+            const [updated] = await ctx.db
+                .update(booking)
+                .set({ status: 'cancelled', cancelledBy: 'guest', cancelReason: input.reason ?? null })
+                .where(eq(booking.id, input.bookingId))
+                .returning();
 
-        if (apartment?.createdById) {
-            // notifyUser = колокольчик + телеграм владельцу, если подключён
-            await notifyUser(ctx.db, {
-                userId: apartment.createdById,
-                type: 'booking_cancelled',
-                title: 'Бронь отменена гостем',
-                text: 'Гость отменил бронирование',
+            if (apartment?.createdById) {
+                // notifyUser = колокольчик + телеграм владельцу, если подключён
+                await notifyUser(ctx.db, {
+                    userId: apartment.createdById,
+                    type: 'booking_cancelled',
+                    title: 'Бронь отменена гостем',
+                    text: 'Гость отменил бронирование',
 
-                apartmentId: targetBooking.apartmentId,
-                link: '/profile/bookings',
-            });
-        }
-        return updated;
-    }),
+                    apartmentId: targetBooking.apartmentId,
+                    link: '/profile/my-bookings',
+                });
+            }
+            return updated;
+        }),
 
     // Ленивая автоотмена просроченных заявок: вызывается со страницы «Мои брони»
     // при загрузке, чтобы таймер работал без внешнего cron (Vercel cron платный).
@@ -293,6 +315,7 @@ export const bookingsRouter = createTRPCRouter({
             z.object({
                 bookingId: idSchema,
                 status: z.enum(['approved', 'rejected'] as const),
+                reason: z.string().trim().max(500).optional(),
             }),
         )
         .mutation(async ({ ctx, input }) => {
@@ -321,7 +344,13 @@ export const bookingsRouter = createTRPCRouter({
             // обновить status у брони и вернуть
             const [updated] = await ctx.db
                 .update(booking)
-                .set({ status: input.status })
+                .set({
+                    status: input.status,
+                    // Отклонили — фиксируем, что отменил владелец и почему.
+                    ...(input.status === 'rejected'
+                        ? { cancelledBy: 'owner', cancelReason: input.reason ?? null }
+                        : {}),
+                })
                 .where(eq(booking.id, input.bookingId))
                 .returning();
             //уведомляем гостя если он авторизован (колокольчик + телеграм)
@@ -333,9 +362,30 @@ export const bookingsRouter = createTRPCRouter({
                     text: input.status === 'approved' ? 'Одобрена' : 'Отклонена',
 
                     apartmentId: targetBooking.apartmentId,
-                    link: '/profile/bookings',
+                    link: '/profile/my-bookings',
                 });
             }
             return updated;
         }),
+
+    // Удалить бронь из БД. Гость удаляет свою бронь, владелец — заявку на свою квартиру.
+    delete: protectedProcedure.input(z.object({ bookingId: idSchema })).mutation(async ({ ctx, input }) => {
+        const userId = ctx.session.user.id;
+
+        const [targetBooking] = await ctx.db.select().from(booking).where(eq(booking.id, input.bookingId));
+        if (!targetBooking) {
+            throw new TRPCError({ code: 'NOT_FOUND' });
+        }
+
+        // Право удалять: гость — только свою бронь, владелец — только заявку на свой объект.
+        const [apartment] = await ctx.db.select().from(apartments).where(eq(apartments.id, targetBooking.apartmentId));
+        const isGuest = targetBooking.userId === userId;
+        const isOwner = apartment?.createdById === userId;
+        if (!isGuest && !isOwner) {
+            throw new TRPCError({ code: 'FORBIDDEN' });
+        }
+
+        await ctx.db.delete(booking).where(eq(booking.id, input.bookingId));
+        return { deleted: true };
+    }),
 });

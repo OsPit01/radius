@@ -45,7 +45,7 @@ export async function expireStaleBookings(): Promise<number> {
                 title: 'Заявка отменена автоматически',
                 text: `Ваша заявка на «${apartment.title}» отменена: истекло время ожидания (${BOOKING_EXPIRY_HOURS} ч).`,
                 apartmentId: b.apartmentId,
-                link: '/profile/bookings',
+                link: '/profile/my-bookings',
             });
         }
 
@@ -58,7 +58,7 @@ export async function expireStaleBookings(): Promise<number> {
                 title: 'Заявка истекла',
                 text: `Заявка на «${apartment.title}» отменена автоматически: гость не получил ответа в течение ${BOOKING_EXPIRY_HOURS} ч.`,
                 apartmentId: b.apartmentId,
-                link: '/profile/bookings',
+                link: '/profile/my-bookings',
                 telegramText: `⏰ Заявка на «${apartment.title}» отменена автоматически — прошло ${BOOKING_EXPIRY_HOURS} ч без ответа.`,
             });
         }
