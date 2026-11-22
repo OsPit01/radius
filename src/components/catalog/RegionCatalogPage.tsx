@@ -2,7 +2,6 @@ import Link from 'next/link';
 
 import { ApartmentsList } from '@/components/apartments/ApartmentsList';
 import { MapPin } from '@/components/icons';
-import { ClientHeader } from '@/components/layout/ClientHeader';
 import { Seo } from '@/components/Seo';
 import type { ApartmentCardData } from '@/lib/apartment-format';
 import { formatByn } from '@/lib/constants/currencies';
@@ -10,6 +9,7 @@ import { regionInPrepositional } from '@/lib/declension';
 import { pluralRu } from '@/lib/plural';
 import { SITE_URL } from '@/lib/seo';
 import { transliterate } from '@/lib/transliterate';
+import { Layout } from '@/shared/ui/layout';
 
 type RegionCatalogPageProps = {
     regionValue: string; // 'vitebsk-region' — слаг, он же адрес страницы
@@ -37,12 +37,10 @@ export function RegionCatalogPage({ regionValue, regionLabel, localities, apartm
                 description={`Снять квартиру на сутки в ${regionIn}: ${localityNames.join(', ')}. Актуальные фото, цены, бронирование онлайн напрямую от собственников.`}
                 canonical={`${SITE_URL}/rent/flat/${regionValue}`}
             />
-            <ClientHeader />
-
-            <main className="mx-auto max-w-[1400px] px-20 pt-5 pb-[60px] max-lg:px-10 max-md:px-5 max-md:py-[30px]">
-                <div className="mb-6 text-center">
-                    <h1 className="text-[2rem] font-bold max-md:text-[1.5rem]">Квартиры на сутки в {regionIn}</h1>
-                    <p className="mt-3 text-[1.1rem] text-muted-foreground max-md:text-base">
+            <Layout withFooter>
+                <div className="mb-6 px-4 text-center">
+                    <h1 className="px-4 text-2xl font-bold md:text-3xl">Квартиры на сутки в {regionIn}</h1>
+                    <p className="mt-3 text-base text-muted-foreground md:text-lg">
                         Найдено {apartments.length} {pluralRu(apartments.length, 'квартира', 'квартиры', 'квартир')}
                     </p>
                 </div>
@@ -77,19 +75,17 @@ export function RegionCatalogPage({ regionValue, regionLabel, localities, apartm
 
                 <ApartmentsList apartments={apartments} />
 
-                <section className="mx-auto mt-12 max-w-3xl text-center text-[0.95rem] leading-relaxed text-muted-foreground max-md:mt-8 max-md:text-sm">
-                    <h2 className="mb-4 text-[1.4rem] font-semibold text-foreground">
+                <section className="mx-auto mt-12 max-w-3xl text-center text-base text-muted-foreground md:mt-8">
+                    <h2 className="mb-4 px-4 text-lg font-semibold text-foreground">
                         Снять квартиру на сутки в {regionIn}
                     </h2>
-                    {/* SEO-текст: БЕЗ количества (устаревает) — вместо него польза:
-                        города и деревни области (поисковые слова) + цены + условия. */}
-                    <p>
+                    <p className="px-4">
                         Квартиры на сутки в {regionIn} от {formatByn(cheapest.price)} за ночь:{' '}
                         {localityNames.join(', ')}. Фото, честные цены и онлайн-бронирование напрямую от собственников —
                         без посредников и скрытых комиссий.
                     </p>
                 </section>
-            </main>
+            </Layout>
         </>
     );
 }

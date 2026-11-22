@@ -50,7 +50,7 @@ export function FilterChips({
     }
 
     return (
-        <div className="mx-auto mt-4 flex w-full max-w-[1400px] [scrollbar-width:none] items-center gap-2 overflow-x-auto px-5 pb-1 max-md:px-4 [&::-webkit-scrollbar]:hidden">
+        <div className="mx-auto mt-4 flex w-full max-w-7xl [scrollbar-width:none] items-center gap-2 overflow-x-auto px-5 pb-1 max-md:px-4 [&::-webkit-scrollbar]:hidden">
             {chips.map((chip) => (
                 <span
                     key={chip.key}

@@ -9,5 +9,10 @@ import { LegalDocument } from '@/components/legal/LegalDocument';
 import { PRIVACY } from '@/lib/legal/privacy';
 
 export default function PrivacyPage() {
-    return <LegalDocument doc={PRIVACY} />;
+    return (
+        <LegalDocument
+            withFooter
+            doc={PRIVACY}
+        />
+    );
 }

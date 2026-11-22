@@ -4,9 +4,9 @@ import { useRouter } from 'next/router';
 import { useTheme } from 'next-themes';
 
 import { ICON_VARIANTS, type IconComponent, ICONS, type IconVariant } from '@/components/icons';
-import { ClientHeader } from '@/components/layout/ClientHeader';
 import { Seo } from '@/components/Seo';
 import { requireRole } from '@/server/auth/require-auth';
+import { Layout } from '@/shared/ui/layout';
 
 // Каталог иконок — только для суперадмина (проверка на сервере, в том числе на проде).
 // Страница лежит под /profile, а он закрыт от индексации (NOINDEX_PATHS: robots.txt + мета-тег noindex).
@@ -138,54 +138,51 @@ export default function IconsGallery() {
     const list = only ? ICONS.filter((icon) => only.includes(icon.meta.name)) : ICONS;
 
     return (
-        <>
-            <ClientHeader />
-            <div className="mx-auto max-w-6xl px-5 py-10">
-                <Seo
-                    title="Иконки"
-                    noindex
-                />
-                <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
-                    <div>
-                        <h1 className="text-3xl font-bold text-foreground">Иконки NaRadare</h1>
-                        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-                            {ICONS.length} иконок × 3 варианта. Рамкой отмечен вариант, который сейчас стоит на сайте.
-                            Чтобы заменить — поменяйте цифру в <code>src/components/icons/config.ts</code> или передайте{' '}
-                            <code>variant</code> прямо в месте использования. Под каждым вариантом — как он выглядит на
-                            разных фонах. Все иконки одной сеткой: <code>/profile/icons?grid</code>.
-                        </p>
-                    </div>
-                    <div className="flex gap-2">
-                        {(['light', 'dark'] as const).map((t) => (
-                            <button
-                                key={t}
-                                type="button"
-                                onClick={() => setTheme(t)}
-                                className={`cursor-pointer rounded-full border px-4 py-2 text-sm font-medium ${
-                                    theme === t
-                                        ? 'border-primary bg-primary text-primary-foreground'
-                                        : 'border-border bg-card text-foreground hover:bg-muted'
-                                }`}
-                            >
-                                {t === 'light' ? 'Светлая' : 'Тёмная'}
-                            </button>
-                        ))}
-                    </div>
+        <Layout>
+            <Seo
+                title="Иконки"
+                noindex
+            />
+            <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold text-foreground">Иконки NaRadare</h1>
+                    <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+                        {ICONS.length} иконок × 3 варианта. Рамкой отмечен вариант, который сейчас стоит на сайте. Чтобы
+                        заменить — поменяйте цифру в <code>src/components/icons/config.ts</code> или передайте{' '}
+                        <code>variant</code> прямо в месте использования. Под каждым вариантом — как он выглядит на
+                        разных фонах. Все иконки одной сеткой: <code>/profile/icons?grid</code>.
+                    </p>
                 </div>
-                {grid ? (
-                    <IconGrid icons={list} />
-                ) : (
-                    <div className="flex flex-col gap-4">
-                        {list.map((Icon) => (
-                            <IconCard
-                                key={Icon.meta.name}
-                                Icon={Icon}
-                                dense={dense}
-                            />
-                        ))}
-                    </div>
-                )}
+                <div className="flex gap-2">
+                    {(['light', 'dark'] as const).map((t) => (
+                        <button
+                            key={t}
+                            type="button"
+                            onClick={() => setTheme(t)}
+                            className={`cursor-pointer rounded-full border px-4 py-2 text-sm font-medium ${
+                                theme === t
+                                    ? 'border-primary bg-primary text-primary-foreground'
+                                    : 'border-border bg-card text-foreground hover:bg-muted'
+                            }`}
+                        >
+                            {t === 'light' ? 'Светлая' : 'Тёмная'}
+                        </button>
+                    ))}
+                </div>
             </div>
-        </>
+            {grid ? (
+                <IconGrid icons={list} />
+            ) : (
+                <div className="flex flex-col gap-4">
+                    {list.map((Icon) => (
+                        <IconCard
+                            key={Icon.meta.name}
+                            Icon={Icon}
+                            dense={dense}
+                        />
+                    ))}
+                </div>
+            )}
+        </Layout>
     );
 }

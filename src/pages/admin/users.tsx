@@ -5,11 +5,11 @@ import { useSession } from 'next-auth/react';
 
 import { UserCard } from '@/components/admin/users/UserCard';
 import { AuthGuard } from '@/components/layout/AuthGuard';
-import { ClientHeader } from '@/components/layout/ClientHeader';
 import { SegmentedTabs } from '@/components/ui/SegmentedTabs';
 import { getRoleInfo, isAdminRole, ROLE_OPTIONS } from '@/lib/constants/roles';
 import { INPUT_CLASS } from '@/lib/utils';
 import { requireAuth } from '@/server/auth/require-auth';
+import { Layout } from '@/shared/ui/layout';
 import { api } from '@/trpc/react';
 // Неавторизованных отправляем на вход ещё на сервере
 export const getServerSideProps = requireAuth;
@@ -41,12 +41,9 @@ export default function Users() {
 
     if (!isAdminRole(session?.user?.role)) {
         return (
-            <>
-                <AuthGuard>
-                    <ClientHeader />
-                    <div className="p-[60px_20px] text-center text-lg">У ВАС НЕТ ДОСТУПА!</div>
-                </AuthGuard>
-            </>
+            <AuthGuard>
+                <Layout>У ВАС НЕТ ДОСТУПА!</Layout>
+            </AuthGuard>
         );
     }
 
@@ -54,44 +51,39 @@ export default function Users() {
     const allowedRoles = ROLE_OPTIONS.filter((o) => getRoleInfo(o.value).level < myLevel);
 
     return (
-        <>
-            <AuthGuard>
-                <ClientHeader />
-                <div className="mx-auto max-w-[1200px] px-5 py-10 max-md:px-4">
-                    <h1 className="mb-8 text-2xl font-bold text-foreground">Управление пользователями</h1>
-                    <div className="mb-4">
-                        <input
-                            type="text"
-                            value={query}
-                            onChange={(e) => setQuery(e.target.value)}
-                            placeholder="Поиск по email или id"
-                            className={INPUT_CLASS}
-                        />
-                    </div>
-                    <div className="mb-8">
-                        <SegmentedTabs
-                            tabs={roleTabs}
-                            active={activeRole}
-                            onChange={setActiveRole}
-                        />
-                    </div>
-                    {/* 4 колонки на десктопе, меньше на планшете, 1 на телефоне. */}
-                    <div className="grid grid-cols-4 gap-4 max-lg:grid-cols-3 max-md:grid-cols-2 max-sm:grid-cols-1">
-                        {visibleUsers.map((user) => (
-                            <UserCard
-                                key={user.id}
-                                user={user}
-                                allowedRoles={allowedRoles}
-                            />
-                        ))}
-                    </div>
-                    {isLoading && <p className="text-center text-muted-foreground">Загрузка...</p>}
-
-                    {!isLoading && visibleUsers.length === 0 && (
-                        <p className="text-center text-muted-foreground">Ничего не найдено</p>
-                    )}
+        <AuthGuard>
+            <Layout>
+                <h1 className="mb-8 text-2xl font-bold text-foreground">Управление пользователями</h1>
+                <div className="mb-4">
+                    <input
+                        type="text"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        placeholder="Поиск по email или id"
+                        className={INPUT_CLASS}
+                    />
                 </div>
-            </AuthGuard>
-        </>
+                <SegmentedTabs
+                    tabs={roleTabs}
+                    active={activeRole}
+                    onChange={setActiveRole}
+                    className="mb-8 flex-wrap justify-center gap-x-3 gap-y-0 sm:gap-x-6 [&>button]:m-0 [&>button]:min-h-11 [&>button]:px-2 [&>button]:py-2 sm:[&>button]:px-4"
+                />
+                <div className="grid grid-cols-4 gap-4 max-lg:grid-cols-3 max-md:grid-cols-2 max-sm:grid-cols-1">
+                    {visibleUsers.map((user) => (
+                        <UserCard
+                            key={user.id}
+                            user={user}
+                            allowedRoles={allowedRoles}
+                        />
+                    ))}
+                </div>
+                {isLoading && <p className="text-center text-muted-foreground">Загрузка...</p>}
+
+                {!isLoading && visibleUsers.length === 0 && (
+                    <p className="text-center text-muted-foreground">Ничего не найдено</p>
+                )}
+            </Layout>
+        </AuthGuard>
     );
 }

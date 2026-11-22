@@ -128,7 +128,7 @@ function MiniUi({ tone, style }: { tone: ThemeMode; style?: CSSProperties }) {
 
 function ModePreview({ value }: { value: (typeof MODE_OPTIONS)[number]['value'] }) {
     return (
-        <div className="relative h-14 w-20 overflow-hidden rounded-lg border border-border">
+        <div className="relative h-15 w-15 overflow-hidden rounded-lg border border-border">
             {value === 'system' ? (
                 <>
                     <MiniUi tone="light" />
@@ -194,11 +194,6 @@ function ColorField({
     );
 }
 
-/**
- * «Внешний вид»: режим (системная / светлая / тёмная) и три базовых цвета.
- * Всё применяется сразу и хранится на этом устройстве (см. src/lib/theme.ts).
- * Показывается только тем, кому разрешено (canCustomizeTheme) — проверка на странице.
- */
 export function AppearanceSettings() {
     const { theme, setTheme } = useTheme();
     const mounted = useMounted();
@@ -228,18 +223,17 @@ export function AppearanceSettings() {
     };
 
     return (
-        <section className="mt-6 rounded-[15px] bg-card p-10 shadow-[0_2px_8px_rgba(0,0,0,0.08)] max-[480px]:p-4 max-md:p-5">
+        <section className="mt-6 rounded-xl bg-card shadow-md">
             <h2 className="text-[22px] font-bold max-md:text-xl">Внешний вид</h2>
             <p className="mt-1 text-sm text-muted-foreground">
                 По умолчанию сайт повторяет тему вашей системы. Настройки применяются сразу и хранятся на этом
                 устройстве.
             </p>
 
-            {/* РЕЖИМ */}
             <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border p-5">
                 <span className="text-base font-medium">Режим</span>
                 <div
-                    className="flex gap-3"
+                    className="flex flex-wrap gap-3"
                     role="group"
                     aria-label="Режим"
                 >

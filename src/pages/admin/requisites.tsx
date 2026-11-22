@@ -22,10 +22,10 @@ import { useSession } from 'next-auth/react';
 
 import { Info, Settings } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
-import { ClientHeader } from '@/components/layout/ClientHeader';
 import { hasPermission } from '@/lib/constants/roles';
 import { OPERATOR } from '@/lib/legal/operator';
 import { requireRole } from '@/server/auth/require-auth';
+import { Layout } from '@/shared/ui/layout';
 
 // Не-админ получает 404 ещё на сервере — страницу не видно вовсе.
 export const getServerSideProps = requireRole('superadmin');
@@ -88,16 +88,14 @@ export default function RequisitesAdminPage() {
     if (!hasPermission(role ?? '', 'superadmin')) {
         return (
             <AuthGuard>
-                <ClientHeader />
-                <div className="p-[60px_20px] text-center text-lg">Нет доступа</div>
+                <Layout>Нет доступа</Layout>
             </AuthGuard>
         );
     }
 
     return (
         <AuthGuard>
-            <ClientHeader />
-            <div className="bg-background px-5 py-10 max-md:px-3 max-md:py-4">
+            <Layout>
                 <div className="mx-auto max-w-[900px] rounded-[24px] bg-muted p-12 shadow-[0_20px_60px_rgba(0,0,0,0.08)] max-[480px]:rounded-2xl max-[480px]:p-4 max-md:rounded-[20px] max-md:p-6">
                     <h1 className="mb-6 flex items-center gap-3 text-[28px] font-bold text-foreground max-md:text-[22px]">
                         <Settings className="h-6 w-6" />
@@ -162,7 +160,7 @@ export default function RequisitesAdminPage() {
                         </ul>
                     </div>
                 </div>
-            </div>
+            </Layout>
         </AuthGuard>
     );
 }

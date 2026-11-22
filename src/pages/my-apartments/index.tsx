@@ -4,15 +4,14 @@ import Link from 'next/link';
 
 import { Plus } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
-import { ClientHeader } from '@/components/layout/ClientHeader';
 import { ImageWithFallback } from '@/components/ui/ImageWithFallback';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Modal } from '@/components/ui/Modal';
 import { useMyApartments } from '@/hooks/useApartments';
 import { formatByn, getStatusInfo } from '@/lib/constants';
 import { requireAuth } from '@/server/auth/require-auth';
+import { Layout } from '@/shared/ui/layout';
 
-// Неавторизованных отправляем на вход ещё на сервере
 export const getServerSideProps = requireAuth;
 
 export default function MyApartmentsPage() {
@@ -23,45 +22,39 @@ export default function MyApartmentsPage() {
         title: string;
     } | null>(null);
 
-    // ===== ЗАГРУЗКА =====
     if (isLoading) {
         return (
-            <>
-                <ClientHeader />
+            <Layout>
                 <LoadingSpinner label="Загрузка..." />
-            </>
+            </Layout>
         );
     }
 
-    // ===== ОШИБКА =====
     if (error) {
         return (
             <AuthGuard>
-                <div className="p-[60px_20px] text-center text-lg">Ошибка: {error.message}</div>
+                <Layout>Ошибка: {error.message}</Layout>
             </AuthGuard>
         );
     }
 
-    // ===== ОСНОВНОЙ РЕНДЕР =====
     return (
         <>
             <AuthGuard>
-                <ClientHeader />
-                <div className="mx-auto mt-auto max-w-[1200px] px-5 py-10 max-md:px-4 max-md:py-5">
-                    <div className="mb-2 flex flex-wrap items-center gap-4">
-                        <span className="text-[28px] font-bold text-foreground max-md:text-[22px]">Мои объекты</span>
+                <Layout>
+                    <h1 className="px-4 text-2xl font-bold text-foreground">
+                        Мои объекты{' '}
                         <span className="rounded-[20px] bg-primary px-3.5 py-0.5 text-base font-semibold text-primary-foreground">
                             {count}
                         </span>
-                    </div>
+                    </h1>
 
-                    <p className="mb-8 text-base text-muted-foreground">
+                    <p className="mb-8 px-4 text-base text-muted-foreground">
                         Всего {count} {count === 1 ? 'объявление' : 'объявлений'}
                     </p>
 
                     {myApartments && myApartments.length > 0 ? (
-                        // Карточки
-                        <div className="grid grid-cols-4 gap-4 max-lg:grid-cols-2 max-md:grid-cols-1">
+                        <div className="grid grid-cols-4 gap-4 px-4 max-lg:grid-cols-2 max-md:grid-cols-1">
                             {myApartments.map((item, index) => {
                                 const s = getStatusInfo(item.apartment.status);
                                 return (
@@ -156,7 +149,7 @@ export default function MyApartmentsPage() {
                             </Link>
                         </div>
                     )}
-                </div>
+                </Layout>
             </AuthGuard>
 
             <Modal

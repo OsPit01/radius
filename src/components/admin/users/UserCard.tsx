@@ -169,9 +169,9 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
                         {/* truncate: длинные имя/email обрезаются, карточка не раздувается. */}
                         <p className="truncate text-sm font-semibold text-foreground">{user.firstName ?? user.email}</p>
                         <p className="truncate text-xs text-muted-foreground">{user.email}</p>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-start gap-1">
                             <p
-                                className="truncate text-[11px] text-muted-foreground"
+                                className={`min-w-0 self-center text-[11px] text-muted-foreground ${showId ? 'wrap-anywhere' : 'truncate'}`}
                                 title={user.id}
                             >
                                 ID: {showId ? user.id : `${user.id.slice(0, 8)}…`}
@@ -180,7 +180,7 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
                                 type="button"
                                 onClick={() => setShowId((visible) => !visible)}
                                 aria-label={showId ? 'Скрыть ID' : 'Показать ID'}
-                                className="flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                                className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground pointer-coarse:size-11"
                             >
                                 <Eye className="size-3.5" />
                             </button>
@@ -202,7 +202,7 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
                     <select
                         value={selectedRole}
                         onChange={(e) => setSelectedRole(e.target.value as RoleKey)}
-                        className="h-8 min-w-0 flex-1 cursor-pointer rounded-lg border border-border bg-card px-2 text-xs text-foreground outline-none focus:border-primary"
+                        className="min-h-8 min-w-0 flex-1 cursor-pointer rounded-lg border border-border bg-card px-2 text-xs text-foreground outline-none focus:border-primary pointer-coarse:min-h-11"
                     >
                         <option value="">Выбрать роль...</option>
                         {allowedRoles.map((r) => (
@@ -215,7 +215,7 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
                         ))}
                     </select>
                     <button
-                        className="h-8 shrink-0 cursor-pointer rounded-[30px] bg-foreground px-3 text-xs font-medium text-background transition-colors hover:bg-foreground/85 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="min-h-8 shrink-0 cursor-pointer rounded-[30px] bg-foreground px-3 text-xs font-medium text-background transition-colors hover:bg-foreground/85 disabled:cursor-not-allowed disabled:opacity-50 pointer-coarse:min-h-11"
                         onClick={() => {
                             if (!selectedRole) {
                                 return;
@@ -229,7 +229,7 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
                 </div>
 
                 {/* Действия: 2×2 — компактно, но кнопки читаются (12px) */}
-                <div className="mt-3 grid grid-cols-2 gap-2">
+                <div className="mt-3 grid grid-cols-2 gap-2 pointer-coarse:[&>button]:min-h-11">
                     <button
                         onClick={() => setEditOpen(true)}
                         className="cursor-pointer rounded-[30px] border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary"
@@ -274,7 +274,7 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
                             }}
                             disabled={getDeleteInfo.isPending}
                             className={
-                                'w-full cursor-pointer rounded-[30px] border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-60 ' +
+                                'w-full cursor-pointer rounded-[30px] border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-60 pointer-coarse:min-h-11 ' +
                                 (confirmDelete
                                     ? 'border-destructive text-destructive hover:bg-destructive/10'
                                     : 'border-border text-muted-foreground hover:border-destructive hover:bg-destructive/10 hover:text-destructive')

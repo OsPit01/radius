@@ -80,7 +80,7 @@ export function ApartmentsList({
         setCurrentPage(1);
     }, [searchQuery, totalGuests, filters]);
 
-    if (foundCount === 0) {
+    if (!foundCount) {
         return (
             <div className="my-[50px] w-full">
                 <h2 className="mb-10 text-center text-2xl font-bold text-foreground">Варианты для проживания: 0</h2>
@@ -94,7 +94,7 @@ export function ApartmentsList({
 
     return (
         <div className="w-full">
-            <div className="mx-auto grid max-w-[1400px] grid-cols-2 gap-[50px] px-5 max-md:grid-cols-1 max-md:gap-5 max-md:px-0">
+            <div className="mx-auto grid max-w-7xl grid-cols-1 gap-4 md:grid-cols-2 md:p-4">
                 {visibleApartments.map((apartment) => (
                     <ApartmentCard
                         key={apartment.id}

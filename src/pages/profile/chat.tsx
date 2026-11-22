@@ -5,10 +5,10 @@ import { useSession } from 'next-auth/react';
 import { ChatList } from '@/components/chat/ChatList';
 import { ChatWindow } from '@/components/chat/ChatWindow';
 import { AuthGuard } from '@/components/layout/AuthGuard';
-import { ClientHeader } from '@/components/layout/ClientHeader';
 import { type ChatPerson } from '@/lib/chat';
 import { isAdminRole } from '@/lib/constants/roles';
 import { requireAuth } from '@/server/auth/require-auth';
+import { Layout } from '@/shared/ui/layout';
 import { api } from '@/trpc/react';
 
 // Неавторизованных отправляем на вход ещё на сервере
@@ -121,7 +121,7 @@ export default function ChatPage() {
 
     // ===== Блок списка бесед (общий для мобилки и десктопа) =====
     const listView = (
-        <div>
+        <div className="max-md:min-h-0 max-md:overflow-y-auto">
             <h1 className="flex items-center gap-2 pt-6 pb-4 text-2xl font-bold text-foreground">
                 Мои сообщения
                 {(unreadCount ?? 0) > 0 && (
@@ -169,13 +169,12 @@ export default function ChatPage() {
             />
         );
 
+    // Общая обёртка: занимает экран минус хедер, без скролла страницы.
     return (
         <AuthGuard>
-            <ClientHeader />
-            {/* Общая обёртка: занимает экран минус хедер, без скролла страницы */}
-            <div className="flex h-[calc(100vh-64px)] flex-col overflow-hidden">
+            <Layout className="flex min-h-0 max-w-none! flex-col overflow-hidden p-0! max-md:flex-1 md:h-[calc(100vh-64px)]">
                 {/* ===== МОБИЛКА: одна колонка, переключение список ↔ чат ===== */}
-                <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col overflow-hidden px-4 pb-4 md:hidden">
+                <div className="mx-auto flex min-h-0 w-full max-w-2xl flex-1 flex-col overflow-hidden px-4 pb-4 md:hidden">
                     {selectedId === null ? listView : chatView}
                 </div>
 
@@ -186,7 +185,7 @@ export default function ChatPage() {
                     </aside>
                     <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden pl-4">{chatView}</div>
                 </div>
-            </div>
+            </Layout>
         </AuthGuard>
     );
 }

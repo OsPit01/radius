@@ -11,12 +11,12 @@ import { InfoSection } from '@/components/apartments/edit/InfoSection';
 import { PayerSection } from '@/components/apartments/edit/PayerSection';
 import { PhotosSection } from '@/components/apartments/edit/PhotosSection';
 import { AuthGuard } from '@/components/layout/AuthGuard';
-import { ClientHeader } from '@/components/layout/ClientHeader';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useApartmentForm } from '@/hooks/useApartmentForm';
 import { isAdminRole } from '@/lib/constants/roles';
 import { findNearestMetro, isMetroRegion } from '@/lib/metro';
 import { requireAuth } from '@/server/auth/require-auth';
+import { Layout } from '@/shared/ui/layout';
 import { api } from '@/trpc/react';
 
 function readFilesAsDataURL(files: FileList): Promise<string[]> {
@@ -138,7 +138,9 @@ export default function EditApartmentPage() {
     if (isLoadingData) {
         return (
             <AuthGuard>
-                <LoadingSpinner label="Загрузка..." />
+                <Layout>
+                    <LoadingSpinner label="Загрузка..." />
+                </Layout>
             </AuthGuard>
         );
     }
@@ -146,65 +148,62 @@ export default function EditApartmentPage() {
     if (error) {
         return (
             <AuthGuard>
-                <div className="mx-auto max-w-[900px] px-5 py-10">Ошибка: {error}</div>
+                <Layout>Ошибка: {error}</Layout>
             </AuthGuard>
         );
     }
 
     return (
-        <>
-            <AuthGuard>
-                <ClientHeader />
-                <div className="mx-auto max-w-[900px] px-5 py-10 max-[480px]:px-2.5 max-[480px]:py-5">
-                    <div className="rounded-2xl bg-card p-10 shadow-[0_2px_8px_rgba(0,0,0,0.08)] max-[480px]:p-4 max-md:p-5">
-                        <h1 className="mb-[30px] text-[28px] font-bold text-foreground max-md:text-[22px]">
-                            Редактирование объекта
-                        </h1>
+        <AuthGuard>
+            <Layout>
+                <div className="rounded-2xl bg-card p-10 shadow-[0_2px_8px_rgba(0,0,0,0.08)] max-[480px]:p-4 max-md:p-5">
+                    <h1 className="mb-[30px] text-[28px] font-bold text-foreground max-md:text-[22px]">
+                        Редактирование объекта
+                    </h1>
 
-                        <form
-                            onSubmit={handleSubmit}
-                            className="edit-form"
-                        >
-                            <PhotosSection
-                                form={form}
-                                isUploading={isUploading}
-                                onFilesChange={handleFileChange}
-                                onRemove={removeImage}
-                                onReorder={reorderImages}
-                            />
-                            {validationError && (
-                                <p className="mt-2 text-sm font-medium text-destructive">{validationError}</p>
-                            )}
-                            {/* ИНФОРМАЦИЯ */}
-                            <InfoSection form={form} />
-                            <AddressSection
-                                form={form}
-                                canEditAddress={canEditAddress}
-                                onAddressResolved={handleAddressResolved}
-                            />
-                            <PayerSection form={form} />
-                            <AmenitiesSection form={form} />
+                    <form
+                        onSubmit={handleSubmit}
+                        className="edit-form"
+                    >
+                        <PhotosSection
+                            form={form}
+                            isUploading={isUploading}
+                            onFilesChange={handleFileChange}
+                            onRemove={removeImage}
+                            onReorder={reorderImages}
+                        />
+                        {validationError && (
+                            <p className="mt-2 text-sm font-medium text-destructive">{validationError}</p>
+                        )}
+                        {/* ИНФОРМАЦИЯ */}
+                        <InfoSection form={form} />
+                        <AddressSection
+                            form={form}
+                            canEditAddress={canEditAddress}
+                            onAddressResolved={handleAddressResolved}
+                        />
+                        <PayerSection form={form} />
+                        <AmenitiesSection form={form} />
 
-                            {/* КНОПКИ */}
-                            <div className="mt-[30px] flex gap-4 border-t border-border pt-5 max-md:flex-col">
-                                <button
-                                    type="submit"
-                                    className="cursor-pointer rounded-[30px] bg-primary px-8 py-3 text-base font-semibold text-primary-foreground transition-colors duration-200 hover:bg-primary/90 max-md:w-full max-md:text-center"
-                                    disabled={isSubmitting}
-                                >
-                                    {isSubmitting ? 'Сохранение...' : 'Сохранить'}
-                                </button>
-                                <Link
-                                    href="/my-apartments"
-                                    className="cursor-pointer rounded-[30px] bg-muted px-8 py-3 text-center text-base font-semibold text-foreground no-underline transition-colors duration-200 hover:bg-border max-md:w-full"
-                                >
-                                    Отмена
-                                </Link>
-                            </div>
-                        </form>
-                    </div>
+                        {/* КНОПКИ */}
+                        <div className="mt-[30px] flex gap-4 border-t border-border pt-5 max-md:flex-col">
+                            <button
+                                type="submit"
+                                className="cursor-pointer rounded-[30px] bg-primary px-8 py-3 text-base font-semibold text-primary-foreground transition-colors duration-200 hover:bg-primary/90 max-md:w-full max-md:text-center"
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? 'Сохранение...' : 'Сохранить'}
+                            </button>
+                            <Link
+                                href="/my-apartments"
+                                className="cursor-pointer rounded-[30px] bg-muted px-8 py-3 text-center text-base font-semibold text-foreground no-underline transition-colors duration-200 hover:bg-border max-md:w-full"
+                            >
+                                Отмена
+                            </Link>
+                        </div>
+                    </form>
                 </div>
-            </AuthGuard>
-        </>
+            </Layout>
+        </AuthGuard>
     );
 }

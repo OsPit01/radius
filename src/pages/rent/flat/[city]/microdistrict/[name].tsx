@@ -2,7 +2,6 @@ import type { GetServerSideProps } from 'next';
 import Head from 'next/head';
 
 import { ApartmentsList } from '@/components/apartments/ApartmentsList';
-import { ClientHeader } from '@/components/layout/ClientHeader';
 import { Seo } from '@/components/Seo';
 import { type ApartmentCardData, getApartmentCardData } from '@/lib/apartment-format';
 import { getMicrodistrictBlurb } from '@/lib/constants';
@@ -11,6 +10,7 @@ import { districtInPrepositional } from '@/lib/declension';
 import { pluralRu } from '@/lib/plural';
 import { SITE_URL } from '@/lib/seo';
 import { transliterate } from '@/lib/transliterate';
+import { Layout } from '@/shared/ui/layout';
 import { createServerCaller } from '@/trpc/server';
 
 type MicrodistrictPageProps = {
@@ -251,9 +251,7 @@ export default function MicrodistrictPage({ city, name, apartments }: Microdistr
                     }}
                 />
             </Head>
-            <ClientHeader />
-
-            <main className="mx-auto max-w-[1400px] px-20 pt-5 pb-[60px] max-lg:px-10 max-md:px-5 max-md:py-[30px]">
+            <Layout withFooter>
                 <div className="mb-6 text-center">
                     <h1 className="text-[2rem] font-bold max-md:text-[1.5rem]">Квартиры на сутки {districtIn}</h1>
                     <p className="mt-3 text-[1.1rem] text-muted-foreground max-md:text-base">
@@ -299,7 +297,7 @@ export default function MicrodistrictPage({ city, name, apartments }: Microdistr
                         <p className="text-sm text-muted-foreground">{faqBookingAnswer}</p>
                     </div>
                 </section>
-            </main>
+            </Layout>
         </>
     );
 }

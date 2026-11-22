@@ -9,5 +9,10 @@ import { LegalDocument } from '@/components/legal/LegalDocument';
 import { TERMS } from '@/lib/legal/terms';
 
 export default function TermsPage() {
-    return <LegalDocument doc={TERMS} />;
+    return (
+        <LegalDocument
+            withFooter
+            doc={TERMS}
+        />
+    );
 }

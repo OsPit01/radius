@@ -38,12 +38,12 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
                 onClick={(e) => e.stopPropagation()}
             >
                 {title && (
-                    <div className="mb-4 flex items-center justify-between">
-                        <h2 className="text-xl font-bold text-foreground">{title}</h2>
+                    <div className="mb-4 flex items-center justify-between gap-2">
+                        <h2 className="min-w-0 text-xl font-bold wrap-break-word text-foreground">{title}</h2>
                         <button
                             type="button"
                             onClick={onClose}
-                            className="cursor-pointer rounded-full p-1 text-muted-foreground transition-colors hover:text-foreground"
+                            className="shrink-0 cursor-pointer rounded-full p-1 text-muted-foreground transition-colors hover:text-foreground"
                             aria-label="Закрыть"
                         >
                             <Close className="h-7 w-7" />

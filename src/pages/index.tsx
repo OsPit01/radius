@@ -2,13 +2,11 @@ import { CityTiles } from '@/components/catalog/CityTiles';
 import { RadarHero } from '@/components/home/RadarHero';
 import { TypewriterTagline } from '@/components/home/TypewriterTagline';
 import { JsonLd } from '@/components/JsonLd';
-import { ClientHeader } from '@/components/layout/ClientHeader';
 import { Seo } from '@/components/Seo';
 import { HOME_TAGLINE_SEO_TEXT, HOME_TAGLINES } from '@/lib/constants/home-taglines';
 import { HOME_DESCRIPTION, HOME_TITLE, SITE_NAME, SITE_URL } from '@/lib/seo';
+import { Layout } from '@/shared/ui/layout';
 
-// Структурированные данные: сайт. Поля поиска на главной больше нет,
-// поэтому SearchAction («поиск по сайту» в выдаче Google) не объявляем.
 const websiteSchema = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
@@ -18,47 +16,40 @@ const websiteSchema = {
 
 export default function Home() {
     return (
-        <>
+        <Layout withFooter>
             <Seo
                 absoluteTitle={HOME_TITLE}
                 description={HOME_DESCRIPTION}
                 canonical={SITE_URL}
             />
+
             <JsonLd data={websiteSchema} />
-            <ClientHeader />
 
-            <main className="mx-auto max-w-[1400px] px-20 pt-5 pb-[60px] max-lg:px-10 max-lg:pb-10 max-md:px-5 max-md:py-[30px]">
-                <RadarHero />
+            <RadarHero />
 
-                <div className="mx-auto max-w-[1400px] pt-6 pb-10 text-center">
-                    <h1 className="text-[2rem] leading-[1.2] font-bold text-foreground max-md:text-[2rem]">
-                        Посуточная аренда квартир
-                    </h1>
+            <h1 className="mt-6 mb-2 px-4 text-center text-3xl font-bold text-foreground lg:text-6xl">
+                Посуточная аренда квартир
+            </h1>
 
-                    {/* min-h резервирует место под самую длинную фразу (на телефоне — 2 строки),
-                        чтобы при смене фраз страница под ней не прыгала. Фразы — HOME_TAGLINES. */}
-                    <TypewriterTagline
-                        seoText={HOME_TAGLINE_SEO_TEXT}
-                        phrases={HOME_TAGLINES}
-                        className="min-h-[3em] text-[1.2rem] leading-[1.5] text-muted-foreground max-md:text-base md:min-h-[1.5em]"
-                    />
-                </div>
+            <TypewriterTagline
+                seoText={HOME_TAGLINE_SEO_TEXT}
+                phrases={HOME_TAGLINES}
+                className="px-4 text-center text-sm text-muted-foreground lg:text-2xl"
+            />
 
-                <CityTiles />
+            <CityTiles />
 
-                <div className="mx-auto mt-12 max-w-3xl text-center text-[0.95rem] leading-relaxed text-muted-foreground max-md:mt-8 max-md:text-sm">
-                    <p className="mb-4">
-                        NaRadare — удобный способ снять квартиру на сутки. у нас только проверенные объекты от
-                        собственников: актуальные фотографии, честные цены и бронирование за пару минут. Выберите район,
-                        подберите квартиру и забронируйте жильё онлайн без посредников и переплат.
-                    </p>
-                    <p>
-                        Посуточная аренда квартир NaRadare — это комфорт, прозрачность и выгодные цены. Каждый объект
-                        проверен, у каждого есть подробное описание и рейтинг. Снимайте квартиру на сутки надёжно —
-                        напрямую от владельцев.
-                    </p>
-                </div>
-            </main>
-        </>
+            <p className="mx-auto mt-12 mb-4 px-4 text-center text-sm text-muted-foreground">
+                NaRadare — удобный способ снять квартиру на сутки. у нас только проверенные объекты от собственников:
+                актуальные фотографии, честные цены и бронирование за пару минут. Выберите район, подберите квартиру и
+                забронируйте жильё онлайн без посредников и переплат.
+            </p>
+
+            <p className="mx-auto px-4 text-center text-sm text-muted-foreground">
+                Посуточная аренда квартир NaRadare — это комфорт, прозрачность и выгодные цены. Каждый объект проверен,
+                у каждого есть подробное описание и рейтинг. Снимайте квартиру на сутки надёжно — напрямую от
+                владельцев.
+            </p>
+        </Layout>
     );
 }

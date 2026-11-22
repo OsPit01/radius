@@ -119,18 +119,18 @@ export function ConversationCard({ item }: ConversationCardProps) {
                     <button
                         type="button"
                         onClick={() => setOpen(true)}
-                        className="w-full cursor-pointer rounded-[30px] bg-foreground px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-foreground/85"
+                        className="w-full cursor-pointer rounded-[30px] bg-foreground px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-foreground/85 pointer-coarse:min-h-11"
                     >
                         Открыть переписку
                     </button>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                         <button
                             type="button"
                             onClick={() =>
                                 setActive.mutate({ conversationId: item.conversation.id, isActive: !isActive })
                             }
                             disabled={setActive.isPending}
-                            className="flex-1 cursor-pointer rounded-[30px] border border-border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
+                            className="flex-1 cursor-pointer rounded-[30px] border border-border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50 pointer-coarse:min-h-11"
                         >
                             {isActive ? 'Заблокировать' : 'Разблокировать'}
                         </button>
@@ -138,7 +138,7 @@ export function ConversationCard({ item }: ConversationCardProps) {
                             type="button"
                             onClick={handleDeleteConversation}
                             disabled={remove.isPending}
-                            className="flex-1 cursor-pointer rounded-[30px] border border-border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-destructive hover:text-destructive disabled:cursor-not-allowed disabled:opacity-50"
+                            className="flex-1 cursor-pointer rounded-[30px] border border-border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-destructive hover:text-destructive disabled:cursor-not-allowed disabled:opacity-50 pointer-coarse:min-h-11"
                         >
                             Удалить
                         </button>
@@ -162,8 +162,8 @@ export function ConversationCard({ item }: ConversationCardProps) {
                             className="flex items-start justify-between gap-3 rounded-xl bg-muted/60 px-3 py-2"
                         >
                             <div className="min-w-0">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-sm font-semibold text-foreground">
+                                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                    <span className="min-w-0 text-sm font-semibold wrap-break-word text-foreground">
                                         {senderName(m.senderId)}
                                     </span>
                                     <span className="shrink-0 text-[11px] text-muted-foreground">
@@ -178,7 +178,7 @@ export function ConversationCard({ item }: ConversationCardProps) {
                                 type="button"
                                 onClick={() => removeMessage.mutate({ messageId: m.id })}
                                 disabled={removeMessage.isPending}
-                                className="shrink-0 cursor-pointer rounded-full px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
+                                className="min-h-6 shrink-0 cursor-pointer rounded-full px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:opacity-50 pointer-coarse:min-h-11"
                             >
                                 Удалить
                             </button>

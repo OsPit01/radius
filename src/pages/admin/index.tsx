@@ -2,10 +2,10 @@ import { useSession } from 'next-auth/react';
 
 import { BarChart, Chat, Home, type IconComponent, Info, Settings, Shield, Users } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
-import { ClientHeader } from '@/components/layout/ClientHeader';
 import { TileLink } from '@/components/ui/TileLink';
 import { hasPermission, isStaffRole, type RoleKey } from '@/lib/constants/roles';
 import { requireAuth } from '@/server/auth/require-auth';
+import { Layout } from '@/shared/ui/layout';
 
 // Неавторизованных разворачивает на вход ещё на сервере
 export const getServerSideProps = requireAuth;
@@ -39,8 +39,7 @@ export default function AdminPage() {
     if (!isStaffRole(role)) {
         return (
             <AuthGuard>
-                <ClientHeader />
-                <div className="p-[60px_20px] text-center text-lg">У вас нет доступа</div>
+                <Layout className="max-w-none! p-[60px_20px]! text-center text-lg">У вас нет доступа</Layout>
             </AuthGuard>
         );
     }
@@ -51,8 +50,7 @@ export default function AdminPage() {
 
     return (
         <AuthGuard>
-            <ClientHeader />
-            <div className="mx-auto max-w-[1200px] px-4 py-10">
+            <Layout className="max-w-[1200px]! px-4! py-10!">
                 <h1 className="pb-2 text-[25px] max-md:text-xl">Панель управления</h1>
                 <p className="pb-6 text-sm text-muted-foreground">
                     {hasPermission(role, 'admin')
@@ -81,7 +79,7 @@ export default function AdminPage() {
                         className="mt-6"
                     />
                 )}
-            </div>
+            </Layout>
         </AuthGuard>
     );
 }

@@ -9,5 +9,10 @@ import { LegalDocument } from '@/components/legal/LegalDocument';
 import { CONSENT } from '@/lib/legal/consent';
 
 export default function ConsentPage() {
-    return <LegalDocument doc={CONSENT} />;
+    return (
+        <LegalDocument
+            withFooter
+            doc={CONSENT}
+        />
+    );
 }

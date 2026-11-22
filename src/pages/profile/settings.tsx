@@ -7,7 +7,6 @@ import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 
 import { AuthGuard } from '@/components/layout/AuthGuard';
-import { ClientHeader } from '@/components/layout/ClientHeader';
 import { AppearanceSettings } from '@/components/settings/AppearanceSettings';
 import { ProfilePhotoSection } from '@/components/settings/ProfilePhotoSection';
 import { TelegramConnectModal } from '@/components/settings/TelegramConnectModal';
@@ -22,6 +21,7 @@ import {
 } from '@/lib/phone';
 import { canCustomizeTheme } from '@/lib/theme';
 import { requireAuth } from '@/server/auth/require-auth';
+import { Layout } from '@/shared/ui/layout';
 import { api } from '@/trpc/react';
 
 // Неавторизованных отправляем на вход ещё на сервере
@@ -159,29 +159,25 @@ export default function SettingsPage() {
             }
         }
     };
-    // const isDirty =
-    //   form.firstName !== (user?.firstName ?? "") ||
-    //   form.lastName !== (user?.lastName ?? "") ||
-    //   form.patronymic !== (user?.patronymic ?? "") ||
-    //   form.phone !== (user?.phone ?? "");
+
     return (
-        <>
-            <AuthGuard>
-                <ClientHeader />
-                <div className="mx-auto max-w-[900px] rounded-[25px] px-5 py-10 max-[480px]:px-2.5 max-[480px]:py-5">
+        <AuthGuard>
+            <Layout>
+                <div className="mx-auto max-w-[900px] rounded-xl px-4 py-10">
                     <div className="relative rounded-[15px] bg-card p-10 shadow-[0_2px_8px_rgba(0,0,0,0.08)] max-[480px]:p-4 max-md:p-5">
-                        <h1 className="text-[28px] font-bold text-foreground max-md:text-[22px]">
-                            Редактирование профиля
-                        </h1>
-                        {/* Изменить фото профиля */}
-                        <ProfilePhotoSection
-                            image={form.image}
-                            modalOpen={modalOpen}
-                            onOpenModal={() => setModalOpen(true)}
-                            onCloseModal={() => setModalOpen(false)}
-                            fileInputRef={fileInputRef}
-                            onFileChange={handleFileChange}
-                        />
+                        <div className="max-md:flex max-md:items-start max-md:justify-between max-md:gap-3">
+                            <h1 className="text-[28px] font-bold text-foreground max-md:min-w-0 max-md:text-[22px] max-md:wrap-break-word">
+                                Редактирование профиля
+                            </h1>
+                            <ProfilePhotoSection
+                                image={form.image}
+                                modalOpen={modalOpen}
+                                onOpenModal={() => setModalOpen(true)}
+                                onCloseModal={() => setModalOpen(false)}
+                                fileInputRef={fileInputRef}
+                                onFileChange={handleFileChange}
+                            />
+                        </div>
 
                         {/*ФОРМА*/}
 
@@ -276,7 +272,6 @@ export default function SettingsPage() {
                             </button>
                         </form>
                     </div>
-                    {/* Внешний вид — пока только для суперадминов */}
                     {canCustomizeTheme(session?.user?.role) && <AppearanceSettings />}
                 </div>
 
@@ -293,7 +288,7 @@ export default function SettingsPage() {
                         setLinkCode('');
                     }}
                 />
-            </AuthGuard>
-        </>
+            </Layout>
+        </AuthGuard>
     );
 }

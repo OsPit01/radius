@@ -53,10 +53,14 @@ export function SupportChatHeader({
         <div className="flex flex-wrap items-center gap-3 border-b pb-4">
             <button
                 type="button"
+                aria-label="К списку обращений"
                 className="flex h-11 cursor-pointer items-center rounded-lg px-3 text-sm hover:bg-muted"
                 onClick={onBack}
             >
-                <ArrowLeft className="h-6 w-6" />
+                <ArrowLeft
+                    aria-hidden="true"
+                    className="h-6 w-6"
+                />
             </button>
 
             {/* Номер заявки: маленький жирный, прижат к левому краю. */}
@@ -71,9 +75,9 @@ export function SupportChatHeader({
 
             {/* Ведёт: имя + бейдж роли. */}
             {selected?.assignedAdmin ? (
-                <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <span className="flex min-w-0 flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
                     Ведёт:
-                    <span className="font-medium text-foreground">
+                    <span className="min-w-0 font-medium wrap-break-word text-foreground">
                         {selected.assignedAdmin.firstName ?? selected.assignedAdmin.name ?? 'Админ'}
                     </span>
                     <span

@@ -18,9 +18,9 @@ import { Step2 } from '@/components/admin/add-object/Step2';
 import { Step3 } from '@/components/admin/add-object/Step3';
 import { Step4 } from '@/components/admin/add-object/Step4';
 import { ArrowLeft, ArrowRight, Plus, Warning } from '@/components/icons';
-import { ClientHeader } from '@/components/layout/ClientHeader';
 import { requireAuth } from '@/server/auth/require-auth';
 import { Button, buttonVariants } from '@/shared/ui/button';
+import { Layout } from '@/shared/ui/layout';
 import { api } from '@/trpc/react';
 
 export const getServerSideProps = requireAuth;
@@ -115,100 +115,92 @@ export default function AddObjectPage() {
 
     if (createApartment.isSuccess) {
         return (
-            <>
-                <ClientHeader />
-
-                <div className="mx-auto my-6 max-w-[800px] rounded-[24px] border border-border bg-card p-10 text-center shadow-[0_10px_30px_rgba(0,0,0,0.08)] max-[640px]:p-5">
-                    <h1 className="mb-4 text-[28px] text-primary">Объект добавлен</h1>
-                    <p className="mb-6 text-base text-foreground">
-                        Ваш объект успешно добавлен и находится на модерации. После проверки модератором он появится в
-                        каталоге.
-                    </p>
-                    <Link
-                        href="/"
-                        className={buttonVariants()}
-                    >
-                        На главную
-                    </Link>
-                </div>
-            </>
+            <Layout>
+                <h1 className="mb-4 text-[28px] text-primary">Объект добавлен</h1>
+                <p className="mb-6 text-base text-foreground">
+                    Ваш объект успешно добавлен и находится на модерации. После проверки модератором он появится в
+                    каталоге.
+                </p>
+                <Link
+                    href="/"
+                    className={buttonVariants()}
+                >
+                    На главную
+                </Link>
+            </Layout>
         );
     }
 
     return (
-        <>
-            <ClientHeader />
+        <Layout>
+            <div className="mx-auto my-6 max-w-[800px] rounded-[24px] border border-border bg-card p-10 shadow-[0_10px_30px_rgba(0,0,0,0.08)] max-[640px]:p-5">
+                <h1 className="mb-[30px] text-center text-[28px] text-primary">Создание объекта</h1>
 
-            <div>
-                <div className="mx-auto my-6 max-w-[800px] rounded-[24px] border border-border bg-card p-10 shadow-[0_10px_30px_rgba(0,0,0,0.08)] max-[640px]:p-5">
-                    <h1 className="mb-[30px] text-center text-[28px] text-primary">Создание объекта</h1>
+                <FormProvider {...form}>
+                    <form
+                        className="flex flex-col gap-5"
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                            void submit(e);
+                        }}
+                    >
+                        {step === 1 && <Step1 />}
 
-                    <FormProvider {...form}>
-                        <form
-                            className="flex flex-col gap-5"
-                            onSubmit={(e) => {
-                                e.preventDefault();
-                                void submit(e);
-                            }}
-                        >
-                            {step === 1 && <Step1 />}
+                        {step === 2 && <Step2 />}
 
-                            {step === 2 && <Step2 />}
+                        {step === 3 && <Step3 />}
 
-                            {step === 3 && <Step3 />}
+                        {step === 4 && <Step4 onUploadingChange={setIsUploading} />}
 
-                            {step === 4 && <Step4 onUploadingChange={setIsUploading} />}
+                        {alertMessage && (
+                            <div
+                                role="alert"
+                                className="flex items-start gap-2 rounded-xl bg-destructive/10 p-3 text-sm text-destructive"
+                            >
+                                <Warning className="mt-0.5 size-4 shrink-0" />
+                                <p>{alertMessage}</p>
+                            </div>
+                        )}
 
-                            {alertMessage && (
-                                <div
-                                    role="alert"
-                                    className="flex items-start gap-2 rounded-xl bg-destructive/10 p-3 text-sm text-destructive"
+                        <div className="mt-[30px] flex justify-between gap-2 max-[640px]:flex-col">
+                            {step > 1 && (
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    className="flex-1"
+                                    disabled={createApartment.isPending}
+                                    onClick={handleBack}
                                 >
-                                    <Warning className="mt-0.5 size-4 shrink-0" />
-                                    <p>{alertMessage}</p>
-                                </div>
+                                    <ArrowLeft className="h-5 w-5" />
+                                    Назад
+                                </Button>
                             )}
 
-                            <div className="mt-[30px] flex justify-between gap-2 max-[640px]:flex-col">
-                                {step > 1 && (
-                                    <Button
-                                        type="button"
-                                        variant="secondary"
-                                        className="flex-1"
-                                        disabled={createApartment.isPending}
-                                        onClick={handleBack}
-                                    >
-                                        <ArrowLeft className="h-5 w-5" />
-                                        Назад
-                                    </Button>
-                                )}
-
-                                {step === LAST_STEP ? (
-                                    <Button
-                                        type="submit"
-                                        variant="default"
-                                        className="flex-1"
-                                        disabled={createApartment.isPending || isUploading}
-                                    >
-                                        <Plus className="h-5 w-5" />
-                                        {createApartment.isPending ? 'Добавляем...' : 'Добавить квартиру'}
-                                    </Button>
-                                ) : (
-                                    <Button
-                                        type="button"
-                                        variant="default"
-                                        className="flex-1"
-                                        onClick={() => void handleNext()}
-                                    >
-                                        Далее
-                                        <ArrowRight className="h-5 w-5" />
-                                    </Button>
-                                )}
-                            </div>
-                        </form>
-                    </FormProvider>
-                </div>
+                            {step === LAST_STEP ? (
+                                <Button
+                                    type="submit"
+                                    variant="default"
+                                    className="flex-1"
+                                    disabled={createApartment.isPending || isUploading}
+                                >
+                                    <Plus className="h-5 w-5" />
+                                    {createApartment.isPending ? 'Добавляем...' : 'Добавить квартиру'}
+                                </Button>
+                            ) : (
+                                <Button
+                                    type="button"
+                                    variant="default"
+                                    className="flex-1"
+                                    onClick={() => void handleNext()}
+                                >
+                                    Далее
+                                    <ArrowRight className="h-5 w-5" />
+                                </Button>
+                            )}
+                        </div>
+                    </form>
+                </FormProvider>
             </div>
-        </>
+        </Layout>
     );
 }
