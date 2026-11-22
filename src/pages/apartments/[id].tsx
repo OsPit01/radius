@@ -8,7 +8,6 @@ import { OwnerPhone } from '@/components/apartments/OwnerPhone';
 import { PhotoGallery } from '@/components/apartments/PhotoGallery';
 import { Bath, Bed, Building, Clock, MapPin, Metro, Ruler } from '@/components/icons';
 import { JsonLd } from '@/components/JsonLd';
-import { ClientHeader } from '@/components/layout/ClientHeader';
 import { Seo } from '@/components/Seo';
 import { Avatar } from '@/components/ui/Avatar';
 import { formatAddressLine } from '@/lib/address';
@@ -21,8 +20,10 @@ import { cityInPrepositional } from '@/lib/declension';
 import { parseBookingChildren, parseBookingGuests } from '@/lib/search-params';
 import { getApartmentOgImagePath, SITE_URL } from '@/lib/seo';
 import { transliterate } from '@/lib/transliterate';
+import { Layout } from '@/shared/ui/layout';
 import type { RouterOutputs } from '@/trpc/react';
 import { createServerCaller } from '@/trpc/server';
+import { plural } from '@/utils/plural';
 
 type ApartmentPageProps = {
     /** id из адреса как есть — для canonical */
@@ -75,10 +76,10 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
 
     const hasExtras = (a.area ?? 0) > 0 || (a.floor ?? 0) > 0 || (a.bathrooms ?? 0) > 0;
     const sleepParts = [
-        a.beds ? `${a.beds} двусп. кровать` : '',
-        a.singleBeds ? `${a.singleBeds} односп. кровать` : '',
-        a.doubleSofas ? `${a.doubleSofas} двусп. диван` : '',
-        a.singleSofas ? `${a.singleSofas} односп. диван` : '',
+        a.beds ? `${a.beds} двусп. ${plural(a.beds, 'кровать', 'кровати', 'кроватей')}` : '',
+        a.singleBeds ? `${a.singleBeds} односп. ${plural(a.singleBeds, 'кровать', 'кровати', 'кроватей')}` : '',
+        a.doubleSofas ? `${a.doubleSofas} двусп. ${plural(a.doubleSofas, 'диван', 'дивана', 'диванов')}` : '',
+        a.singleSofas ? `${a.singleSofas} односп. ${plural(a.singleSofas, 'диван', 'дивана', 'диванов')}` : '',
     ].filter(Boolean);
     const sleepText = sleepParts.join(', ');
 
@@ -113,13 +114,13 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
                 longitude={a.lon ?? undefined}
             />
             <JsonLd data={lodgingSchema} />
-            <ClientHeader />
 
-            <ApartmentViewTracker apartmentId={apartment.apartment.id} />
-
-            <div className="mx-auto mt-5.5 max-w-5xl px-6 pb-[60px] max-md:px-5">
-                <h1 className="mb-6 text-3xl font-bold text-foreground">{apartment.apartment.title}</h1>
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <Layout withFooter>
+                <ApartmentViewTracker apartmentId={apartment.apartment.id} />
+                <h1 className="mb-6 px-4 text-2xl font-bold text-foreground lg:text-3xl">
+                    {apartment.apartment.title}
+                </h1>
+                <div className="grid grid-cols-1 gap-6 px-4 lg:grid-cols-2">
                     <PhotoGallery
                         photos={photos}
                         title={apartment.apartment.title}
@@ -166,11 +167,11 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
                             </p>
                         </div>
 
-                        {!!apartment.apartment.minsToMetro && (
+                        {!!a.minsToMetro && (
                             <div className="mt-2 flex flex-wrap items-center gap-x-2">
                                 <Metro className="h-5 w-5" />
                                 <p className="text-sm text-foreground">
-                                    {apartment.apartment.minsToMetro} минут до метро
+                                    {a.minsToMetro} {plural(a.minsToMetro, 'минута', 'минуты', 'минут')} до метро
                                 </p>
                             </div>
                         )}
@@ -199,7 +200,7 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
                                 {a.bathrooms ? (
                                     <span className="inline-flex items-center gap-1.5">
                                         <Bath className="h-5 w-5" />
-                                        {a.bathrooms} санузел(а)
+                                        {a.bathrooms} {plural(a.bathrooms, 'санузел', 'санузла', 'санузлов')}
                                     </span>
                                 ) : null}
                             </div>
@@ -273,7 +274,7 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
                     lon={a.lon}
                     address={formatAddressLine(a)}
                 />
-            </div>
+            </Layout>
         </>
     );
 }

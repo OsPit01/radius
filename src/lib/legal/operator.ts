@@ -58,5 +58,4 @@ export const OPERATOR = {
     supportTelegramUrl: 'https://t.me/naradare_booking',
 } as const;
 
-/** Ссылка «Сдать квартиру» — публичный адрес формы размещения объекта. */
 export const ADD_APARTMENT_URL = '/my-apartments/new';

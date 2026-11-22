@@ -17,8 +17,8 @@ import {
     limitNationalNumberLength,
     toE164,
 } from '@/lib/phone';
-import { pluralRu } from '@/lib/plural';
 import { api } from '@/trpc/react';
+import { plural } from '@/utils/plural';
 
 // «Сегодня» в локальном часовом поясе браузера, в формате YYYY-MM-DD.
 // Нужен для min у input[type=date]: раньше этой даты выбрать нельзя.
@@ -321,7 +321,7 @@ export function BookingButton({
                             {apartmentCapacity !== undefined && (
                                 <span className="text-xs font-normal text-muted-foreground">
                                     Квартира вмещает до {apartmentCapacity}{' '}
-                                    {pluralRu(apartmentCapacity, 'гостя', 'гостей', 'гостей')} — больше указать нельзя.
+                                    {plural(apartmentCapacity, 'гостя', 'гостей', 'гостей')} — больше указать нельзя.
                                 </span>
                             )}
                         </div>

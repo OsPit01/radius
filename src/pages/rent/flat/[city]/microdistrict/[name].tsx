@@ -2,16 +2,16 @@ import type { GetServerSideProps } from 'next';
 import Head from 'next/head';
 
 import { ApartmentsList } from '@/components/apartments/ApartmentsList';
-import { ClientHeader } from '@/components/layout/ClientHeader';
 import { Seo } from '@/components/Seo';
 import { type ApartmentCardData, getApartmentCardData } from '@/lib/apartment-format';
 import { getMicrodistrictBlurb } from '@/lib/constants';
 import { formatByn } from '@/lib/constants/currencies';
 import { districtInPrepositional } from '@/lib/declension';
-import { pluralRu } from '@/lib/plural';
 import { SITE_URL } from '@/lib/seo';
 import { transliterate } from '@/lib/transliterate';
+import { Layout } from '@/shared/ui/layout';
 import { createServerCaller } from '@/trpc/server';
+import { plural } from '@/utils/plural';
 
 type MicrodistrictPageProps = {
     city: string;
@@ -202,10 +202,12 @@ export default function MicrodistrictPage({ city, name, apartments }: Microdistr
     // ===== микроразметки ниже. Правило Google: размечаем только видимый  =====
     // ===== контент, тексты обязаны совпадать. Одна переменная = совпадение  =====
     // ===== физически гарантировано (разъехаться не могут).
+    const apartmentCount = apartments.length;
+    const metroWalk = minMetro === null ? null : `${minMetro} ${plural(minMetro, 'минута', 'минуты', 'минут')}`;
     const faqPriceAnswer = `${priceRange} за ночь${typePhrase}.`;
     const faqMetroAnswer =
-        minMetro !== null
-            ? `До ближайшей станции ${minMetro} ${pluralRu(minMetro, 'минута', 'минуты', 'минут')} пешком.`
+        metroWalk !== null
+            ? `До ближайшей станции ${metroWalk} пешком.`
             : 'Район вдали от метро — удобнее добираться на машине или общественном транспорте.';
     const faqBookingAnswer = 'Да: выберите даты в карточке квартиры и отправьте заявку — собственник ответит в чате.';
 
@@ -251,13 +253,12 @@ export default function MicrodistrictPage({ city, name, apartments }: Microdistr
                     }}
                 />
             </Head>
-            <ClientHeader />
-
-            <main className="mx-auto max-w-[1400px] px-20 pt-5 pb-[60px] max-lg:px-10 max-md:px-5 max-md:py-[30px]">
+            <Layout withFooter>
                 <div className="mb-6 text-center">
                     <h1 className="text-[2rem] font-bold max-md:text-[1.5rem]">Квартиры на сутки {districtIn}</h1>
                     <p className="mt-3 text-[1.1rem] text-muted-foreground max-md:text-base">
-                        Найдено {apartments.length} {pluralRu(apartments.length, 'квартира', 'квартиры', 'квартир')}
+                        {plural(apartmentCount, 'Найдена', 'Найдено', 'Найдено')} {apartmentCount}{' '}
+                        {plural(apartmentCount, 'квартира', 'квартиры', 'квартир')}
                     </p>
                 </div>
 
@@ -273,14 +274,8 @@ export default function MicrodistrictPage({ city, name, apartments }: Microdistr
                     <p>
                         {blurb && <>{blurb} </>}
                         Квартиры на сутки {districtIn} ({city}) {priceRange} за ночь{typePhrase}.
-                        {minMetro !== null && (
-                            <>
-                                {' '}
-                                До метро {minMetro} {pluralRu(minMetro, 'минута', 'минуты', 'минут')} пешком.
-                            </>
-                        )}{' '}
-                        Фото, честные цены и онлайн-бронирование напрямую от собственников — без посредников и скрытых
-                        комиссий.
+                        {metroWalk !== null && <> До метро {metroWalk} пешком.</>} Фото, честные цены и
+                        онлайн-бронирование напрямую от собственников — без посредников и скрытых комиссий.
                     </p>
 
                     {/* FAQ: заголовки H3 = реальные поисковые запросы (голосовые и
@@ -299,7 +294,7 @@ export default function MicrodistrictPage({ city, name, apartments }: Microdistr
                         <p className="text-sm text-muted-foreground">{faqBookingAnswer}</p>
                     </div>
                 </section>
-            </main>
+            </Layout>
         </>
     );
 }

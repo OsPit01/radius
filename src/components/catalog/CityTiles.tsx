@@ -11,9 +11,9 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 
 import { ScanOverlay } from '@/components/home/ScanOverlay';
 import { ArrowLeft, MapPin } from '@/components/icons';
-import { pluralRu } from '@/lib/plural';
 import { transliterate } from '@/lib/transliterate';
 import { api } from '@/trpc/react';
+import { plural } from '@/utils/plural';
 
 /** Минимум, сколько оверлей сканирования остаётся на экране, чтобы анимация была заметна. */
 const MIN_SCAN_MS = 1200;
@@ -286,7 +286,7 @@ export function CityTiles() {
                 <span className="min-w-0 truncate text-base font-semibold text-foreground">{locality.city}</span>
             </span>
             <span className="block truncate text-sm text-muted-foreground">
-                {locality.count} {pluralRu(locality.count, 'квартира', 'квартиры', 'квартир')}
+                {locality.count} {plural(locality.count, 'квартира', 'квартиры', 'квартир')}
             </span>
         </Link>
     );
@@ -305,8 +305,7 @@ export function CityTiles() {
                 </span>
             </span>
             <span className="block truncate text-sm text-muted-foreground">
-                {regionTotalCount} {pluralRu(regionTotalCount, 'квартира', 'квартиры', 'квартир')} · все города и
-                деревни
+                {regionTotalCount} {plural(regionTotalCount, 'квартира', 'квартиры', 'квартир')} · все города и деревни
             </span>
         </button>
     ) : null;

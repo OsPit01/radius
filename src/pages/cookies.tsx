@@ -12,6 +12,7 @@ import { COOKIES_POLICY } from '@/lib/legal/cookies';
 export default function CookiesPage() {
     return (
         <LegalDocument
+            withFooter
             doc={COOKIES_POLICY}
             footer={<CookieSettingsButton />}
         />

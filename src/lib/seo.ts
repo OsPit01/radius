@@ -54,6 +54,10 @@ export function getApartmentOgImagePath(apartmentId: number, firstPhoto: string)
  */
 export const NOINDEX_PATHS = ['/auth', '/profile', '/my-apartments', '/my-notifications', '/admin'];
 
+export function isNoindexPath(pathname: string): boolean {
+    return NOINDEX_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+}
+
 /** Относительный путь → абсолютный URL сайта (canonical и og:image должны быть абсолютными). */
 export function absoluteUrl(pathOrUrl: string): string {
     if (/^https?:\/\//.test(pathOrUrl)) {

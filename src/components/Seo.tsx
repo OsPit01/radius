@@ -39,14 +39,13 @@ export function Seo({
     latitude,
     longitude,
 }: SeoProps) {
-    // Фолбэк — просто бренд: страницы без своего заголовка (например, 404)
-    // не должны «притворяться» главной.
     const ogTitle = title ?? absoluteTitle ?? SITE_NAME;
-    // Бренд добавляем ОДИН раз и только в <title>: og:title остаётся «чистым»,
-    // потому что в карточке соцсетей бренд уже показан отдельно через og:site_name.
+
     const documentTitle =
         ogTitle === SITE_NAME || ogTitle.endsWith(` | ${SITE_NAME}`) ? ogTitle : `${ogTitle} | ${SITE_NAME}`;
+
     const ogImage = absoluteUrl(image ?? DEFAULT_OG_IMAGE);
+
     const canonicalUrl = canonical ? absoluteUrl(canonical) : undefined;
 
     return (

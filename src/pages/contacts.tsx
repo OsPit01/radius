@@ -1,23 +1,10 @@
-// ============================================================
-// /contacts — Контакты и реквизиты платформы
-// ============================================================
-//
-// Все данные берутся из ЕДИНОГО источника — src/lib/legal/operator.ts.
-// Здесь ничего не хардкодится: поменяли реквизиты в одном файле —
-// обновились футер, документы и эта страница.
-//
-// JSON-LD (Organization) — микроразметка для поисковиков: по
-// брендовым запросам Google показывает адрес и почту компании.
-// Это невидимая разметка, страницы не утяжеляет.
-// ============================================================
-
 import Head from 'next/head';
 
 import { Mail, MapPin, Shield, Telegram } from '@/components/icons';
-import { ClientHeader } from '@/components/layout/ClientHeader';
 import { Seo } from '@/components/Seo';
 import { OPERATOR } from '@/lib/legal/operator';
 import { SITE_URL } from '@/lib/seo';
+import { Layout } from '@/shared/ui/layout';
 
 export default function ContactsPage() {
     return (
@@ -28,7 +15,6 @@ export default function ContactsPage() {
                 canonical="/contacts"
             />
 
-            {/* Микроразметка организации: name, адрес, почта, УНП. */}
             <Head>
                 <script
                     type="application/ld+json"
@@ -51,17 +37,14 @@ export default function ContactsPage() {
                 />
             </Head>
 
-            <ClientHeader />
-
-            <main className="mx-auto w-full max-w-3xl px-5 py-10 text-foreground max-md:px-4 max-md:py-6">
-                <h1 className="mb-3 text-3xl font-bold max-md:text-2xl">Контакты и реквизиты</h1>
-                <p className="mb-8 text-muted-foreground">
+            <Layout withFooter>
+                <h1 className="mb-3 px-4 text-3xl font-bold">Контакты и реквизиты</h1>
+                <h3 className="mb-8 px-4 text-muted-foreground">
                     Мы на связи: поддержка отвечает на вопросы по сайту, бронированиям и размещению объектов.
-                </p>
+                </h3>
 
-                <div className="flex flex-col gap-5">
-                    {/* ===== Оператор платформы ===== */}
-                    <section className="rounded-2xl bg-card p-6 shadow-sm max-md:p-5">
+                <div className="flex flex-col gap-5 px-4">
+                    <section className="rounded-2xl bg-card p-5 shadow-sm">
                         <div className="mb-4 flex items-center gap-3">
                             <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-muted text-primary">
                                 <MapPin className="h-6 w-6" />
@@ -84,8 +67,7 @@ export default function ContactsPage() {
                         </dl>
                     </section>
 
-                    {/* ===== Поддержка ===== */}
-                    <section className="rounded-2xl bg-card p-6 shadow-sm max-md:p-5">
+                    <section className="rounded-2xl bg-card p-5 shadow-sm max-md:p-5">
                         <div className="mb-4 flex items-center gap-3">
                             <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-muted text-primary">
                                 <Telegram className="h-6 w-6" />
@@ -112,8 +94,7 @@ export default function ContactsPage() {
                         </div>
                     </section>
 
-                    {/* ===== Персональные данные ===== */}
-                    <section className="rounded-2xl bg-card p-6 shadow-sm max-md:p-5">
+                    <section className="rounded-2xl bg-card p-5 shadow-sm">
                         <div className="mb-4 flex items-center gap-3">
                             <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-muted text-primary">
                                 <Shield className="h-6 w-6" />
@@ -133,12 +114,11 @@ export default function ContactsPage() {
                         </a>
                     </section>
                 </div>
-            </main>
+            </Layout>
         </>
     );
 }
 
-/** Строка «реквизит: значение» — определение описания (dl). */
 function Row({ label, value }: { label: string; value: string }) {
     return (
         <div className="flex flex-col gap-0.5 sm:flex-row sm:gap-4">

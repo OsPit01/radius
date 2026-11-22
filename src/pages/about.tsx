@@ -8,9 +8,9 @@
 
 import Link from 'next/link';
 
-import { ClientHeader } from '@/components/layout/ClientHeader';
 import { Seo } from '@/components/Seo';
 import { ADD_APARTMENT_URL, OPERATOR } from '@/lib/legal/operator';
+import { Layout } from '@/shared/ui/layout';
 
 const DESCRIPTION = `${OPERATOR.siteName} — платформа посуточной аренды жилья в Беларуси: собственники размещают объекты бесплатно, гости бронируют напрямую, без посредников.`;
 
@@ -22,9 +22,7 @@ export default function AboutPage() {
                 description={DESCRIPTION}
                 canonical="/about"
             />
-            <ClientHeader />
-
-            <main className="mx-auto w-full max-w-3xl px-5 py-10 text-foreground max-md:px-4 max-md:py-6">
+            <Layout withFooter>
                 <div className="rounded-2xl bg-card p-8 shadow-sm max-md:p-5">
                     <h1 className="mb-6 text-3xl font-bold max-md:text-2xl">О {OPERATOR.siteName}</h1>
 
@@ -82,7 +80,7 @@ export default function AboutPage() {
                         .
                     </p>
                 </div>
-            </main>
+            </Layout>
         </>
     );
 }

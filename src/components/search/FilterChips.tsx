@@ -1,4 +1,5 @@
 import { Close } from '@/components/icons';
+import { plural } from '@/utils/plural';
 
 import type { Filters } from './FilterPanel';
 
@@ -20,22 +21,21 @@ export function FilterChips({
     if (filters.priceMax) {
         chips.push({ key: 'priceMax', label: `до ${filters.priceMax} BYN` });
     }
-    if (filters.rooms !== null) {
-        const label = filters.rooms === 4 ? '4+' : String(filters.rooms);
-        chips.push({ key: 'rooms', label: `${label} ${roomWord(filters.rooms)}` });
+    const { rooms, beds, sofas } = filters;
+    if (rooms !== null) {
+        const label = rooms === 4 ? 'от 4 комнат' : `${rooms} ${plural(rooms, 'комната', 'комнаты', 'комнат')}`;
+        chips.push({ key: 'rooms', label });
     }
-    if (filters.beds !== null) {
-        const label = filters.beds === 4 ? '4+' : String(filters.beds);
+    if (beds !== null) {
         chips.push({
             key: 'beds',
-            label: `кроватей: от ${label}`,
+            label: `от ${beds} ${plural(beds, 'кровати', 'кроватей', 'кроватей')}`,
         });
     }
-    if (filters.sofas !== null) {
-        const label = filters.sofas === 4 ? '4+' : String(filters.sofas);
+    if (sofas !== null) {
         chips.push({
             key: 'sofas',
-            label: `диванов: от ${label}`,
+            label: `от ${sofas} ${plural(sofas, 'дивана', 'диванов', 'диванов')}`,
         });
     }
     if (filters.metro !== null) {
@@ -50,7 +50,7 @@ export function FilterChips({
     }
 
     return (
-        <div className="mx-auto mt-4 flex w-full max-w-[1400px] [scrollbar-width:none] items-center gap-2 overflow-x-auto px-5 pb-1 max-md:px-4 [&::-webkit-scrollbar]:hidden">
+        <div className="mx-auto mt-4 flex w-full max-w-7xl [scrollbar-width:none] items-center gap-2 overflow-x-auto px-5 pb-1 max-md:px-4 [&::-webkit-scrollbar]:hidden">
             {chips.map((chip) => (
                 <span
                     key={chip.key}
@@ -76,14 +76,4 @@ export function FilterChips({
             </button>
         </div>
     );
-}
-
-function roomWord(rooms: number) {
-    if (rooms === 1) {
-        return 'комната';
-    }
-    if (rooms >= 2 && rooms <= 4) {
-        return 'комнаты';
-    }
-    return 'комнат';
 }

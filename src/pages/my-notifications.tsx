@@ -4,10 +4,10 @@ import Link from 'next/link';
 
 import { ArrowRight, Bell, Calendar, Info } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
-import { ClientHeader } from '@/components/layout/ClientHeader';
 import { NotificationCard } from '@/components/notifications/NotificationCard';
 import { Modal } from '@/components/ui/Modal';
 import { requireAuth } from '@/server/auth/require-auth';
+import { Layout } from '@/shared/ui/layout';
 import { api } from '@/trpc/react';
 
 // Неавторизованных отправляем на вход ещё на сервере
@@ -44,9 +44,8 @@ export default function MyNotifications() {
         },
     });
     return (
-        <>
-            <AuthGuard>
-                <ClientHeader />
+        <AuthGuard>
+            <Layout className="flex max-w-none! flex-1 flex-col p-0!">
                 <div className="mt-auto flex w-full flex-wrap items-center justify-between gap-2 px-5 py-10 max-md:py-5">
                     <span className="text-2xl font-bold text-foreground max-md:text-xl">Мои уведомления</span>
                     <div className="flex flex-wrap items-center gap-2">
@@ -142,7 +141,7 @@ export default function MyNotifications() {
                         </div>
                     </Modal>
                 )}
-            </AuthGuard>
-        </>
+            </Layout>
+        </AuthGuard>
     );
 }

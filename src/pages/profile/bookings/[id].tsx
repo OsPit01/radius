@@ -7,13 +7,13 @@ import { useSession } from 'next-auth/react';
 
 import { CheckCircle, Hourglass } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
-import { ClientHeader } from '@/components/layout/ClientHeader';
 import { statusColor } from '@/lib/booking-utils';
 import { BOOKING_STATUS_LABELS, GUEST_BOOKING_STATUS_LABELS } from '@/lib/constants/booking';
 import { cancelledByLabel } from '@/lib/constants/cancel-reasons';
-import { pluralRu } from '@/lib/plural';
 import { requireAuth } from '@/server/auth/require-auth';
+import { Layout } from '@/shared/ui/layout';
 import { api } from '@/trpc/react';
+import { plural } from '@/utils/plural';
 export const getServerSideProps = requireAuth;
 
 // «26 окт., пн» — дата + день недели.
@@ -60,21 +60,20 @@ export default function BookingDetailPage() {
     if (!isValidId || (!isPending && !data)) {
         return (
             <AuthGuard>
-                <ClientHeader />
-                <div className="mx-auto max-w-[1400px] px-6 py-10 max-md:px-5">
+                <Layout className="w-auto! px-6! py-10! max-md:px-5!">
                     <p className="text-center text-muted-foreground">Заявка не найдена.</p>
-                </div>
+                </Layout>
             </AuthGuard>
         );
     }
 
     const { booking, apartment } = data ?? {};
     const isOwner = apartment?.createdById === userId;
+    const nights = booking ? nightsBetween(booking.checkInDate, booking.checkOutDate) : 0;
 
     return (
         <AuthGuard>
-            <ClientHeader />
-            <div className="mx-auto max-w-3xl px-6 py-6 max-md:px-5">
+            <Layout className="max-w-3xl! px-6! py-6! max-md:px-5!">
                 {isPending || !booking || !apartment ? (
                     <p className="py-8 text-center text-muted-foreground">Загрузка…</p>
                 ) : (
@@ -98,7 +97,7 @@ export default function BookingDetailPage() {
 
                         {/* Причина отмены */}
                         {booking.cancelReason && (
-                            <p className="mt-2 text-sm text-muted-foreground">
+                            <p className="mt-2 text-sm wrap-break-word text-muted-foreground">
                                 Причина отмены: «{booking.cancelReason}»
                             </p>
                         )}
@@ -117,7 +116,7 @@ export default function BookingDetailPage() {
                             <div className="min-w-0">
                                 <Link
                                     href={`/apartments/${apartment.id}`}
-                                    className="font-semibold text-foreground no-underline hover:text-primary"
+                                    className="font-semibold wrap-break-word text-foreground no-underline hover:text-primary"
                                 >
                                     {apartment.title}
                                 </Link>
@@ -143,13 +142,7 @@ export default function BookingDetailPage() {
                             </div>
                             <div className="text-center">
                                 <p className="text-sm text-muted-foreground">
-                                    {nightsBetween(booking.checkInDate, booking.checkOutDate)}{' '}
-                                    {pluralRu(
-                                        nightsBetween(booking.checkInDate, booking.checkOutDate),
-                                        'ночь',
-                                        'ночи',
-                                        'ночей',
-                                    )}
+                                    {nights} {plural(nights, 'ночь', 'ночи', 'ночей')}
                                 </p>
                             </div>
                             <div className="flex-1 text-right">
@@ -176,7 +169,9 @@ export default function BookingDetailPage() {
                             </p>
 
                             <p className="mt-3 text-sm font-medium text-foreground">Цель поездки</p>
-                            <p className="mt-1 text-sm text-muted-foreground">{booking.tripPurpose ?? 'Не указана'}</p>
+                            <p className="mt-1 text-sm wrap-break-word text-muted-foreground">
+                                {booking.tripPurpose ?? 'Не указана'}
+                            </p>
 
                             <p className="mt-3 text-sm font-medium text-foreground">Правила отмены</p>
                             <p className="mt-1 text-sm text-muted-foreground">
@@ -241,7 +236,7 @@ export default function BookingDetailPage() {
                         )}
                     </>
                 )}
-            </div>
+            </Layout>
         </AuthGuard>
     );
 }

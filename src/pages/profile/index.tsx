@@ -2,12 +2,11 @@ import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 
 import { BarChart, Bed, Chat, Clipboard, Heart, Home, type IconProps, Settings, Star } from '@/components/icons';
-import { AuthGuard } from '@/components/layout/AuthGuard';
-import { ClientHeader } from '@/components/layout/ClientHeader';
 import { TileLink } from '@/components/ui/TileLink';
 import { getRoleInfo } from '@/lib/constants/roles';
 import { getRoleColor } from '@/lib/theme';
 import { requireAuth } from '@/server/auth/require-auth';
+import { Layout } from '@/shared/ui/layout';
 import { api } from '@/trpc/react';
 
 type UserStats = {
@@ -97,6 +96,7 @@ export default function ProfilePage() {
         totalMyBookings: statsData?.stats?.totalMyBookings ?? 0,
         totalFavorites: statsData?.stats?.totalFavorites ?? 0,
     };
+
     const tiles = [
         { href: '/my-apartments', label: 'Мои объекты', count: stats.totalApartments, Icon: Home },
         { href: '/profile/chat', label: 'Мои сообщения', count: unreadCount ?? 0, Icon: Chat },
@@ -120,64 +120,60 @@ export default function ProfilePage() {
 
         { href: '/profile/reviews', label: 'Мои отзывы', Icon: Star },
     ];
+
     return (
-        <>
-            <AuthGuard>
-                <ClientHeader />
-                <div className="bg-background px-5 py-10 max-md:px-3 max-md:py-4">
-                    <div className="mx-auto max-w-[900px] rounded-[24px] p-12 shadow-[0_20px_60px_rgba(0,0,0,0.08)] max-[480px]:rounded-2xl max-[480px]:p-4 max-md:rounded-[20px] max-md:p-6">
-                        {/* ====
+        <Layout>
+            <div className="mx-auto max-w-[900px] rounded-[24px] p-12 shadow-[0_20px_60px_rgba(0,0,0,0.08)] max-[480px]:rounded-2xl max-[480px]:p-4 max-md:rounded-[20px] max-md:p-6">
+                {/* ====
                1. ШАПКА ПРОФИЛЯ (АВАТАР + ИМЯ + ПОЧТА + РОЛЬ)
                ====*/}
-                        <div className="mb-2 flex items-center gap-10 rounded-[20px] border-b-2 border-border bg-card p-7 max-md:flex-col max-md:gap-5 max-md:p-5 max-md:text-center">
-                            {/* АВАТАР */}
-                            <div className="shrink-0">
-                                {user.image ? (
-                                    <Image
-                                        src={user.image}
-                                        alt={user.role || 'User'}
-                                        width={50}
-                                        height={50}
-                                        className="h-20 w-20 rounded-full object-cover shadow-[0_4px_20px_color-mix(in_oklab,var(--primary)_20%,transparent)] max-[480px]:h-20 max-[480px]:w-20 max-md:h-[75px] max-md:w-[75px]"
-                                    />
-                                ) : (
-                                    <div className="flex h-20 w-20 items-center justify-center rounded-full border-[3px] border-foreground bg-foreground text-[48px] font-bold text-background shadow-[0_4px_20px_color-mix(in_oklab,var(--primary)_20%,transparent)] max-[480px]:h-20 max-[480px]:w-20 max-[480px]:text-[32px] max-md:h-[75px] max-md:w-[75px] max-md:text-[40px]">
-                                        {displayName.charAt(0)}
-                                    </div>
-                                )}
+                <div className="mb-2 flex items-center gap-10 rounded-[20px] border-b-2 border-border bg-card p-7 max-md:flex-col max-md:gap-5 max-md:p-5 max-md:text-center">
+                    {/* АВАТАР */}
+                    <div className="shrink-0">
+                        {user.image ? (
+                            <Image
+                                src={user.image}
+                                alt={user.role || 'User'}
+                                width={50}
+                                height={50}
+                                className="h-20 w-20 rounded-full object-cover shadow-[0_4px_20px_color-mix(in_oklab,var(--primary)_20%,transparent)] max-[480px]:h-20 max-[480px]:w-20 max-md:h-[75px] max-md:w-[75px]"
+                            />
+                        ) : (
+                            <div className="flex h-20 w-20 items-center justify-center rounded-full border-[3px] border-foreground bg-foreground text-[48px] font-bold text-background shadow-[0_4px_20px_color-mix(in_oklab,var(--primary)_20%,transparent)] max-[480px]:h-20 max-[480px]:w-20 max-[480px]:text-[32px] max-md:h-[75px] max-md:w-[75px] max-md:text-[40px]">
+                                {displayName.charAt(0)}
                             </div>
-                            <div className="flex-1">
-                                <p className="m-0 text-[32px] font-bold text-foreground max-[480px]:text-[22px] max-md:text-[26px]">
-                                    {displayName}
-                                </p>
-                                <p className="my-1 text-base text-foreground">{user.email}</p>
-                                <div className="flex items-center gap-2 max-md:justify-center">
-                                    <span
-                                        className="inline-flex items-center gap-1.5 rounded-[30px] px-[18px] py-1.5 text-[13px] font-semibold tracking-[0.5px] text-white uppercase shadow-[0_4px_12px_rgba(49,53,50,0.658)]"
-                                        style={{ background: getRoleColor(user.role) }}
-                                    >
-                                        {roleInfo.label}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="mt-2 grid grid-cols-2 gap-4 max-[480px]:grid-cols-1">
-                            {/* Плитки-разделы: единый стиль с панелью управления —
-                                компонент TileLink (правка вида в одном месте) */}
-                            {tiles.map(({ href, label, count, Icon }) => (
-                                <TileLink
-                                    key={href}
-                                    href={href}
-                                    label={label}
-                                    icon={Icon}
-                                    count={count}
-                                />
-                            ))}
+                        )}
+                    </div>
+                    <div className="flex-1">
+                        <p className="m-0 text-[32px] font-bold text-foreground max-[480px]:text-[22px] max-md:text-[26px]">
+                            {displayName}
+                        </p>
+                        <p className="my-1 text-base text-foreground">{user.email}</p>
+                        <div className="flex items-center gap-2 max-md:justify-center">
+                            <span
+                                className="inline-flex items-center gap-1.5 rounded-[30px] px-[18px] py-1.5 text-[13px] font-semibold tracking-[0.5px] text-white uppercase shadow-[0_4px_12px_rgba(49,53,50,0.658)]"
+                                style={{ background: getRoleColor(user.role) }}
+                            >
+                                {roleInfo.label}
+                            </span>
                         </div>
                     </div>
                 </div>
-            </AuthGuard>
-        </>
+
+                <div className="mt-2 grid grid-cols-2 gap-4 max-[480px]:grid-cols-1">
+                    {/* Плитки-разделы: единый стиль с панелью управления —
+                                компонент TileLink (правка вида в одном месте) */}
+                    {tiles.map(({ href, label, count, Icon }) => (
+                        <TileLink
+                            key={href}
+                            href={href}
+                            label={label}
+                            icon={Icon}
+                            count={count}
+                        />
+                    ))}
+                </div>
+            </div>
+        </Layout>
     );
 }

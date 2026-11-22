@@ -6,9 +6,9 @@ import { SupportChat } from '@/components/admin/support/SupportChat';
 import { TicketCard } from '@/components/admin/support/TicketCard';
 import { TransferModal } from '@/components/admin/support/TransferModal';
 import { AuthGuard } from '@/components/layout/AuthGuard';
-import { ClientHeader } from '@/components/layout/ClientHeader';
 import { hasPermission, isAdminRole } from '@/lib/constants/roles';
 import { requireAuth } from '@/server/auth/require-auth';
+import { Layout } from '@/shared/ui/layout';
 import { api } from '@/trpc/react';
 
 // Неавторизованных разворачивает на вход ещё на сервере.
@@ -112,8 +112,7 @@ export default function SupportPage() {
     if (!isAdminRole(session?.user?.role)) {
         return (
             <AuthGuard>
-                <ClientHeader />
-                <div>Нет доступа</div>
+                <Layout>Нет доступа</Layout>
             </AuthGuard>
         );
     }
@@ -123,9 +122,7 @@ export default function SupportPage() {
 
     return (
         <AuthGuard>
-            <ClientHeader />
-            <div className="mx-auto max-w-[1200px] px-4 py-10">
-                {/* ТЕРНАРНИК: список ↔ окно переписки. Один источник правды — selectedId. */}
+            <Layout>
                 {selectedId === null ? (
                     <>
                         <h1 className="pb-2 text-[25px] max-md:text-xl">Обращения в поддержку</h1>
@@ -198,7 +195,7 @@ export default function SupportPage() {
                     }}
                     isPending={transfer.isPending}
                 />
-            </div>
+            </Layout>
         </AuthGuard>
     );
 }

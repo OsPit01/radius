@@ -20,17 +20,18 @@ import type { ReactNode } from 'react';
 
 import Link from 'next/link';
 
-import { ClientHeader } from '@/components/layout/ClientHeader';
 import { Seo } from '@/components/Seo';
 import type { LegalBlock, LegalDocumentData } from '@/lib/legal/types';
+import { Layout } from '@/shared/ui/layout';
 
 type LegalDocumentProps = {
     doc: LegalDocumentData;
+    withFooter?: boolean;
     /** Дополнение после текста документа (например, кнопка настроек cookie). */
     footer?: ReactNode;
 };
 
-export function LegalDocument({ doc, footer }: LegalDocumentProps) {
+export function LegalDocument({ doc, withFooter, footer }: LegalDocumentProps) {
     return (
         <>
             <Seo
@@ -39,11 +40,8 @@ export function LegalDocument({ doc, footer }: LegalDocumentProps) {
                 canonical={doc.slug}
                 noindex={doc.noindex}
             />
-            <ClientHeader />
-
-            <main className="mx-auto w-full max-w-6xl px-5 py-10 text-foreground max-md:px-4 max-md:py-6">
+            <Layout withFooter={withFooter}>
                 <div className="grid gap-8 lg:grid-cols-[240px_minmax(0,1fr)]">
-                    {/* ===== Оглавление ===== */}
                     <aside className="hidden lg:block">
                         <nav className="sticky top-24 rounded-2xl border border-border bg-card p-5">
                             <p className="mb-3 text-sm font-semibold text-foreground">Оглавление</p>
@@ -144,12 +142,11 @@ export function LegalDocument({ doc, footer }: LegalDocumentProps) {
                         </p>
                     </article>
                 </div>
-            </main>
+            </Layout>
         </>
     );
 }
 
-/** Рисует один блок документа по его типу. */
 function LegalBlockView({ block }: { block: LegalBlock }) {
     switch (block.kind) {
         case 'p':

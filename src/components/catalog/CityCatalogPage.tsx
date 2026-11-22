@@ -3,14 +3,14 @@ import Link from 'next/link';
 
 import { ApartmentsList } from '@/components/apartments/ApartmentsList';
 import { MapPin } from '@/components/icons';
-import { ClientHeader } from '@/components/layout/ClientHeader';
 import { Seo } from '@/components/Seo';
 import type { ApartmentCardData } from '@/lib/apartment-format';
 import { formatByn } from '@/lib/constants/currencies';
 import { cityInPrepositional } from '@/lib/declension';
-import { pluralRu } from '@/lib/plural';
 import { SITE_URL } from '@/lib/seo';
 import { transliterate } from '@/lib/transliterate';
+import { Layout } from '@/shared/ui/layout';
+import { plural } from '@/utils/plural';
 
 type CityCatalogPageProps = {
     city: string;
@@ -38,6 +38,7 @@ export function CityCatalogPage({ city, microdistricts, apartments }: CityCatalo
     // (null словаря подменяем безопасной формой через ??).
     const cityIn = cityInPrepositional(city) ?? `городе ${city}`;
     const blurb = CITY_BLURBS[city] ?? null;
+    const apartmentCount = apartments.length;
 
     // ===== Живые данные (как на страницах районов — вычисляем, не пишем) =====
     // Самая дешёвая/дорогая квартира: reduce «оставь min/max по цене».
@@ -114,13 +115,12 @@ export function CityCatalogPage({ city, microdistricts, apartments }: CityCatalo
                     }}
                 />
             </Head>
-            <ClientHeader />
-
-            <main className="mx-auto max-w-[1400px] px-20 pt-5 pb-[60px] max-lg:px-10 max-md:px-5 max-md:py-[30px]">
+            <Layout withFooter>
                 <div className="mb-6 text-center">
-                    <h1 className="text-[2rem] font-bold max-md:text-[1.5rem]">Квартиры на сутки в {cityIn}</h1>
-                    <p className="mt-3 text-[1.1rem] text-muted-foreground max-md:text-base">
-                        Найдено {apartments.length} {pluralRu(apartments.length, 'квартира', 'квартиры', 'квартир')}
+                    <h1 className="text-2xl font-bold lg:text-4xl">Квартиры на сутки в {cityIn}</h1>
+                    <p className="mt-3 text-base text-muted-foreground">
+                        {plural(apartmentCount, 'Найдена', 'Найдено', 'Найдено')} {apartmentCount}{' '}
+                        {plural(apartmentCount, 'квартира', 'квартиры', 'квартир')}
                     </p>
                 </div>
 
@@ -178,7 +178,7 @@ export function CityCatalogPage({ city, microdistricts, apartments }: CityCatalo
                         <p className="text-sm text-muted-foreground">{faqBookingAnswer}</p>
                     </div>
                 </section>
-            </main>
+            </Layout>
         </>
     );
 }

@@ -8,7 +8,7 @@ import styles from './RadarHero.module.css';
 const PERIOD = 9;
 
 /** Размеры по умолчанию: на телефоне компактнее, на десктопе — крупнее. */
-const DEFAULT_CLASSNAME = 'mx-auto w-[min(70vw,16rem)] md:w-[min(26rem,50vh)] xl:w-[min(34rem,56vh)]';
+const DEFAULT_CLASSNAME = 'mx-auto w-[min(80vw,20rem)] md:w-[min(80vw,30rem)] xl:w-[min(40rem,40vh)]';
 
 type RadarHeroProps = {
     /** Секунд на полный оборот луча. Передай меньшее значение для «активного сканирования». */

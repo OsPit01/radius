@@ -4,17 +4,18 @@ type SegmentedTabsProps<T extends string | number> = {
     tabs: readonly { id: T; label: string; Icon?: IconComponent }[];
     active: T;
     onChange: (id: T) => void;
+    className?: string;
 };
 
 /**
  * Вкладки-табы с нижней чертой (underline): активная вкладка подчёркнута снизу,
  * остальные приглушены. Одна строка, на узком экране прокручивается по горизонтали.
  */
-export function SegmentedTabs<T extends string | number>({ tabs, active, onChange }: SegmentedTabsProps<T>) {
+export function SegmentedTabs<T extends string | number>({ tabs, active, onChange, className }: SegmentedTabsProps<T>) {
     return (
         <div
             role="tablist"
-            className="flex [scrollbar-width:none] gap-6 overflow-x-auto [&::-webkit-scrollbar]:hidden"
+            className={`flex [scrollbar-width:none] gap-6 overflow-x-auto [&::-webkit-scrollbar]:hidden ${className}`}
         >
             {tabs.map((tab, index) => (
                 <button

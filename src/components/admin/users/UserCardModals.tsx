@@ -106,7 +106,7 @@ export function BanUserModal({ open, onClose, userName, days, onDaysChange, onBa
             title="Забанить пользователя"
         >
             <div className="flex flex-col gap-3">
-                <p className="text-sm text-muted-foreground">{userName}</p>
+                <p className="text-sm wrap-anywhere text-muted-foreground">{userName}</p>
                 <label className="flex flex-col gap-1.5 text-sm font-medium text-foreground">
                     На сколько дней?
                     <input

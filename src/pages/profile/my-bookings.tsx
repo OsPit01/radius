@@ -6,7 +6,6 @@ import { useSession } from 'next-auth/react';
 
 import { Calendar, CheckCircle, Close, Home, Hourglass } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
-import { ClientHeader } from '@/components/layout/ClientHeader';
 import { Modal } from '@/components/ui/Modal';
 import { SegmentedTabs } from '@/components/ui/SegmentedTabs';
 import { formatFullDate, formatShortDate, statusColor } from '@/lib/booking-utils';
@@ -15,6 +14,7 @@ import { cancelledByLabel } from '@/lib/constants/cancel-reasons';
 import { formatByn } from '@/lib/constants/currencies';
 import { isAdminRole } from '@/lib/constants/roles';
 import { requireAuth } from '@/server/auth/require-auth';
+import { Layout } from '@/shared/ui/layout';
 import { api } from '@/trpc/react';
 export const getServerSideProps = requireAuth;
 
@@ -68,11 +68,11 @@ export default function MyBookingsPage() {
 
     return (
         <AuthGuard>
-            <ClientHeader />
-            <div className="mx-auto max-w-[1400px] px-6 py-4 max-md:px-5">
+            <Layout>
                 {/* Тип жилья (перспектива: дома, отели…) */}
-                <div className="mb-5 pt-5">
+                <div className="mb-5 px-4 pt-5">
                     <SegmentedTabs
+                        className="px-4"
                         tabs={[{ id: 'flat', label: 'Квартиры', Icon: Home }]}
                         active={housingType}
                         onChange={setHousingType}
@@ -81,6 +81,7 @@ export default function MyBookingsPage() {
 
                 {/* Статусы брони гостя */}
                 <SegmentedTabs
+                    className="px-4"
                     tabs={[
                         { id: 'pending', label: 'Ожидает подтверждения', Icon: Hourglass },
                         { id: 'upcoming', label: 'Предстоящие', Icon: Calendar },
@@ -150,7 +151,7 @@ export default function MyBookingsPage() {
                                                     {cancelledByLabel(booking.cancelledBy)}
                                                 </p>
                                                 {booking.cancelReason && (
-                                                    <p className="text-sm text-muted-foreground">
+                                                    <p className="text-sm wrap-break-word text-muted-foreground">
                                                         Причина отмены: «{booking.cancelReason}»
                                                     </p>
                                                 )}
@@ -191,7 +192,7 @@ export default function MyBookingsPage() {
                     title="Удалить заявку?"
                 >
                     <p>Вы уверены, что хотите удалить эту заявку? Действие необратимо.</p>
-                    <div className="mt-6 flex justify-center gap-3">
+                    <div className="mt-6 flex flex-wrap justify-center gap-3">
                         <button
                             type="button"
                             onClick={() => {
@@ -200,20 +201,20 @@ export default function MyBookingsPage() {
                                 }
                                 setConfirmDeleteId(null);
                             }}
-                            className="cursor-pointer rounded-[25px] border border-destructive px-10 py-2.5 text-foreground transition-all duration-300 hover:bg-destructive/90 hover:text-destructive-foreground"
+                            className="cursor-pointer rounded-[25px] border border-destructive px-6 py-2.5 text-foreground transition-all duration-300 hover:bg-destructive/90 hover:text-destructive-foreground sm:px-10"
                         >
                             Удалить
                         </button>
                         <button
                             type="button"
                             onClick={() => setConfirmDeleteId(null)}
-                            className="cursor-pointer rounded-[25px] border border-border px-10 py-2.5 text-foreground transition-all duration-300 hover:bg-muted"
+                            className="cursor-pointer rounded-[25px] border border-border px-6 py-2.5 text-foreground transition-all duration-300 hover:bg-muted sm:px-10"
                         >
                             Отмена
                         </button>
                     </div>
                 </Modal>
-            </div>
+            </Layout>
         </AuthGuard>
     );
 }

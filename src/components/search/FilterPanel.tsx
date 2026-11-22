@@ -1,3 +1,5 @@
+import { plural } from '@/utils/plural';
+
 export type Filters = {
     priceMin: string;
     priceMax: string;
@@ -139,7 +141,7 @@ export function FilterPanel({ filters, onChange }: { filters: Filters; onChange:
                             key={m}
                             value={m}
                         >
-                            до {m} минут
+                            до {m} {plural(m, 'минуты', 'минут', 'минут')}
                         </option>
                     ))}
                 </select>

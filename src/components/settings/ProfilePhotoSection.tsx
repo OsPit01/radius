@@ -29,7 +29,7 @@ export function ProfilePhotoSection({
             <button
                 type="button"
                 onClick={onOpenModal}
-                className="absolute top-10 right-10 cursor-pointer rounded-full transition-opacity hover:opacity-80"
+                className="shrink-0 cursor-pointer rounded-full transition-opacity hover:opacity-80 md:absolute md:top-10 md:right-10"
                 aria-label="Изменить фото профиля"
             >
                 {image === '' ? (

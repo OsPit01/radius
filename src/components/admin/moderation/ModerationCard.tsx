@@ -126,7 +126,7 @@ export function ModerationCard({ item, canManage }: ModerationCardProps) {
                             onClick={() => updateStatus.mutate({ id: item.apartment.id, status: 'active' })}
                             disabled={isActive}
                             title={isActive ? 'Объект уже одобрен' : undefined}
-                            className="flex min-w-0 flex-1 justify-center overflow-hidden rounded-[30px] bg-success px-2 py-1 text-[11px] font-semibold text-success-foreground transition-colors hover:bg-success/90 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="flex min-h-6 min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[30px] bg-success px-2 py-1 text-[11px] font-semibold text-success-foreground transition-colors hover:bg-success/90 disabled:cursor-not-allowed disabled:opacity-50 pointer-coarse:min-h-11"
                         >
                             <span className="truncate">Одобрить</span>
                         </button>
@@ -134,7 +134,7 @@ export function ModerationCard({ item, canManage }: ModerationCardProps) {
                             onClick={() => setRejectOpen(true)}
                             disabled={isInactive}
                             title={isInactive ? 'Объект уже отклонён' : undefined}
-                            className="flex min-w-0 flex-1 justify-center overflow-hidden rounded-[30px] border border-border px-2 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:border-warning hover:text-warning disabled:cursor-not-allowed disabled:opacity-50"
+                            className="flex min-h-6 min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[30px] border border-border px-2 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:border-warning hover:text-warning disabled:cursor-not-allowed disabled:opacity-50 pointer-coarse:min-h-11"
                         >
                             <span className="truncate">Отклонить</span>
                         </button>
@@ -148,13 +148,13 @@ export function ModerationCard({ item, canManage }: ModerationCardProps) {
                         <div className="flex gap-1.5 pt-2">
                             <button
                                 onClick={() => setDeleteOpen(true)}
-                                className="flex min-w-0 flex-1 justify-center overflow-hidden rounded-[30px] border border-border px-2 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
+                                className="flex min-h-6 min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[30px] border border-border px-2 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:border-destructive hover:text-destructive pointer-coarse:min-h-11"
                             >
                                 <span className="truncate">Удалить</span>
                             </button>
                             <Link
                                 href={`/my-apartments/${item.apartment.id}/edit`}
-                                className="flex min-w-0 flex-1 justify-center overflow-hidden rounded-[30px] border border-border px-2 py-1 text-[11px] font-medium text-muted-foreground no-underline transition-colors hover:border-primary hover:text-primary"
+                                className="flex min-h-6 min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[30px] border border-border px-2 py-1 text-[11px] font-medium text-muted-foreground no-underline transition-colors hover:border-primary hover:text-primary pointer-coarse:min-h-11"
                             >
                                 <span className="truncate">Редактировать</span>
                             </Link>
@@ -168,8 +168,11 @@ export function ModerationCard({ item, canManage }: ModerationCardProps) {
                         onClose={() => setDeleteOpen(false)}
                         title="Удалить объект"
                     >
-                        <p className="mt-2 text-foreground"> Удалить объект: {item.apartment.title} ? </p>
-                        <div className="mt-6 flex justify-center gap-3">
+                        <p className="mt-2 wrap-break-word text-foreground">
+                            {' '}
+                            Удалить объект: {item.apartment.title} ?{' '}
+                        </p>
+                        <div className="mt-6 flex flex-wrap justify-center gap-3">
                             <button
                                 type="button"
                                 onClick={() => {
@@ -205,7 +208,7 @@ export function ModerationCard({ item, canManage }: ModerationCardProps) {
                             ></textarea>
                         </div>
                         {/* кнопки отправить/отменить */}
-                        <div className="ml-2 flex justify-center gap-3 text-sm">
+                        <div className="flex flex-wrap justify-center gap-3 text-sm">
                             {/* кнопка отправить */}
                             <button
                                 onClick={() => {
@@ -216,14 +219,14 @@ export function ModerationCard({ item, canManage }: ModerationCardProps) {
                                     });
                                     setRejectOpen(false);
                                 }}
-                                className="cursor-pointer rounded-[30px] border border-border px-10 py-2.5 transition-colors hover:border-success"
+                                className="cursor-pointer rounded-[30px] border border-border px-5 py-2.5 transition-colors hover:border-success sm:px-10"
                             >
                                 Отправить
                             </button>
                             {/* кнопка Отменить */}
                             <button
                                 onClick={() => setRejectOpen(false)}
-                                className="cursor-pointer rounded-[30px] border border-border px-10 py-2.5 transition-colors hover:border-destructive"
+                                className="cursor-pointer rounded-[30px] border border-border px-5 py-2.5 transition-colors hover:border-destructive sm:px-10"
                             >
                                 Отмена
                             </button>

@@ -20,7 +20,6 @@ const mobileLinks = [
     { href: '/profile/settings', label: 'Настройки', lessorOnly: false },
 ] as const;
 
-/** true, как только страницу прокрутили хотя бы на пиксель (в духе шапки Vercel). */
 function useScrolled() {
     const [scrolled, setScrolled] = useState(false);
 
@@ -34,7 +33,6 @@ function useScrolled() {
     return scrolled;
 }
 
-/** Сердце «Избранное»: тот же значок, что на карточке, размером и цветом как колокольчик. */
 function FavoritesIcon() {
     return (
         <Heart
@@ -50,8 +48,7 @@ export function Header() {
     // «Управление бронированиями» — только арендодателю и выше (не обычному пользователю).
     const canManage = (session?.user?.role ?? 'user') !== 'user';
     const scrolled = useScrolled();
-    // Непрочитанные сообщения — для бейджа у пункта «Сообщения» в мобильном меню
-    // (на десктопе этот же счётчик показывает UserDropdown на аватарке).
+
     const { data: chatUnread } = api.chat.unreadCount.useQuery(undefined, {
         enabled: !!session?.user,
         refetchInterval: 30000,
@@ -59,13 +56,11 @@ export function Header() {
 
     return (
         <header
-            // Цвет как у страницы; граница в 1px появляется только при прокрутке.
-            className={`sticky top-0 z-[100] w-full border-b bg-background transition-colors duration-200 ${
+            className={`sticky top-0 z-[100] mx-auto w-full max-w-7xl border-b bg-background transition-colors duration-200 ${
                 scrolled || menuOpen ? 'border-foreground/15' : 'border-transparent'
             }`}
         >
-            <div className="mx-auto flex w-full items-center justify-between gap-10 px-20 py-4 max-lg:px-10 max-md:gap-2 max-md:px-5">
-                {/* ЛОГО */}
+            <div className="flex w-full items-center justify-between gap-10 px-4 py-2 max-lg:gap-2">
                 <Link
                     href="/"
                     className="shrink-0 text-2xl font-bold whitespace-nowrap text-foreground no-underline"
@@ -73,7 +68,6 @@ export function Header() {
                     NaRadare
                 </Link>
 
-                {/* УПРАВЛЕНИЕ (десктоп) */}
                 <div className="hidden shrink-0 items-center gap-4 md:flex">
                     {!session?.user ? (
                         <Link
@@ -85,7 +79,7 @@ export function Header() {
                     ) : (
                         <UserDropdown user={session.user} />
                     )}
-                    {/* иконка сердца */}
+
                     {session?.user && (
                         <div className="relative flex flex-1 items-center gap-1">
                             <Link
@@ -95,7 +89,7 @@ export function Header() {
                             >
                                 <FavoritesIcon />
                             </Link>
-                            {/* иконка колокольчик */}
+
                             <Link
                                 href="/my-notifications"
                                 className={`rounded-lg ${HEADER_ICON_BUTTON}`}
@@ -103,9 +97,7 @@ export function Header() {
                             >
                                 <NotificationBell />
                             </Link>
-                            {/* Панель — для ПЕРСОНАЛА (модератор и выше):
-                                модератор видит щит и входит в хаб (только свои разделы),
-                                обычный юзер — не видит */}
+
                             {isStaffRole(session?.user?.role) && (
                                 <Link
                                     href="/admin"
@@ -119,7 +111,6 @@ export function Header() {
                     )}
                 </div>
 
-                {/* УПРАВЛЕНИЕ (мобилка): избранное + уведомления + гамбургер */}
                 <div className="flex shrink-0 items-center gap-1 md:hidden">
                     {session?.user && (
                         <>
@@ -130,6 +121,7 @@ export function Header() {
                             >
                                 <FavoritesIcon />
                             </Link>
+
                             <Link
                                 href="/my-notifications"
                                 className={`rounded-lg ${HEADER_ICON_BUTTON}`}
@@ -137,7 +129,7 @@ export function Header() {
                             >
                                 <NotificationBell />
                             </Link>
-                            {/* Панель — для ПЕРСОНАЛА (модератор и выше, и на мобилке) */}
+
                             {isStaffRole(session?.user?.role) && (
                                 <Link
                                     href="/admin"
@@ -160,7 +152,6 @@ export function Header() {
                 </div>
             </div>
 
-            {/* МОБИЛЬНОЕ МЕНЮ */}
             {menuOpen && (
                 <div className="border-t border-border md:hidden">
                     <nav className="flex flex-col">
