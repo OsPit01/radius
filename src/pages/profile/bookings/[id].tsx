@@ -174,9 +174,7 @@ export default function BookingDetailPage() {
                             </p>
 
                             <p className="mt-3 text-sm font-medium text-foreground">Правила отмены</p>
-                            <p className="mt-1 text-sm text-muted-foreground">
-                                Бесплатная отмена — до заезда. После заезда возврат не производится.
-                            </p>
+                            <p className="mt-1 text-sm text-muted-foreground">Правила отмены не настроены</p>
                         </div>
 
                         {/* Действия доступны только когда заявка ждёт решения (status === 'new') */}
