@@ -9,47 +9,14 @@ import { AuthGuard } from '@/components/layout/AuthGuard';
 import { ClientHeader } from '@/components/layout/ClientHeader';
 import { Modal } from '@/components/ui/Modal';
 import { SegmentedTabs } from '@/components/ui/SegmentedTabs';
+import { formatFullDate, formatShortDate, statusColor } from '@/lib/booking-utils';
 import { GUEST_BOOKING_STATUS_LABELS } from '@/lib/constants/booking';
 import { cancelledByLabel } from '@/lib/constants/cancel-reasons';
 import { formatByn } from '@/lib/constants/currencies';
 import { isAdminRole } from '@/lib/constants/roles';
 import { requireAuth } from '@/server/auth/require-auth';
 import { api } from '@/trpc/react';
-
 export const getServerSideProps = requireAuth;
-
-// «21 ноября 2026 г., 09:45» — дата создания (день + месяц + год + время):
-// время нужно, чтобы был виден порядок заявок, созданных в один день.
-function formatFullDate(value: Date | string): string {
-    return new Date(value).toLocaleString('ru-RU', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
-}
-
-// «15 ноября» — даты проживания (день + полный месяц, без года).
-function formatShortDate(value: Date | string): string {
-    return new Date(value).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
-}
-
-// Цвет статуса: подтверждена — зелёный, ждёт ответа — жёлтый, отменена — красный.
-function statusColor(status: string): string {
-    switch (status) {
-        case 'approved':
-            return 'text-success';
-        case 'new':
-            return 'text-warning';
-        case 'cancelled':
-        case 'rejected':
-        case 'expired':
-            return 'text-destructive';
-        default:
-            return 'text-foreground';
-    }
-}
 
 // Подходит ли бронь под фильтр (гость: предстоящие / прошлые / отменённые).
 function matchesFilter(status: string, checkInDate: Date, checkOutDate: Date, filter: string, now: Date): boolean {

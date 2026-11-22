@@ -8,6 +8,7 @@ import { useSession } from 'next-auth/react';
 import { CheckCircle, Hourglass } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { ClientHeader } from '@/components/layout/ClientHeader';
+import { statusColor } from '@/lib/booking-utils';
 import { BOOKING_STATUS_LABELS, GUEST_BOOKING_STATUS_LABELS } from '@/lib/constants/booking';
 import { cancelledByLabel } from '@/lib/constants/cancel-reasons';
 import { pluralRu } from '@/lib/plural';
@@ -27,22 +28,6 @@ function formatDateWithWeekday(value: Date | string): string {
 // Сколько ночей между заездом и выездом.
 function nightsBetween(checkInDate: Date, checkOutDate: Date): number {
     return Math.round((new Date(checkOutDate).getTime() - new Date(checkInDate).getTime()) / 86_400_000);
-}
-
-// Цвет статуса: подтверждена — зелёный, ждёт — жёлтый, отменена — красный.
-function statusColor(status: string): string {
-    switch (status) {
-        case 'approved':
-            return 'text-success';
-        case 'new':
-            return 'text-warning';
-        case 'cancelled':
-        case 'rejected':
-        case 'expired':
-            return 'text-destructive';
-        default:
-            return 'text-foreground';
-    }
 }
 
 export default function BookingDetailPage() {

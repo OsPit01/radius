@@ -11,12 +11,13 @@ import { HEADER_ICON_BUTTON } from '@/lib/constants/ui';
 import { api } from '@/trpc/react';
 
 const mobileLinks = [
-    { href: '/profile', label: 'Личный кабинет' },
-    { href: '/my-apartments', label: 'Мои объекты' },
-    { href: '/profile/my-bookings', label: 'Мои бронирования' },
-    { href: '/profile/chat', label: 'Сообщения' },
-    { href: '/my-apartments/new', label: 'Добавить квартиру' },
-    { href: '/profile/settings', label: 'Настройки' },
+    { href: '/profile', label: 'Личный кабинет', lessorOnly: false },
+    { href: '/my-apartments', label: 'Мои объекты', lessorOnly: false },
+    { href: '/profile/my-bookings', label: 'Мои бронирования', lessorOnly: false },
+    { href: '/profile/manage-bookings', label: 'Управление бронированиями', lessorOnly: true },
+    { href: '/profile/chat', label: 'Сообщения', lessorOnly: false },
+    { href: '/my-apartments/new', label: 'Добавить квартиру', lessorOnly: false },
+    { href: '/profile/settings', label: 'Настройки', lessorOnly: false },
 ] as const;
 
 /** true, как только страницу прокрутили хотя бы на пиксель (в духе шапки Vercel). */
@@ -46,6 +47,8 @@ function FavoritesIcon() {
 export function Header() {
     const { data: session } = useSession();
     const [menuOpen, setMenuOpen] = useState(false);
+    // «Управление бронированиями» — только арендодателю и выше (не обычному пользователю).
+    const canManage = (session?.user?.role ?? 'user') !== 'user';
     const scrolled = useScrolled();
     // Непрочитанные сообщения — для бейджа у пункта «Сообщения» в мобильном меню
     // (на десктопе этот же счётчик показывает UserDropdown на аватарке).
@@ -161,21 +164,23 @@ export function Header() {
             {menuOpen && (
                 <div className="border-t border-border md:hidden">
                     <nav className="flex flex-col">
-                        {mobileLinks.map((link) => (
-                            <Link
-                                key={link.href}
-                                href={link.href}
-                                onClick={() => setMenuOpen(false)}
-                                className="flex items-center justify-between border-b border-border px-5 py-4 text-base font-medium text-foreground no-underline transition-colors hover:bg-muted"
-                            >
-                                {link.label}
-                                {link.href === '/profile/chat' && (chatUnread ?? 0) > 0 && (
-                                    <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-xs leading-none font-semibold text-destructive-foreground">
-                                        {chatUnread}
-                                    </span>
-                                )}
-                            </Link>
-                        ))}
+                        {mobileLinks
+                            .filter((link) => !link.lessorOnly || canManage)
+                            .map((link) => (
+                                <Link
+                                    key={link.href}
+                                    href={link.href}
+                                    onClick={() => setMenuOpen(false)}
+                                    className="flex items-center justify-between border-b border-border px-5 py-4 text-base font-medium text-foreground no-underline transition-colors hover:bg-muted"
+                                >
+                                    {link.label}
+                                    {link.href === '/profile/chat' && (chatUnread ?? 0) > 0 && (
+                                        <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-xs leading-none font-semibold text-destructive-foreground">
+                                            {chatUnread}
+                                        </span>
+                                    )}
+                                </Link>
+                            ))}
                     </nav>
                     <div className="flex items-center justify-between px-5 py-4">
                         {!session?.user ? (

@@ -87,6 +87,12 @@ export function isAdminRole(role: string | undefined | null): boolean {
     return isRoleKey(role) && ROLES[role].level >= ADMIN_LEVEL;
 }
 
+/** Арендодатель и выше (не обычный пользователь): сдаёт жильё, видит «Управление бронированиями». */
+export function isLessorRole(role: string | undefined | null): boolean {
+    // Валидация мусора + сравнение ПО УРОВНЮ (level), а не по строке 'user'.
+    return isRoleKey(role) && ROLES[role].level >= ROLES.lessor.level;
+}
+
 /**
  * Данные роли по строке. Мусор из БД → дефолт user
  * (не краш, не undefined — предсказуемый «самый нижний» уровень прав).

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { signOut } from 'next-auth/react';
 
 import { UserCircle } from '@/components/icons';
+import { isLessorRole } from '@/lib/constants/roles';
 import { HEADER_ICON_BUTTON } from '@/lib/constants/ui';
 import { api } from '@/trpc/react';
 // Тип для пропсов (данные пользователя)
@@ -18,12 +19,14 @@ type UserDropdownProps = {
 };
 
 const menuItems = [
-    { href: '/profile', label: 'Личный кабинет' },
-    { href: '/my-apartments', label: 'Мои объекты' },
-    { href: '/profile/my-bookings', label: 'Мои бронирования' },
-    { href: '/profile/chat', label: 'Мои Сообщения' },
-    { href: '/my-apartments/new', label: 'Добавить квартиру' },
-    { href: '/profile/settings', label: 'Настройки' },
+    { href: '/profile', label: 'Личный кабинет', lessorOnly: false },
+    { href: '/my-apartments', label: 'Мои объекты', lessorOnly: false },
+    { href: '/profile/my-bookings', label: 'Мои бронирования', lessorOnly: false },
+    // Виден только арендодателю и выше (не обычному пользователю).
+    { href: '/profile/manage-bookings', label: 'Управление бронированиями', lessorOnly: true },
+    { href: '/profile/chat', label: 'Мои Сообщения', lessorOnly: false },
+    { href: '/my-apartments/new', label: 'Добавить квартиру', lessorOnly: false },
+    { href: '/profile/settings', label: 'Настройки', lessorOnly: false },
 ] as const;
 
 export function UserDropdown({ user }: UserDropdownProps) {
@@ -58,6 +61,8 @@ export function UserDropdown({ user }: UserDropdownProps) {
     // Счётчик непрочитанных сообщений (бейдж на аватарке и у пункта «Сообщения»).
     // Периодический рефетч держит бейдж свежим, даже если сообщение пришло, пока мы на другой странице.
     const { data: unreadCount } = api.chat.unreadCount.useQuery(undefined, { refetchInterval: 30000 });
+    // «Управление бронированиями» видно арендодателю и выше (isLessorRole — по уровню, мусор отсекается).
+    const canManage = isLessorRole(dbUser?.role);
     const avatar = dbUser?.image ?? user.image ?? null;
     const displayName =
         dbUser?.firstName || dbUser?.lastName
@@ -99,21 +104,23 @@ export function UserDropdown({ user }: UserDropdownProps) {
             <span className="text-[13px] font-medium">{displayName}</span>
             {/*      */}
             {isOpen && (
-                <div className="absolute top-[calc(100%+10px)] left-1/2 z-[1000] min-w-[250px] -translate-x-1/2 overflow-hidden rounded-xl border border-border bg-card p-[5px] shadow-[0_10px_30px_rgba(0,0,0,0.15)]">
-                    {menuItems.map((item) => (
-                        <Link
-                            key={item.href}
-                            href={item.href}
-                            className="flex items-center justify-between rounded-lg px-2.5 py-2 text-[15px] transition-colors duration-200 hover:bg-muted"
-                        >
-                            <span>{item.label}</span>
-                            {item.href === '/profile/chat' && (unreadCount ?? 0) > 0 && (
-                                <span className="rounded-full bg-destructive px-2 py-0.5 text-xs font-semibold text-destructive-foreground">
-                                    {unreadCount}
-                                </span>
-                            )}
-                        </Link>
-                    ))}
+                <div className="absolute top-[calc(100%+10px)] left-1/2 z-[1000] min-w-[250px] -translate-x-1/2 overflow-hidden rounded-xl border border-border bg-card p-[5px] shadow-[0_10px_30px_rgba(0,0,0,0.15)] max-md:right-0 max-md:left-auto max-md:translate-x-0">
+                    {menuItems
+                        .filter((item) => !item.lessorOnly || canManage)
+                        .map((item) => (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                className="flex items-center justify-between rounded-lg px-2.5 py-2 text-[15px] transition-colors duration-200 hover:bg-muted"
+                            >
+                                <span>{item.label}</span>
+                                {item.href === '/profile/chat' && (unreadCount ?? 0) > 0 && (
+                                    <span className="rounded-full bg-destructive px-2 py-0.5 text-xs font-semibold text-destructive-foreground">
+                                        {unreadCount}
+                                    </span>
+                                )}
+                            </Link>
+                        ))}
 
                     <hr className="my-1" />
                     <button
