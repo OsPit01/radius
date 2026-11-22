@@ -12,6 +12,7 @@ import { expireStaleBookings } from '@/server/booking-expiry';
 import { apartments, booking, conversation, message, users } from '@/server/db/schemas';
 import { escapeHtml, notifyUser } from '@/server/notify';
 import { enforceRateLimit } from '@/server/rate-limit';
+import { plural } from '@/utils/plural';
 
 // Защита от флуда: сколько заявок один гость может оставить за одно окно.
 const BOOKING_RATE_LIMIT = 5;
@@ -30,12 +31,18 @@ const createBookingSchema = z.object({
         .number({ message: 'Укажите количество гостей' })
         .int()
         .min(MIN_BOOKING_GUESTS, 'Укажите количество гостей')
-        .max(MAX_BOOKING_GUESTS, `Максимум ${MAX_BOOKING_GUESTS} гостей`),
+        .max(
+            MAX_BOOKING_GUESTS,
+            `Максимум ${MAX_BOOKING_GUESTS} ${plural(MAX_BOOKING_GUESTS, 'гость', 'гостя', 'гостей')}`,
+        ),
     children: z
         .number()
         .int()
         .min(0, 'Число детей не может быть отрицательным')
-        .max(MAX_BOOKING_GUESTS, `Максимум ${MAX_BOOKING_GUESTS} детей`)
+        .max(
+            MAX_BOOKING_GUESTS,
+            `Максимум ${MAX_BOOKING_GUESTS} ${plural(MAX_BOOKING_GUESTS, 'ребёнок', 'ребёнка', 'детей')}`,
+        )
         .optional()
         .default(0),
     checkInDate: z.coerce.date(),
@@ -92,7 +99,7 @@ export const bookingsRouter = createTRPCRouter({
         if (apartment.capacity > 0 && input.guests > apartment.capacity) {
             throw new TRPCError({
                 code: 'BAD_REQUEST',
-                message: `Квартира рассчитана максимум на ${apartment.capacity} гостей`,
+                message: `Квартира вмещает до ${apartment.capacity} ${plural(apartment.capacity, 'гостя', 'гостей', 'гостей')}`,
             });
         }
 

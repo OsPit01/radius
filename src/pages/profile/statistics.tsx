@@ -6,6 +6,7 @@ import { ImageWithFallback } from '@/components/ui/ImageWithFallback';
 import { requireAuth } from '@/server/auth/require-auth';
 import { Layout } from '@/shared/ui/layout';
 import { api } from '@/trpc/react';
+import { plural } from '@/utils/plural';
 
 // Неавторизованных отправляем на вход ещё на сервере
 export const getServerSideProps = requireAuth;
@@ -32,10 +33,10 @@ export default function StatisticsPage() {
     }
 
     const cards = [
-        { value: myStats?.totalViews ?? 0, label: 'Просмотров квартир' },
-        { value: myStats?.totalBookings ?? 0, label: 'Бронирований' },
-        { value: myStats?.totalFavorites ?? 0, label: 'Добавлений в избранное' },
-    ];
+        [myStats?.totalViews ?? 0, 'Просмотр квартиры', 'Просмотра квартир', 'Просмотров квартир'],
+        [myStats?.totalBookings ?? 0, 'Бронирование', 'Бронирования', 'Бронирований'],
+        [myStats?.totalFavorites ?? 0, 'Добавление в избранное', 'Добавления в избранное', 'Добавлений в избранное'],
+    ] as const;
 
     const apartments = myStats?.perApartment ?? [];
 
@@ -49,15 +50,17 @@ export default function StatisticsPage() {
                     </h1>
 
                     <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
-                        {cards.map((card) => (
+                        {cards.map(([value, one, few, many]) => (
                             <div
-                                key={card.label}
+                                key={one}
                                 className="rounded-2xl bg-card p-5 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_25px_color-mix(in_oklab,var(--primary)_10%,transparent)]"
                             >
                                 <div className="bg-[linear-gradient(135deg,var(--foreground),var(--primary))] bg-clip-text text-2xl leading-[1.2] font-extrabold text-transparent max-md:text-[24px]">
-                                    {card.value}
+                                    {value}
                                 </div>
-                                <div className="mt-1 text-sm font-medium text-muted-foreground">{card.label}</div>
+                                <div className="mt-1 text-sm font-medium text-muted-foreground">
+                                    {plural(value, one, few, many)}
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -88,7 +91,7 @@ export default function StatisticsPage() {
                                         <div className="flex flex-wrap gap-2">
                                             <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-sm font-semibold text-primary">
                                                 <Eye className="h-4 w-4" />
-                                                {a.views} просмотров
+                                                {a.views} {plural(a.views, 'просмотр', 'просмотра', 'просмотров')}
                                             </span>
                                             <span className="inline-flex items-center gap-1.5 rounded-full bg-destructive/10 px-3 py-1 text-sm font-semibold text-destructive">
                                                 <Heart
@@ -99,7 +102,8 @@ export default function StatisticsPage() {
                                             </span>
                                             <span className="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-3 py-1 text-sm font-semibold text-success">
                                                 <Calendar className="h-4 w-4" />
-                                                {a.bookings} броней
+                                                {a.bookings}{' '}
+                                                {plural(a.bookings, 'бронирование', 'бронирования', 'бронирований')}
                                             </span>
                                         </div>
                                     </div>

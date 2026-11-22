@@ -9,10 +9,10 @@ import { CheckCircle, Hourglass } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { BOOKING_STATUS_LABELS, GUEST_BOOKING_STATUS_LABELS } from '@/lib/constants/booking';
 import { cancelledByLabel } from '@/lib/constants/cancel-reasons';
-import { pluralRu } from '@/lib/plural';
 import { requireAuth } from '@/server/auth/require-auth';
 import { Layout } from '@/shared/ui/layout';
 import { api } from '@/trpc/react';
+import { plural } from '@/utils/plural';
 export const getServerSideProps = requireAuth;
 
 // «26 окт., пн» — дата + день недели.
@@ -84,6 +84,7 @@ export default function BookingDetailPage() {
 
     const { booking, apartment } = data ?? {};
     const isOwner = apartment?.createdById === userId;
+    const nights = booking ? nightsBetween(booking.checkInDate, booking.checkOutDate) : 0;
 
     return (
         <AuthGuard>
@@ -156,13 +157,7 @@ export default function BookingDetailPage() {
                             </div>
                             <div className="text-center">
                                 <p className="text-sm text-muted-foreground">
-                                    {nightsBetween(booking.checkInDate, booking.checkOutDate)}{' '}
-                                    {pluralRu(
-                                        nightsBetween(booking.checkInDate, booking.checkOutDate),
-                                        'ночь',
-                                        'ночи',
-                                        'ночей',
-                                    )}
+                                    {nights} {plural(nights, 'ночь', 'ночи', 'ночей')}
                                 </p>
                             </div>
                             <div className="flex-1 text-right">

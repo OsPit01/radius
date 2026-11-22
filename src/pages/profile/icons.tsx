@@ -7,6 +7,7 @@ import { ICON_VARIANTS, type IconComponent, ICONS, type IconVariant } from '@/co
 import { Seo } from '@/components/Seo';
 import { requireRole } from '@/server/auth/require-auth';
 import { Layout } from '@/shared/ui/layout';
+import { plural } from '@/utils/plural';
 
 // Каталог иконок — только для суперадмина (проверка на сервере, в том числе на проде).
 // Страница лежит под /profile, а он закрыт от индексации (NOINDEX_PATHS: robots.txt + мета-тег noindex).
@@ -147,10 +148,12 @@ export default function IconsGallery() {
                 <div>
                     <h1 className="text-3xl font-bold text-foreground">Иконки NaRadare</h1>
                     <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-                        {ICONS.length} иконок × 3 варианта. Рамкой отмечен вариант, который сейчас стоит на сайте. Чтобы
-                        заменить — поменяйте цифру в <code>src/components/icons/config.ts</code> или передайте{' '}
-                        <code>variant</code> прямо в месте использования. Под каждым вариантом — как он выглядит на
-                        разных фонах. Все иконки одной сеткой: <code>/profile/icons?grid</code>.
+                        {ICONS.length} {plural(ICONS.length, 'иконка', 'иконки', 'иконок')} × {VARIANTS.length}{' '}
+                        {plural(VARIANTS.length, 'вариант', 'варианта', 'вариантов')}. Рамкой отмечен вариант, который
+                        сейчас стоит на сайте. Чтобы заменить — поменяйте цифру в{' '}
+                        <code>src/components/icons/config.ts</code> или передайте <code>variant</code> прямо в месте
+                        использования. Под каждым вариантом — как он выглядит на разных фонах. Все иконки одной сеткой:{' '}
+                        <code>/profile/icons?grid</code>.
                     </p>
                 </div>
                 <div className="flex gap-2">

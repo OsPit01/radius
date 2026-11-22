@@ -6,6 +6,8 @@
 import { writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
+import { plural } from '@/utils/plural';
+
 const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
 // Рамка Минска: «юг,запад,север,восток».
 const MINSK_BBOX = '53.78,27.30,54.05,27.85';
@@ -195,7 +197,10 @@ ${body}
     const target = fileURLToPath(new URL('../src/lib/constants/minsk-metro.ts', import.meta.url));
     writeFileSync(target, file, 'utf-8');
     const entranceCount = stations.reduce((sum, s) => sum + s.entrances.length, 0);
-    console.log(`✅ ${stations.length} станций, ${entranceCount} входов (без станции: ${orphan}) → ${target}`);
+    console.log(
+        `✅ ${stations.length} ${plural(stations.length, 'станция', 'станции', 'станций')}, ` +
+            `${entranceCount} ${plural(entranceCount, 'вход', 'входа', 'входов')} (без станции: ${orphan}) → ${target}`,
+    );
     for (const s of stations) {
         console.log(`   ${s.ref.padEnd(4)} ${s.id.padEnd(34)} ${s.name}  (входов: ${s.entrances.length})`);
     }

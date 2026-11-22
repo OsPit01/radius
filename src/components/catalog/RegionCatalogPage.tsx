@@ -6,10 +6,10 @@ import { Seo } from '@/components/Seo';
 import type { ApartmentCardData } from '@/lib/apartment-format';
 import { formatByn } from '@/lib/constants/currencies';
 import { regionInPrepositional } from '@/lib/declension';
-import { pluralRu } from '@/lib/plural';
 import { SITE_URL } from '@/lib/seo';
 import { transliterate } from '@/lib/transliterate';
 import { Layout } from '@/shared/ui/layout';
+import { plural } from '@/utils/plural';
 
 type RegionCatalogPageProps = {
     regionValue: string; // 'vitebsk-region' — слаг, он же адрес страницы
@@ -26,6 +26,7 @@ type RegionCatalogPageProps = {
  */
 export function RegionCatalogPage({ regionValue, regionLabel, localities, apartments }: RegionCatalogPageProps) {
     const regionIn = regionInPrepositional(regionLabel);
+    const apartmentCount = apartments.length;
     const cheapest = apartments.reduce((min, a) => (a.price < min.price ? a : min));
     // Список пунктов для SEO-текста: «Замосточье, Витебск и …»
     const localityNames = localities.map((l) => l.city);
@@ -41,7 +42,8 @@ export function RegionCatalogPage({ regionValue, regionLabel, localities, apartm
                 <div className="mb-6 px-4 text-center">
                     <h1 className="px-4 text-2xl font-bold md:text-3xl">Квартиры на сутки в {regionIn}</h1>
                     <p className="mt-3 text-base text-muted-foreground md:text-lg">
-                        Найдено {apartments.length} {pluralRu(apartments.length, 'квартира', 'квартиры', 'квартир')}
+                        {plural(apartmentCount, 'Найдена', 'Найдено', 'Найдено')} {apartmentCount}{' '}
+                        {plural(apartmentCount, 'квартира', 'квартиры', 'квартир')}
                     </p>
                 </div>
 
@@ -66,7 +68,7 @@ export function RegionCatalogPage({ regionValue, regionLabel, localities, apartm
                                     </span>
                                 </span>
                                 <span className="text-sm text-muted-foreground">
-                                    {l.count} {pluralRu(l.count, 'квартира', 'квартиры', 'квартир')}
+                                    {l.count} {plural(l.count, 'квартира', 'квартиры', 'квартир')}
                                 </span>
                             </Link>
                         ))}

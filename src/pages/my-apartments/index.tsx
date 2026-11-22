@@ -11,6 +11,7 @@ import { useMyApartments } from '@/hooks/useApartments';
 import { formatByn, getStatusInfo } from '@/lib/constants';
 import { requireAuth } from '@/server/auth/require-auth';
 import { Layout } from '@/shared/ui/layout';
+import { plural } from '@/utils/plural';
 
 export const getServerSideProps = requireAuth;
 
@@ -50,7 +51,7 @@ export default function MyApartmentsPage() {
                     </h1>
 
                     <p className="mb-8 px-4 text-base text-muted-foreground">
-                        Всего {count} {count === 1 ? 'объявление' : 'объявлений'}
+                        Всего {count} {plural(count, 'объявление', 'объявления', 'объявлений')}
                     </p>
 
                     {myApartments && myApartments.length > 0 ? (

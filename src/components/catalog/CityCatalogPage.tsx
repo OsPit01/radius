@@ -7,10 +7,10 @@ import { Seo } from '@/components/Seo';
 import type { ApartmentCardData } from '@/lib/apartment-format';
 import { formatByn } from '@/lib/constants/currencies';
 import { cityInPrepositional } from '@/lib/declension';
-import { pluralRu } from '@/lib/plural';
 import { SITE_URL } from '@/lib/seo';
 import { transliterate } from '@/lib/transliterate';
 import { Layout } from '@/shared/ui/layout';
+import { plural } from '@/utils/plural';
 
 type CityCatalogPageProps = {
     city: string;
@@ -38,6 +38,7 @@ export function CityCatalogPage({ city, microdistricts, apartments }: CityCatalo
     // (null словаря подменяем безопасной формой через ??).
     const cityIn = cityInPrepositional(city) ?? `городе ${city}`;
     const blurb = CITY_BLURBS[city] ?? null;
+    const apartmentCount = apartments.length;
 
     // ===== Живые данные (как на страницах районов — вычисляем, не пишем) =====
     // Самая дешёвая/дорогая квартира: reduce «оставь min/max по цене».
@@ -118,7 +119,8 @@ export function CityCatalogPage({ city, microdistricts, apartments }: CityCatalo
                 <div className="mb-6 text-center">
                     <h1 className="text-2xl font-bold lg:text-4xl">Квартиры на сутки в {cityIn}</h1>
                     <p className="mt-3 text-base text-muted-foreground">
-                        Найдено {apartments.length} {pluralRu(apartments.length, 'квартира', 'квартиры', 'квартир')}
+                        {plural(apartmentCount, 'Найдена', 'Найдено', 'Найдено')} {apartmentCount}{' '}
+                        {plural(apartmentCount, 'квартира', 'квартиры', 'квартир')}
                     </p>
                 </div>
 

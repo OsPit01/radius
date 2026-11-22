@@ -6,8 +6,8 @@ import { ImageWithFallback } from '@/components/ui/ImageWithFallback';
 import type { ApartmentCardData } from '@/lib/apartment-format';
 import { DEFAULT_BOOKING_GUESTS } from '@/lib/constants/booking';
 import { formatByn } from '@/lib/constants/currencies';
-import { pluralRu } from '@/lib/plural';
 import { api } from '@/trpc/react';
+import { plural } from '@/utils/plural';
 
 export function ApartmentCard({
     apartment,
@@ -74,6 +74,7 @@ export function ApartmentCard({
         searchParams.set('children', String(childrenCount));
     }
     const href = `/apartments/${apartment.id}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+    const minsToMetro = apartment.minsToMetro ?? 0;
 
     return (
         <>
@@ -142,7 +143,7 @@ export function ApartmentCard({
                     <span
                         className={`rounded-[15px] border border-border bg-muted font-normal ${compact ? 'px-2 py-0.5 text-xs' : 'px-2.5 py-1 text-sm'}`}
                     >
-                        {apartment.capacity} {pluralRu(apartment.capacity, 'гость', 'гостя', 'гостей')}
+                        {apartment.capacity} {plural(apartment.capacity, 'гость', 'гостя', 'гостей')}
                     </span>
                 </div>
                 <div className="flex flex-wrap gap-1.5 px-2.5 pt-1.5">
@@ -176,11 +177,11 @@ export function ApartmentCard({
                     )}
                 </div>
 
-                {((apartment.minsToMetro ?? 0) > 0 || apartment.amenities.includes('gameConsole')) && (
+                {(minsToMetro > 0 || apartment.amenities.includes('gameConsole')) && (
                     <div className="flex flex-wrap gap-1.5 px-2.5 pt-1.5 pb-1">
-                        {(apartment.minsToMetro ?? 0) > 0 && (
+                        {minsToMetro > 0 && (
                             <p className="rounded-[15px] border border-border bg-muted px-2.5 py-1 text-sm font-normal">
-                                метро: в {apartment.minsToMetro} минутах
+                                метро: в {minsToMetro} {plural(minsToMetro, 'минуте', 'минутах', 'минутах')}
                             </p>
                         )}
                         {apartment.amenities.includes('gameConsole') && (
