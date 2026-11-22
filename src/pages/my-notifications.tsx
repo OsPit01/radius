@@ -46,7 +46,7 @@ export default function MyNotifications() {
     return (
         <AuthGuard>
             <Layout className="flex max-w-none! flex-1 flex-col p-0!">
-                <div className="mt-auto flex w-full flex-wrap items-center justify-between gap-2 px-5 py-10 max-md:py-5">
+                <div className="flex w-full flex-wrap items-center justify-between gap-2 px-5 py-10 max-md:py-5">
                     <span className="text-2xl font-bold text-foreground max-md:text-xl">Мои уведомления</span>
                     <div className="flex flex-wrap items-center gap-2">
                         {notifications?.some((n) => !n.isRead) ? (
