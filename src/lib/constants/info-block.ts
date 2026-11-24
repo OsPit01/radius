@@ -1,4 +1,4 @@
-import { Home, type IconComponent, Info, Mail, Note, Route, Sparkles } from '@/components/icons';
+import { Home, type IconComponent, Important, Info, Mail, Note, Route, Sparkles } from '@/components/icons';
 
 // ============================================================
 // ИКОНКИ БЛОКОВ РАЗДЕЛА «ИНФОРМАЦИЯ» — ЕДИНЫЙ ИСТОЧНИК ПРАВДЫ
@@ -13,6 +13,7 @@ export const INFO_BLOCK_ICON_OPTIONS: { value: string; label: string; icon: Icon
     { value: 'home', label: 'Дом', icon: Home },
     { value: 'route', label: 'Маршрут', icon: Route },
     { value: 'info', label: 'Информация', icon: Info },
+    { value: 'important', label: 'Важная информация', icon: Important },
     { value: 'note', label: 'Заметка', icon: Note },
     { value: 'mail', label: 'Почта', icon: Mail },
     { value: 'sparkles', label: 'Искры', icon: Sparkles },

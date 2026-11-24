@@ -17,7 +17,7 @@ import {
 import { AlarmClock, Calendar, Clipboard, Clock, Mail, Money, Note, Phone } from './info';
 import { BarChart, Camera, Chat, Eye, Shield, User, UserCircle, Users } from './people';
 import { Bath, Bed, Building, Car, Home, MapPin, MapView, Metro, Route, Ruler, Sofa, Sparkles } from './property';
-import { Bell, CheckCircle, Heart, Hourglass, Info, Star, Warning } from './status';
+import { Bell, CheckCircle, Heart, Hourglass, Important, Info, Star, Warning } from './status';
 
 export { ICON_NAMES, ICON_VARIANTS, type IconName, type IconVariant } from './config';
 export type { IconComponent, IconMeta, IconProps } from './core';
@@ -50,6 +50,7 @@ export {
     Heart,
     Home,
     Hourglass,
+    Important,
     Info,
     Instagram,
     Mail,

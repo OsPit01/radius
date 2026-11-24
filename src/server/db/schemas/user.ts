@@ -27,6 +27,10 @@ export const users = pgTable(
         // Дата регистрации: ставится БД при вставке (default now) — для показа
         // в карточке «удалить пользователя» и будущих админ-отчётов.
         createdAt: d.timestamp({ withTimezone: true }).notNull().defaultNow(),
+        // Когда пользователь последний раз был на сайте (heartbeat-хук шлёт
+        // раз в минуту, пока вкладка открыта). По нему считается «онлайн»
+        // в админке и, в перспективе, в чатах.
+        lastSeenAt: d.timestamp({ withTimezone: true }),
         totalBookings: d.integer().notNull().default(0),
         totalFavorites: d.integer().notNull().default(0),
         totalApartments: d.integer().notNull().default(0),

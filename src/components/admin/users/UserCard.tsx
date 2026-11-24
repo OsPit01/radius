@@ -4,6 +4,7 @@ import { useSession } from 'next-auth/react';
 
 import { Eye } from '@/components/icons';
 import { Avatar } from '@/components/ui/Avatar';
+import { OnlineBadge } from '@/components/ui/OnlineBadge';
 import { getRoleInfo, hasPermission, type RoleKey } from '@/lib/constants/roles';
 import { getRoleColor } from '@/lib/theme';
 import { api, type RouterOutputs } from '@/trpc/react';
@@ -27,6 +28,7 @@ type AdminUser = {
     email: string;
     image: string | null;
     role: string;
+    lastSeenAt: Date | null;
 };
 
 type UserCardProps = {
@@ -167,7 +169,12 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
                     />
                     <div className="min-w-0">
                         {/* truncate: длинные имя/email обрезаются, карточка не раздувается. */}
-                        <p className="truncate text-sm font-semibold text-foreground">{user.firstName ?? user.email}</p>
+                        <div className="flex items-center gap-2">
+                            <p className="truncate text-sm font-semibold text-foreground">
+                                {user.firstName ?? user.email}
+                            </p>
+                            <OnlineBadge lastSeenAt={user.lastSeenAt} />
+                        </div>
                         <p className="truncate text-xs text-muted-foreground">{user.email}</p>
                         <div className="flex items-start gap-1">
                             <p

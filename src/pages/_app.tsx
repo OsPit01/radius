@@ -9,6 +9,7 @@ import { SessionProvider } from 'next-auth/react';
 import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics';
 import { VisitTracker } from '@/components/analytics/VisitTracker';
 import { CookieConsentProvider } from '@/components/consent/CookieConsentProvider';
+import { OnlineHeartbeat } from '@/components/presence/OnlineHeartbeat';
 import { Seo } from '@/components/Seo';
 import { SupportChatButton } from '@/components/support/SupportChatButton';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
@@ -53,6 +54,7 @@ export default function App({ Component, pageProps }: AppProps) {
                                 <Component {...pageProps} />
                                 <SupportChatButton />
                                 <VisitTracker />
+                                <OnlineHeartbeat />
                             </TRPCReactProvider>
                         </SessionProvider>
                     </div>

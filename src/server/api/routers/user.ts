@@ -8,6 +8,7 @@ import { removeApartmentImages } from '@/server/apartment-images';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import type * as schema from '@/server/db/schemas';
 import { apartments, booking, favorites, users } from '@/server/db/schemas';
+import { enforceRateLimit } from '@/server/rate-limit';
 
 type Database = PostgresJsDatabase<typeof schema>;
 
@@ -89,6 +90,7 @@ export const userRouter = createTRPCRouter({
                     patronymic: users.patronymic,
                     image: users.image,
                     role: users.role,
+                    lastSeenAt: users.lastSeenAt,
                 })
                 .from(users)
                 .where(searchCondition);
@@ -423,6 +425,21 @@ export const userRouter = createTRPCRouter({
     clearTelegramLink: protectedProcedure.mutation(async ({ ctx }) => {
         const userId = ctx.session.user.id;
         await ctx.db.update(users).set({ telegramChatId: null, telegramLinkCode: null }).where(eq(users.id, userId));
+        return { ok: true };
+    }),
+
+    // ============================================================
+    // ПРИСУТСТВИЕ (онлайн/офлайн)
+    //
+    // heartbeat обновляет lastSeenAt у СЕБЯ. Клиентский хук
+    // useOnlineHeartbeat зовёт его раз в минуту, пока вкладка открыта.
+    // Лимит 60 в минуту — запас против флуда: хук шлёт 1 раз в 60 секунд,
+    // а лимит даёт 60 — хватает и на переоткрытия вкладок.
+    // ============================================================
+    heartbeat: protectedProcedure.mutation(async ({ ctx }) => {
+        const userId = ctx.session.user.id;
+        await enforceRateLimit(ctx.db, `heartbeat:${userId}`, 60, 60_000);
+        await ctx.db.update(users).set({ lastSeenAt: new Date() }).where(eq(users.id, userId));
         return { ok: true };
     }),
 });
