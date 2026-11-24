@@ -234,9 +234,9 @@ export function SupportChatWindow({ onClose }: SupportChatWindowProps) {
     }
 
     return (
-        <div className="fixed right-5 bottom-24 z-50 flex h-[520px] w-80 flex-col rounded-2xl bg-card text-[12px] shadow-2xl max-md:inset-x-2 max-md:h-[70vh] max-md:w-auto">
+        <div className="fixed right-5 bottom-24 z-50 flex h-[520px] w-80 flex-col rounded-2xl bg-card text-xs shadow-2xl max-md:inset-x-2 max-md:h-[70vh] max-md:w-auto">
             <div className="flex items-center justify-between">
-                <p className="p-4 text-[20px] font-semibold">Поддержка</p>
+                <p className="p-4 text-xl font-semibold">Поддержка</p>
                 <button
                     type="button"
                     aria-label="Закрыть"

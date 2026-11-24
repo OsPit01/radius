@@ -120,7 +120,7 @@ export function ApartmentCard({
                 </div>
                 <div className={compact ? 'px-2.5 pt-2 pb-0.5' : 'px-2.5 pt-3 pb-1'}>
                     <h3
-                        className={`font-semibold break-words ${compact ? 'line-clamp-2 text-sm leading-[1.3]' : 'text-[18px]'} max-md:text-base`}
+                        className={`font-semibold break-words ${compact ? 'line-clamp-2 text-sm leading-[1.3]' : 'text-lg'} max-md:text-base`}
                     >
                         {apartment.title}
                     </h3>

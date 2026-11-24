@@ -9,7 +9,7 @@ import { PayerRequisites } from './step3/PayerRequisites';
 export function Step3() {
     return (
         <div className="animate-[fadeIn_0.3s_ease] text-foreground">
-            <h2 className="mb-3 text-[17px] text-foreground">Шаг 3 из 4: Детали объекта</h2>
+            <h2 className="mb-3 text-lg text-foreground">Шаг 3 из 4: Детали объекта</h2>
             <p className="text-sm text-muted-foreground">
                 Поля, отмеченные <FieldRequired />, обязательны
             </p>

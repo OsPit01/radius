@@ -211,11 +211,11 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
                             <Clock className="h-5 w-5" />
                             <p className="text-sm text-foreground">
                                 Заселение после{' '}
-                                <span className="border-b-[1px] px-2 py-0.5 text-[13px] font-medium text-foreground">
+                                <span className="border-b-[1px] px-2 py-0.5 text-xs font-medium text-foreground">
                                     {apartment.apartment.checkInTime ?? CHECK_IN_TIME_DEFAULT}
                                 </span>{' '}
                                 выезд до{' '}
-                                <span className="border-b-[1px] px-2 py-0.5 text-[13px] font-medium text-foreground">
+                                <span className="border-b-[1px] px-2 py-0.5 text-xs font-medium text-foreground">
                                     {apartment.apartment.checkOutTime ?? CHECK_OUT_TIME_DEFAULT}
                                 </span>
                             </p>
@@ -223,9 +223,9 @@ export default function ApartmentPage({ rawId, id, apartment, initialGuests, ini
 
                         {/* Цена */}
                         <div className="mt-6 flex flex-wrap items-baseline gap-x-1.5">
-                            <span className="text-[20px] font-bold text-foreground">{apartment.apartment.price}</span>
-                            <span className="text-[13px] font-medium text-foreground">{BASE_CURRENCY_SYMBOL}</span>
-                            <span className="text-[15px] text-foreground">/ сутки</span>
+                            <span className="text-xl font-bold text-foreground">{apartment.apartment.price}</span>
+                            <span className="text-xs font-medium text-foreground">{BASE_CURRENCY_SYMBOL}</span>
+                            <span className="text-base text-foreground">/ сутки</span>
                         </div>
 
                         {/* Арендодатель */}

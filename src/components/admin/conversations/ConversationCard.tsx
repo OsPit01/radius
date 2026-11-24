@@ -166,7 +166,7 @@ export function ConversationCard({ item }: ConversationCardProps) {
                                     <span className="min-w-0 text-sm font-semibold wrap-break-word text-foreground">
                                         {senderName(m.senderId)}
                                     </span>
-                                    <span className="shrink-0 text-[11px] text-muted-foreground">
+                                    <span className="shrink-0 text-xs text-muted-foreground">
                                         {formatChatDate(m.createdAt)}
                                     </span>
                                 </div>

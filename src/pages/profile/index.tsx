@@ -139,19 +139,19 @@ export default function ProfilePage() {
                                 className="h-20 w-20 rounded-full object-cover shadow-[0_4px_20px_color-mix(in_oklab,var(--primary)_20%,transparent)] max-[480px]:h-20 max-[480px]:w-20 max-md:h-[75px] max-md:w-[75px]"
                             />
                         ) : (
-                            <div className="flex h-20 w-20 items-center justify-center rounded-full border-[3px] border-foreground bg-foreground text-[48px] font-bold text-background shadow-[0_4px_20px_color-mix(in_oklab,var(--primary)_20%,transparent)] max-[480px]:h-20 max-[480px]:w-20 max-[480px]:text-[32px] max-md:h-[75px] max-md:w-[75px] max-md:text-[40px]">
+                            <div className="flex h-20 w-20 items-center justify-center rounded-full border-[3px] border-foreground bg-foreground text-5xl font-bold text-background shadow-[0_4px_20px_color-mix(in_oklab,var(--primary)_20%,transparent)] max-[480px]:h-20 max-[480px]:w-20 max-[480px]:text-3xl max-md:h-[75px] max-md:w-[75px] max-md:text-4xl">
                                 {displayName.charAt(0)}
                             </div>
                         )}
                     </div>
                     <div className="flex-1">
-                        <p className="m-0 text-[32px] font-bold text-foreground max-[480px]:text-[22px] max-md:text-[26px]">
+                        <p className="m-0 text-3xl font-bold text-foreground max-[480px]:text-2xl max-md:text-2xl">
                             {displayName}
                         </p>
                         <p className="my-1 text-base text-foreground">{user.email}</p>
                         <div className="flex items-center gap-2 max-md:justify-center">
                             <span
-                                className="inline-flex items-center gap-1.5 rounded-[30px] px-[18px] py-1.5 text-[13px] font-semibold tracking-[0.5px] text-white uppercase shadow-[0_4px_12px_rgba(49,53,50,0.658)]"
+                                className="inline-flex items-center gap-1.5 rounded-[30px] px-[18px] py-1.5 text-xs font-semibold tracking-[0.5px] text-white uppercase shadow-[0_4px_12px_rgba(49,53,50,0.658)]"
                                 style={{ background: getRoleColor(user.role) }}
                             >
                                 {roleInfo.label}

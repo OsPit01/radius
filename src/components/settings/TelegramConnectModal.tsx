@@ -48,7 +48,7 @@ export function TelegramConnectModal({
                 </div>
             ) : (
                 <div className="text-center">
-                    <p className="text-[17px] font-semibold text-foreground">Подключение Telegram</p>
+                    <p className="text-lg font-semibold text-foreground">Подключение Telegram</p>
                     <p className="mt-3 text-sm text-muted-foreground">
                         1. Мы открыли бота <span className="font-medium text-primary">@radius_booking_bot</span> в
                         Telegram

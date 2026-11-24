@@ -1,18 +1,36 @@
 // ============================================================
 // /consent — Согласие на обработку персональных данных
 // ============================================================
-// Это текст, на который ссылаются галочки в формах (вход, бронирование,
-// размещение объекта). Закрыт от индексации: для поиска основной
-// страницей о данных является /privacy.
+// Текст, на который ссылаются галочки в формах. Закрыт от индексации.
+//
+// Реквизиты читаются из БД на сервере (fallback — OPERATOR).
+
+import type { GetServerSideProps } from 'next';
 
 import { LegalDocument } from '@/components/legal/LegalDocument';
-import { CONSENT } from '@/lib/legal/consent';
+import { getConsent } from '@/lib/legal/consent';
+import { type SiteRequisites, toSiteRequisites } from '@/lib/legal/requisites';
+import { createServerCaller } from '@/trpc/server';
 
-export default function ConsentPage() {
+type ConsentPageProps = {
+    requisites: SiteRequisites;
+};
+
+export const getServerSideProps: GetServerSideProps<ConsentPageProps> = async (ctx) => {
+    const caller = await createServerCaller(ctx);
+    const row = await caller.requisites.get();
+    return {
+        props: {
+            requisites: toSiteRequisites(row),
+        },
+    };
+};
+
+export default function ConsentPage({ requisites }: ConsentPageProps) {
     return (
         <LegalDocument
             withFooter
-            doc={CONSENT}
+            doc={getConsent(requisites)}
         />
     );
 }

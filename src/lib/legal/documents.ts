@@ -7,14 +7,22 @@
 // - sitemap.xml (какие страницы добавить в карту сайта).
 //
 // Порядок массива = порядок ссылок в футере.
-// Тексты лежат в отдельных файлах рядом — правка одного
-// документа не затрагивает остальные.
+//
+// Документы теперь — функции от реквизитов (getX(req)), потому что
+// реквизиты могут приходить из БД. Для реестра (футер/sitemap) нужны
+// только slug/navTitle — собираем с дефолтными реквизитами.
 // ============================================================
 
-import { CONSENT } from '@/lib/legal/consent';
-import { COOKIES_POLICY } from '@/lib/legal/cookies';
-import { PRIVACY } from '@/lib/legal/privacy';
-import { TERMS } from '@/lib/legal/terms';
+import { getConsent } from '@/lib/legal/consent';
+import { getCookiesPolicy } from '@/lib/legal/cookies';
+import { getPrivacy } from '@/lib/legal/privacy';
+import { DEFAULT_REQUISITES } from '@/lib/legal/requisites';
+import { getTerms } from '@/lib/legal/terms';
 import type { LegalDocumentData } from '@/lib/legal/types';
 
-export const LEGAL_DOCUMENTS: readonly LegalDocumentData[] = [PRIVACY, COOKIES_POLICY, TERMS, CONSENT];
+export const LEGAL_DOCUMENTS: readonly LegalDocumentData[] = [
+    getPrivacy(DEFAULT_REQUISITES),
+    getCookiesPolicy(DEFAULT_REQUISITES),
+    getTerms(DEFAULT_REQUISITES),
+    getConsent(DEFAULT_REQUISITES),
+];

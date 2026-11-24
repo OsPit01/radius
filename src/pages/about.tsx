@@ -2,19 +2,36 @@
 // /about — О компании
 // ============================================================
 //
-// Простой текст о платформе: кто мы, зачем и как работаем.
-// Владелец может свободно редактировать текст ниже — вёрстка
-// и стили не сломаются.
+// Текст о платформе. Реквизиты читаются из БД на сервере
+// (fallback — OPERATOR из кода).
 
+import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
 
 import { Seo } from '@/components/Seo';
-import { ADD_APARTMENT_URL, OPERATOR } from '@/lib/legal/operator';
+import { ADD_APARTMENT_URL } from '@/lib/legal/operator';
+import { type SiteRequisites, toSiteRequisites } from '@/lib/legal/requisites';
 import { Layout } from '@/shared/ui/layout';
+import { createServerCaller } from '@/trpc/server';
 
-const DESCRIPTION = `${OPERATOR.siteName} — платформа посуточной аренды жилья в Беларуси: собственники размещают объекты бесплатно, гости бронируют напрямую, без посредников.`;
+type AboutPageProps = {
+    requisites: SiteRequisites;
+};
 
-export default function AboutPage() {
+export const getServerSideProps: GetServerSideProps<AboutPageProps> = async (ctx) => {
+    const caller = await createServerCaller(ctx);
+    const row = await caller.requisites.get();
+    return {
+        props: {
+            requisites: toSiteRequisites(row),
+        },
+    };
+};
+
+export default function AboutPage({ requisites }: AboutPageProps) {
+    const req = requisites;
+    const DESCRIPTION = `${req.siteName} — платформа посуточной аренды жилья в Беларуси: собственники размещают объекты бесплатно, гости бронируют напрямую, без посредников.`;
+
     return (
         <>
             <Seo
@@ -24,11 +41,11 @@ export default function AboutPage() {
             />
             <Layout withFooter>
                 <div className="rounded-2xl bg-card p-8 shadow-sm max-md:p-5">
-                    <h1 className="mb-6 text-3xl font-bold max-md:text-2xl">О {OPERATOR.siteName}</h1>
+                    <h1 className="mb-6 text-3xl font-bold max-md:text-2xl">О {req.siteName}</h1>
 
-                    <div className="space-y-4 text-[15px] leading-relaxed">
+                    <div className="space-y-4 text-base leading-relaxed">
                         <p>
-                            <strong>{OPERATOR.siteName}</strong> — это белорусская платформа посуточной аренды жилья. Мы
+                            <strong>{req.siteName}</strong> — это белорусская платформа посуточной аренды жилья. Мы
                             соединяем тех, у кого есть квартира или дом, и тех, кому нужно жильё на сутки — напрямую,
                             без посредников и переплат.
                         </p>
@@ -70,7 +87,7 @@ export default function AboutPage() {
 
                     {/* Реквизиты и контакты — рядом, чтобы не искать */}
                     <p className="mt-8 border-t border-border pt-4 text-sm text-muted-foreground">
-                        {OPERATOR.legalName}, УНП {OPERATOR.unp}. Подробные реквизиты и контакты — на странице{' '}
+                        {req.legalName}, УНП {req.unp}. Подробные реквизиты и контакты — на странице{' '}
                         <Link
                             href="/contacts"
                             className="text-primary underline hover:text-primary/80"

@@ -33,7 +33,7 @@ export default function SignInPage() {
         <Layout>
             <Seo title="Вход и регистрация" />
             <div className="mx-auto mt-20 max-w-[500px] rounded-[20px] border-2 border-foreground bg-card px-5 py-5 max-md:w-[calc(100%-2rem)] max-md:px-4">
-                <span className="bg-gradient-to-r from-primary to-foreground bg-clip-text text-[12px] font-normal tracking-[0.2em] text-transparent">
+                <span className="bg-gradient-to-r from-primary to-foreground bg-clip-text text-xs font-normal tracking-[0.2em] text-transparent">
                     {' '}
                     NaRadare
                 </span>
@@ -57,7 +57,7 @@ export default function SignInPage() {
                 </div>
                 {/* Текст вход и регистрация */}
                 <div className="flex items-center justify-center px-4">
-                    <span className="text-[25px] font-[600] max-md:text-[20px]"> Вход и регистрация </span>
+                    <span className="text-2xl font-[600] max-md:text-xl"> Вход и регистрация </span>
                 </div>
                 {/* действия вход через гугл */}
                 <div className="my-6 flex items-center justify-center">

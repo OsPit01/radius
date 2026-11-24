@@ -22,7 +22,7 @@ export default function ConversationsPage() {
 
     return (
         <Layout>
-            <h1 className="text-semibold pb-2 text-[25px] max-md:text-xl">Все беседы</h1>
+            <h1 className="text-semibold pb-2 text-2xl max-md:text-xl">Все беседы</h1>
             <p className="pb-6 text-sm text-muted-foreground">
                 Переписка арендаторов и владельцев: блокировка и удаление.
             </p>

@@ -96,12 +96,12 @@ export function UserDropdown({ user }: UserDropdownProps) {
                     )}
                 </button>
                 {(unreadCount ?? 0) > 0 && (
-                    <span className="absolute right-0 bottom-0 flex h-3 min-w-3 items-center justify-center rounded-full bg-destructive px-1 text-[10px] leading-none font-semibold text-destructive-foreground ring-1 ring-background">
+                    <span className="absolute right-0 bottom-0 flex h-3 min-w-3 items-center justify-center rounded-full bg-destructive px-1 text-xs leading-none font-semibold text-destructive-foreground ring-1 ring-background">
                         {unreadCount}
                     </span>
                 )}
             </div>
-            <span className="text-[13px] font-medium">{displayName}</span>
+            <span className="text-xs font-medium">{displayName}</span>
             {/*      */}
             {isOpen && (
                 <div className="absolute top-[calc(100%+10px)] left-1/2 z-[1000] min-w-[250px] -translate-x-1/2 overflow-hidden rounded-xl border border-border bg-card p-[5px] shadow-[0_10px_30px_rgba(0,0,0,0.15)] max-md:right-0 max-md:left-auto max-md:translate-x-0">
@@ -111,7 +111,7 @@ export function UserDropdown({ user }: UserDropdownProps) {
                             <Link
                                 key={item.href}
                                 href={item.href}
-                                className="flex items-center justify-between rounded-lg px-2.5 py-2 text-[15px] transition-colors duration-200 hover:bg-muted"
+                                className="flex items-center justify-between rounded-lg px-2.5 py-2 text-base transition-colors duration-200 hover:bg-muted"
                             >
                                 <span>{item.label}</span>
                                 {item.href === '/profile/chat' && (unreadCount ?? 0) > 0 && (
@@ -124,7 +124,7 @@ export function UserDropdown({ user }: UserDropdownProps) {
 
                     <hr className="my-1" />
                     <button
-                        className="block w-full cursor-pointer rounded-lg px-2.5 py-2 text-left text-[15px] transition-colors duration-200 hover:bg-muted"
+                        className="block w-full cursor-pointer rounded-lg px-2.5 py-2 text-left text-base transition-colors duration-200 hover:bg-muted"
                         onClick={() => signOut()}
                     >
                         Выйти

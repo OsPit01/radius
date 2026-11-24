@@ -6,11 +6,12 @@ import { bookingsRouter } from './routers/bookings';
 import { chatRouter } from './routers/chat';
 import { favoritesRouter } from './routers/favorites';
 import { geoRouter } from './routers/geo';
+import { infoBlockRouter } from './routers/info-block';
 import { notificationRouter } from './routers/notification';
+import { requisitesRouter } from './routers/requisites';
 import { supportRouter } from './routers/support';
 import { uploadRouter } from './routers/upload';
 import { userRouter } from './routers/user';
-
 /**
  * This is the primary router for your server.
  *
@@ -27,6 +28,8 @@ export const appRouter = createTRPCRouter({
     chat: chatRouter,
     analytics: analyticsRouter,
     support: supportRouter,
+    infoBlock: infoBlockRouter,
+    requisites: requisitesRouter,
 });
 
 // export type definition of API

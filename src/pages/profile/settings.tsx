@@ -166,7 +166,7 @@ export default function SettingsPage() {
                 <div className="mx-auto max-w-[900px] rounded-xl px-4 py-10">
                     <div className="relative rounded-[15px] bg-card p-10 shadow-[0_2px_8px_rgba(0,0,0,0.08)] max-[480px]:p-4 max-md:p-5">
                         <div className="max-md:flex max-md:items-start max-md:justify-between max-md:gap-3">
-                            <h1 className="text-[28px] font-bold text-foreground max-md:min-w-0 max-md:text-[22px] max-md:wrap-break-word">
+                            <h1 className="text-3xl font-bold text-foreground max-md:min-w-0 max-md:text-2xl max-md:wrap-break-word">
                                 Редактирование профиля
                             </h1>
                             <ProfilePhotoSection
@@ -182,15 +182,15 @@ export default function SettingsPage() {
                         {/*ФОРМА*/}
 
                         <form
-                            className="mt-10 px-5 pt-5 text-[20px] text-foreground"
+                            className="mt-10 px-5 pt-5 text-xl text-foreground"
                             onSubmit={handleSubmit}
                         >
                             {/* Имя */}
                             <div className="mb-5">
-                                <label className="text-[17px]">Имя:</label>
+                                <label className="text-lg">Имя:</label>
                                 <div className="flex items-center gap-2">
                                     <input
-                                        className="w-full cursor-pointer border-b border-border bg-transparent p-1 text-[15px] text-foreground outline-none focus:border-primary"
+                                        className="w-full cursor-pointer border-b border-border bg-transparent p-1 text-base text-foreground outline-none focus:border-primary"
                                         type="text"
                                         value={form.firstName}
                                         onChange={(e) => setForm({ ...form, firstName: e.target.value })}
@@ -202,10 +202,10 @@ export default function SettingsPage() {
                             </div>
                             {/* Фамилия */}
                             <div className="mb-5">
-                                <label className="text-[17px]">Фамилия:</label>
+                                <label className="text-lg">Фамилия:</label>
                                 <div className="flex items-center gap-2">
                                     <input
-                                        className="w-full cursor-pointer border-b border-border bg-transparent p-1 text-[15px] text-foreground outline-none focus:border-primary"
+                                        className="w-full cursor-pointer border-b border-border bg-transparent p-1 text-base text-foreground outline-none focus:border-primary"
                                         type="text"
                                         value={form.lastName}
                                         onChange={(e) => setForm({ ...form, lastName: e.target.value })}
@@ -218,10 +218,10 @@ export default function SettingsPage() {
 
                             {/* Отчество */}
                             <div className="mb-5">
-                                <label className="text-[17px]">Отчество:</label>
+                                <label className="text-lg">Отчество:</label>
                                 <div className="flex items-center gap-2">
                                     <input
-                                        className="w-full cursor-pointer border-b border-border bg-transparent p-1 text-[15px] text-foreground outline-none focus:border-primary"
+                                        className="w-full cursor-pointer border-b border-border bg-transparent p-1 text-base text-foreground outline-none focus:border-primary"
                                         type="text"
                                         value={form.patronymic}
                                         onChange={(e) => setForm({ ...form, patronymic: e.target.value })}
@@ -233,7 +233,7 @@ export default function SettingsPage() {
                             </div>
                             {/* Телефон */}
                             <div className="mb-5">
-                                <label className="text-[17px]">Номер телефона:</label>
+                                <label className="text-lg">Номер телефона:</label>
                                 <div className="flex items-center gap-2">
                                     <PhoneInput
                                         international
@@ -245,7 +245,7 @@ export default function SettingsPage() {
                                         value={form.phone}
                                         onChange={handlePhoneChange}
                                         placeholder={exampleNumber ?? '+375 29 123-45-67'}
-                                        className="w-full border-b border-border bg-transparent p-1 text-[15px]"
+                                        className="w-full border-b border-border bg-transparent p-1 text-base"
                                     />
                                     {form.phone !== toE164(user?.phone) && (
                                         <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-success" />

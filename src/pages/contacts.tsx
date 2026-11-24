@@ -1,17 +1,36 @@
+import type { GetServerSideProps } from 'next';
 import Head from 'next/head';
 
 import { Mail, MapPin, Shield, Telegram } from '@/components/icons';
 import { Seo } from '@/components/Seo';
-import { OPERATOR } from '@/lib/legal/operator';
+import { type SiteRequisites, toSiteRequisites } from '@/lib/legal/requisites';
 import { SITE_URL } from '@/lib/seo';
 import { Layout } from '@/shared/ui/layout';
+import { createServerCaller } from '@/trpc/server';
 
-export default function ContactsPage() {
+// Реквизиты читаются из БД на сервере (fallback — OPERATOR из кода).
+type ContactsPageProps = {
+    requisites: SiteRequisites;
+};
+
+export const getServerSideProps: GetServerSideProps<ContactsPageProps> = async (ctx) => {
+    const caller = await createServerCaller(ctx);
+    const row = await caller.requisites.get();
+    return {
+        props: {
+            requisites: toSiteRequisites(row),
+        },
+    };
+};
+
+export default function ContactsPage({ requisites }: ContactsPageProps) {
+    const req = requisites;
+
     return (
         <>
             <Seo
                 title="Контакты и реквизиты"
-                description={`Реквизиты и контакты ${OPERATOR.siteName}: арендодателям и гостям. Вопросы по персональным данным — ${OPERATOR.privacyEmail}.`}
+                description={`Реквизиты и контакты ${req.siteName}: арендодателям и гостям. Вопросы по персональным данным — ${req.privacyEmail}.`}
                 canonical="/contacts"
             />
 
@@ -22,10 +41,10 @@ export default function ContactsPage() {
                         __html: JSON.stringify({
                             '@context': 'https://schema.org',
                             '@type': 'Organization',
-                            name: OPERATOR.siteName,
+                            name: req.siteName,
                             url: SITE_URL,
-                            email: OPERATOR.supportEmail,
-                            taxID: OPERATOR.unp,
+                            email: req.supportEmail,
+                            taxID: req.unp,
                             address: {
                                 '@type': 'PostalAddress',
                                 streetAddress: 'улица Леонардо Да Винчи, 2',
@@ -51,18 +70,18 @@ export default function ContactsPage() {
                             </span>
                             <h2 className="text-lg font-semibold">Оператор платформы</h2>
                         </div>
-                        <dl className="space-y-2 text-[15px]">
+                        <dl className="space-y-2 text-base">
                             <Row
                                 label="Наименование"
-                                value={OPERATOR.legalName}
+                                value={req.legalName}
                             />
                             <Row
                                 label="УНП"
-                                value={OPERATOR.unp}
+                                value={req.unp}
                             />
                             <Row
                                 label="Юридический адрес"
-                                value={OPERATOR.legalAddress}
+                                value={req.legalAddress}
                             />
                         </dl>
                     </section>
@@ -76,20 +95,20 @@ export default function ContactsPage() {
                         </div>
                         <div className="flex flex-col gap-3">
                             <a
-                                href={`mailto:${OPERATOR.supportEmail}`}
+                                href={`mailto:${req.supportEmail}`}
                                 className="flex min-h-11 items-center gap-3 rounded-xl border border-border px-4 py-3 text-sm transition-colors hover:border-primary hover:text-primary"
                             >
                                 <Mail className="h-5 w-5 shrink-0" />
-                                <span className="break-all">{OPERATOR.supportEmail}</span>
+                                <span className="break-all">{req.supportEmail}</span>
                             </a>
                             <a
-                                href={OPERATOR.supportTelegramUrl}
+                                href={req.supportTelegramUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex min-h-11 items-center gap-3 rounded-xl border border-border px-4 py-3 text-sm transition-colors hover:border-primary hover:text-primary"
                             >
                                 <Telegram className="h-5 w-5 shrink-0" />
-                                <span>{OPERATOR.supportTelegram}</span>
+                                <span>{req.supportTelegram}</span>
                             </a>
                         </div>
                     </section>
@@ -101,16 +120,16 @@ export default function ContactsPage() {
                             </span>
                             <h2 className="text-lg font-semibold">Персональные данные</h2>
                         </div>
-                        <p className="mb-4 text-[15px] leading-relaxed text-muted-foreground">
+                        <p className="mb-4 text-base leading-relaxed text-muted-foreground">
                             Вопросы, связанные с обработкой персональных данных: получение информации, изменение,
                             удаление, отзыв согласия. Ответ на запрос — до 5 рабочих дней.
                         </p>
                         <a
-                            href={`mailto:${OPERATOR.privacyEmail}`}
+                            href={`mailto:${req.privacyEmail}`}
                             className="flex min-h-11 items-center gap-3 rounded-xl border border-border px-4 py-3 text-sm transition-colors hover:border-primary hover:text-primary"
                         >
                             <Mail className="h-5 w-5 shrink-0" />
-                            <span className="break-all">{OPERATOR.privacyEmail}</span>
+                            <span className="break-all">{req.privacyEmail}</span>
                         </a>
                     </section>
                 </div>

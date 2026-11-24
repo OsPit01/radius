@@ -125,7 +125,7 @@ export default function SupportPage() {
             <Layout>
                 {selectedId === null ? (
                     <>
-                        <h1 className="px-4 pb-2 text-[25px] max-md:text-xl">Обращения в поддержку</h1>
+                        <h1 className="px-4 pb-2 text-2xl max-md:text-xl">Обращения в поддержку</h1>
                         <p className="px-4 pb-6 text-sm text-muted-foreground">
                             Обращения пользователей: переписка и ответы.
                         </p>

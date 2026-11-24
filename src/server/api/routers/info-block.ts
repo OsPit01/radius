@@ -1,0 +1,112 @@
+import { TRPCError } from '@trpc/server';
+import { asc, eq } from 'drizzle-orm';
+import { z } from 'zod';
+
+import { isAdminRole, isLessorRole, isStaffRole } from '@/lib/constants/roles';
+import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
+import { infoBlock } from '@/server/db/schemas';
+
+// Схема одного пункта: текст обязателен, ссылка — необязательна.
+// transform(v => v ?? null): если ссылку не передали (undefined) — превращаем в null.
+// Так тип на выходе совпадает с InfoItemData (href: string | null), и jsonb принимает без кастов.
+const infoItemSchema = z.object({
+    text: z.string().trim().min(1).max(1000),
+    href: z
+        .string()
+        .nullish()
+        .transform((v) => v ?? null),
+});
+
+// Схема одного блока — общая для создания и обновления (один источник правды).
+const infoBlockSchema = z.object({
+    id: z.string().trim().min(1).max(100),
+    icon: z.string().trim().min(1).max(50),
+    title: z.string().trim().min(1).max(255),
+    items: z.array(infoItemSchema).min(1),
+    sortOrder: z.number().int(),
+});
+
+export const infoBlockRouter = createTRPCRouter({
+    // Все блоки раздела «Информация» — по порядку. Только арендодатель и выше:
+    // вкладка живёт в «Управлении бронированиями», куда пускает requireRole('lessor').
+    // Обычному пользователю (role "user") этот контент не нужен — не отдаём лишнего.
+    list: protectedProcedure.query(async ({ ctx }) => {
+        if (!isLessorRole(ctx.session.user.role)) {
+            throw new TRPCError({
+                code: 'FORBIDDEN',
+                message: 'Только для арендодателя и выше',
+            });
+        }
+        return ctx.db.select().from(infoBlock).orderBy(asc(infoBlock.sortOrder));
+    }),
+
+    // Создать или обновить блок. Только модератор и выше.
+    upsert: protectedProcedure.input(infoBlockSchema).mutation(async ({ ctx, input }) => {
+        if (!isStaffRole(ctx.session.user.role)) {
+            throw new TRPCError({
+                code: 'FORBIDDEN',
+                message: 'Только модератор или администратор',
+            });
+        }
+
+        return ctx.db
+            .insert(infoBlock)
+            .values(input)
+            .onConflictDoUpdate({
+                target: infoBlock.id,
+                set: {
+                    icon: input.icon,
+                    title: input.title,
+                    items: input.items,
+                    sortOrder: input.sortOrder,
+                },
+            })
+            .returning();
+    }),
+
+    // Переупорядочить блоки. Принимает массив id в НУЖНОМ порядке и
+    // переписывает sortOrder подряд (0, 1, 2...). Один endpoint на всё:
+    // и стрелки ↑↓, и drag-and-drop отправляют сюда новый порядок id.
+    reorder: protectedProcedure.input(z.object({ ids: z.array(z.string()) })).mutation(async ({ ctx, input }) => {
+        if (!isStaffRole(ctx.session.user.role)) {
+            throw new TRPCError({
+                code: 'FORBIDDEN',
+                message: 'Только модератор или администратор',
+            });
+        }
+
+        // Транзакция: либо весь порядок переписался, либо ничего.
+        // Иначе при ошибке на середине получится «рваный» порядок.
+        await ctx.db.transaction(async (tx) => {
+            for (let i = 0; i < input.ids.length; i += 1) {
+                // noUncheckedIndexedAccess: элемент массива «может отсутствовать».
+                const id = input.ids[i];
+                if (id === undefined) {
+                    continue;
+                }
+                await tx.update(infoBlock).set({ sortOrder: i }).where(eq(infoBlock.id, id));
+            }
+        });
+        return { ok: true };
+    }),
+
+    // Удалить блок. Только админ и выше.
+    delete: protectedProcedure.input(z.object({ id: z.string().trim().min(1) })).mutation(async ({ ctx, input }) => {
+        if (!isAdminRole(ctx.session.user.role)) {
+            throw new TRPCError({
+                code: 'FORBIDDEN',
+                message: 'Только администратор',
+            });
+        }
+
+        const [deleted] = await ctx.db
+            .delete(infoBlock)
+            .where(eq(infoBlock.id, input.id))
+            .returning({ id: infoBlock.id });
+
+        if (!deleted) {
+            throw new TRPCError({ code: 'NOT_FOUND', message: 'Блок не найден' });
+        }
+        return { ok: true };
+    }),
+});

@@ -2,7 +2,9 @@ import Link from 'next/link';
 
 import { Instagram, Telegram } from '@/components/icons';
 import { LEGAL_DOCUMENTS } from '@/lib/legal/documents';
-import { ADD_APARTMENT_URL, OPERATOR } from '@/lib/legal/operator';
+import { ADD_APARTMENT_URL } from '@/lib/legal/operator';
+import { toSiteRequisites } from '@/lib/legal/requisites';
+import { api } from '@/trpc/react';
 
 const SOCIALS = [
     {
@@ -42,6 +44,10 @@ const COLUMN_TITLE = 'mb-3 text-sm font-semibold text-foreground';
 const year = new Date().getFullYear();
 
 export function Footer() {
+    // Реквизиты из БД; если строки нет — значения по умолчанию (OPERATOR).
+    const { data } = api.requisites.get.useQuery();
+    const req = toSiteRequisites(data);
+
     return (
         <footer className="border-t border-border">
             <div className="mx-auto max-w-7xl px-4 py-8">
@@ -51,7 +57,7 @@ export function Footer() {
                             href="/"
                             className="text-xl font-bold text-foreground no-underline"
                         >
-                            {OPERATOR.siteName}
+                            {req.siteName}
                         </Link>
                         <h3 className="mt-3 text-sm font-semibold text-muted-foreground">
                             Посуточная аренда квартир напрямую от собственников. Без посредников и переплат.
@@ -141,25 +147,25 @@ export function Footer() {
             <div className="border-t border-border">
                 <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-6 text-sm text-muted-foreground">
                     <p>
-                        © {year} {OPERATOR.siteName}
+                        © {year} {req.siteName}
                     </p>
                     <p className="break-words">
-                        {OPERATOR.legalName} · УНП {OPERATOR.unp}
+                        {req.legalName} · УНП {req.unp}
                     </p>
-                    <p className="break-words">Юридический адрес: {OPERATOR.legalAddress}</p>
+                    <p className="break-words">Юридический адрес: {req.legalAddress}</p>
                     <p className="flex flex-wrap gap-1">
                         <a
-                            href={`mailto:${OPERATOR.footerEmails.privacy}`}
+                            href={`mailto:${req.footerEmails.privacy}`}
                             className="underline transition-colors hover:text-primary"
                         >
-                            {OPERATOR.footerEmails.privacy}
+                            {req.footerEmails.privacy}
                         </a>
                         {' / '}
                         <a
-                            href={`mailto:${OPERATOR.footerEmails.support}`}
+                            href={`mailto:${req.footerEmails.support}`}
                             className="underline transition-colors hover:text-primary"
                         >
-                            {OPERATOR.footerEmails.support}
+                            {req.footerEmails.support}
                         </a>
                     </p>
                     <p className="mt-2">

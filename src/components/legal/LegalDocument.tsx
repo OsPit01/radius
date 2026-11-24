@@ -94,7 +94,7 @@ export function LegalDocument({ doc, withFooter, footer }: LegalDocumentProps) {
                                     className="scroll-mt-24"
                                 >
                                     <h2 className="mb-3 text-xl font-semibold max-md:text-lg">{section.title}</h2>
-                                    <div className="space-y-3 text-[15px] leading-relaxed">
+                                    <div className="space-y-3 text-base leading-relaxed">
                                         {section.blocks.map((block, index) => (
                                             <LegalBlockView
                                                 key={index}
@@ -185,7 +185,7 @@ function LegalBlockView({ block }: { block: LegalBlock }) {
             // но не кричит. Текст наследует цвет темы (контраст сохранён
             // и в тёмной теме).
             return (
-                <div className="rounded-xl border-l-4 border-primary bg-muted p-4 text-[15px] leading-relaxed">
+                <div className="rounded-xl border-l-4 border-primary bg-muted p-4 text-base leading-relaxed">
                     {block.children}
                 </div>
             );
@@ -204,7 +204,7 @@ function LegalTable({ block }: { block: Extract<LegalBlock, { kind: 'table' }> }
         <>
             {/* Десктоп/планшет */}
             <div className="hidden overflow-x-auto rounded-xl border border-border md:block">
-                <table className="w-full border-collapse text-left text-[15px]">
+                <table className="w-full border-collapse text-left text-base">
                     <thead>
                         <tr className="bg-muted">
                             {head.map((title) => (
@@ -252,7 +252,7 @@ function LegalTable({ block }: { block: Extract<LegalBlock, { kind: 'table' }> }
                                 <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
                                     {head[cellIndex]}
                                 </p>
-                                <p className="text-[15px] break-words text-foreground">{cell}</p>
+                                <p className="text-base break-words text-foreground">{cell}</p>
                             </div>
                         ))}
                     </div>

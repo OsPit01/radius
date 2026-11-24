@@ -40,3 +40,26 @@ export function requireRole(role: RoleKey): GetServerSideProps {
         return { props: {} };
     };
 }
+
+/**
+ * Гард с КАСТОМНОЙ проверкой роли — для точечных прав, которые не
+ * выражаются уровнем (например, legalAdmin: level 0, но доступ к реквизитам).
+ * Проверка-функция — единый источник правды (см. canManageRequisites).
+ *
+ * Использование:
+ *   export const getServerSideProps = requireCan(canManageRequisites);
+ */
+export function requireCan(canAccess: (role: string | undefined | null) => boolean): GetServerSideProps {
+    return async (ctx) => {
+        const session = await auth(ctx);
+
+        if (!session?.user) {
+            return { redirect: { destination: '/auth/signin', permanent: false } };
+        }
+        if (!canAccess(session.user.role)) {
+            return { notFound: true };
+        }
+
+        return { props: {} };
+    };
+}

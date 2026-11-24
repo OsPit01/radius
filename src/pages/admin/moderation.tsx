@@ -77,7 +77,7 @@ export default function ModerationPage() {
     return (
         <AuthGuard>
             <Layout>
-                <h1 className="text-semibold pb-2 text-[25px] max-md:text-xl">Модерация объектов</h1>
+                <h1 className="text-semibold pb-2 text-2xl max-md:text-xl">Модерация объектов</h1>
 
                 {/* ФИЛЬТРЫ: умный поиск + селект города.
                         Селект показывает ТОЛЬКО реально существующие города

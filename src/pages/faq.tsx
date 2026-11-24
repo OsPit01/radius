@@ -1,16 +1,36 @@
+import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
 
 import { ChevronDown } from '@/components/icons';
 import { Seo } from '@/components/Seo';
-import { ADD_APARTMENT_URL, OPERATOR } from '@/lib/legal/operator';
+import { ADD_APARTMENT_URL } from '@/lib/legal/operator';
+import { type SiteRequisites, toSiteRequisites } from '@/lib/legal/requisites';
 import { Layout } from '@/shared/ui/layout';
+import { createServerCaller } from '@/trpc/server';
 
-export default function FaqPage() {
+// Реквизиты читаются из БД на сервере (fallback — OPERATOR из кода).
+type FaqPageProps = {
+    requisites: SiteRequisites;
+};
+
+export const getServerSideProps: GetServerSideProps<FaqPageProps> = async (ctx) => {
+    const caller = await createServerCaller(ctx);
+    const row = await caller.requisites.get();
+    return {
+        props: {
+            requisites: toSiteRequisites(row),
+        },
+    };
+};
+
+export default function FaqPage({ requisites }: FaqPageProps) {
+    const req = requisites;
+
     return (
         <>
             <Seo
                 title="Вопросы и ответы"
-                description={`Частые вопросы о ${OPERATOR.siteName}: как забронировать квартиру на сутки, как разместить объект, почему скрыт телефон владельца, бесплатно ли это.`}
+                description={`Частые вопросы о ${req.siteName}: как забронировать квартиру на сутки, как разместить объект, почему скрыт телефон владельца, бесплатно ли это.`}
                 canonical="/faq"
             />
             <Layout withFooter>
@@ -18,25 +38,25 @@ export default function FaqPage() {
                 <p className="mb-8 text-muted-foreground">
                     Коротко о том, как работает платформа. Не нашли ответ — напишите нам на{' '}
                     <a
-                        href={`mailto:${OPERATOR.supportEmail}`}
+                        href={`mailto:${req.supportEmail}`}
                         className="text-primary underline hover:text-primary/80"
                     >
-                        {OPERATOR.supportEmail}
+                        {req.supportEmail}
                     </a>
                     .
                 </p>
 
                 <div className="flex flex-col gap-3">
-                    {FAQS.map((item) => (
+                    {FAQS(req).map((item) => (
                         <details
                             key={item.question}
                             className="group rounded-2xl bg-card p-5 shadow-sm"
                         >
-                            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 text-[15px] font-medium">
+                            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 text-base font-medium">
                                 {item.question}
                                 <ChevronDown className="h-5 w-5 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
                             </summary>
-                            <p className="mt-3 text-[15px] leading-relaxed text-muted-foreground">{item.answer}</p>
+                            <p className="mt-3 text-base leading-relaxed text-muted-foreground">{item.answer}</p>
                         </details>
                     ))}
                 </div>
@@ -65,83 +85,87 @@ type Faq = {
     answer: React.ReactNode;
 };
 
-const FAQS: Faq[] = [
-    {
-        question: 'Как забронировать квартиру на сутки?',
-        answer: (
-            <>
-                Откройте страницу объекта, нажмите «Забронировать» и заполните заявку: даты, количество гостей и
-                телефон. Заявка уходит владельцу — он подтверждает её или отклоняет. Статус виден в разделе «Мои
-                бронирования».
-            </>
-        ),
-    },
-    {
-        question: 'Сколько стоят ваши услуги?',
-        answer: (
-            <>
-                Ноль рублей. Размещение объектов и поиск жилья на {OPERATOR.siteName} бесплатны для обеих сторон: мы не
-                берём комиссию ни с собственников, ни с гостей.
-            </>
-        ),
-    },
-    {
-        question: 'Почему я не вижу телефон владельца?',
-        answer: (
-            <>
-                Телефон показывается только вошедшим в аккаунт пользователям — так мы защищаем владельцев от спама и
-                автоматических звонков.{' '}
-                <Link
-                    href="/auth/signin"
-                    className="text-primary underline hover:text-primary/80"
-                >
-                    Войдите
-                </Link>{' '}
-                — и номер появится на странице объекта.
-            </>
-        ),
-    },
-    {
-        question: 'Как разместить свою квартиру?',
-        answer: (
-            <>
-                Войдите в аккаунт и нажмите «Сдать квартиру»: мастер проведёт по шагам — тип объекта, адрес, описание,
-                фото и цена. После отправки объявление проходит модерацию и публикуется.
-            </>
-        ),
-    },
-    {
-        question: 'Моя заявка — это уже подтверждённая бронь?',
-        answer: (
-            <>
-                Нет. Заявка — это запрос владельцу. Бронь считается согласованной только после подтверждения владельцем:
-                следите за статусом в разделе «Мои бронирования» или в чате.
-            </>
-        ),
-    },
-    {
-        question: 'Сайт принимает оплату за аренду?',
-        answer: (
-            <>
-                Нет. Все расчёты — напрямую между гостем и владельцем. {OPERATOR.siteName} не берёт платежи и не
-                гарантирует сделки. Будьте осторожны: не переводите предоплату незнакомым людям без подтверждения брони.
-            </>
-        ),
-    },
-    {
-        question: 'Как удалить аккаунт или отозвать согласие на обработку данных?',
-        answer: (
-            <>
-                Напишите на {OPERATOR.privacyEmail}: удалим учётную запись и данные, отзовём согласие на обработку
-                персональных данных. Порядок и сроки описаны в{' '}
-                <Link
-                    href="/privacy"
-                    className="text-primary underline hover:text-primary/80"
-                >
-                    Политике обработки персональных данных
-                </Link>
-                .
-            </>
-        ),
-    },
-];
+// Вопросы-ответы как функция от реквизитов (siteName, почта подставляются живые).
+function FAQS(req: SiteRequisites): Faq[] {
+    return [
+        {
+            question: 'Как забронировать квартиру на сутки?',
+            answer: (
+                <>
+                    Откройте страницу объекта, нажмите «Забронировать» и заполните заявку: даты, количество гостей и
+                    телефон. Заявка уходит владельцу — он подтверждает её или отклоняет. Статус виден в разделе «Мои
+                    бронирования».
+                </>
+            ),
+        },
+        {
+            question: 'Сколько стоят ваши услуги?',
+            answer: (
+                <>
+                    Ноль рублей. Размещение объектов и поиск жилья на {req.siteName} бесплатны для обеих сторон: мы не
+                    берём комиссию ни с собственников, ни с гостей.
+                </>
+            ),
+        },
+        {
+            question: 'Почему я не вижу телефон владельца?',
+            answer: (
+                <>
+                    Телефон показывается только вошедшим в аккаунт пользователям — так мы защищаем владельцев от спама и
+                    автоматических звонков.{' '}
+                    <Link
+                        href="/auth/signin"
+                        className="text-primary underline hover:text-primary/80"
+                    >
+                        Войдите
+                    </Link>{' '}
+                    — и номер появится на странице объекта.
+                </>
+            ),
+        },
+        {
+            question: 'Как разместить свою квартиру?',
+            answer: (
+                <>
+                    Войдите в аккаунт и нажмите «Сдать квартиру»: мастер проведёт по шагам — тип объекта, адрес,
+                    описание, фото и цена. После отправки объявление проходит модерацию и публикуется.
+                </>
+            ),
+        },
+        {
+            question: 'Моя заявка — это уже подтверждённая бронь?',
+            answer: (
+                <>
+                    Нет. Заявка — это запрос владельцу. Бронь считается согласованной только после подтверждения
+                    владельцем: следите за статусом в разделе «Мои бронирования» или в чате.
+                </>
+            ),
+        },
+        {
+            question: 'Сайт принимает оплату за аренду?',
+            answer: (
+                <>
+                    Нет. Все расчёты — напрямую между гостем и владельцем. {req.siteName} не берёт платежи и не
+                    гарантирует сделки. Будьте осторожны: не переводите предоплату незнакомым людям без подтверждения
+                    брони.
+                </>
+            ),
+        },
+        {
+            question: 'Как удалить аккаунт или отозвать согласие на обработку данных?',
+            answer: (
+                <>
+                    Напишите на {req.privacyEmail}: удалим учётную запись и данные, отзовём согласие на обработку
+                    персональных данных. Порядок и сроки описаны в{' '}
+                    <Link
+                        href="/privacy"
+                        className="text-primary underline hover:text-primary/80"
+                    >
+                        Политике обработки персональных данных
+                    </Link>
+                    .
+                </>
+            ),
+        },
+    ];
+}

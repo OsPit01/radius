@@ -56,17 +56,15 @@ export function ChatList({ chats, userId, selectedId, onSelect }: ChatListProps)
 
                             {/* Адрес квартиры + имя собеседника */}
                             <div className="min-w-0 flex-1">
-                                <p className="truncate text-[13px] font-semibold text-foreground">
+                                <p className="truncate text-xs font-semibold text-foreground">
                                     {c.apartment.formattedAddress}
                                 </p>
-                                <p className="truncate text-sm text-[12px] text-muted-foreground">
-                                    {displayName(other)}
-                                </p>
+                                <p className="truncate text-sm text-xs text-muted-foreground">{displayName(other)}</p>
                             </div>
 
                             {/* Счётчик непрочитанных — свой для каждой беседы */}
                             {c.unreadCount > 0 && (
-                                <span className="ml-auto flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-destructive px-1.5 text-[11px] font-semibold text-destructive-foreground">
+                                <span className="ml-auto flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-destructive px-1.5 text-xs font-semibold text-destructive-foreground">
                                     {c.unreadCount}
                                 </span>
                             )}

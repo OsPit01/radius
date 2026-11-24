@@ -38,7 +38,7 @@ export function TicketCard({ item, expanded, onToggleId, onOpen }: TicketCardPro
                 <span className="flex w-full items-center justify-between gap-2">
                     <span className="text-sm font-semibold">Обращение в поддержку №{item.id}</span>
                     {item.unreadCount > 0 && (
-                        <span className="shrink-0 rounded-full bg-destructive px-1.5 py-0.5 text-[11px] font-semibold text-destructive-foreground">
+                        <span className="shrink-0 rounded-full bg-destructive px-1.5 py-0.5 text-xs font-semibold text-destructive-foreground">
                             {item.unreadCount}
                         </span>
                     )}
@@ -48,12 +48,12 @@ export function TicketCard({ item, expanded, onToggleId, onOpen }: TicketCardPro
                         `${color}1f` — 8-значный HEX: к цвету добавлена
                         прозрачность 1f (~12%) для фона бейджа. */}
                     <span
-                        className="rounded-full px-1.5 py-0.5 text-[10px] font-medium"
+                        className="rounded-full px-1.5 py-0.5 text-xs font-medium"
                         style={{ backgroundColor: `${statusInfo.color}1f`, color: statusInfo.color }}
                     >
                         {statusInfo.label}
                     </span>
-                    <span className="text-[11px]">{formatChatDate(item.createdAt)}</span>
+                    <span className="text-xs">{formatChatDate(item.createdAt)}</span>
                 </span>
             </button>
 
@@ -86,7 +86,7 @@ export function TicketCard({ item, expanded, onToggleId, onOpen }: TicketCardPro
                         </span>
                         <span className="flex items-center gap-0.5">
                             <span
-                                className="truncate text-[10px] text-muted-foreground"
+                                className="truncate text-xs text-muted-foreground"
                                 title={item.owner.id}
                             >
                                 ID: {expanded ? item.owner.id : `${item.owner.id.slice(0, 8)}…`}

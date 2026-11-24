@@ -21,7 +21,7 @@ export function ChatHeader({ formattedAddress, companion, onBack, onDeleteConver
             <button
                 type="button"
                 onClick={onBack}
-                className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-xl text-[20px] font-semibold text-foreground transition-colors hover:bg-muted"
+                className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-xl font-semibold text-foreground transition-colors hover:bg-muted"
                 aria-label="Назад к списку бесед"
             >
                 <ArrowLeft className="h-6 w-6" />

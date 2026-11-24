@@ -21,7 +21,7 @@ export function PhotosSection({ form, isUploading, onFilesChange, onRemove, onRe
                 onRemove={onRemove}
             >
                 <label className="flex aspect-square cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-border bg-background hover:border-primary">
-                    <span className="flex cursor-pointer flex-col items-center gap-1 text-[13px] text-muted-foreground">
+                    <span className="flex cursor-pointer flex-col items-center gap-1 text-xs text-muted-foreground">
                         {isUploading ? <Hourglass className="h-8 w-8" /> : <Camera className="h-8 w-8" />}
                     </span>
                     <input

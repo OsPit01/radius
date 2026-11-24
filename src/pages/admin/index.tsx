@@ -1,9 +1,9 @@
 import { useSession } from 'next-auth/react';
 
-import { BarChart, Chat, Home, type IconComponent, Info, Settings, Shield, Users } from '@/components/icons';
+import { BarChart, Chat, Home, type IconComponent, Info, Note, Settings, Shield, Users } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { TileLink } from '@/components/ui/TileLink';
-import { hasPermission, isStaffRole, type RoleKey } from '@/lib/constants/roles';
+import { canAccessAdminPanel, canManageRequisites, hasPermission, type RoleKey } from '@/lib/constants/roles';
 import { requireAuth } from '@/server/auth/require-auth';
 import { Layout } from '@/shared/ui/layout';
 
@@ -11,20 +11,31 @@ import { Layout } from '@/shared/ui/layout';
 export const getServerSideProps = requireAuth;
 
 // ===== Разделы панели =====
-// minRole — минимальная роль для раздела:
-//   'moderator' — модерация контента (персоналу),
-//   'admin'     — полное управление (пользователи, поддержка, статистика...).
-// hasPermission сравнивает УРОВНИ (см. roles.ts), поэтому список не пишем руками.
-// Массив статичный — не зависит от сессии и данных, поэтому живёт на уровне модуля
-// (как TIME_OPTIONS / SUPPORTED_IMAGE_TYPES в других файлах): создаётся один раз
-// при загрузке файла, а не пересобирается заново при каждом рендере страницы.
-const SECTIONS: readonly { href: string; label: string; icon: IconComponent; minRole: RoleKey }[] = [
+// minRole — минимальная роль для раздела по УРОВНЮ (hasPermission сравнивает уровни).
+// canAccess — ТОЧЕЧНОЕ право для ролей вне иерархии (legalAdmin: реквизиты).
+// Массив статичный — не зависит от сессии и данных, поэтому живёт на уровне модуля.
+const SECTIONS: readonly {
+    href: string;
+    label: string;
+    icon: IconComponent;
+    minRole: RoleKey;
+    canAccess?: (role: string) => boolean;
+}[] = [
     { href: '/admin/moderation', label: 'Модерация объектов', icon: Shield, minRole: 'moderator' },
+    { href: '/admin/info-blocks', label: 'Блоки информации', icon: Note, minRole: 'moderator' },
     { href: '/admin/users', label: 'Управление пользователями', icon: Users, minRole: 'admin' },
     { href: '/admin/support', label: 'Обращения в поддержку', icon: Info, minRole: 'admin' },
     { href: '/admin/conversations', label: 'Все беседы', icon: Chat, minRole: 'admin' },
     { href: '/admin/statistics', label: 'Общая статистика', icon: BarChart, minRole: 'admin' },
-    { href: '/admin/requisites', label: 'Реквизиты сайта', icon: Settings, minRole: 'admin' },
+    {
+        href: '/admin/requisites',
+        label: 'Реквизиты сайта',
+        icon: Settings,
+        minRole: 'superadmin',
+        // Точечное право: legalAdmin (level 0) не проходит hasPermission,
+        // но реквизиты — его раздел. Проверка — единый источник правды.
+        canAccess: (role) => canManageRequisites(role),
+    },
     { href: '/my-apartments/new', label: 'Добавить квартиру', icon: Home, minRole: 'admin' },
 ];
 
@@ -32,11 +43,8 @@ export default function AdminPage() {
     const { data: session } = useSession();
     const role = session?.user?.role ?? '';
 
-    // ===== Ворота панели: ПЕРСОНАЛ (модератор и выше) =====
-    // Хаб открыт модератору, но разделы внутри фильтруются по minRole:
-    // модератор видит только «Модерацию объектов», админ+ — всё.
-    // (Данные дополнительно защищены процедурами на сервере — двойная защита.)
-    if (!isStaffRole(role)) {
+    // ===== Ворота панели: ПЕРСОНАЛ (модератор+) + legalAdmin =====
+    if (!canAccessAdminPanel(role)) {
         return (
             <AuthGuard>
                 <Layout className="max-w-none! p-[60px_20px]! text-center text-lg">У вас нет доступа</Layout>
@@ -44,14 +52,16 @@ export default function AdminPage() {
         );
     }
 
-    // Модератору показываем только его разделы; админу+ — все.
-    // Сам список — SECTIONS на уровне модуля; здесь только фильтрация по роли.
-    const visibleSections = SECTIONS.filter((item) => hasPermission(role, item.minRole));
+    // Раздел виден, если роль проходит по уровню (hasPermission) ИЛИ
+    // по точечному праву (canAccess — для legalAdmin и будущих спецролей).
+    const visibleSections = SECTIONS.filter(
+        (item) => hasPermission(role, item.minRole) || (item.canAccess?.(role) ?? false),
+    );
 
     return (
         <AuthGuard>
             <Layout className="max-w-[1200px]! px-4! py-10!">
-                <h1 className="pb-2 text-[25px] max-md:text-xl">Панель управления</h1>
+                <h1 className="pb-2 text-2xl max-md:text-xl">Панель управления</h1>
                 <p className="pb-6 text-sm text-muted-foreground">
                     {hasPermission(role, 'admin')
                         ? 'Все разделы управления сайтом в одном месте.'

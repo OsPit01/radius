@@ -157,7 +157,7 @@ export default function EditApartmentPage() {
         <AuthGuard>
             <Layout>
                 <div className="rounded-2xl bg-card p-10 shadow-[0_2px_8px_rgba(0,0,0,0.08)] max-[480px]:p-4 max-md:p-5">
-                    <h1 className="mb-[30px] text-[28px] font-bold text-foreground max-md:text-[22px]">
+                    <h1 className="mb-[30px] text-3xl font-bold text-foreground max-md:text-2xl">
                         Редактирование объекта
                     </h1>
 

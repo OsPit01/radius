@@ -64,7 +64,7 @@ function SortableImageItem({
             </button>
 
             {isMain && (
-                <div className="absolute top-1 left-1 z-[5] rounded bg-warning px-2 py-0.5 text-[10px] font-semibold text-warning-foreground">
+                <div className="absolute top-1 left-1 z-[5] rounded bg-warning px-2 py-0.5 text-xs font-semibold text-warning-foreground">
                     Заглавная
                 </div>
             )}
@@ -77,7 +77,7 @@ function SortableImageItem({
                     <button
                         type="button"
                         onClick={() => onMakeMain(index)}
-                        className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border-none bg-black/60 p-0 text-[15px] text-white/80 max-md:h-4 max-md:w-4 max-md:text-[8px]"
+                        className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border-none bg-black/60 p-0 text-base text-white/80 max-md:h-4 max-md:w-4 max-md:text-[8px]"
                         title="Сделать заглавным"
                         aria-label={`Сделать фото ${index + 1} заглавным`}
                     >
@@ -90,7 +90,7 @@ function SortableImageItem({
                 <button
                     type="button"
                     onClick={() => onRemove(index)}
-                    className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border-none bg-black/60 p-0 text-[15px] text-white/80 max-md:h-4 max-md:w-4 max-md:text-[8px]"
+                    className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border-none bg-black/60 p-0 text-base text-white/80 max-md:h-4 max-md:w-4 max-md:text-[8px]"
                     aria-label="Удалить фото"
                 >
                     <Close className="size-3" />

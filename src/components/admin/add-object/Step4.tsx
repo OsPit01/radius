@@ -115,7 +115,7 @@ export function Step4({ onUploadingChange }: Step4Props) {
 
     return (
         <div className="animate-[fadeIn_0.3s_ease] text-foreground">
-            <h2 className="mb-3 text-[17px] text-foreground">Шаг 4 из 4: Фотографии объекта</h2>
+            <h2 className="mb-3 text-lg text-foreground">Шаг 4 из 4: Фотографии объекта</h2>
 
             <FieldSet className="mt-5">
                 <FieldLegend variant="legend">

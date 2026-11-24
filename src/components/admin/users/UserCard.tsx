@@ -171,7 +171,7 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
                         <p className="truncate text-xs text-muted-foreground">{user.email}</p>
                         <div className="flex items-start gap-1">
                             <p
-                                className={`min-w-0 self-center text-[11px] text-muted-foreground ${showId ? 'wrap-anywhere' : 'truncate'}`}
+                                className={`min-w-0 self-center text-xs text-muted-foreground ${showId ? 'wrap-anywhere' : 'truncate'}`}
                                 title={user.id}
                             >
                                 ID: {showId ? user.id : `${user.id.slice(0, 8)}…`}
@@ -192,7 +192,7 @@ export function UserCard({ user, allowedRoles }: UserCardProps) {
                     текст — из домена (getRoleInfo). Разделение ответственности. */}
                 <span
                     style={{ background: getRoleColor(user.role) }}
-                    className="mt-3 inline-flex w-fit items-center rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide text-white uppercase"
+                    className="mt-3 inline-flex w-fit items-center rounded-full px-2 py-0.5 text-xs font-semibold tracking-wide text-white uppercase"
                 >
                     {roleInfo.label}
                 </span>

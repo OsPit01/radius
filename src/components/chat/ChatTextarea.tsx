@@ -97,11 +97,11 @@ export function ChatTextarea({ value, onChange, placeholder, onSend, disabled = 
                 disabled={disabled}
                 // overflow-hidden — ГЛАВНОЕ отличие: скроллбара НЕТ вообще
                 // (никаких стрелок Windows), прокрутка — программная, см. onChange.
-                className="max-h-[220px] w-full resize-none overflow-hidden rounded-xl border border-border bg-transparent p-3 text-[15px] leading-relaxed text-foreground outline-none focus:border-primary disabled:cursor-not-allowed disabled:opacity-60"
+                className="max-h-[220px] w-full resize-none overflow-hidden rounded-xl border border-border bg-transparent p-3 text-base leading-relaxed text-foreground outline-none focus:border-primary disabled:cursor-not-allowed disabled:opacity-60"
             />
             {/* Счётчик символов: прижат вправо, мелкий, появляется при длинном тексте. */}
             <span
-                className={`self-end pt-1 text-[11px] tabular-nums transition-opacity ${
+                className={`self-end pt-1 text-xs tabular-nums transition-opacity ${
                     !showCounter
                         ? 'opacity-0'
                         : isNearLimit

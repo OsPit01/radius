@@ -20,6 +20,11 @@
 export const ROLES = {
     user: { label: 'Пользователь', level: 0 },
     lessor: { label: 'Арендодатель', level: 1 },
+    // Юридический администратор: ТОЧЕЧНАЯ роль без уровневых прав (level 0).
+    // Доступ: вход в админ-панель + реквизиты сайта — и больше ничего.
+    // Права проверяются НЕ уровнем, а хелперами ниже (canAccessAdminPanel,
+    // canManageRequisites): так роль не тянет за собой модерацию/управление.
+    legalAdmin: { label: 'Юридический администратор', level: 0 },
     // Модератор: вход в админ-панель + модерация КОНТЕНТА (объекты).
     // НЕ управляет пользователями и НЕ ведёт поддержку (это админ+).
     moderator: { label: 'Модератор', level: 2 },
@@ -91,6 +96,25 @@ export function isAdminRole(role: string | undefined | null): boolean {
 export function isLessorRole(role: string | undefined | null): boolean {
     // Валидация мусора + сравнение ПО УРОВНЮ (level), а не по строке 'user'.
     return isRoleKey(role) && ROLES[role].level >= ROLES.lessor.level;
+}
+
+/**
+ * Вход в админ-панель (хаб /admin).
+ * Персонал (модератор+) по уровню + точечная роль legalAdmin
+ * (у неё level 0, поэтому иерархия её не видит — включаем явно).
+ */
+export function canAccessAdminPanel(role: string | undefined | null): boolean {
+    return isStaffRole(role) || role === 'legalAdmin';
+}
+
+/**
+ * Управление реквизитами сайта (/admin/requisites).
+ * Суперадмин и выше по уровню + точечная роль legalAdmin.
+ * Хелпер — единый источник правды: им проверяются и страница, и процедура,
+ * и плитка в админ-панели (рассинхрон невозможен).
+ */
+export function canManageRequisites(role: string | undefined | null): boolean {
+    return hasPermission(role ?? '', 'superadmin') || role === 'legalAdmin';
 }
 
 /**

@@ -82,7 +82,7 @@ export function SupportChatHeader({
                     </span>
                     <span
                         style={{ background: getRoleColor(selected.assignedAdmin.role) }}
-                        className="rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide text-white uppercase"
+                        className="rounded-full px-2 py-0.5 text-xs font-semibold tracking-wide text-white uppercase"
                     >
                         {getRoleInfo(selected.assignedAdmin.role).label}
                     </span>

@@ -103,7 +103,7 @@ export function ModerationCard({ item, canManage }: ModerationCardProps) {
             а не через Tailwind (Tailwind не умеет динамические цвета). */}
                     <span
                         style={{ background: statusInfo.color }}
-                        className="w-fit rounded-full px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-white uppercase"
+                        className="w-fit rounded-full px-2.5 py-0.5 text-xs font-semibold tracking-wide text-white uppercase"
                     >
                         {statusInfo.label}
                     </span>
@@ -118,7 +118,7 @@ export function ModerationCard({ item, canManage }: ModerationCardProps) {
                     </p>
                     {/* ===== НИЗ КАРТОЧКИ: единый ритм отступов =====
                         mt-auto ТОЛЬКО здесь — прижимает кнопки к низу карточки.
-                        Кнопки компактные (px-2 py-1, text-[11px], truncate):
+                        Кнопки компактные (px-2 py-1, text-xs, truncate):
                         в 4 колонках на кнопку ~120px — длинные подписи («Редактировать»)
                         обрезаются многоточием, а не вылезают за границу. */}
                     <div className="mt-auto flex gap-1.5 pt-3">
@@ -126,7 +126,7 @@ export function ModerationCard({ item, canManage }: ModerationCardProps) {
                             onClick={() => updateStatus.mutate({ id: item.apartment.id, status: 'active' })}
                             disabled={isActive}
                             title={isActive ? 'Объект уже одобрен' : undefined}
-                            className="flex min-h-6 min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[30px] bg-success px-2 py-1 text-[11px] font-semibold text-success-foreground transition-colors hover:bg-success/90 disabled:cursor-not-allowed disabled:opacity-50 pointer-coarse:min-h-11"
+                            className="flex min-h-6 min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[30px] bg-success px-2 py-1 text-xs font-semibold text-success-foreground transition-colors hover:bg-success/90 disabled:cursor-not-allowed disabled:opacity-50 pointer-coarse:min-h-11"
                         >
                             <span className="truncate">Одобрить</span>
                         </button>
@@ -134,7 +134,7 @@ export function ModerationCard({ item, canManage }: ModerationCardProps) {
                             onClick={() => setRejectOpen(true)}
                             disabled={isInactive}
                             title={isInactive ? 'Объект уже отклонён' : undefined}
-                            className="flex min-h-6 min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[30px] border border-border px-2 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:border-warning hover:text-warning disabled:cursor-not-allowed disabled:opacity-50 pointer-coarse:min-h-11"
+                            className="flex min-h-6 min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[30px] border border-border px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-warning hover:text-warning disabled:cursor-not-allowed disabled:opacity-50 pointer-coarse:min-h-11"
                         >
                             <span className="truncate">Отклонить</span>
                         </button>
@@ -148,13 +148,13 @@ export function ModerationCard({ item, canManage }: ModerationCardProps) {
                         <div className="flex gap-1.5 pt-2">
                             <button
                                 onClick={() => setDeleteOpen(true)}
-                                className="flex min-h-6 min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[30px] border border-border px-2 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:border-destructive hover:text-destructive pointer-coarse:min-h-11"
+                                className="flex min-h-6 min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[30px] border border-border px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-destructive hover:text-destructive pointer-coarse:min-h-11"
                             >
                                 <span className="truncate">Удалить</span>
                             </button>
                             <Link
                                 href={`/my-apartments/${item.apartment.id}/edit`}
-                                className="flex min-h-6 min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[30px] border border-border px-2 py-1 text-[11px] font-medium text-muted-foreground no-underline transition-colors hover:border-primary hover:text-primary pointer-coarse:min-h-11"
+                                className="flex min-h-6 min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[30px] border border-border px-2 py-1 text-xs font-medium text-muted-foreground no-underline transition-colors hover:border-primary hover:text-primary pointer-coarse:min-h-11"
                             >
                                 <span className="truncate">Редактировать</span>
                             </Link>

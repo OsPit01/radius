@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 
 import { AuthGuard } from '@/components/layout/AuthGuard';
+import { InfoTab } from '@/components/profile/manage-bookings/InfoTab';
 import { ManageBookingRow } from '@/components/profile/manage-bookings/ManageBookingRow';
 import { FilterTabs } from '@/components/ui/FilterTabs';
 import { Modal } from '@/components/ui/Modal';
@@ -11,7 +12,6 @@ import { isAdminRole } from '@/lib/constants/roles';
 import { requireRole } from '@/server/auth/require-auth';
 import { Layout } from '@/shared/ui/layout';
 import { api } from '@/trpc/react';
-
 // Страница доступна только арендодателю и выше (lessor+).
 // Обычному пользователю (role "user") отдаётся 404 ещё на сервере.
 export const getServerSideProps = requireRole('lessor');
@@ -148,7 +148,9 @@ export default function ManageBookingsPage() {
 
                     {/* Остальные вкладки — заглушки «в разработке» */}
                     {tab === 'calendar' && <p>Календарь — в разработке</p>}
-                    {tab === 'info' && <p>Информация — в разработке</p>}
+                    {tab === 'info' && (
+                        <InfoTab name={session?.user?.firstName ?? session?.user?.name ?? 'Арендодатель'} />
+                    )}
                     {tab === 'settings' && <p>Настройки — в разработке</p>}
                 </div>
 

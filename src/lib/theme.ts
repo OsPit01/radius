@@ -42,6 +42,7 @@ export function canCustomizeTheme(role: string | undefined | null): boolean {
 export const ROLE_COLORS: Record<RoleKey, string> = {
     user: '#4b5563',
     lessor: '#28a745',
+    legalAdmin: '#17a2b8', // бирюзовый — «юридический», точечная роль без уровня
     moderator: '#9333ea', // фиолетовый — «модерация контента», ниже админа
     admin: '#007bff',
     superadmin: '#dc3545',

@@ -49,7 +49,7 @@ export const Step2: React.FC = function () {
 
     return (
         <div className="animate-[fadeIn_0.3s_ease] text-foreground">
-            <h2 className="mb-3 text-[17px] text-foreground">Шаг 2 из 4: Адрес объекта</h2>
+            <h2 className="mb-3 text-lg text-foreground">Шаг 2 из 4: Адрес объекта</h2>
 
             {/* <Button
                 type="button"

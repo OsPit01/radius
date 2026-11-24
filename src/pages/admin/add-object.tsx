@@ -116,7 +116,7 @@ export default function AddObjectPage() {
     if (createApartment.isSuccess) {
         return (
             <Layout>
-                <h1 className="mb-4 text-[28px] text-primary">Объект добавлен</h1>
+                <h1 className="mb-4 text-3xl text-primary">Объект добавлен</h1>
                 <p className="mb-6 text-base text-foreground">
                     Ваш объект успешно добавлен и находится на модерации. После проверки модератором он появится в
                     каталоге.
@@ -134,7 +134,7 @@ export default function AddObjectPage() {
     return (
         <Layout>
             <div className="mx-auto my-6 max-w-[800px] rounded-[24px] border border-border bg-card p-10 shadow-[0_10px_30px_rgba(0,0,0,0.08)] max-[640px]:p-5">
-                <h1 className="mb-[30px] text-center text-[28px] text-primary">Создание объекта</h1>
+                <h1 className="mb-[30px] text-center text-3xl text-primary">Создание объекта</h1>
 
                 <FormProvider {...form}>
                     <form

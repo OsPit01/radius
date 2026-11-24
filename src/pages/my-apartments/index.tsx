@@ -81,11 +81,11 @@ export default function MyApartmentsPage() {
                                             </div>
                                             {/* ШАПКА: заголовок + город + цена — на мобилке стоят рядом с фото */}
                                             <div className="flex min-w-0 flex-1 flex-col gap-1 p-4 max-md:p-3">
-                                                <span className="line-clamp-2 block text-sm leading-[1.3] font-semibold text-foreground max-md:text-[13px]">
+                                                <span className="line-clamp-2 block text-sm leading-[1.3] font-semibold text-foreground max-md:text-xs">
                                                     {item.apartment.title}
                                                 </span>
                                                 <p className="text-xs text-muted-foreground">{item.apartment.city}</p>
-                                                <p className="text-[22px] font-bold text-foreground max-md:text-base">
+                                                <p className="text-2xl font-bold text-foreground max-md:text-base">
                                                     {formatByn(item.apartment.price)}
                                                 </p>
                                             </div>
@@ -120,7 +120,7 @@ export default function MyApartmentsPage() {
                                                 pt-2 — только десктоп (там ID-строка под кнопками);
                                                 на мобиле строка встаёт в ряд с кнопками — отступ не нужен */}
                                             <div className="flex items-center justify-between pt-2 max-md:pt-0">
-                                                <span className="text-[13px] font-bold text-muted-foreground">
+                                                <span className="text-xs font-bold text-muted-foreground">
                                                     {' '}
                                                     ID: {item.apartment.id}{' '}
                                                 </span>

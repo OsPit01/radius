@@ -46,7 +46,7 @@ export function MessageBubble({
             <div className="flex max-w-[70%] min-w-0 flex-col">
                 {/* Имя отправителя (видно только у чужих, чтобы отличать в групповой переписке) */}
                 {!isMine && (
-                    <span className={`mb-0.5 px-1 text-muted-foreground ${compact ? 'text-[11px]' : 'text-xs'}`}>
+                    <span className={`mb-0.5 px-1 text-muted-foreground ${compact ? 'text-xs' : 'text-xs'}`}>
                         {senderName ?? displayName(sender)}
                     </span>
                 )}
@@ -54,7 +54,7 @@ export function MessageBubble({
                 {/* break-words переносит длинные слова, чтобы текст не вылезал за пузырь. */}
                 <div
                     className={`rounded-2xl break-words whitespace-pre-line ${
-                        compact ? 'px-3 py-1.5 text-[13px]' : 'px-4 py-2 text-[15px]'
+                        compact ? 'px-3 py-1.5 text-xs' : 'px-4 py-2 text-base'
                     } ${
                         isMine
                             ? 'rounded-br-sm bg-primary text-primary-foreground'
@@ -66,7 +66,7 @@ export function MessageBubble({
 
                 <span
                     className={`mt-0.5 flex items-center gap-1 px-1 text-muted-foreground ${
-                        compact ? 'text-[10px]' : 'text-[11px]'
+                        compact ? 'text-xs' : 'text-xs'
                     } ${isMine ? 'flex-row-reverse' : ''}`}
                 >
                     {formatChatDate(createdAt)}

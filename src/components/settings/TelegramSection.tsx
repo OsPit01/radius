@@ -11,16 +11,16 @@ type TelegramSectionProps = {
 export function TelegramSection({ connected, isConnecting, onConnect, onDisconnect }: TelegramSectionProps) {
     return (
         <div className="mb-5">
-            <p className="text-[17px]">Telegram-уведомления о бронированиях:</p>
+            <p className="text-lg">Telegram-уведомления о бронированиях:</p>
             {connected ? (
                 <div className="mt-2 flex items-center gap-3">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-success/20 px-3 py-1 text-[13px] text-success">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-success/20 px-3 py-1 text-xs text-success">
                         Подключено
                     </span>
                     <button
                         type="button"
                         onClick={onDisconnect}
-                        className="cursor-pointer rounded-full border border-border px-4 py-1.5 text-[13px] text-foreground/80 hover:text-foreground"
+                        className="cursor-pointer rounded-full border border-border px-4 py-1.5 text-xs text-foreground/80 hover:text-foreground"
                     >
                         Отвязать
                     </button>
@@ -35,7 +35,7 @@ export function TelegramSection({ connected, isConnecting, onConnect, onDisconne
                     {isConnecting ? 'Подключаем...' : 'Подключить Telegram'}
                 </button>
             )}
-            <p className="pt-2 text-[13px] text-foreground/60">
+            <p className="pt-2 text-xs text-foreground/60">
                 Новые заявки с сайта будут приходить вам в Telegram бот{' '}
                 <span className="text-foreground/80">@radius_booking_bot</span>
             </p>
