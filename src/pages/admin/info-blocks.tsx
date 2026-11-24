@@ -22,6 +22,7 @@ import { type InfoBlockRow, SortableBlock } from '@/components/admin/info-blocks
 import { Plus, Sparkles } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { AccessDenied } from '@/components/ui/AccessDenied';
+import { Modal } from '@/components/ui/Modal';
 import { canManageInfoBlocks, isAdminRole } from '@/lib/constants/roles';
 import { requireCan } from '@/server/auth/require-auth';
 import { Layout } from '@/shared/ui/layout';
@@ -35,7 +36,6 @@ const EMPTY_FORM: InfoBlockFormState = {
     id: '',
     icon: 'info',
     title: '',
-    sortOrder: 0,
     items: [],
 };
 
@@ -70,8 +70,12 @@ export default function InfoBlocksAdminPage() {
     const deleteBlock = api.infoBlock.delete.useMutation({
         onSuccess: () => {
             void utils.infoBlock.list.invalidate();
+            setConfirmDeleteId(null); // закрыть модалку после удаления
         },
     });
+
+    // Какой блок ждёт подтверждения удаления (null = модалка закрыта).
+    const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
     // Переупорядочить блоки (стрелки ↑↓ и drag-and-drop).
     const reorder = api.infoBlock.reorder.useMutation({
@@ -110,7 +114,6 @@ export default function InfoBlocksAdminPage() {
             id: block.id,
             icon: block.icon,
             title: block.title,
-            sortOrder: block.sortOrder,
             items: block.items,
         });
         setError(null);
@@ -145,7 +148,6 @@ export default function InfoBlocksAdminPage() {
             id: form.id.trim(),
             icon: form.icon,
             title: form.title.trim(),
-            sortOrder: form.sortOrder,
             items: form.items,
         });
     }
@@ -213,7 +215,7 @@ export default function InfoBlocksAdminPage() {
                                             block={block}
                                             canDelete={isAdminRole(role)}
                                             onEdit={openEdit}
-                                            onDelete={(id) => deleteBlock.mutate({ id })}
+                                            onDelete={(id) => setConfirmDeleteId(id)}
                                         />
                                     ))}
                                 </div>
@@ -233,6 +235,38 @@ export default function InfoBlocksAdminPage() {
                             />
                         </div>
                     )}
+
+                    {/* Модалка подтверждения удаления */}
+                    <Modal
+                        open={confirmDeleteId !== null}
+                        onClose={() => setConfirmDeleteId(null)}
+                        title="Удалить блок?"
+                    >
+                        <p className="text-base text-foreground">
+                            Блок исчезнет из раздела «Информация» у всех арендодателей. Это действие необратимо.
+                        </p>
+                        <div className="mt-6 flex flex-wrap justify-center gap-3">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (confirmDeleteId !== null) {
+                                        deleteBlock.mutate({ id: confirmDeleteId });
+                                    }
+                                }}
+                                disabled={deleteBlock.isPending}
+                                className="min-h-11 cursor-pointer rounded-[30px] bg-destructive px-8 py-2.5 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                {deleteBlock.isPending ? 'Удаление...' : 'Удалить'}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setConfirmDeleteId(null)}
+                                className="min-h-11 cursor-pointer rounded-[30px] border border-border px-8 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+                            >
+                                Отмена
+                            </button>
+                        </div>
+                    </Modal>
                 </div>
             </Layout>
         </AuthGuard>

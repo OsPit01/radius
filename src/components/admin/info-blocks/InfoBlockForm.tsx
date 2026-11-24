@@ -3,12 +3,12 @@ import { INFO_BLOCK_ICON_OPTIONS } from '@/lib/constants/info-block';
 // Пункт блока (совпадает с InfoItemData в схеме БД).
 export type InfoItemForm = { text: string; href: string | null };
 
-// Состояние формы — поля блока.
+// Состояние формы — поля блока. Порядка (sortOrder) здесь нет:
+// он задаётся только drag-and-drop, а новый блок сервер ставит в конец.
 export type InfoBlockFormState = {
     id: string;
     icon: string;
     title: string;
-    sortOrder: number;
     items: InfoItemForm[];
 };
 
@@ -76,16 +76,6 @@ export function InfoBlockForm({ form, setForm, error, onSubmit, onCancel }: Info
                 />
             </label>
 
-            <label className="flex flex-col gap-1.5">
-                <span className="text-sm font-medium text-foreground">Порядок (меньше = выше)</span>
-                <input
-                    type="number"
-                    value={form.sortOrder}
-                    onChange={(e) => setForm((prev) => ({ ...prev, sortOrder: Number(e.target.value) }))}
-                    className="min-h-11 w-full rounded-xl border border-border bg-background px-4 text-base text-foreground outline-none focus:border-primary"
-                />
-            </label>
-
             {/* Конструктор пунктов */}
             <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
@@ -109,8 +99,7 @@ export function InfoBlockForm({ form, setForm, error, onSubmit, onCancel }: Info
                         key={index}
                         className="flex flex-col gap-2 rounded-lg border border-border p-3"
                     >
-                        <input
-                            type="text"
+                        <textarea
                             value={item.text}
                             onChange={(e) =>
                                 setForm((prev) => ({
@@ -121,7 +110,8 @@ export function InfoBlockForm({ form, setForm, error, onSubmit, onCancel }: Info
                                 }))
                             }
                             placeholder="Текст пункта"
-                            className="min-h-11 w-full rounded-xl border border-border bg-background px-4 text-base text-foreground outline-none focus:border-primary"
+                            rows={3}
+                            className="field-sizing-content min-h-11 w-full resize-y rounded-xl border border-border bg-background px-4 py-2.5 text-base text-foreground outline-none focus:border-primary"
                         />
                         <input
                             type="text"

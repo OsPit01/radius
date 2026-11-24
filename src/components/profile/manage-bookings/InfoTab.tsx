@@ -18,15 +18,17 @@ export function InfoTab({ name }: InfoTabProps) {
     const { data: blocks, isPending } = api.infoBlock.list.useQuery();
 
     return (
-        <div className="mx-auto max-w-3xl py-6">
-            {/* Приветствие: иконка слева, заголовок + подзаголовок справа. */}
-            <div className="flex items-center gap-4">
-                <Sparkles className="h-12 w-12 shrink-0 text-primary max-md:h-10 max-md:w-10" />
-                <div className="min-w-0">
-                    <h1 className="text-3xl font-bold break-words text-foreground max-md:text-2xl">
+        <div className="mx-auto max-w-3xl px-4 py-6">
+            {/* Приветствие: десктоп — иконка слева, текст, кнопка справа (в строку).
+                                Мобилка — столбик: иконка по центру, текст по центру, кнопка справа внизу. */}
+            <div className="mb-6 flex items-center gap-4 max-md:flex-col max-md:items-center">
+                <Sparkles className="h-12 w-12 shrink-0 text-primary max-md:h-8 max-md:w-8" />
+
+                <div className="min-w-0 flex-1 max-md:w-full max-md:text-center">
+                    <h1 className="text-3xl font-bold break-words text-foreground max-md:text-xl">
                         Добро пожаловать, {name}
                     </h1>
-                    <p className="mt-1 text-muted-foreground">
+                    <p className="mt-1 text-muted-foreground max-md:text-sm">
                         Здесь собрано всё, что нужно знать для работы с заявками на бронирование.
                     </p>
                 </div>

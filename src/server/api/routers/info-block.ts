@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { asc, eq } from 'drizzle-orm';
+import { asc, eq, max } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { canManageInfoBlocks, isAdminRole, isLessorRole } from '@/lib/constants/roles';
@@ -18,12 +18,13 @@ const infoItemSchema = z.object({
 });
 
 // Схема одного блока — общая для создания и обновления (один источник правды).
+// sortOrder НЕ принимаем от клиента: порядок задаётся только через drag/reorder,
+// а новый блок сервер сам ставит в конец списка.
 const infoBlockSchema = z.object({
     id: z.string().trim().min(1).max(100),
     icon: z.string().trim().min(1).max(50),
     title: z.string().trim().min(1).max(255),
     items: z.array(infoItemSchema).min(1),
-    sortOrder: z.number().int(),
 });
 
 export const infoBlockRouter = createTRPCRouter({
@@ -41,6 +42,9 @@ export const infoBlockRouter = createTRPCRouter({
     }),
 
     // Создать или обновить блок. Модератор+ и legalAdmin.
+    // Порядок (sortOrder) пользователь НЕ задаёт: новый блок встаёт в конец
+    // (максимум + 1), а при обновлении существующего порядок не трогается —
+    // его меняет только reorder (drag-and-drop).
     upsert: protectedProcedure.input(infoBlockSchema).mutation(async ({ ctx, input }) => {
         if (!canManageInfoBlocks(ctx.session.user.role)) {
             throw new TRPCError({
@@ -49,17 +53,33 @@ export const infoBlockRouter = createTRPCRouter({
             });
         }
 
-        return ctx.db
-            .insert(infoBlock)
-            .values(input)
-            .onConflictDoUpdate({
-                target: infoBlock.id,
-                set: {
+        // Существует ли блок с таким id? Решает: создаём или обновляем.
+        const [existing] = await ctx.db.select().from(infoBlock).where(eq(infoBlock.id, input.id));
+
+        if (existing) {
+            // Обновляем только контент — порядок остаётся прежним.
+            return ctx.db
+                .update(infoBlock)
+                .set({
                     icon: input.icon,
                     title: input.title,
                     items: input.items,
-                    sortOrder: input.sortOrder,
-                },
+                })
+                .where(eq(infoBlock.id, input.id))
+                .returning();
+        }
+
+        // Новый блок: ставим в конец списка (максимальный sortOrder + 1).
+        const [row] = await ctx.db.select({ m: max(infoBlock.sortOrder) }).from(infoBlock);
+        const nextOrder = (row?.m ?? -1) + 1;
+        return ctx.db
+            .insert(infoBlock)
+            .values({
+                id: input.id,
+                icon: input.icon,
+                title: input.title,
+                items: input.items,
+                sortOrder: nextOrder,
             })
             .returning();
     }),
