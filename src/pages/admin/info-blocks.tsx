@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import {
     closestCenter,
@@ -21,13 +21,14 @@ import { InfoBlockForm, type InfoBlockFormState } from '@/components/admin/info-
 import { type InfoBlockRow, SortableBlock } from '@/components/admin/info-blocks/SortableBlock';
 import { Plus, Sparkles } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
-import { hasPermission } from '@/lib/constants/roles';
-import { requireRole } from '@/server/auth/require-auth';
+import { AccessDenied } from '@/components/ui/AccessDenied';
+import { canManageInfoBlocks, isAdminRole } from '@/lib/constants/roles';
+import { requireCan } from '@/server/auth/require-auth';
 import { Layout } from '@/shared/ui/layout';
 import { api } from '@/trpc/react';
 
-// Не-модератор получает 404 ещё на сервере.
-export const getServerSideProps = requireRole('moderator');
+// Доступ: модератор+ и legalAdmin (точечное право). Остальным — 404 на сервере.
+export const getServerSideProps = requireCan(canManageInfoBlocks);
 
 // Пустая форма нового блока.
 const EMPTY_FORM: InfoBlockFormState = {
@@ -56,6 +57,7 @@ export default function InfoBlocksAdminPage() {
 
     const utils = api.useUtils();
 
+    const formRef = useRef<HTMLDivElement>(null);
     // Сохранить блок (создать или обновить).
     const upsert = api.infoBlock.upsert.useMutation({
         onSuccess: () => {
@@ -84,10 +86,12 @@ export default function InfoBlocksAdminPage() {
         useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
     );
 
-    if (!hasPermission(role ?? '', 'moderator')) {
+    if (!canManageInfoBlocks(role)) {
         return (
             <AuthGuard>
-                <Layout> У вас нет доступа </Layout>
+                <Layout>
+                    <AccessDenied />
+                </Layout>
             </AuthGuard>
         );
     }
@@ -97,6 +101,7 @@ export default function InfoBlocksAdminPage() {
         setForm(EMPTY_FORM);
         setError(null);
         setShowForm(true);
+        setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0);
     }
 
     // Открыть форму для РЕДАКТИРОВАНИЯ существующего блока.
@@ -110,6 +115,7 @@ export default function InfoBlocksAdminPage() {
         });
         setError(null);
         setShowForm(true);
+        setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0);
     }
 
     // Проверить форму перед сохранением.
@@ -144,26 +150,6 @@ export default function InfoBlocksAdminPage() {
         });
     }
 
-    // Сдвинуть блок вверх/вниз (стрелки).
-    function moveBlock(index: number, direction: 'up' | 'down') {
-        if (!blocks) {
-            return;
-        }
-        const targetIndex = direction === 'up' ? index - 1 : index + 1;
-        if (targetIndex < 0 || targetIndex >= blocks.length) {
-            return;
-        }
-        const ids = blocks.map((b) => b.id);
-        const current = ids[index];
-        const target = ids[targetIndex];
-        if (current === undefined || target === undefined) {
-            return;
-        }
-        ids[index] = target;
-        ids[targetIndex] = current;
-        reorder.mutate({ ids });
-    }
-
     // Перетащили блок (drag-and-drop).
     function handleDragEnd(event: DragEndEvent) {
         const { active, over } = event;
@@ -183,23 +169,26 @@ export default function InfoBlocksAdminPage() {
     return (
         <AuthGuard>
             <Layout>
-                <div className="mx-auto max-w-3xl py-6">
-                    {/* Приветствие + круглая кнопка «+» */}
-                    <div className="mb-6 flex items-center gap-4">
-                        <Sparkles className="h-12 w-12 shrink-0 text-primary max-md:h-10 max-md:w-10" />
-                        <div className="min-w-0 flex-1">
-                            <h1 className="text-3xl font-bold break-words text-foreground max-md:text-2xl">
+                <div className="mx-auto max-w-3xl px-4 py-6">
+                    {/* Приветствие: десктоп — иконка слева, текст, кнопка справа (в строку).
+                        Мобилка — столбик: иконка по центру, текст по центру, кнопка справа внизу. */}
+                    <div className="mb-6 flex items-center gap-4 max-md:flex-col max-md:items-center">
+                        <Sparkles className="h-12 w-12 shrink-0 text-primary max-md:h-8 max-md:w-8" />
+
+                        <div className="min-w-0 flex-1 max-md:w-full max-md:text-center">
+                            <h1 className="text-3xl font-bold break-words text-foreground max-md:text-xl">
                                 Добро пожаловать, {session?.user?.firstName ?? session?.user?.name ?? 'Арендодатель'}
                             </h1>
-                            <p className="mt-1 text-muted-foreground">
+                            <p className="mt-1 text-muted-foreground max-md:text-sm">
                                 Здесь собрано всё, что нужно знать для работы с заявками на бронирование.
                             </p>
                         </div>
+
                         <button
                             type="button"
                             onClick={openCreate}
                             aria-label="Добавить блок"
-                            className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full bg-foreground text-background transition-colors hover:bg-primary hover:text-primary-foreground"
+                            className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full bg-foreground text-background transition-colors hover:bg-primary hover:text-primary-foreground max-md:h-8 max-md:w-8 max-md:self-end"
                         >
                             <Plus className="h-5 w-5" />
                         </button>
@@ -218,15 +207,13 @@ export default function InfoBlocksAdminPage() {
                                 strategy={verticalListSortingStrategy}
                             >
                                 <div className="flex flex-col gap-3">
-                                    {blocks?.map((block, index) => (
+                                    {blocks?.map((block) => (
                                         <SortableBlock
                                             key={block.id}
                                             block={block}
-                                            index={index}
-                                            total={blocks.length}
+                                            canDelete={isAdminRole(role)}
                                             onEdit={openEdit}
                                             onDelete={(id) => deleteBlock.mutate({ id })}
-                                            onMove={moveBlock}
                                         />
                                     ))}
                                 </div>
@@ -236,13 +223,15 @@ export default function InfoBlocksAdminPage() {
 
                     {/* Форма — видна только когда showForm = true */}
                     {showForm && (
-                        <InfoBlockForm
-                            form={form}
-                            setForm={setForm}
-                            error={error}
-                            onSubmit={submit}
-                            onCancel={() => setShowForm(false)}
-                        />
+                        <div ref={formRef}>
+                            <InfoBlockForm
+                                form={form}
+                                setForm={setForm}
+                                error={error}
+                                onSubmit={submit}
+                                onCancel={() => setShowForm(false)}
+                            />
+                        </div>
                     )}
                 </div>
             </Layout>

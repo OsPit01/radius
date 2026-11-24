@@ -2,6 +2,7 @@ import { useSession } from 'next-auth/react';
 
 import { BarChart, Calendar, Eye, Heart } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
+import { AccessDenied } from '@/components/ui/AccessDenied';
 import { ImageWithFallback } from '@/components/ui/ImageWithFallback';
 import { requireAuth } from '@/server/auth/require-auth';
 import { Layout } from '@/shared/ui/layout';
@@ -21,12 +22,15 @@ export default function StatisticsPage() {
 
     const { data: myStats } = api.analytics.getMyApartmentStats.useQuery(undefined, { enabled: role !== 'user' });
 
-    // Обычному пользователю статистика не нужна — показываем заглушку.
+    // Обычному пользователю статистика не нужна — показываем красивую заглушку.
     if (role === 'user') {
         return (
             <AuthGuard>
-                <Layout className="max-w-none! p-[60px_20px]! text-center text-lg">
-                    Статистика доступна только арендодателям
+                <Layout>
+                    <AccessDenied
+                        title="Статистика недоступна"
+                        description="Статистика по объектам доступна только арендодателям."
+                    />
                 </Layout>
             </AuthGuard>
         );

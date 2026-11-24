@@ -2,8 +2,9 @@ import { useSession } from 'next-auth/react';
 
 import { BarChart } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
+import { AccessDenied } from '@/components/ui/AccessDenied';
 import { BOOKING_STATUS_PLURAL_LABELS as BOOKING_STATUS_LABELS } from '@/lib/constants/booking';
-import { isAdminRole } from '@/lib/constants/roles';
+import { canViewSiteStats } from '@/lib/constants/roles';
 import { requireAuth } from '@/server/auth/require-auth';
 import { Layout } from '@/shared/ui/layout';
 import { api } from '@/trpc/react';
@@ -25,13 +26,15 @@ export default function AdminStatisticsPage() {
     const role = session?.user?.role;
 
     const { data: s } = api.analytics.getSiteStats.useQuery(undefined, {
-        enabled: isAdminRole(role),
+        enabled: canViewSiteStats(role),
     });
 
-    if (!isAdminRole(role)) {
+    if (!canViewSiteStats(role)) {
         return (
             <AuthGuard>
-                <Layout className="max-w-none! p-[60px_20px]! text-center text-lg">Нет доступа</Layout>
+                <Layout>
+                    <AccessDenied />
+                </Layout>
             </AuthGuard>
         );
     }

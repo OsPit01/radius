@@ -4,6 +4,7 @@ import { useSession } from 'next-auth/react';
 
 import { ModerationCard } from '@/components/admin/moderation/ModerationCard';
 import { AuthGuard } from '@/components/layout/AuthGuard';
+import { AccessDenied } from '@/components/ui/AccessDenied';
 import { isAdminRole, isStaffRole } from '@/lib/constants/roles';
 import { EDIT_INPUT_CLASS } from '@/lib/utils';
 import { requireAuth } from '@/server/auth/require-auth';
@@ -70,7 +71,9 @@ export default function ModerationPage() {
     if (!isStaffRole(session?.user.role)) {
         return (
             <AuthGuard>
-                <Layout> У вас нет доступа </Layout>
+                <Layout>
+                    <AccessDenied />
+                </Layout>
             </AuthGuard>
         );
     }

@@ -2,6 +2,7 @@ import { useSession } from 'next-auth/react';
 
 import { BarChart, Chat, Home, type IconComponent, Info, Note, Settings, Shield, Users } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
+import { AccessDenied } from '@/components/ui/AccessDenied';
 import { TileLink } from '@/components/ui/TileLink';
 import { canAccessAdminPanel, canManageRequisites, hasPermission, type RoleKey } from '@/lib/constants/roles';
 import { requireAuth } from '@/server/auth/require-auth';
@@ -47,16 +48,21 @@ export default function AdminPage() {
     if (!canAccessAdminPanel(role)) {
         return (
             <AuthGuard>
-                <Layout className="max-w-none! p-[60px_20px]! text-center text-lg">У вас нет доступа</Layout>
+                <Layout>
+                    <AccessDenied />
+                </Layout>
             </AuthGuard>
         );
     }
 
     // Раздел виден, если роль проходит по уровню (hasPermission) ИЛИ
     // по точечному праву (canAccess — для legalAdmin и будущих спецролей).
-    const visibleSections = SECTIONS.filter(
-        (item) => hasPermission(role, item.minRole) || (item.canAccess?.(role) ?? false),
-    );
+    // legalAdmin видит ВСЕ вкладки (обзор панели), но операции внутри
+    // запрещены процедурами (они проверяют isStaffRole/isAdminRole).
+    const visibleSections =
+        role === 'legalAdmin'
+            ? SECTIONS
+            : SECTIONS.filter((item) => hasPermission(role, item.minRole) || (item.canAccess?.(role) ?? false));
 
     return (
         <AuthGuard>
@@ -65,7 +71,9 @@ export default function AdminPage() {
                 <p className="pb-6 text-sm text-muted-foreground">
                     {hasPermission(role, 'admin')
                         ? 'Все разделы управления сайтом в одном месте.'
-                        : 'Разделы модерации контента.'}
+                        : role === 'legalAdmin'
+                          ? 'Просмотр разделов управления. Изменения доступны только в «Реквизитах сайта».'
+                          : 'Разделы модерации контента.'}
                 </p>
 
                 {/* Грид карточек: 3 в ряд на десктопе → 2 на планшете → 1 на мобилке.

@@ -20,11 +20,12 @@
 export const ROLES = {
     user: { label: 'Пользователь', level: 0 },
     lessor: { label: 'Арендодатель', level: 1 },
-    // Юридический администратор: ТОЧЕЧНАЯ роль без уровневых прав (level 0).
-    // Доступ: вход в админ-панель + реквизиты сайта — и больше ничего.
-    // Права проверяются НЕ уровнем, а хелперами ниже (canAccessAdminPanel,
-    // canManageRequisites): так роль не тянет за собой модерацию/управление.
-    legalAdmin: { label: 'Юридический администратор', level: 0 },
+    // Юр. администратор: точечная роль с lessor-уровнем (level 1).
+    // Имеет весь lessor-функционал (управление бронированиями и т.д.),
+    // а в админ-панели ВИДИТ все вкладки, но НЕ выполняет операции —
+    // процедуры проверяют isStaffRole/isAdminRole (level 2+), его не пускают.
+    // Отдельные права даются хелперами ниже (canAccessAdminPanel, canManageRequisites).
+    legalAdmin: { label: 'Юр. администратор', level: 1 },
     // Модератор: вход в админ-панель + модерация КОНТЕНТА (объекты).
     // НЕ управляет пользователями и НЕ ведёт поддержку (это админ+).
     moderator: { label: 'Модератор', level: 2 },
@@ -101,7 +102,7 @@ export function isLessorRole(role: string | undefined | null): boolean {
 /**
  * Вход в админ-панель (хаб /admin).
  * Персонал (модератор+) по уровню + точечная роль legalAdmin
- * (у неё level 0, поэтому иерархия её не видит — включаем явно).
+ * (у неё level 1, как у lessor — иерархия персонала её не видит, включаем явно).
  */
 export function canAccessAdminPanel(role: string | undefined | null): boolean {
     return isStaffRole(role) || role === 'legalAdmin';
@@ -115,6 +116,23 @@ export function canAccessAdminPanel(role: string | undefined | null): boolean {
  */
 export function canManageRequisites(role: string | undefined | null): boolean {
     return hasPermission(role ?? '', 'superadmin') || role === 'legalAdmin';
+}
+
+/**
+ * Управление блоками раздела «Информация» (/admin/info-blocks).
+ * Персонал (модератор+) + legalAdmin. НЕ даёт право удалять блоки —
+ * удаление остаётся за админом (см. isAdminRole в процедуре delete).
+ */
+export function canManageInfoBlocks(role: string | undefined | null): boolean {
+    return isStaffRole(role) || role === 'legalAdmin';
+}
+
+/**
+ * Просмотр общей статистики сайта (/admin/statistics).
+ * Админ и выше по уровню + legalAdmin (точечное право).
+ */
+export function canViewSiteStats(role: string | undefined | null): boolean {
+    return isAdminRole(role) || role === 'legalAdmin';
 }
 
 /**

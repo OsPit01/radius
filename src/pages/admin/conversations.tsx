@@ -1,6 +1,7 @@
 import { useSession } from 'next-auth/react';
 
 import { ConversationCard } from '@/components/admin/conversations/ConversationCard';
+import { AccessDenied } from '@/components/ui/AccessDenied';
 import { isAdminRole } from '@/lib/constants/roles';
 import { requireAuth } from '@/server/auth/require-auth';
 import { Layout } from '@/shared/ui/layout';
@@ -15,7 +16,7 @@ export default function ConversationsPage() {
     if (!isAdminRole(session?.user?.role)) {
         return (
             <Layout>
-                <p className="text-center text-lg"> У вас нет доступа </p>
+                <AccessDenied />
             </Layout>
         );
     }

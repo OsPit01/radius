@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 
 import { UserCard } from '@/components/admin/users/UserCard';
 import { AuthGuard } from '@/components/layout/AuthGuard';
+import { AccessDenied } from '@/components/ui/AccessDenied';
 import { SegmentedTabs } from '@/components/ui/SegmentedTabs';
 import { getRoleInfo, isAdminRole, ROLE_OPTIONS } from '@/lib/constants/roles';
 import { INPUT_CLASS } from '@/lib/utils';
@@ -42,7 +43,9 @@ export default function Users() {
     if (!isAdminRole(session?.user?.role)) {
         return (
             <AuthGuard>
-                <Layout>У ВАС НЕТ ДОСТУПА!</Layout>
+                <Layout>
+                    <AccessDenied />
+                </Layout>
             </AuthGuard>
         );
     }

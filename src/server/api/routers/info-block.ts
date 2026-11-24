@@ -2,7 +2,7 @@ import { TRPCError } from '@trpc/server';
 import { asc, eq } from 'drizzle-orm';
 import { z } from 'zod';
 
-import { isAdminRole, isLessorRole, isStaffRole } from '@/lib/constants/roles';
+import { canManageInfoBlocks, isAdminRole, isLessorRole } from '@/lib/constants/roles';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import { infoBlock } from '@/server/db/schemas';
 
@@ -40,9 +40,9 @@ export const infoBlockRouter = createTRPCRouter({
         return ctx.db.select().from(infoBlock).orderBy(asc(infoBlock.sortOrder));
     }),
 
-    // Создать или обновить блок. Только модератор и выше.
+    // Создать или обновить блок. Модератор+ и legalAdmin.
     upsert: protectedProcedure.input(infoBlockSchema).mutation(async ({ ctx, input }) => {
-        if (!isStaffRole(ctx.session.user.role)) {
+        if (!canManageInfoBlocks(ctx.session.user.role)) {
             throw new TRPCError({
                 code: 'FORBIDDEN',
                 message: 'Только модератор или администратор',
@@ -68,7 +68,7 @@ export const infoBlockRouter = createTRPCRouter({
     // переписывает sortOrder подряд (0, 1, 2...). Один endpoint на всё:
     // и стрелки ↑↓, и drag-and-drop отправляют сюда новый порядок id.
     reorder: protectedProcedure.input(z.object({ ids: z.array(z.string()) })).mutation(async ({ ctx, input }) => {
-        if (!isStaffRole(ctx.session.user.role)) {
+        if (!canManageInfoBlocks(ctx.session.user.role)) {
             throw new TRPCError({
                 code: 'FORBIDDEN',
                 message: 'Только модератор или администратор',

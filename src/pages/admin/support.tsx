@@ -6,6 +6,7 @@ import { SupportChat } from '@/components/admin/support/SupportChat';
 import { TicketCard } from '@/components/admin/support/TicketCard';
 import { TransferModal } from '@/components/admin/support/TransferModal';
 import { AuthGuard } from '@/components/layout/AuthGuard';
+import { AccessDenied } from '@/components/ui/AccessDenied';
 import { hasPermission, isAdminRole } from '@/lib/constants/roles';
 import { requireAuth } from '@/server/auth/require-auth';
 import { Layout } from '@/shared/ui/layout';
@@ -112,7 +113,9 @@ export default function SupportPage() {
     if (!isAdminRole(session?.user?.role)) {
         return (
             <AuthGuard>
-                <Layout>Нет доступа</Layout>
+                <Layout>
+                    <AccessDenied />
+                </Layout>
             </AuthGuard>
         );
     }

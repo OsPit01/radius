@@ -3,7 +3,7 @@ import { and, count, eq, inArray } from 'drizzle-orm';
 import type { GetServerSidePropsContext } from 'next';
 import { z } from 'zod';
 
-import { isAdminRole } from '@/lib/constants/roles';
+import { canViewSiteStats } from '@/lib/constants/roles';
 import { hideTestApartments } from '@/server/apartment-selects';
 import { createTRPCRouter, protectedProcedure, publicProcedure } from '@/server/api/trpc';
 import { apartments, apartmentView, booking, favorites, siteVisit, users } from '@/server/db/schemas';
@@ -164,7 +164,7 @@ export const analyticsRouter = createTRPCRouter({
     // Максимально полная: пользователи, квартиры и брони по статусам,
     // просмотры, избранное и конверсия.
     getSiteStats: protectedProcedure.query(async ({ ctx }) => {
-        if (!isAdminRole(ctx.session.user.role)) {
+        if (!canViewSiteStats(ctx.session.user.role)) {
             throw new TRPCError({
                 code: 'FORBIDDEN',
                 message: 'Только для администратора',

@@ -19,6 +19,7 @@ import { useSession } from 'next-auth/react';
 
 import { Settings } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
+import { AccessDenied } from '@/components/ui/AccessDenied';
 import { canManageRequisites } from '@/lib/constants/roles';
 import { DEFAULT_REQUISITES } from '@/lib/legal/requisites';
 import { requireCan } from '@/server/auth/require-auth';
@@ -125,7 +126,9 @@ export default function RequisitesAdminPage() {
     if (!canManageRequisites(role)) {
         return (
             <AuthGuard>
-                <Layout>Нет доступа</Layout>
+                <Layout>
+                    <AccessDenied />
+                </Layout>
             </AuthGuard>
         );
     }

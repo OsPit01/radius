@@ -6,7 +6,7 @@ import { signOut, useSession } from 'next-auth/react';
 import { UserDropdown } from '@/components/auth/UserDropdown';
 import { Close, Heart, Menu, Shield } from '@/components/icons';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
-import { isStaffRole } from '@/lib/constants/roles';
+import { canAccessAdminPanel } from '@/lib/constants/roles';
 import { HEADER_ICON_BUTTON } from '@/lib/constants/ui';
 import { api } from '@/trpc/react';
 
@@ -56,7 +56,7 @@ export function Header() {
 
     return (
         <header
-            className={`sticky top-0 z-[100] mx-auto w-full max-w-7xl border-b bg-background transition-colors duration-200 ${
+            className={`sticky top-0 z-[100] w-full border-b bg-background px-4 transition-colors duration-200 ${
                 scrolled || menuOpen ? 'border-foreground/15' : 'border-transparent'
             }`}
         >
@@ -81,7 +81,7 @@ export function Header() {
                     )}
 
                     {session?.user && (
-                        <div className="relative flex flex-1 items-center gap-1">
+                        <div className="flex items-center gap-1">
                             <Link
                                 href="/profile/favorites"
                                 className={`group rounded-lg ${HEADER_ICON_BUTTON}`}
@@ -98,7 +98,7 @@ export function Header() {
                                 <NotificationBell />
                             </Link>
 
-                            {isStaffRole(session?.user?.role) && (
+                            {canAccessAdminPanel(session?.user?.role) && (
                                 <Link
                                     href="/admin"
                                     className={`group rounded-lg ${HEADER_ICON_BUTTON}`}
@@ -130,7 +130,7 @@ export function Header() {
                                 <NotificationBell />
                             </Link>
 
-                            {isStaffRole(session?.user?.role) && (
+                            {canAccessAdminPanel(session?.user?.role) && (
                                 <Link
                                     href="/admin"
                                     className={`group rounded-lg ${HEADER_ICON_BUTTON}`}
