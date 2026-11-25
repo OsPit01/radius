@@ -25,7 +25,7 @@ const SECTIONS: readonly {
     { href: '/admin/moderation', label: 'Модерация объектов', icon: Shield, minRole: 'moderator' },
     {
         href: '/admin/info-blocks',
-        label: 'Блоки информации в упавление бронированиями',
+        label: 'Блоки информации в управлении бронированиями',
         icon: Note,
         minRole: 'moderator',
     },
