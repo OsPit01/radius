@@ -35,6 +35,10 @@ export default function SettingsPage() {
     // Загрузка данных пользователя
     const { data: user } = api.user.getById.useQuery({ id: userId }, { enabled: !!userId });
 
+    // Подключённые каналы уведомлений (Telegram и в перспективе другие).
+    const { data: channels } = api.user.listMyChannels.useQuery(undefined, { enabled: !!userId });
+    const telegramConnected = (channels ?? []).some((c) => c.channel === 'telegram');
+
     // Мутация обновления
     const updateMutation = api.user.updateProfile.useMutation({
         onSuccess: () => {
@@ -56,12 +60,12 @@ export default function SettingsPage() {
     });
     const confirmTelegramLink = api.user.confirmTelegramLink.useMutation({
         onSuccess: () => {
-            void apiUtils.user.getById.invalidate();
+            void apiUtils.user.listMyChannels.invalidate();
             setLinkCode('');
         },
     });
     const clearTelegramLink = api.user.clearTelegramLink.useMutation({
-        onSuccess: () => void apiUtils.user.getById.invalidate(),
+        onSuccess: () => void apiUtils.user.listMyChannels.invalidate(),
     });
 
     // Состояние модалки
@@ -257,7 +261,7 @@ export default function SettingsPage() {
                             </div>
                             {/* Telegram уведомления о бронированиях */}
                             <TelegramSection
-                                connected={!!user?.telegramChatId}
+                                connected={telegramConnected}
                                 isConnecting={startTelegramLink.isPending}
                                 onConnect={() => startTelegramLink.mutate()}
                                 onDisconnect={() => clearTelegramLink.mutate()}

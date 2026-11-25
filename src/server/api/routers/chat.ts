@@ -4,11 +4,12 @@ import { alias } from 'drizzle-orm/pg-core';
 import z from 'zod';
 
 import { MAX_MESSAGE_LENGTH } from '@/lib/chat';
+import { type NotificationChannel } from '@/lib/constants/notification-channels';
 import { isAdminRole } from '@/lib/constants/roles';
 import { idSchema } from '@/lib/schemas/common';
-import { sendTelegramMessage } from '@/lib/telegram';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
-import { apartments, booking, conversation, message, users } from '@/server/db/schemas';
+import { apartments, booking, conversation, message, userChannel, users } from '@/server/db/schemas';
+import { CHANNEL_SENDERS } from '@/server/notification-channels';
 import { escapeHtml } from '@/server/notify';
 import { enforceRateLimit } from '@/server/rate-limit';
 
@@ -412,38 +413,44 @@ export const chatRouter = createTRPCRouter({
             const notifiableIds = recipientIds.filter((id) => !isPresent(id));
 
             if (notifiableIds.length > 0) {
-                // chatId всех получателей одним запросом (inArray = WHERE id IN (…))
-                const recipients = await ctx.db
-                    .select({ id: users.id, telegramChatId: users.telegramChatId })
-                    .from(users)
-                    .where(inArray(users.id, notifiableIds));
-                const chatById = new Map(recipients.map((r) => [r.id, r.telegramChatId]));
+                // Каналы всех получателей одним запросом (inArray = WHERE userId IN (…))
+                const channelRows = await ctx.db
+                    .select({ userId: userChannel.userId, channel: userChannel.channel, target: userChannel.target })
+                    .from(userChannel)
+                    .where(inArray(userChannel.userId, notifiableIds));
 
-                // Параллельные отправки: каждая в своём try/catch — сбой одной
-                // не отменяет остальные; сообщение уже сохранено в БД, телеграм
-                // побочен и ронять отправку не должен.
+                const channelsByUser = new Map<string, { channel: NotificationChannel; target: string }[]>();
+                for (const row of channelRows) {
+                    const list = channelsByUser.get(row.userId) ?? [];
+                    list.push({ channel: row.channel, target: row.target });
+                    channelsByUser.set(row.userId, list);
+                }
+
+                // Параллельные отправки по всем каналам: каждая в своём try/catch —
+                // сбой одной не отменяет остальные; сообщение уже сохранено в БД,
+                // доставка побочна и ронять отправку не должна.
                 const senderName = ctx.session.user.firstName ?? ctx.session.user.name ?? 'Собеседник';
+                const text = [`<b>Новое сообщение от ${escapeHtml(senderName)}</b>`, '', escapeHtml(input.text)].join(
+                    '\n',
+                );
+
                 await Promise.all(
-                    notifiableIds.map(async (recipientId) => {
-                        const chatId = chatById.get(recipientId);
-                        if (!chatId) {
-                            return; // телеграм не подключён — только бейдж непрочитанных
-                        }
-                        try {
-                            await sendTelegramMessage(
-                                chatId,
-                                [
-                                    `<b>Новое сообщение от ${escapeHtml(senderName)}</b>`,
-                                    '',
-                                    escapeHtml(input.text),
-                                ].join('\n'),
-                            );
-                        } catch (error) {
-                            console.error(
-                                `Не удалось отправить телеграм-уведомление о сообщении пользователю ${recipientId}`,
-                                error instanceof Error ? error.message : error,
-                            );
-                        }
+                    notifiableIds.flatMap((recipientId) => {
+                        const channels = channelsByUser.get(recipientId) ?? [];
+                        return channels.map(async ({ channel, target }) => {
+                            const sender = CHANNEL_SENDERS[channel];
+                            if (!sender) {
+                                return;
+                            }
+                            try {
+                                await sender(target, text);
+                            } catch (error) {
+                                console.error(
+                                    `Не удалось отправить уведомление о сообщении пользователю ${recipientId} в канал ${channel}`,
+                                    error instanceof Error ? error.message : error,
+                                );
+                            }
+                        });
                     }),
                 );
             }

@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { env } from '@/env';
 import { sendTelegramMessage } from '@/lib/telegram';
 import { db } from '@/server/db';
-import { users } from '@/server/db/schemas';
+import { userChannel, users } from '@/server/db/schemas';
 
 const telegramUpdateSchema = z.object({
     message: z
@@ -72,11 +72,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(200).json({ ok: true });
     }
 
-    // Код верный — привязываем чат и очищаем код
+    // Код верный — привязываем канал и очищаем код.
+    // Канал хранится в radius_user_channel (channel='telegram', target=chatId),
+    // а не в колонке users.telegramChatId — так единообразно для всех мессенджеров.
     await db
-        .update(users)
-        .set({ telegramChatId: String(chatId), telegramLinkCode: null })
-        .where(eq(users.id, user.id));
+        .insert(userChannel)
+        .values({ userId: user.id, channel: 'telegram', target: String(chatId) })
+        .onConflictDoUpdate({ target: [userChannel.userId, userChannel.channel], set: { target: String(chatId) } });
+
+    // Код одноразовый — стираем, чтобы нельзя было привязать второй чат.
+    await db.update(users).set({ telegramLinkCode: null }).where(eq(users.id, user.id));
 
     await sendTelegramMessage(
         String(chatId),

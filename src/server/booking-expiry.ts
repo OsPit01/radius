@@ -49,8 +49,8 @@ export async function expireStaleBookings(): Promise<number> {
             });
         }
 
-        // 3) Уведомляем владельца: колокольчик + телеграм одним вызовом
-        //    (notifyUser сам посмотрит telegramChatId владельца).
+        // 3) Уведомляем владельца: колокольчик + каналы одним вызовом
+        //    (notifyUser сам посмотрит подключённые каналы владельца).
         if (apartment.createdById) {
             await notifyUser(db, {
                 userId: apartment.createdById,

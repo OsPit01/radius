@@ -7,7 +7,7 @@ import { getRoleInfo, hasPermission, isAdminRole, ROLE_VALUES_TUPLE } from '@/li
 import { removeApartmentImages } from '@/server/apartment-images';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import type * as schema from '@/server/db/schemas';
-import { apartments, booking, favorites, users } from '@/server/db/schemas';
+import { apartments, booking, favorites, userChannel, users } from '@/server/db/schemas';
 import { enforceRateLimit } from '@/server/rate-limit';
 
 type Database = PostgresJsDatabase<typeof schema>;
@@ -77,7 +77,7 @@ export const userRouter = createTRPCRouter({
                 : undefined;
 
             // Отдаём только то, что нужно админке. Служебные и приватные поля
-            // (telegramChatId, telegramLinkCode, bannedUntil, emailVerified, счётчики)
+            // (telegramLinkCode, bannedUntil, emailVerified, счётчики)
             // в список не входят — им здесь не место.
             return await ctx.db
                 .select({
@@ -113,7 +113,6 @@ export const userRouter = createTRPCRouter({
                 emailVerified: users.emailVerified,
                 totalBookings: users?.totalBookings,
                 totalFavorites: users?.totalFavorites,
-                telegramChatId: users.telegramChatId,
             })
             .from(users)
             .where(eq(users.id, input.id));
@@ -171,7 +170,7 @@ export const userRouter = createTRPCRouter({
                 .set({ role: input.role })
                 .where(eq(users.id, input.userId))
                 // Только id: полная строка юзера содержит секретные поля
-                // (telegramLinkCode, telegramChatId) — их наружу не отдаём.
+                // (telegramLinkCode) — их наружу не отдаём.
                 .returning({ id: users.id });
             return updatedUser;
         }),
@@ -236,12 +235,6 @@ export const userRouter = createTRPCRouter({
                 firstName: z.string().optional(),
                 lastName: z.string().optional(),
                 patronymic: z.string().optional(),
-                telegramChatId: z
-                    .string()
-                    .trim()
-                    .regex(/^-?\d{1,20}$/, 'Telegram chat id должен быть числом')
-                    .nullable()
-                    .optional(),
             }),
         )
         .mutation(async ({ ctx, input }) => {
@@ -256,7 +249,6 @@ export const userRouter = createTRPCRouter({
                     firstName: input.firstName,
                     lastName: input.lastName,
                     patronymic: input.patronymic,
-                    telegramChatId: input.telegramChatId ?? undefined,
                 })
                 .where(eq(users.id, userId))
                 .returning();
@@ -401,16 +393,17 @@ export const userRouter = createTRPCRouter({
         return { code };
     }),
 
-    // 9. Telegram: подтвердить привязку (webhook уже привязал chatId, осталось проверить)
+    // 9. Telegram: подтвердить привязку (webhook уже записал канал, осталось проверить)
     confirmTelegramLink: protectedProcedure.mutation(async ({ ctx }) => {
         const userId = ctx.session.user.id;
 
-        const [user] = await ctx.db
-            .select({ telegramChatId: users.telegramChatId })
-            .from(users)
-            .where(eq(users.id, userId));
+        // Канал лежит в radius_user_channel, а не в users.telegramChatId.
+        const [channel] = await ctx.db
+            .select({ target: userChannel.target })
+            .from(userChannel)
+            .where(and(eq(userChannel.userId, userId), eq(userChannel.channel, 'telegram')));
 
-        if (!user?.telegramChatId) {
+        if (!channel?.target) {
             throw new TRPCError({
                 code: 'BAD_REQUEST',
                 message:
@@ -418,14 +411,26 @@ export const userRouter = createTRPCRouter({
             });
         }
 
-        return { chatId: user.telegramChatId };
+        return { chatId: channel.target };
     }),
 
     // 10. Telegram: отвязать
     clearTelegramLink: protectedProcedure.mutation(async ({ ctx }) => {
         const userId = ctx.session.user.id;
-        await ctx.db.update(users).set({ telegramChatId: null, telegramLinkCode: null }).where(eq(users.id, userId));
+        await ctx.db
+            .delete(userChannel)
+            .where(and(eq(userChannel.userId, userId), eq(userChannel.channel, 'telegram')));
+        await ctx.db.update(users).set({ telegramLinkCode: null }).where(eq(users.id, userId));
         return { ok: true };
+    }),
+
+    // 11. Подключённые каналы текущего пользователя (для настроек и будущих экранов).
+    listMyChannels: protectedProcedure.query(async ({ ctx }) => {
+        const userId = ctx.session.user.id;
+        return ctx.db
+            .select({ channel: userChannel.channel, target: userChannel.target })
+            .from(userChannel)
+            .where(eq(userChannel.userId, userId));
     }),
 
     // ============================================================

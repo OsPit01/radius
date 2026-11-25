@@ -1,13 +1,15 @@
 // ЕДИНАЯ точка отправки уведомлений: колокольчик на сайте (запись в БД)
-// + дублирование в Telegram тем, кто его подключил. Все роутеры зовут
-// только эту функцию — отправить уведомление «забыв» про телеграм, невозможно.
+// + дублирование по всем подключённым каналам (Telegram, в будущем — другие).
+// Все роутеры зовут только эту функцию — отправить уведомление «забыв»
+// про каналы невозможно.
 import { eq, inArray } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 
 import { type NotificationType } from '@/lib/constants/notification';
-import { sendTelegramMessage } from '@/lib/telegram';
+import { type NotificationChannel } from '@/lib/constants/notification-channels';
 import type * as schema from '@/server/db/schemas';
-import { notification, users } from '@/server/db/schemas';
+import { notification, userChannel } from '@/server/db/schemas';
+import { CHANNEL_SENDERS } from '@/server/notification-channels';
 
 type Database = PostgresJsDatabase<typeof schema>;
 
@@ -21,18 +23,49 @@ type NotifyData = {
     text: string;
     apartmentId?: number;
     link?: string;
-    // Красивый текст для телеграма (с HTML-разметкой). Если не передан —
+    // Красивый текст для каналов (с HTML-разметкой). Если не передан —
     // собираем стандартный: «заголовок + текст» (см. отправку ниже)
     telegramText?: string;
 };
 
-// В телеграм текст уходит как HTML (parse_mode='HTML' стоит в sendTelegramMessage),
-// а название квартиры может содержать < или & — например, «Студия <3».
-// Без экранирования Telegram отверг бы ВСЁ сообщение целиком.
-// Экспортируем: роутеры собирают красивые telegramText с данными из БД —
-// экранирование должно жить в одном месте, а не копироваться.
+// В каналы текст уходит как HTML (parse_mode='HTML' в Telegram), а название
+// квартиры может содержать < или & — например, «Студия <3». Без экранирования
+// Telegram отверг бы ВСЁ сообщение целиком. Экспортируем: роутеры собирают
+// красивые telegramText с данными из БД — экранирование живёт в одном месте.
 export function escapeHtml(value: string): string {
     return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/** Подключённые каналы пользователя (channel → target). */
+async function getChannels(db: Database, userId: string): Promise<{ channel: NotificationChannel; target: string }[]> {
+    const rows = await db
+        .select({ channel: userChannel.channel, target: userChannel.target })
+        .from(userChannel)
+        .where(eq(userChannel.userId, userId));
+    return rows;
+}
+
+/** Отправить текст по одному каналу. Ошибка НЕ роняет основную операцию. */
+async function sendToChannel(
+    channel: NotificationChannel,
+    target: string,
+    text: string,
+    userId: string,
+): Promise<void> {
+    const sender = CHANNEL_SENDERS[channel];
+    if (!sender) {
+        return; // канал не зарегистрирован в реестре (не должно случаться, но безопасно)
+    }
+    try {
+        await sender(target, text);
+    } catch (error) {
+        // Уведомление вторично: сбой одного канала не должен отменять
+        // основную операцию (бронь создана, объект одобрен). Логируем и живём.
+        console.error(
+            `Не удалось отправить уведомление пользователю ${userId} в канал ${channel}`,
+            error instanceof Error ? error.message : error,
+        );
+    }
 }
 
 export async function notifyUser(db: Database, data: NotifyData): Promise<void> {
@@ -47,37 +80,19 @@ export async function notifyUser(db: Database, data: NotifyData): Promise<void> 
         link: data.link ?? null,
     });
 
-    // 2. Куда слать в Telegram: смотрим chatId получателя одним запросом
-    const [recipient] = await db
-        .select({ telegramChatId: users.telegramChatId })
-        .from(users)
-        .where(eq(users.id, data.userId));
+    // 2. Подключённые каналы получателя — одним запросом.
+    const channels = await getChannels(db, data.userId);
 
-    const chatId = recipient?.telegramChatId;
-    if (!chatId) {
-        return; // телеграм не подключён — достаточно колокольчика
-    }
+    const text = data.telegramText ?? [`<b>${escapeHtml(data.title)}</b>`, '', escapeHtml(data.text)].join('\n');
 
-    // 3. Дублируем в Telegram. Ошибка отправки НЕ должна ронять основную
-    //    операцию (объект уже одобрен, бронь уже создана!) — поэтому try/catch:
-    //    уведомление вторично, сбой логируем и живём дальше.
-    try {
-        const text = data.telegramText ?? [`<b>${escapeHtml(data.title)}</b>`, '', escapeHtml(data.text)].join('\n');
-        await sendTelegramMessage(chatId, text);
-    } catch (error) {
-        console.error(
-            `Не удалось отправить телеграм-уведомление пользователю ${data.userId}`,
-            error instanceof Error ? error.message : error,
-        );
-    }
+    // 3. Дублируем в каждый канал. Каждый — в своём try/catch.
+    await Promise.all(channels.map((c) => sendToChannel(c.channel, c.target, text, data.userId)));
 }
 
 /**
  * Массовая отправка одного события нескольким получателям (например, «новое
  * сообщение в поддержку» — всем админам). Один batch-INSERT на всех (а не N
- * запросов в цикле), один SELECT chatId'ов через inArray, отправки в телеграм —
- * параллельно через Promise.all: суммарное время = самой медленной отправке,
- * а не сумме всех.
+ * запросов в цикле), один SELECT каналов через inArray, отправки — параллельно.
  */
 export async function notifyMany(db: Database, items: NotifyData[]): Promise<void> {
     if (items.length === 0) {
@@ -96,37 +111,28 @@ export async function notifyMany(db: Database, items: NotifyData[]): Promise<voi
         })),
     );
 
-    // 2. Все chatId одним запросом: WHERE id IN (…)
-    const recipients = await db
-        .select({ id: users.id, telegramChatId: users.telegramChatId })
-        .from(users)
-        .where(
-            inArray(
-                users.id,
-                items.map((item) => item.userId),
-            ),
-        );
+    // 2. Все каналы всех получателей одним запросом: WHERE userId IN (…)
+    const userIds = items.map((item) => item.userId);
+    const channelRows = await db
+        .select({ userId: userChannel.userId, channel: userChannel.channel, target: userChannel.target })
+        .from(userChannel)
+        .where(inArray(userChannel.userId, userIds));
 
-    const chatById = new Map(recipients.map((r) => [r.id, r.telegramChatId]));
+    // Каналы, сгруппированные по получателю.
+    const channelsByUser = new Map<string, { channel: NotificationChannel; target: string }[]>();
+    for (const row of channelRows) {
+        const list = channelsByUser.get(row.userId) ?? [];
+        list.push({ channel: row.channel, target: row.target });
+        channelsByUser.set(row.userId, list);
+    }
 
-    // 3. Параллельные отправки. Каждая в своём try/catch — сбой одной
-    //    не должен отменять остальные (побочный канал страдает молча).
+    // 3. Параллельные отправки. Каждый канал — в своём try/catch.
     await Promise.all(
-        items.map(async (item) => {
-            const chatId = chatById.get(item.userId);
-            if (!chatId) {
-                return; // у этого получателя телеграм не подключён
-            }
-            try {
-                const text =
-                    item.telegramText ?? [`<b>${escapeHtml(item.title)}</b>`, '', escapeHtml(item.text)].join('\n');
-                await sendTelegramMessage(chatId, text);
-            } catch (error) {
-                console.error(
-                    `Не удалось отправить телеграм-уведомление пользователю ${item.userId}`,
-                    error instanceof Error ? error.message : error,
-                );
-            }
+        items.flatMap((item) => {
+            const channels = channelsByUser.get(item.userId) ?? [];
+            const text =
+                item.telegramText ?? [`<b>${escapeHtml(item.title)}</b>`, '', escapeHtml(item.text)].join('\n');
+            return channels.map((c) => sendToChannel(c.channel, c.target, text, item.userId));
         }),
     );
 }

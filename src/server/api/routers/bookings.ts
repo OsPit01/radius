@@ -123,10 +123,9 @@ export const bookingsRouter = createTRPCRouter({
 
         // Владельца ищем ДО вставки брони: если его вдруг нет (битые данные
         // объекта), заявка не должна попасть в БД «наполовину» — иначе получим
-        // запись, о которой никто не узнает (ни уведомления, ни Telegram).
+        // запись, о которой никто не узнает (уведомление шлёт notifyUser по каналам).
         const [owner] = await ctx.db
             .select({
-                telegramChatId: users.telegramChatId,
                 name: users.name,
                 id: users.id,
             })

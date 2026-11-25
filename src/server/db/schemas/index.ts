@@ -15,4 +15,5 @@ export * from './site-visit';
 export * from './support-message';
 export * from './support-ticket';
 export * from './user';
+export * from './user-channel';
 export * from './verification-token';

@@ -35,8 +35,10 @@ export const users = pgTable(
         totalFavorites: d.integer().notNull().default(0),
         totalApartments: d.integer().notNull().default(0),
         bannedUntil: d.timestamp({ withTimezone: true }),
-        telegramChatId: d.varchar({ length: 50 }), // куда слать уведомления о брони
-        telegramLinkCode: d.varchar({ length: 10 }), // Одноразовый код для привязки Telegram (после привязки стирается).
+        // Одноразовый код для привязки Telegram (после привязки стирается).
+        // Сам подключённый канал хранится в radius_user_channel, а не здесь —
+        // так единообразно для всех мессенджеров (Telegram, WhatsApp…).
+        telegramLinkCode: d.varchar({ length: 10 }),
         // Email уникален: два аккаунта с одной почтой = путаница авторизации
     }),
     (t) => [unique('users_email_unique').on(t.email)],
