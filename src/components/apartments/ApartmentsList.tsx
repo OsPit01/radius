@@ -93,7 +93,7 @@ export function ApartmentsList({
     }
 
     return (
-        <div className="w-full">
+        <div className="w-full max-md:px-2">
             <div className="mx-auto grid max-w-7xl grid-cols-1 gap-4 md:grid-cols-2 md:p-4">
                 {visibleApartments.map((apartment) => (
                     <ApartmentCard

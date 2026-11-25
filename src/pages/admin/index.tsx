@@ -23,7 +23,12 @@ const SECTIONS: readonly {
     canAccess?: (role: string) => boolean;
 }[] = [
     { href: '/admin/moderation', label: 'Модерация объектов', icon: Shield, minRole: 'moderator' },
-    { href: '/admin/info-blocks', label: 'Блоки информации', icon: Note, minRole: 'moderator' },
+    {
+        href: '/admin/info-blocks',
+        label: 'Блоки информации в упавление бронированиями',
+        icon: Note,
+        minRole: 'moderator',
+    },
     { href: '/admin/users', label: 'Управление пользователями', icon: Users, minRole: 'admin' },
     { href: '/admin/support', label: 'Обращения в поддержку', icon: Info, minRole: 'admin' },
     { href: '/admin/conversations', label: 'Все беседы', icon: Chat, minRole: 'admin' },
