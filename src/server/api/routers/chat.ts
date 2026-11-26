@@ -378,7 +378,7 @@ export const chatRouter = createTRPCRouter({
                     senderId: userId,
                     text: input.text,
                 })
-                .returning();
+                .returning({ id: message.id });
 
             // ===== Присутствие отправителя =====
             // Написал сообщение = точно в чате: отметим, чтобы ответ собеседника

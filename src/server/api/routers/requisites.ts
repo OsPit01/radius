@@ -2,6 +2,7 @@ import { TRPCError } from '@trpc/server';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 
+import { UNP_RULES } from '@/lib/constants/payer';
 import { canManageRequisites } from '@/lib/constants/roles';
 import { createTRPCRouter, protectedProcedure, publicProcedure } from '@/server/api/trpc';
 import { requisites } from '@/server/db/schemas';
@@ -13,7 +14,9 @@ const REQUISITES_ID = 1;
 // в футере и документах — битый сайт, поэтому .min(1) у каждой строки.
 const updateSchema = z.object({
     legalName: z.string().trim().min(1).max(255),
-    unp: z.string().trim().min(1).max(50),
+    // УНП оператора — юрлицо: ровно 9 цифр. Правило берём из UNP_RULES (компания),
+    // а не пишем новый regex — один источник формата УНП.
+    unp: z.string().trim().min(1).max(50).regex(UNP_RULES.company.pattern, UNP_RULES.company.message),
     legalAddress: z.string().trim().min(1).max(500),
     supportEmail: z.string().trim().min(1).max(255),
     privacyEmail: z.string().trim().min(1).max(255),
@@ -53,7 +56,7 @@ export const requisitesRouter = createTRPCRouter({
                     updatedAt: new Date(),
                 },
             })
-            .returning();
+            .returning({ id: requisites.id });
         return saved;
     }),
 });

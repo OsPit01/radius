@@ -48,3 +48,22 @@ export const BOOKING_STATUS_PLURAL_LABELS: Record<BookingStatus, string> = {
 export function isBookingStatus(value: string | null | undefined): value is BookingStatus {
     return typeof value === 'string' && Object.hasOwn(BOOKING_STATUS_LABELS, value);
 }
+
+// Цель поездки — конечный набор. Кортеж as const: из него выводятся тип
+// TripPurpose, pgEnum в БД (booking.ts) и подписи ниже. Добавить цель = одна строка.
+export const TRIP_PURPOSE_VALUES = ['business', 'leisure', 'tourism', 'other'] as const;
+
+export type TripPurpose = (typeof TRIP_PURPOSE_VALUES)[number];
+
+// Подписи для UI. Record<TripPurpose, string> — компилятор проверит полноту.
+export const TRIP_PURPOSE_LABELS: Record<TripPurpose, string> = {
+    business: 'Рабочая поездка',
+    leisure: 'Отдых',
+    tourism: 'Туризм',
+    other: 'Другое',
+};
+
+/** Строка — одна из целей поездки? (валидация на границе: из БД может прийти мусор). */
+export function isTripPurpose(value: string | null | undefined): value is TripPurpose {
+    return typeof value === 'string' && Object.hasOwn(TRIP_PURPOSE_LABELS, value);
+}

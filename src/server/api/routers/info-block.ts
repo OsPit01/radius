@@ -66,7 +66,7 @@ export const infoBlockRouter = createTRPCRouter({
                     items: input.items,
                 })
                 .where(eq(infoBlock.id, input.id))
-                .returning();
+                .returning({ id: infoBlock.id });
         }
 
         // Новый блок: ставим в конец списка (максимальный sortOrder + 1).
@@ -81,7 +81,7 @@ export const infoBlockRouter = createTRPCRouter({
                 items: input.items,
                 sortOrder: nextOrder,
             })
-            .returning();
+            .returning({ id: infoBlock.id });
     }),
 
     // Переупорядочить блоки. Принимает массив id в НУЖНОМ порядке и

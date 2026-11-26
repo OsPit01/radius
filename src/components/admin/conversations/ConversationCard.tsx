@@ -3,7 +3,8 @@ import { useState } from 'react';
 import { Home } from '@/components/icons';
 import { ImageWithFallback } from '@/components/ui/ImageWithFallback';
 import { Modal } from '@/components/ui/Modal';
-import { displayName, formatChatDate } from '@/lib/chat';
+import { displayName } from '@/lib/chat';
+import { formatChatDate } from '@/lib/date';
 import { type RouterOutputs } from '@/trpc/react';
 import { api } from '@/trpc/react';
 

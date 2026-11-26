@@ -1,4 +1,5 @@
-import { formatLastSeen, isOnline } from '@/lib/presence';
+import { formatLastSeen } from '@/lib/date';
+import { isOnline } from '@/lib/presence';
 
 // ============================================================
 // OnlineBadge — значок «онлайн / не в сети».

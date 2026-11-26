@@ -16,6 +16,9 @@ export const message = pgTable(
             .notNull()
             .references(() => users.id, { onDelete: 'cascade' }),
         text: d.text().notNull(),
+        // Ссылка на страницу (например, детали брони) — только у системных сообщений.
+        // У обычных — null, и ссылка в интерфейсе не показывается.
+        link: d.varchar({ length: 255 }),
         isRead: d.boolean().notNull().default(false), // Прочитал ли получатель это сообщение (для счётчика непрочитанных).
         createdAt: d
             .timestamp({ withTimezone: true })

@@ -1,11 +1,14 @@
 import { index, pgEnum, pgTable } from 'drizzle-orm/pg-core';
 
-import { BOOKING_STATUS_VALUES } from '@/lib/constants/booking';
+import { BOOKING_STATUS_VALUES, TRIP_PURPOSE_VALUES } from '@/lib/constants/booking';
+import { CANCEL_BY_VALUES } from '@/lib/constants/cancel-reasons';
 
 import { apartments } from './apartment';
 import { users } from './user';
 
 export const bookingStatusEnum = pgEnum('booking_status', BOOKING_STATUS_VALUES);
+export const cancelByEnum = pgEnum('cancel_by', CANCEL_BY_VALUES);
+export const tripPurposeEnum = pgEnum('trip_purpose', TRIP_PURPOSE_VALUES);
 
 export const booking = pgTable(
     'radius_booking',
@@ -25,11 +28,11 @@ export const booking = pgTable(
         message: d.text(),
         status: bookingStatusEnum('status').notNull().default('new'),
         // Кто отменил бронь: 'guest' (гость) или 'owner' (владелец). Пусто = не отменялась.
-        cancelledBy: d.varchar({ length: 20 }),
+        cancelledBy: cancelByEnum('cancelledBy'),
         // Причина отмены/отклонения («Даты уже забронированы»).
         cancelReason: d.text(),
         // Цель поездки («Рабочая поездка», «Отдых»…) — заполнит гость при бронировании.
-        tripPurpose: d.varchar({ length: 100 }),
+        tripPurpose: tripPurposeEnum('tripPurpose'),
         createdAt: d
             .timestamp({ withTimezone: true })
             .$defaultFn(() => new Date())

@@ -2,10 +2,11 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import { CheckCircle, Close, Hourglass } from '@/components/icons';
-import { formatFullDate, formatShortDate, statusColor } from '@/lib/booking-utils';
+import { statusColor } from '@/lib/booking-utils';
 import { GUEST_BOOKING_STATUS_LABELS } from '@/lib/constants/booking';
 import { cancelledByLabel } from '@/lib/constants/cancel-reasons';
 import { formatByn } from '@/lib/constants/currencies';
+import { formatFullDate, formatShortDate } from '@/lib/date';
 import type { RouterOutputs } from '@/trpc/react';
 
 // «Элемент списка» — что возвращает listForUser для ОДНОЙ брони.

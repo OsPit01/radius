@@ -1,5 +1,6 @@
 import { and, eq, lt } from 'drizzle-orm';
 
+import { BOOKING_LINKS } from '@/lib/constants/notification';
 import { db } from '@/server/db';
 import { booking } from '@/server/db/schemas';
 import { notifyUser } from '@/server/notify';
@@ -45,7 +46,8 @@ export async function expireStaleBookings(): Promise<number> {
                 title: 'Заявка отменена автоматически',
                 text: `Ваша заявка на «${apartment.title}» отменена: истекло время ожидания (${BOOKING_EXPIRY_HOURS} ч).`,
                 apartmentId: b.apartmentId,
-                link: '/profile/my-bookings',
+                // Гость смотрит свои брони, а не заявки на свой объект.
+                link: BOOKING_LINKS.guest,
             });
         }
 
@@ -58,7 +60,8 @@ export async function expireStaleBookings(): Promise<number> {
                 title: 'Заявка истекла',
                 text: `Заявка на «${apartment.title}» отменена автоматически: гость не получил ответа в течение ${BOOKING_EXPIRY_HOURS} ч.`,
                 apartmentId: b.apartmentId,
-                link: '/profile/my-bookings',
+                // Уведомление владельцу: ссылка на его входящие заявки, не на брони гостя.
+                link: BOOKING_LINKS.owner,
                 telegramText: `⏰ Заявка на «${apartment.title}» отменена автоматически — прошло ${BOOKING_EXPIRY_HOURS} ч без ответа.`,
             });
         }

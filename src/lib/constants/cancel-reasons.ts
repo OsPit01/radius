@@ -3,13 +3,18 @@
 // а в будущем — выбор причины при отмене (гость) и отклонении (владелец).
 // Добавить/убрать причину = одна строка в списке ниже.
 
-// Кто отменил → заголовок в карточке.
-export const CANCELLED_BY_LABELS = {
+// Кто может отменить бронь. Кортеж as const — из него выводятся и тип CancelBy,
+// и pgEnum в БД (booking.ts). Один источник: добавление стороны = одна строка здесь.
+export const CANCEL_BY_VALUES = ['guest', 'owner'] as const;
+
+export type CancelBy = (typeof CANCEL_BY_VALUES)[number];
+
+// Кто отменил → заголовок в карточке. Record<CancelBy, string> — компилятор
+// гарантирует, что на КАЖДУЮ сторону есть подпись (забыл — ошибка типов).
+export const CANCELLED_BY_LABELS: Record<CancelBy, string> = {
     guest: 'Вы отменили бронь',
     owner: 'Арендодатель отменил заявку',
-} as const;
-
-export type CancelBy = keyof typeof CANCELLED_BY_LABELS;
+};
 
 /** Строка — одна из наших сторон отмены? (валидация на границе: из БД может прийти мусор). */
 export function isCancelBy(value: string | null | undefined): value is CancelBy {

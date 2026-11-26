@@ -36,24 +36,3 @@ export function displayName(person: ChatPerson): string {
 export function avatarInitial(person: ChatPerson): string {
     return displayName(person).charAt(0).toUpperCase();
 }
-
-/**
- * Время/дата сообщения: сегодняшние показываем как «14:05»,
- * более старые — как «5 окт.».
- */
-export function formatChatDate(date: Date): string {
-    const now = new Date();
-    if (date.toDateString() === now.toDateString()) {
-        return date.toLocaleTimeString('ru-RU', {
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-    }
-    return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
-}
-
-/** Диапазон дат брони для шапки чата: «5 окт. — 7 окт.». */
-export function formatBookingDates(checkIn: Date, checkOut: Date): string {
-    const fmt = (d: Date) => d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
-    return `${fmt(checkIn)} — ${fmt(checkOut)}`;
-}

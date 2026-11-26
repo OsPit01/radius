@@ -26,7 +26,6 @@ export function ChatHeader({ formattedAddress, companion, onBack, onDeleteConver
             >
                 <ArrowLeft className="h-6 w-6" />
             </button>
-
             <div className="min-w-0 flex-1">
                 <p className="truncate font-semibold text-foreground">{formattedAddress}</p>
                 <p className="truncate text-sm text-muted-foreground">{displayName(companion)}</p>

@@ -8,6 +8,8 @@ import { ManageBookingRow } from '@/components/profile/manage-bookings/ManageBoo
 import { FilterTabs } from '@/components/ui/FilterTabs';
 import { Modal } from '@/components/ui/Modal';
 import { SegmentedTabs } from '@/components/ui/SegmentedTabs';
+// Одна функция фильтрации на обе страницы — счётчики и списки не разойдутся.
+import { matchesBookingFilter as matchesFilter } from '@/lib/booking-filters';
 import { isAdminRole } from '@/lib/constants/roles';
 import { requireRole } from '@/server/auth/require-auth';
 import { Layout } from '@/shared/ui/layout';
@@ -15,32 +17,6 @@ import { api } from '@/trpc/react';
 // Страница доступна только арендодателю и выше (lessor+).
 // Обычному пользователю (role "user") отдаётся 404 ещё на сервере.
 export const getServerSideProps = requireRole('lessor');
-
-// Подходит ли заявка под выбранный фильтр.
-// Одна функция — и для счётчиков, и для списка: правило живёт в одном месте,
-// счётчик и список физически не могут разъехаться.
-function matchesFilter(status: string, checkInDate: Date, checkOutDate: Date, filter: string, now: Date): boolean {
-    const checkIn = new Date(checkInDate);
-    const checkOut = new Date(checkOutDate);
-    const isPast = checkOut < now; // выезд уже был
-    const isCancelled = status === 'cancelled' || status === 'rejected' || status === 'expired';
-
-    switch (filter) {
-        case 'pending': // ждёт ответа владельца
-            return status === 'new';
-        case 'upcoming': // подтверждена и ещё не началась
-            return status === 'approved' && checkIn > now;
-        case 'staying': // гости живут прямо сейчас
-            return status === 'approved' && checkIn <= now && now <= checkOut;
-        case 'past': // выезд был, заявка не отменена
-            return isPast && !isCancelled;
-        case 'cancelled': // отменена / отклонена / истекла
-            return isCancelled;
-        case 'all':
-        default:
-            return true;
-    }
-}
 
 // Набор фильтров — один список: и для вкладок, и для счётчиков.
 const FILTERS = [

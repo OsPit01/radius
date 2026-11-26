@@ -251,7 +251,7 @@ export const userRouter = createTRPCRouter({
                     patronymic: input.patronymic,
                 })
                 .where(eq(users.id, userId))
-                .returning();
+                .returning({ id: users.id });
 
             return updated;
         }),

@@ -100,6 +100,7 @@ export function ChatWindow({
                             text={m.text}
                             isMine={isMine}
                             sender={isMine ? myPerson : companion}
+                            link={m.link}
                             createdAt={m.createdAt}
                             onDelete={isAdmin ? () => onDeleteMessage(m.id) : undefined}
                         />

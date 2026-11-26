@@ -1,4 +1,5 @@
-import { pgTable } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import { check, pgTable } from 'drizzle-orm/pg-core';
 
 // ============================================================
 // РЕКВИЗИТЫ ОПЕРАТОРА — редактируются из админки (/admin/requisites).
@@ -10,21 +11,29 @@ import { pgTable } from 'drizzle-orm/pg-core';
 // Пока строка отсутствует — сайт показывает значения по умолчанию из
 // src/lib/legal/operator.ts (OPERATOR), они совпадают по полям.
 // ============================================================
-export const requisites = pgTable('radius_requisites', (d) => ({
-    // Всегда 1 — в таблице только одна строка реквизитов.
-    id: d.integer().primaryKey().default(1),
-    legalName: d.varchar({ length: 255 }).notNull(),
-    unp: d.varchar({ length: 50 }).notNull(),
-    legalAddress: d.varchar({ length: 500 }).notNull(),
-    supportEmail: d.varchar({ length: 255 }).notNull(),
-    privacyEmail: d.varchar({ length: 255 }).notNull(),
-    supportTelegram: d.varchar({ length: 100 }).notNull(),
-    supportTelegramUrl: d.varchar({ length: 255 }).notNull(),
-    // Публичные ящики из нижней строки футера (privacy@ / support@ домена).
-    footerPrivacyEmail: d.varchar({ length: 255 }).notNull(),
-    footerSupportEmail: d.varchar({ length: 255 }).notNull(),
-    updatedAt: d
-        .timestamp({ withTimezone: true })
-        .$defaultFn(() => new Date())
-        .notNull(),
-}));
+export const requisites = pgTable(
+    'radius_requisites',
+    (d) => ({
+        // Всегда 1 — в таблице только одна строка реквизитов.
+        id: d.integer().primaryKey().default(1),
+        legalName: d.varchar({ length: 255 }).notNull(),
+        unp: d.varchar({ length: 50 }).notNull(),
+        legalAddress: d.varchar({ length: 500 }).notNull(),
+        supportEmail: d.varchar({ length: 255 }).notNull(),
+        privacyEmail: d.varchar({ length: 255 }).notNull(),
+        supportTelegram: d.varchar({ length: 100 }).notNull(),
+        supportTelegramUrl: d.varchar({ length: 255 }).notNull(),
+        // Публичные ящики из нижней строки футера (privacy@ / support@ домена).
+        footerPrivacyEmail: d.varchar({ length: 255 }).notNull(),
+        footerSupportEmail: d.varchar({ length: 255 }).notNull(),
+        updatedAt: d
+            .timestamp({ withTimezone: true })
+            .$defaultFn(() => new Date())
+            .notNull(),
+    }),
+    () => [
+        // УНП оператора — юрлицо: ровно 9 цифр. Второй рубеж защиты (первый — zod
+        // в requisites router). БД сама отвергнет мусор даже при записи мимо API.
+        check('requisites_unp_format', sql`"unp" ~ '^[0-9]{9}$'`),
+    ],
+);

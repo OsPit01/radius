@@ -1,8 +1,9 @@
 import { TRPCError } from '@trpc/server';
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, inArray } from 'drizzle-orm';
 import { z } from 'zod';
 
-import { MAX_BOOKING_GUESTS, MIN_BOOKING_GUESTS } from '@/lib/constants/booking';
+import { MAX_BOOKING_GUESTS, MIN_BOOKING_GUESTS, TRIP_PURPOSE_VALUES } from '@/lib/constants/booking';
+import { BOOKING_LINKS } from '@/lib/constants/notification';
 import { isAdminRole } from '@/lib/constants/roles';
 import { isValidPhoneNumber } from '@/lib/phone';
 import { idSchema } from '@/lib/schemas/common';
@@ -14,9 +15,10 @@ import { escapeHtml, notifyUser } from '@/server/notify';
 import { enforceRateLimit } from '@/server/rate-limit';
 import { plural } from '@/utils/plural';
 
-// Защита от флуда: сколько заявок один гость может оставить за одно окно.
-const BOOKING_RATE_LIMIT = 5;
-const BOOKING_RATE_WINDOW_MS = 10 * 60 * 1000;
+// Лимит НОВЫХ заявок одного гостя: 2 в час. На число разных квартир ограничения
+// нет — гость спокойно бронирует несколько объектов, пока укладывается в лимит.
+const BOOKING_RATE_LIMIT = 2;
+const BOOKING_RATE_WINDOW_MS = 60 * 60 * 1000;
 
 const createBookingSchema = z.object({
     apartmentId: z.number().int().positive(),
@@ -48,14 +50,12 @@ const createBookingSchema = z.object({
     checkInDate: z.coerce.date(),
     checkOutDate: z.coerce.date(),
     message: z.string().trim().max(1000).optional(),
-    tripPurpose: z.string().trim().max(100).optional(),
+    tripPurpose: z.enum(TRIP_PURPOSE_VALUES).optional(),
 });
 
 export const bookingsRouter = createTRPCRouter({
     create: protectedProcedure.input(createBookingSchema).mutation(async ({ ctx, input }) => {
         const userId = ctx.session.user.id;
-
-        await enforceRateLimit(ctx.db, `booking:${userId}`, BOOKING_RATE_LIMIT, BOOKING_RATE_WINDOW_MS);
 
         const [apartment] = await ctx.db
             .select()
@@ -135,6 +135,35 @@ export const bookingsRouter = createTRPCRouter({
             throw new TRPCError({ code: 'NOT_FOUND' });
         }
 
+        // Двойной отправки быть не должно: один гость, объект и даты.
+        // Ищем только АКТИВНЫЕ заявки — отклонённые/отменённые/истёкшие
+        // не мешают отправить новую заявку на те же даты. Проверка ДО лимита,
+        // чтобы случайный повторный клик не «съедал» часовую квоту.
+        const [duplicate] = await ctx.db
+            .select({ id: booking.id })
+            .from(booking)
+            .where(
+                and(
+                    eq(booking.userId, userId),
+                    eq(booking.apartmentId, input.apartmentId),
+                    eq(booking.checkInDate, input.checkInDate),
+                    eq(booking.checkOutDate, input.checkOutDate),
+                    inArray(booking.status, ['new', 'approved']),
+                ),
+            )
+            .limit(1);
+        if (duplicate) {
+            throw new TRPCError({
+                code: 'CONFLICT',
+                message: 'Заявка на эти даты уже отправлена',
+            });
+        }
+
+        // Лимит проверяем ПОСЛЕ всех валидаций и только перед вставкой:
+        // неудачные попытки (битые даты, своя квартира, отсутствующий владелец)
+        // не должны «съедать» квоту гостя. Две валидные заявки в час — норма.
+        await enforceRateLimit(ctx.db, `booking:${userId}`, BOOKING_RATE_LIMIT, BOOKING_RATE_WINDOW_MS);
+
         const [created] = await ctx.db
             .insert(booking)
             .values({
@@ -149,7 +178,7 @@ export const bookingsRouter = createTRPCRouter({
                 message: input.message ?? null,
                 tripPurpose: input.tripPurpose ?? null,
             })
-            .returning();
+            .returning({ id: booking.id });
 
         if (!created) {
             throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
@@ -161,7 +190,7 @@ export const bookingsRouter = createTRPCRouter({
                 guestId: userId,
                 ownerId: owner.id,
             })
-            .returning();
+            .returning({ id: conversation.id });
         if (!createdConversation) {
             throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
         }
@@ -180,6 +209,8 @@ export const bookingsRouter = createTRPCRouter({
             conversationId: createdConversation.id,
             senderId: userId,
             text: summary,
+            // Системное сообщение ведёт на страницу деталей брони — обычные сообщения без ссылки.
+            link: `/profile/bookings/${created.id}`,
         });
 
         // notifyUser = единая точка: колокольчик в БД + телеграм владельцу.
@@ -206,7 +237,9 @@ export const bookingsRouter = createTRPCRouter({
             title: 'Новая заявка на бронирование',
             text: `Заявка на бронирование «${apartment.title}». Заезд: ${input.checkInDate.toLocaleDateString('ru-RU')} выезд: ${input.checkOutDate.toLocaleDateString('ru-RU')} имя гостя: ${input.guestName} номер телефона гостя: ${input.guestPhone} взрослых: ${adults} детей: ${input.children ?? 0}`,
             apartmentId: input.apartmentId,
-            link: '/profile/my-bookings',
+            // Это уведомление ВЛАДЕЛЬЦУ: ведём его на страницу входящих заявок,
+            // а не на «мои брони» (там список гостя и заявок владельца нет).
+            link: BOOKING_LINKS.owner,
             telegramText: telegramLines.join('\n'),
         });
     }),
@@ -331,7 +364,7 @@ export const bookingsRouter = createTRPCRouter({
                 .update(booking)
                 .set({ status: 'cancelled', cancelledBy: 'guest', cancelReason: input.reason ?? null })
                 .where(eq(booking.id, input.bookingId))
-                .returning();
+                .returning({ id: booking.id });
 
             if (apartment?.createdById) {
                 // notifyUser = колокольчик + телеграм владельцу, если подключён
@@ -342,7 +375,8 @@ export const bookingsRouter = createTRPCRouter({
                     text: 'Гость отменил бронирование',
 
                     apartmentId: targetBooking.apartmentId,
-                    link: '/profile/my-bookings',
+                    // Отмена — событие по заявке владельца, ссылка ведёт в его «Мои заявки».
+                    link: BOOKING_LINKS.owner,
                 });
             }
             return updated;
@@ -401,7 +435,7 @@ export const bookingsRouter = createTRPCRouter({
                         : {}),
                 })
                 .where(eq(booking.id, input.bookingId))
-                .returning();
+                .returning({ id: booking.id });
             //уведомляем гостя если он авторизован (колокольчик + телеграм)
             if (targetBooking.userId) {
                 await notifyUser(ctx.db, {
@@ -411,7 +445,8 @@ export const bookingsRouter = createTRPCRouter({
                     text: input.status === 'approved' ? 'Одобрена' : 'Отклонена',
 
                     apartmentId: targetBooking.apartmentId,
-                    link: '/profile/my-bookings',
+                    // Решение принимает владелец, а уведомление получает гость.
+                    link: BOOKING_LINKS.guest,
                 });
             }
             return updated;

@@ -115,7 +115,9 @@ export function BookingButton({
     const createBooking = api.bookings.create.useMutation({
         onSuccess: () => {
             reportConversion();
-            setOpen(false);
+            // Модалку НЕ закрываем: гость должен увидеть подтверждение отправки.
+            // Состояние мутации сбросит handleClose (крестик / фон / Esc / «Хорошо»),
+            // поэтому следующий вызов модалки всегда начнётся с пустой формы.
             setGuestName(session?.user?.name ?? '');
             setGuestPhone('');
             setAdults(initialAdultsCount);
@@ -123,8 +125,17 @@ export function BookingButton({
             setCheckInDate('');
             setCheckOutDate('');
             setMessage('');
+            setErrors({});
         },
     });
+
+    // Единый путь закрытия окна: гасим его И сбрасываем isSuccess/isError/isPending.
+    // Без reset() после первой удачной заявки модалка навсегда показывала бы экран
+    // «Заявка отправлена!» вместо формы — гость решал, что бронировать больше нельзя.
+    const handleClose = () => {
+        setOpen(false);
+        createBooking.reset();
+    };
     // Код страны стирать нельзя, причём для ЛЮБОЙ страны (не только BY/RU).
     // Если код потерян — восстанавливаем последний известный "+код".
     const handlePhoneChange = (value?: string) => {
@@ -188,7 +199,12 @@ export function BookingButton({
             {session ? (
                 <button
                     type="button"
-                    onClick={() => setOpen(true)}
+                    // Перед открытием тоже сбрасываем мутацию: даже если окно закрыли
+                    // нестандартным путём, гость увидит форму, а не старый «успех».
+                    onClick={() => {
+                        createBooking.reset();
+                        setOpen(true);
+                    }}
                     className="mt-3 flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-center text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
                 >
                     Забронировать
@@ -203,19 +219,27 @@ export function BookingButton({
             )}
             <Modal
                 open={open}
-                onClose={() => setOpen(false)}
+                // Любой способ закрытия (крестик, клик по фону, Esc) сбрасывает
+                // состояние мутации — форма снова будет доступна при следующем открытии.
+                onClose={handleClose}
                 title="Бронирование"
             >
                 {createBooking.isSuccess ? (
-                    <div className="flex flex-col items-center gap-3 py-6 text-center">
+                    // role="status": скринридер объявляет результат отправки,
+                    // а не только зримый текст (рекомендация гайда forms).
+                    <div
+                        role="status"
+                        className="flex flex-col items-center gap-3 py-6 text-center"
+                    >
                         <CheckCircle className="h-16 w-16 text-success" />
                         <p className="text-lg font-semibold text-foreground">Заявка отправлена!</p>
                         <p className="text-sm text-muted-foreground">
-                            Владелец увидит вашу заявку в Telegram и свяжется с вами.
+                            Заявка сохранена: владелец увидит её в личном кабинете и свяжется с вами. Если у него
+                            подключён Telegram, уведомление придёт и туда.
                         </p>
                         <button
                             type="button"
-                            onClick={() => createBooking.reset()}
+                            onClick={handleClose}
                             className="mt-2 rounded-xl border border-primary px-6 py-2 text-sm font-medium text-primary hover:bg-muted"
                         >
                             Хорошо
@@ -370,7 +394,11 @@ export function BookingButton({
                         </label>
 
                         {createBooking.isError && (
-                            <p className="text-sm text-destructive">
+                            // role="alert": ошибка отправки озвучивается скринридером сразу.
+                            <p
+                                role="alert"
+                                className="text-sm text-destructive"
+                            >
                                 {createBooking.error.message ?? 'Не удалось отправить заявку'}
                             </p>
                         )}

@@ -1,7 +1,9 @@
+import Link from 'next/link';
+
 import { Close } from '@/components/icons';
 import { Avatar } from '@/components/ui/Avatar';
-import { avatarInitial, type ChatPerson, displayName, formatChatDate } from '@/lib/chat';
-
+import { avatarInitial, type ChatPerson, displayName } from '@/lib/chat';
+import { formatChatDate } from '@/lib/date';
 type MessageBubbleProps = {
     /** Текст сообщения. */
     text: string;
@@ -9,6 +11,8 @@ type MessageBubbleProps = {
     isMine: boolean;
     /** Кто отправил (для аватара и подписи имени). */
     sender: ChatPerson;
+    /** Ссылка на страницу (детали брони) — только у системных сообщений. */
+    link?: string | null;
     /** Когда отправлено. */
     createdAt: Date;
     /** Если задано — показывает маленькую кнопку удаления (видна админу). */
@@ -26,12 +30,18 @@ type MessageBubbleProps = {
 export function MessageBubble({
     text,
     isMine,
+    link,
     sender,
     createdAt,
     onDelete,
     compact = false,
     senderName,
 }: MessageBubbleProps) {
+    // Системное сообщение с деталями: первая строка — заголовок-ссылка, остальное — детали.
+    const lines = link ? text.split('\n') : [];
+    const title = lines[0] ?? '';
+    const body = lines.slice(1).join('\n');
+
     return (
         <div className={`flex items-end gap-2 ${isMine ? 'flex-row-reverse' : ''}`}>
             {/* Аватар отправителя: фото или буква, если фото нет / не загрузилось. */}
@@ -61,7 +71,20 @@ export function MessageBubble({
                             : 'rounded-bl-sm bg-muted text-foreground'
                     }`}
                 >
-                    {text}
+                    {link ? (
+                        // Системное сообщение: заголовок — оранжевая ссылка, детали — обычный текст.
+                        <>
+                            <Link
+                                href={link}
+                                className="block text-orange-500 no-underline hover:underline"
+                            >
+                                {title}
+                            </Link>
+                            {body}
+                        </>
+                    ) : (
+                        text
+                    )}
                 </div>
 
                 <span

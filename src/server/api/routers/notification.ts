@@ -2,9 +2,10 @@ import { TRPCError } from '@trpc/server';
 import { and, asc, count, desc, eq } from 'drizzle-orm';
 import { z } from 'zod';
 
+import { getNotificationLink } from '@/lib/constants/notification';
 import { isAdminRole } from '@/lib/constants/roles';
 import { idSchema } from '@/lib/schemas/common';
-import { notification } from '@/server/db/schemas';
+import { apartments, notification } from '@/server/db/schemas';
 import { notifyUser } from '@/server/notify';
 
 import { createTRPCRouter, protectedProcedure } from '../trpc';
@@ -20,13 +21,29 @@ export const notificationRouter = createTRPCRouter({
             .then((rows) => rows[0]?.count ?? 0);
     }),
 
-    getMyNotifications: protectedProcedure.query(({ ctx }) => {
+    getMyNotifications: protectedProcedure.query(async ({ ctx }) => {
         const userId = ctx.session.user.id;
-        return ctx.db
-            .select()
+
+        // LEFT JOIN нужен, чтобы для каждого уведомления узнать владельца объекта.
+        // Это позволяет отличить «гость» от «арендодателя» даже у события
+        // booking_expired, которое уходит обеим сторонам.
+        const rows = await ctx.db
+            .select({
+                notification,
+                apartmentOwnerId: apartments.createdById,
+            })
             .from(notification)
+            .leftJoin(apartments, eq(notification.apartmentId, apartments.id))
             .where(eq(notification.userId, userId))
             .orderBy(asc(notification.isRead), desc(notification.createdAt));
+
+        // Пересчитываем ссылку НА ЧТЕНИИ. Старые записи в базе хранят устаревшие
+        // пути ('/profile/bookings' или '/profile/my-bookings' у владельца) —
+        // без этого шага исправление кода не трогало уже сохранённые уведомления.
+        return rows.map(({ notification: item, apartmentOwnerId }) => ({
+            ...item,
+            link: getNotificationLink(item.type, item.link, apartmentOwnerId === userId),
+        }));
     }),
     markAsRead: protectedProcedure.input(z.object({ id: idSchema })).mutation(async ({ ctx, input }) => {
         const userId = ctx.session.user.id;

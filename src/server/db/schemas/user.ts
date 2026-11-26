@@ -2,7 +2,6 @@ import { pgEnum, pgTable, unique } from 'drizzle-orm/pg-core';
 
 import { ROLE_VALUES_TUPLE } from '@/lib/constants/roles';
 
-// Роли: значения из единого корня roles.ts — «любая строка» в колонке уходит в прошлое
 export const userRoleEnum = pgEnum('user_role', ROLE_VALUES_TUPLE);
 export const users = pgTable(
     'radius_user',
@@ -24,8 +23,7 @@ export const users = pgTable(
         }),
         image: d.text(),
         role: userRoleEnum('role').notNull().default('user'),
-        // Дата регистрации: ставится БД при вставке (default now) — для показа
-        // в карточке «удалить пользователя» и будущих админ-отчётов.
+
         createdAt: d.timestamp({ withTimezone: true }).notNull().defaultNow(),
         // Когда пользователь последний раз был на сайте (heartbeat-хук шлёт
         // раз в минуту, пока вкладка открыта). По нему считается «онлайн»

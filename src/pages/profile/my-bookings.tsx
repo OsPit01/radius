@@ -2,37 +2,18 @@ import { useState } from 'react';
 
 import { useSession } from 'next-auth/react';
 
-import { Calendar, CheckCircle, Close, Home, Hourglass } from '@/components/icons';
+import { Calendar, CheckCircle, Clock, Close, Home, Hourglass } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { MyBookingCard } from '@/components/profile/my-bookings/MyBookingCard';
 import { Modal } from '@/components/ui/Modal';
 import { SegmentedTabs } from '@/components/ui/SegmentedTabs';
+// Правила вкладок живут в одном месте и используются и гостем, и арендодателем.
+import { matchesBookingFilter as matchesFilter } from '@/lib/booking-filters';
 import { isAdminRole } from '@/lib/constants/roles';
 import { requireAuth } from '@/server/auth/require-auth';
 import { Layout } from '@/shared/ui/layout';
 import { api } from '@/trpc/react';
 export const getServerSideProps = requireAuth;
-
-// Подходит ли бронь под фильтр (гость: предстоящие / прошлые / отменённые).
-function matchesFilter(status: string, checkInDate: Date, checkOutDate: Date, filter: string, now: Date): boolean {
-    const checkIn = new Date(checkInDate);
-    const checkOut = new Date(checkOutDate);
-    const isCancelled = status === 'cancelled' || status === 'rejected' || status === 'expired';
-
-    switch (filter) {
-        case 'pending': // ждёт подтверждения владельца
-            return status === 'new';
-        case 'upcoming': // подтверждена и заезд впереди
-            return status === 'approved' && checkIn > now;
-        case 'past': // уже прожил: выезд был, бронь не отменена
-            return checkOut < now && !isCancelled;
-        case 'cancelled': // отменена / отклонена / истекла
-            return isCancelled;
-        case 'all':
-        default:
-            return true;
-    }
-}
 
 export default function MyBookingsPage() {
     const utils = api.useUtils();
@@ -80,6 +61,7 @@ export default function MyBookingsPage() {
                     tabs={[
                         { id: 'pending', label: 'Ожидает подтверждения', Icon: Hourglass },
                         { id: 'upcoming', label: 'Предстоящие', Icon: Calendar },
+                        { id: 'staying', label: 'Проживают', Icon: Clock },
                         { id: 'past', label: 'Прошлые', Icon: CheckCircle },
                         { id: 'cancelled', label: 'Отменённые', Icon: Close },
                     ]}

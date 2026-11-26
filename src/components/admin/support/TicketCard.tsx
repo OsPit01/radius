@@ -2,8 +2,8 @@ import Link from 'next/link';
 
 import { Eye } from '@/components/icons';
 import { Avatar } from '@/components/ui/Avatar';
-import { formatChatDate } from '@/lib/chat';
 import { getSupportTicketStatusInfo } from '@/lib/constants/support';
+import { formatChatDate } from '@/lib/date';
 import type { RouterOutputs } from '@/trpc/react';
 
 /** Одна заявка из очереди поддержки (тип из процедуры support.listAll). */
