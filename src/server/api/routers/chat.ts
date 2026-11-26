@@ -110,10 +110,21 @@ export const chatRouter = createTRPCRouter({
 
         const unreadByConversation = new Map(unreadRows.map((r) => [r.conversationId, r.unread]));
 
-        return chats.map((c) => ({
-            ...c,
-            unreadCount: unreadByConversation.get(c.conversation.id) ?? 0,
-        }));
+        // Когда было последнее сообщение в каждой беседе — для сортировки
+        // «свежие сверху», как в обычных мессенджерах.
+        const lastRows = await ctx.db
+            .select({ conversationId: message.conversationId, lastAt: max(message.createdAt) })
+            .from(message)
+            .groupBy(message.conversationId);
+        const lastByConversation = new Map(lastRows.map((r) => [r.conversationId, r.lastAt]));
+
+        return chats
+            .map((c) => ({
+                ...c,
+                unreadCount: unreadByConversation.get(c.conversation.id) ?? 0,
+                lastActivity: lastByConversation.get(c.conversation.id) ?? c.conversation.createdAt,
+            }))
+            .sort((a, b) => b.lastActivity.getTime() - a.lastActivity.getTime());
     }),
 
     // ============================================================

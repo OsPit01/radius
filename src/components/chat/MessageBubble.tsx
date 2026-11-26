@@ -1,5 +1,3 @@
-import Link from 'next/link';
-
 import { Close } from '@/components/icons';
 import { Avatar } from '@/components/ui/Avatar';
 import { avatarInitial, type ChatPerson, displayName } from '@/lib/chat';
@@ -11,8 +9,7 @@ type MessageBubbleProps = {
     isMine: boolean;
     /** Кто отправил (для аватара и подписи имени). */
     sender: ChatPerson;
-    /** Ссылка на страницу (детали брони) — только у системных сообщений. */
-    link?: string | null;
+
     /** Когда отправлено. */
     createdAt: Date;
     /** Если задано — показывает маленькую кнопку удаления (видна админу). */
@@ -30,18 +27,13 @@ type MessageBubbleProps = {
 export function MessageBubble({
     text,
     isMine,
-    link,
+
     sender,
     createdAt,
     onDelete,
     compact = false,
     senderName,
 }: MessageBubbleProps) {
-    // Системное сообщение с деталями: первая строка — заголовок-ссылка, остальное — детали.
-    const lines = link ? text.split('\n') : [];
-    const title = lines[0] ?? '';
-    const body = lines.slice(1).join('\n');
-
     return (
         <div className={`flex items-end gap-2 ${isMine ? 'flex-row-reverse' : ''}`}>
             {/* Аватар отправителя: фото или буква, если фото нет / не загрузилось. */}
@@ -64,27 +56,14 @@ export function MessageBubble({
                 {/* break-words переносит длинные слова, чтобы текст не вылезал за пузырь. */}
                 <div
                     className={`rounded-2xl break-words whitespace-pre-line ${
-                        compact ? 'px-3 py-1.5 text-xs' : 'px-4 py-2 text-base'
+                        compact ? 'px-3 py-1.5 text-xs' : 'px-4 py-2 text-xs'
                     } ${
                         isMine
                             ? 'rounded-br-sm bg-primary text-primary-foreground'
                             : 'rounded-bl-sm bg-muted text-foreground'
                     }`}
                 >
-                    {link ? (
-                        // Системное сообщение: заголовок — оранжевая ссылка, детали — обычный текст.
-                        <>
-                            <Link
-                                href={link}
-                                className="block text-orange-500 no-underline hover:underline"
-                            >
-                                {title}
-                            </Link>
-                            {body}
-                        </>
-                    ) : (
-                        text
-                    )}
+                    {text}
                 </div>
 
                 <span

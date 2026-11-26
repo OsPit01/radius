@@ -157,7 +157,7 @@ export default function BookingDetailPage() {
                         {/* Детали бронирования */}
                         <div className="mt-4 rounded-2xl border border-border bg-card p-4">
                             <h2 className="font-semibold text-foreground">Детали бронирования</h2>
-
+                            <p></p>
                             <p className="mt-3 text-sm font-medium text-foreground">
                                 Предполагаемое время заезда и выезда
                             </p>

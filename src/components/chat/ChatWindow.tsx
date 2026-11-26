@@ -5,6 +5,7 @@ import type { RouterOutputs } from '@/trpc/react';
 
 import { ChatHeader } from './ChatHeader';
 import { MessageBubble } from './MessageBubble';
+import { SystemMessage } from './SystemMessage';
 
 type ChatWindowProps = {
     /** Название квартиры (для шапки). */
@@ -92,20 +93,31 @@ export function ChatWindow({
                 className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto py-8"
             >
                 {messages?.length === 0 && <p className="py-8 text-center text-muted-foreground">Нет сообщений.</p>}
-                {messages?.map((m) => {
-                    const isMine = m.senderId === myUserId;
-                    return (
-                        <MessageBubble
-                            key={m.id}
-                            text={m.text}
-                            isMine={isMine}
-                            sender={isMine ? myPerson : companion}
-                            link={m.link}
-                            createdAt={m.createdAt}
-                            onDelete={isAdmin ? () => onDeleteMessage(m.id) : undefined}
-                        />
-                    );
-                })}
+                {messages
+                    ?.filter((m) => m.targetUserId === null || m.targetUserId === myUserId)
+                    .map((m) => {
+                        if (m.type === 'system') {
+                            return (
+                                <SystemMessage
+                                    key={m.id}
+                                    text={m.text}
+                                    link={m.link}
+                                    createdAt={m.createdAt}
+                                />
+                            );
+                        }
+                        const isMine = m.senderId === myUserId;
+                        return (
+                            <MessageBubble
+                                key={m.id}
+                                text={m.text}
+                                isMine={isMine}
+                                sender={isMine ? myPerson : companion}
+                                createdAt={m.createdAt}
+                                onDelete={isAdmin ? () => onDeleteMessage(m.id) : undefined}
+                            />
+                        );
+                    })}
                 {/* Невидимая точка внизу — к ней скроллим при новом сообщении. */}
             </div>
 

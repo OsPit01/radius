@@ -195,21 +195,38 @@ export const bookingsRouter = createTRPCRouter({
             throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
         }
         const adults = input.guests - (input.children ?? 0);
-        const summary = [
-            '📋 Детали бронирования:',
+
+        // Системное сообщение ВЛАДЕЛЬЦУ: данные гостя.
+        const ownerSummary = [
+            '📋 Новая заявка на бронирование:',
             `Квартира: ${apartment.title}`,
             `Гость: ${input.guestName}`,
             `Телефон: ${input.guestPhone}`,
-            `Взрослых: ${adults}`,
-            `Детей: ${input.children ?? 0}`,
-            `Заезд: ${input.checkInDate.toLocaleDateString('ru-RU')}`,
-            `Выезд: ${input.checkOutDate.toLocaleDateString('ru-RU')}`,
+            `Взрослых: ${adults} · Детей: ${input.children ?? 0}`,
+            `Заезд: ${input.checkInDate.toLocaleDateString('ru-RU')} — Выезд: ${input.checkOutDate.toLocaleDateString('ru-RU')}`,
         ].join('\n');
         await ctx.db.insert(message).values({
             conversationId: createdConversation.id,
             senderId: userId,
-            text: summary,
-            // Системное сообщение ведёт на страницу деталей брони — обычные сообщения без ссылки.
+            text: ownerSummary,
+            type: 'system',
+            targetUserId: owner.id,
+            link: `/profile/bookings/${created.id}`,
+        });
+
+        // Системное сообщение ГОСТЮ: данные арендодателя.
+        const guestSummary = [
+            '📋 Вы забронировали:',
+            `Квартира: ${apartment.title}`,
+            `Арендодатель: ${owner.name ?? '—'}`,
+            `Заезд: ${input.checkInDate.toLocaleDateString('ru-RU')} — Выезд: ${input.checkOutDate.toLocaleDateString('ru-RU')}`,
+        ].join('\n');
+        await ctx.db.insert(message).values({
+            conversationId: createdConversation.id,
+            senderId: userId,
+            text: guestSummary,
+            type: 'system',
+            targetUserId: userId,
             link: `/profile/bookings/${created.id}`,
         });
 

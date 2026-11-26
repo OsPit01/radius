@@ -11,7 +11,9 @@
  * пользователь мог набрать 1000 символов и получить уродливую ошибку.
  */
 export const MAX_MESSAGE_LENGTH = 500;
-
+// Тип сообщения: user — от человека, system — системная запись (детали брони).
+export const MESSAGE_TYPE_VALUES = ['user', 'system'] as const;
+export type MessageType = (typeof MESSAGE_TYPE_VALUES)[number];
 /** Данные одного участника чата (гость или владелец). null — пользователь удалён. */
 export type ChatPerson = {
     id: string;
