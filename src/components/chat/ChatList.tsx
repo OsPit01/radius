@@ -1,6 +1,5 @@
 import { Home } from '@/components/icons';
 import { ImageWithFallback } from '@/components/ui/ImageWithFallback';
-import { displayName } from '@/lib/chat';
 import { type RouterOutputs } from '@/trpc/react';
 
 // Тип элемента списка — это ровно то, что возвращает процедура chat.list.
@@ -59,7 +58,9 @@ export function ChatList({ chats, userId, selectedId, onSelect }: ChatListProps)
                                 <p className="truncate text-xs font-semibold text-foreground">
                                     {c.apartment.formattedAddress}
                                 </p>
-                                <p className="truncate text-sm text-xs text-muted-foreground">{displayName(other)}</p>
+                                <p className="truncate text-sm text-xs text-muted-foreground">
+                                    {other?.firstName ?? ' '}
+                                </p>
                             </div>
 
                             {/* Счётчик непрочитанных — свой для каждой беседы */}

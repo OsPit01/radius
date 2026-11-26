@@ -193,7 +193,7 @@ export default function BookingDetailPage() {
                                                 }
                                             }}
                                             disabled={setStatus.isPending}
-                                            className="w-full cursor-pointer rounded-2xl border border-black px-6 py-3 font-semibold text-black transition-colors hover:bg-green-900 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                                            className="w-full cursor-pointer rounded-2xl border border-input px-6 py-3 font-semibold text-foreground transition-colors hover:bg-success hover:text-success-foreground disabled:cursor-not-allowed disabled:opacity-50"
                                         >
                                             {confirmAction === 'approve'
                                                 ? 'Точно подтвердить?'
