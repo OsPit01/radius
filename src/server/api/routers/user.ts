@@ -4,7 +4,7 @@ import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { z } from 'zod';
 
 import { getRoleInfo, hasPermission, isAdminRole, ROLE_VALUES_TUPLE } from '@/lib/constants/roles';
-import { removeApartmentImages } from '@/server/apartment-images';
+import { isValidPhoneNumber } from '@/lib/phone';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import type * as schema from '@/server/db/schemas';
 import { apartments, booking, favorites, userChannel, users } from '@/server/db/schemas';
@@ -229,12 +229,15 @@ export const userRouter = createTRPCRouter({
     updateProfile: protectedProcedure
         .input(
             z.object({
-                name: z.string().optional(),
-                image: z.string().optional(),
-                phone: z.string().optional(),
-                firstName: z.string().optional(),
-                lastName: z.string().optional(),
-                patronymic: z.string().optional(),
+                // Строгая валидация на границе: телефон — только реальный формат
+                // (та же проверка, что в форме брони), строки — с trim и лимитом
+                // длины, чтобы в БД не уезжал мусор вроде 300 символов пробелов.
+                name: z.string().trim().max(255).optional(),
+                image: z.string().trim().max(500).optional(),
+                phone: z.string().trim().max(50).refine(isValidPhoneNumber, 'Неверный номер телефона').optional(),
+                firstName: z.string().trim().max(100).optional(),
+                lastName: z.string().trim().max(100).optional(),
+                patronymic: z.string().trim().max(100).optional(),
             }),
         )
         .mutation(async ({ ctx, input }) => {
@@ -260,11 +263,11 @@ export const userRouter = createTRPCRouter({
         .input(
             z.object({
                 userId: z.string(),
-                firstName: z.string().optional(),
-                lastName: z.string().optional(),
-                patronymic: z.string().optional(),
+                firstName: z.string().trim().max(100).optional(),
+                lastName: z.string().trim().max(100).optional(),
+                patronymic: z.string().trim().max(100).optional(),
                 email: z.string().email().optional(),
-                phone: z.string().optional(),
+                phone: z.string().trim().max(50).refine(isValidPhoneNumber, 'Неверный номер телефона').optional(),
             }),
         )
         .mutation(async ({ ctx, input }) => {
@@ -330,19 +333,27 @@ export const userRouter = createTRPCRouter({
         // Общие проверки: не самого себя, цель существует и ниже уровнем.
         await requireTargetUser(ctx.db, ctx.session.user.role, ctx.session.user.id, input.userId);
 
-        // 1. СОБИРАЕМ фото квартир юзера ДО удаления: после cascade их уже не достать.
-        const owned = await ctx.db
-            .select({ images: apartments.images })
+        // Пользователя с объектами удалить нельзя: FK createdById → users стоит
+        // с onDelete: restrict — БД сама откажет, но даём ПОНЯТНУЮ ошибку вместо
+        // голого FK-violation. Объекты нужно удалить или передать другому
+        // владельцу ДО удаления аккаунта. Иначе один клик админа каскадом стирал
+        // квартиры, брони гостей и их переписку.
+        const [apartmentCount] = await ctx.db
+            .select({ value: count() })
             .from(apartments)
             .where(eq(apartments.createdById, input.userId));
-        const imageUrls = owned.flatMap((a) => a.images ?? []);
+        if ((apartmentCount?.value ?? 0) > 0) {
+            throw new TRPCError({
+                code: 'BAD_REQUEST',
+                message: 'У пользователя есть объекты недвижимости: сначала удалите их или передайте другому владельцу',
+            });
+        }
 
-        // 2. Удаляем юзера — каскады (onDelete: cascade) сносят квартиры,
-        //    брони, избранное, сообщения, уведомления и т.д.
+        // Удаляем юзера. Каскады (account, избранное, уведомления, каналы) сносят
+        // его ЛИЧНЫЕ данные; история второй стороны защищена: брони и сообщения
+        // остаются (booking.userId / message.senderId — set null), квартир у него
+        // к этому моменту нет (проверка выше).
         await ctx.db.delete(users).where(eq(users.id, input.userId));
-
-        // 3. Фото жили в Storage, а не в БД — стираем файлы отдельно.
-        await removeApartmentImages(imageUrls);
 
         return { success: true };
     }),

@@ -25,5 +25,9 @@ export const supportMessage = pgTable(
             .$defaultFn(() => new Date())
             .notNull(),
     }),
-    (t) => [index('support_message_ticket_idx').on(t.ticketId)],
+    (t) => [
+        index('support_message_ticket_idx').on(t.ticketId),
+        // Для unreadCount админа/юзера (WHERE senderId != me AND isRead = false).
+        index('support_message_sender_read_idx').on(t.senderId, t.isRead),
+    ],
 );

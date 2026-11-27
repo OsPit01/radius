@@ -4,7 +4,7 @@ import { isParkingType } from '@/lib/constants/parking';
 import { CHECK_IN_TIME_DEFAULT, CHECK_OUT_TIME_DEFAULT } from '@/lib/constants/time';
 import { isMetroRegion } from '@/lib/metro';
 import { isMetroWalkable } from '@/lib/metro-limit';
-import { type CreateApartmentInput, createApartmentInput } from '@/lib/schemas/apartment';
+import { type CreateApartmentInput, createApartmentInput } from '@/lib/validation/apartment';
 
 /** В полях ввода вместо «нет значения» живут пустая строка и 0, поэтому undefined и null из типа убираем. */
 type Filled<T> = { [K in keyof T]-?: NonNullable<T[K]> };
@@ -14,7 +14,7 @@ type NotAskedFields = 'building' | 'microdistrict';
 
 /**
  * Состояние формы добавления объекта: плоское, поля называются так же, как колонки таблицы. Почти все они выводятся
- * из серверной схемы (src/lib/schemas/apartment.ts), а она — из таблицы apartments: добавили колонку — она появилась
+ * из серверной схемы (src/lib/validation/apartment.ts), а она — из таблицы apartments: добавили колонку — она появилась
  * и здесь, а `toCreateInput` перестал компилироваться, пока не решите, откуда брать её значение.
  */
 export type ApartmentForm = Filled<Omit<CreateApartmentInput, NotAskedFields | 'parking'>> & {

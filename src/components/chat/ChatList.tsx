@@ -59,7 +59,7 @@ export function ChatList({ chats, userId, selectedId, onSelect }: ChatListProps)
                                     {c.apartment.formattedAddress}
                                 </p>
                                 <p className="truncate text-sm text-xs text-muted-foreground">
-                                    {other?.firstName ?? ' '}
+                                    {other?.firstName ?? ''}
                                 </p>
                             </div>
 

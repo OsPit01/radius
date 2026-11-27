@@ -56,3 +56,32 @@ export function formatLastSeen(lastSeenAt: Date | null | undefined, now: Date = 
     }
     return 'более недели назад';
 }
+
+// «26 окт., пн» — дата + сокращённый день недели (для дат заезда/выезда).
+export function formatShortDateWithWeekday(value: Date | string): string {
+    return new Date(value).toLocaleDateString('ru-RU', {
+        day: 'numeric',
+        month: 'short',
+        weekday: 'short',
+    });
+}
+
+// «Сегодня» в локальном часовом поясе в формате YYYY-MM-DD — для min у input[type=date]
+// (раньше этой даты выбрать нельзя). Раньше жила в BookingButton, но это формат даты —
+// ей место здесь, рядом с остальными.
+export function todayISO(): string {
+    const now = new Date();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${now.getFullYear()}-${month}-${day}`;
+}
+
+// Прибавить N дней к дате вида YYYY-MM-DD и вернуть так же YYYY-MM-DD
+// (для min выезда: выезд не раньше заезда + 1 день).
+export function addDaysISO(iso: string, days: number): string {
+    const date = new Date(`${iso}T00:00:00`);
+    date.setDate(date.getDate() + days);
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${date.getFullYear()}-${month}-${day}`;
+}

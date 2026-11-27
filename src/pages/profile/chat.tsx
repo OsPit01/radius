@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { ChatList } from '@/components/chat/ChatList';
 import { ChatWindow } from '@/components/chat/ChatWindow';
 import { AuthGuard } from '@/components/layout/AuthGuard';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { type ChatPerson } from '@/lib/chat';
 import { isAdminRole } from '@/lib/constants/roles';
 import { requireAuth } from '@/server/auth/require-auth';
@@ -35,7 +36,9 @@ export default function ChatPage() {
         refetchIntervalInBackground: true,
     });
     const [selectedId, setSelectedId] = useState<number | null>(null);
-
+    const [confirmDelete, setConfirmDelete] = useState<
+        { type: 'message'; id: number } | { type: 'conversation' } | null
+    >(null);
     // ===== Сообщения выбранного диалога =====
     // Опрос каждые 5 сек пока диалог открыт: входящие появляются сами (без F5),
     // а каждый опрос = «я в чате» (presence на сервере). БЕЗ refetchIntervalInBackground:
@@ -106,17 +109,27 @@ export default function ChatPage() {
         sendMessage.mutate({ conversationId: selectedId, text });
     };
 
-    // Удалить одно сообщение (админ).
+    // Кнопка «удалить сообщение» открывает модалку, не удаляет сразу.
     const handleDeleteMessage = (messageId: number) => {
-        deleteMessage.mutate({ messageId });
+        setConfirmDelete({ type: 'message', id: messageId });
     };
 
-    // Удалить беседу целиком (админ).
+    // «Удалить беседу» — тоже только открывает модалку.
     const handleDeleteConversation = () => {
         if (selectedId === null) {
             return;
         }
-        deleteConversation.mutate({ conversationId: selectedId });
+        setConfirmDelete({ type: 'conversation' });
+    };
+
+    // Реальное удаление — по кнопке «Удалить» внутри модалки.
+    const confirmDeleteAction = () => {
+        if (confirmDelete?.type === 'message') {
+            deleteMessage.mutate({ messageId: confirmDelete.id });
+        } else if (confirmDelete?.type === 'conversation' && selectedId !== null) {
+            deleteConversation.mutate({ conversationId: selectedId });
+        }
+        setConfirmDelete(null);
     };
 
     // ===== Блок списка бесед (общий для мобилки и десктопа) =====
@@ -186,6 +199,19 @@ export default function ChatPage() {
                     <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden pl-4">{chatView}</div>
                 </div>
             </Layout>
+            {/* Подтверждение удаления (только админ) */}
+            <ConfirmDialog
+                open={confirmDelete !== null}
+                onClose={() => setConfirmDelete(null)}
+                onConfirm={confirmDeleteAction}
+                title={confirmDelete?.type === 'conversation' ? 'Удалить беседу?' : 'Удалить сообщение?'}
+                text={
+                    confirmDelete?.type === 'conversation'
+                        ? 'Беседа исчезнет вместе со всеми сообщениями. Действие необратимо.'
+                        : 'Сообщение будет удалено. Действие необратимо.'
+                }
+                isPending={deleteMessage.isPending || deleteConversation.isPending}
+            />
         </AuthGuard>
     );
 }

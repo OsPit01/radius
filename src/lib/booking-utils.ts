@@ -13,3 +13,8 @@ export function statusColor(status: string): string {
             return 'text-foreground';
     }
 }
+
+// Сколько ночей между заездом и выездом.
+export function nightsBetween(checkInDate: Date, checkOutDate: Date): number {
+    return Math.round((new Date(checkOutDate).getTime() - new Date(checkInDate).getTime()) / 86_400_000);
+}

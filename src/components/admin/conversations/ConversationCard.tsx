@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { Home } from '@/components/icons';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { ImageWithFallback } from '@/components/ui/ImageWithFallback';
 import { Modal } from '@/components/ui/Modal';
 import { displayName } from '@/lib/chat';
@@ -25,6 +26,9 @@ export function ConversationCard({ item }: ConversationCardProps) {
     const utils = api.useUtils();
     const isActive = item.conversation.isActive;
     const [open, setOpen] = useState(false);
+    const [confirmDelete, setConfirmDelete] = useState<
+        { type: 'message'; id: number } | { type: 'conversation' } | null
+    >(null);
 
     const setActive = api.chat.setConversationActive.useMutation({
         onSuccess: () => {
@@ -59,13 +63,17 @@ export function ConversationCard({ item }: ConversationCardProps) {
     const { data: messages } = api.chat.messages.useQuery({ conversationId: item.conversation.id }, { enabled: open });
 
     const handleDeleteConversation = () => {
-        if (window.confirm('Удалить беседу вместе со всеми сообщениями? Действие необратимо.')) {
-            remove.mutate({ conversationId: item.conversation.id });
-        }
+        setConfirmDelete({ type: 'conversation' });
     };
 
-    const senderName = (senderId: string) =>
-        senderId === item.conversation.guestId ? displayName(item.guest) : displayName(item.owner);
+    // Кто отправил сообщение. senderId nullable: системное сообщение
+    // (например, автоотмена заявки) пишет СИСТЕМА, а не человек.
+    const senderName = (senderId: string | null) =>
+        senderId === null
+            ? 'Система'
+            : senderId === item.conversation.guestId
+              ? displayName(item.guest)
+              : displayName(item.owner);
 
     return (
         <>
@@ -177,7 +185,7 @@ export function ConversationCard({ item }: ConversationCardProps) {
                             </div>
                             <button
                                 type="button"
-                                onClick={() => removeMessage.mutate({ messageId: m.id })}
+                                onClick={() => setConfirmDelete({ type: 'message', id: m.id })}
                                 disabled={removeMessage.isPending}
                                 className="min-h-6 shrink-0 cursor-pointer rounded-full px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:opacity-50 pointer-coarse:min-h-11"
                             >
@@ -187,6 +195,27 @@ export function ConversationCard({ item }: ConversationCardProps) {
                     ))}
                 </div>
             </Modal>
+
+            {/* Подтверждение удаления: беседа или сообщение */}
+            <ConfirmDialog
+                open={confirmDelete !== null}
+                onClose={() => setConfirmDelete(null)}
+                onConfirm={() => {
+                    if (confirmDelete?.type === 'message') {
+                        removeMessage.mutate({ messageId: confirmDelete.id });
+                    } else if (confirmDelete?.type === 'conversation') {
+                        remove.mutate({ conversationId: item.conversation.id });
+                    }
+                    setConfirmDelete(null);
+                }}
+                title={confirmDelete?.type === 'conversation' ? 'Удалить беседу?' : 'Удалить сообщение?'}
+                text={
+                    confirmDelete?.type === 'conversation'
+                        ? 'Беседа исчезнет вместе со всеми сообщениями. Действие необратимо.'
+                        : 'Сообщение будет удалено. Действие необратимо.'
+                }
+                isPending={remove.isPending || removeMessage.isPending}
+            />
         </>
     );
 }

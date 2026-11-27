@@ -15,6 +15,16 @@ export const CANCELLED_BY_LABELS: Record<CancelBy, string> = {
     guest: 'Вы отменили бронь',
     owner: 'Арендодатель отменил заявку',
 };
+// Что видит тот, КТО отменил (про себя).
+export const CANCELLED_BY_SELF_LABELS: Record<CancelBy, string> = {
+    guest: 'Вы отменили бронирование:',
+    owner: 'Арендодатель отменил бронирование:',
+};
+// Что видит ДРУГАЯ сторона (про того, кто отменил)
+export const CANCELLED_BY_OTHER_LABELS: Record<CancelBy, string> = {
+    guest: 'Гость отменил бронирование:',
+    owner: 'Арендодатель отклонил заявку:',
+};
 
 /** Строка — одна из наших сторон отмены? (валидация на границе: из БД может прийти мусор). */
 export function isCancelBy(value: string | null | undefined): value is CancelBy {

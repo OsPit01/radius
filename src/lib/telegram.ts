@@ -24,7 +24,9 @@ export async function sendTelegramMessage(
     url.searchParams.set('text', text);
     url.searchParams.set('parse_mode', 'HTML');
 
-    const response = await fetch(url, { method: 'POST' });
+    // Таймаут: если Telegram завис, нельзя вечно держать запрос (а вместе с ним —
+    // бронь или сообщение, которые его вызвали). 10 секунд хватает с запасом.
+    const response = await fetch(url, { method: 'POST', signal: AbortSignal.timeout(10_000) });
 
     if (!response.ok) {
         return { ok: false, description: `HTTP ${response.status}` };

@@ -5,10 +5,11 @@ import z from 'zod';
 
 import { MAX_MESSAGE_LENGTH } from '@/lib/chat';
 import { ADMIN_ROLES, hasPermission, isAdminRole } from '@/lib/constants/roles';
-import { idSchema } from '@/lib/schemas/common';
+import { idSchema } from '@/lib/validation/common';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import { supportMessage, supportTicket, users } from '@/server/db/schemas';
 import { notifyMany, notifyUser } from '@/server/notify';
+import { isUniqueViolation } from '@/server/pg-errors';
 import { enforceRateLimit } from '@/server/rate-limit';
 // Антифлуд: сколько сообщений может отправить один пользователь за окно времени.
 const CHAT_RATE_LIMIT = 30;
@@ -34,18 +35,39 @@ export const supportRouter = createTRPCRouter({
                     .update(supportTicket)
                     .set({ status: 'open' })
                     .where(eq(supportTicket.id, existing.id))
-                    .returning();
+                    .returning({ id: supportTicket.id });
                 return reopened;
             }
-            return existing;
+            // Клиенту нужен только id (для загрузки сообщений) — не отдаём userId/assignedToId.
+            return { id: existing.id };
         }
-        const [created] = await ctx.db
-            .insert(supportTicket)
-            .values({
-                userId,
-            })
-            .returning();
-        return created;
+        // Попытка создать заявку. Partial-уникальный индекс в БД
+        // (support_ticket_open_user_unique) гарантирует «одна открытая заявка
+        // на юзера»: при гонке двух параллельных вызовов второй получит 23505 —
+        // перехватываем и возвращаем уже существующую заявку.
+        try {
+            const [created] = await ctx.db
+                .insert(supportTicket)
+                .values({
+                    userId,
+                })
+                .returning({ id: supportTicket.id });
+            return created;
+        } catch (error) {
+            if (!isUniqueViolation(error)) {
+                throw error;
+            }
+            // Гонку выиграл параллельный вызов: берём заявку, которую создал он.
+            const [won] = await ctx.db
+                .select({ id: supportTicket.id })
+                .from(supportTicket)
+                .where(and(eq(supportTicket.userId, userId), eq(supportTicket.status, 'open')))
+                .limit(1);
+            if (!won) {
+                throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+            }
+            return { id: won.id };
+        }
     }),
     // ============================================================
     // myTicket — «подглядывание»: вернуть ПОСЛЕДНЮЮ заявку юзера
@@ -209,7 +231,7 @@ export const supportRouter = createTRPCRouter({
                     senderId: userId,
                     text: input.text,
                 })
-                .returning();
+                .returning({ id: supportMessage.id });
             // ===== Уведомляем админов — ТОЛЬКО если написал ПОЛЬЗОВАТЕЛЬ =====
             // Баг-фикс: раньше уведомления рассылались безусловно, и КАЖДЫЙ ответ
             // админа засыпал уведомлениями всю команду (включая самого отправителя).
@@ -266,8 +288,6 @@ export const supportRouter = createTRPCRouter({
     listAll: protectedProcedure
         .input(
             z.object({
-                // Пагинация НА СЕРВЕРЕ (табу «не отдавать лишнего»): клиент получает
-                // только одну страницу, а не тысячу заявок разом.
                 // limit — размер страницы, cursor — смещение (offset) для следующей.
                 limit: z.number().int().min(1).max(100).default(50),
                 cursor: z.number().int().min(0).nullish(),
@@ -281,11 +301,46 @@ export const supportRouter = createTRPCRouter({
                     message: 'Только для администратора',
                 });
             }
-            // Тикеты + ДАННЫЕ ВЛАДЕЛЬЦА (кто пишет обращение): email, id, имя.
-            // leftJoin: даже если пользователь удалён — тикет останется, owner будет null.
-            const tickets = await ctx.db
+
+            const limit = input.limit;
+            const offset = input.cursor ?? 0;
+
+            // НАСТОЯЩАЯ серверная пагинация (LIMIT/OFFSET прямо в SQL): раньше
+            // в память грузились ВСЕ заявки и резались в JS — на тысячах тикетов
+            // это упиралось в память и тормозило каждый запрос админки.
+            //
+            // lastMsg — подзапрос «последнее сообщение каждой заявки»: он нужен
+            // и для сортировки «свежие сверху», и для отсева ПУСТЫХ заявок
+            // (innerJoin ниже выкидывает заявки без единого сообщения — раньше
+            // их прятал filter в JS). Сырые SQL-поля (max/count) обязаны иметь
+            // явный .as(): иначе drizzle не даст сослаться на них снаружи.
+            const lastMsg = ctx.db
+                .select({
+                    ticketId: supportMessage.ticketId,
+                    lastAt: max(supportMessage.createdAt).as('lastAt'),
+                })
+                .from(supportMessage)
+                .groupBy(supportMessage.ticketId)
+                .as('last_msg');
+
+            // unreadAgg — «непрочитанные, написанные не мной», по заявкам.
+            const unreadAgg = ctx.db
+                .select({
+                    ticketId: supportMessage.ticketId,
+                    unread: count().as('unread'),
+                })
+                .from(supportMessage)
+                .where(and(eq(supportMessage.isRead, false), ne(supportMessage.senderId, userId)))
+                .groupBy(supportMessage.ticketId)
+                .as('unread');
+
+            // limit + 1: лишняя строка — признак «есть следующая страница»,
+            // чтобы не делать второй запрос только ради hasMore.
+            const rows = await ctx.db
                 .select({
                     ticket: supportTicket,
+                    // Кто написал обращение. leftJoin: даже если пользователь
+                    // удалён — тикет останется, owner будет null.
                     owner: {
                         id: users.id,
                         name: users.name,
@@ -301,48 +356,34 @@ export const supportRouter = createTRPCRouter({
                         // Роль ведущего (admin/superadmin/mainadmin) — для цветного бейджа статуса
                         role: assignedAdminUser.role,
                     },
+                    // Прямая ссылка на поле подзапроса (НЕ через sql-шаблон:
+                    // drizzle запрещает сырые SQL-поля подзапроса внутри других
+                    // шаблонов). count() в drizzle маппится в number, при
+                    // leftJoin без строк — null, заменяем на 0 в JS ниже.
+                    unreadCount: unreadAgg.unread,
+                    lastActivity: lastMsg.lastAt,
                 })
                 .from(supportTicket)
                 .leftJoin(users, eq(supportTicket.userId, users.id))
-                .leftJoin(assignedAdminUser, eq(supportTicket.assignedToId, assignedAdminUser.id));
-            const rows = await ctx.db
-                .select({ ticketId: supportMessage.ticketId, unread: count() })
-                .from(supportMessage)
-                .where(and(eq(supportMessage.isRead, false), ne(supportMessage.senderId, userId)))
-                .groupBy(supportMessage.ticketId);
-            // Когда было ПОСЛЕДНЕЕ сообщение в каждой заявке для сортивроки на верх
-            const unreadByTicket = new Map(rows.map((r) => [r.ticketId, r.unread]));
-            const lastRows = await ctx.db
-                .select({ ticketId: supportMessage.ticketId, lastAt: max(supportMessage.createdAt) })
-                .from(supportMessage)
-                .groupBy(supportMessage.ticketId);
-            // Словарь «id заявки → дата последнего сообщения»
-            const lastByTicket = new Map(lastRows.map((r) => [r.ticketId, r.lastAt]));
-            // Прячем ПУСТЫЕ заявки (без единого сообщения) из очереди админа:
-            // раньше заявка создавалась уже при открытии окна — таких накопилось.
-            // После ленивого создания (see openOrGetTicket / виджет) новых не будет;
-            // старые не мозолят глаза. Напишет юзер в пустую — у неё появится
-            // сообщение, и она тут же вернётся в очередь.
-            const sorted = tickets
-                .filter((t) => lastByTicket.has(t.ticket.id))
-                .map((t) => ({
-                    // Разворачиваем поля самого тикета (id, status, createdAt...)
-                    ...t.ticket,
-                    // Кто написал обращение (для карточки в админке)
-                    owner: t.owner,
-                    assignedAdmin: t.assignedAdmin,
-                    unreadCount: unreadByTicket.get(t.ticket.id) ?? 0,
-                    lastActivity: lastByTicket.get(t.ticket.id) ?? t.ticket.createdAt,
-                }))
-                .sort((a, b) => b.lastActivity.getTime() - a.lastActivity.getTime());
-            // Страница: срез от cursor до cursor + limit. nextCursor = null —
-            // всё показали, грузить больше нечего.
-            const offset = input.cursor ?? 0;
-            const nextCursor = offset + input.limit < sorted.length ? offset + input.limit : null;
-            return {
-                items: sorted.slice(offset, offset + input.limit),
-                nextCursor,
-            };
+                .leftJoin(assignedAdminUser, eq(supportTicket.assignedToId, assignedAdminUser.id))
+                .innerJoin(lastMsg, eq(lastMsg.ticketId, supportTicket.id))
+                .leftJoin(unreadAgg, eq(unreadAgg.ticketId, supportTicket.id))
+                .orderBy(desc(lastMsg.lastAt))
+                .limit(limit + 1)
+                .offset(offset);
+
+            const hasMore = rows.length > limit;
+            const items = rows.slice(0, limit).map((r) => ({
+                // Разворачиваем поля самого тикета (id, status, createdAt...)
+                ...r.ticket,
+                owner: r.owner,
+                assignedAdmin: r.assignedAdmin,
+                unreadCount: r.unreadCount ?? 0,
+                lastActivity: r.lastActivity,
+            }));
+
+            // nextCursor = null — всё показали, грузить больше нечего.
+            return { items, nextCursor: hasMore ? offset + limit : null };
         }),
     assign: protectedProcedure.input(z.object({ id: idSchema })).mutation(async ({ ctx, input }) => {
         if (!isAdminRole(ctx.session.user.role)) {
@@ -376,7 +417,7 @@ export const supportRouter = createTRPCRouter({
             .update(supportTicket)
             .set({ assignedToId: ctx.session.user.id })
             .where(eq(supportTicket.id, input.id))
-            .returning();
+            .returning({ id: supportTicket.id });
         if (!updated) {
             throw new TRPCError({
                 code: 'NOT_FOUND',
@@ -399,7 +440,7 @@ export const supportRouter = createTRPCRouter({
                 assignedToId: null,
             })
             .where(and(eq(supportTicket.id, input.id), eq(supportTicket.assignedToId, ctx.session.user.id)))
-            .returning();
+            .returning({ id: supportTicket.id });
         if (!updated) {
             throw new TRPCError({
                 code: 'NOT_FOUND',
@@ -437,7 +478,7 @@ export const supportRouter = createTRPCRouter({
                 assignedToId: null,
             })
             .where(eq(supportTicket.id, input.id))
-            .returning();
+            .returning({ id: supportTicket.id });
         // Уведомляем владельца: его обращение закрыто.
         // Структура уведомления: субъект в title, действие в text.
         // link появится вместе со страницей «Мои обращения» (Ч4) —
@@ -517,7 +558,7 @@ export const supportRouter = createTRPCRouter({
                 .update(supportTicket)
                 .set({ assignedToId: input.adminId })
                 .where(eq(supportTicket.id, input.id))
-                .returning();
+                .returning({ id: supportTicket.id });
             if (!updated) {
                 throw new TRPCError({ code: 'NOT_FOUND', message: 'Обращение не найдено' });
             }

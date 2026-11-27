@@ -1,4 +1,5 @@
-import { index, pgEnum, pgTable } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import { index, pgEnum, pgTable, uniqueIndex } from 'drizzle-orm/pg-core';
 
 import { SUPPORT_TICKET_STATUS_VALUES } from '@/lib/constants/support';
 
@@ -24,5 +25,14 @@ export const supportTicket = pgTable(
             .$defaultFn(() => new Date())
             .notNull(),
     }),
-    (t) => [index('support_ticket_user_idx').on(t.userId)],
+    (t) => [
+        index('support_ticket_user_idx').on(t.userId),
+        // «Одна непрерывная беседа на пользователя» на уровне БД: не может
+        // существовать ДВУХ ОТКРЫТЫХ заявок одного юзера. Partial-индекс
+        // покрывает только открытые: закрытая не мешает создать новую.
+        // Гонку двух параллельных openOrGetTicket гасит индекс, а не код.
+        uniqueIndex('support_ticket_open_user_unique')
+            .on(t.userId)
+            .where(sql`status = 'open'`),
+    ],
 );

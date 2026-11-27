@@ -1,210 +1,26 @@
-import 'react-phone-number-input/style.css';
-
-import { useEffect, useRef, useState } from 'react';
-import PhoneInput from 'react-phone-number-input';
+// Кнопка «Забронировать» + модалка с формой.
+//
+// Компонент ТОНКИЙ: вся логика формы — в хуке useBookingForm,
+// вёрстка формы — в BookingForm. Здесь только кнопка, модалка
+// и экран «Заявка отправлена!».
 
 import Link from 'next/link';
-import { useSession } from 'next-auth/react';
 
-import { CheckCircle, Minus, Plus } from '@/components/icons';
+import { CheckCircle } from '@/components/icons';
 import { Modal } from '@/components/ui/Modal';
-import { reportConversion } from '@/lib/analytics';
-import { DEFAULT_BOOKING_GUESTS, MAX_BOOKING_GUESTS, MIN_BOOKING_GUESTS } from '@/lib/constants/booking';
-import {
-    getCountryCodePrefixFromNumber,
-    getExamplePhoneNumber,
-    isValidPhoneNumber,
-    limitNationalNumberLength,
-    toE164,
-} from '@/lib/phone';
-import { api } from '@/trpc/react';
-import { plural } from '@/utils/plural';
+import { useBookingForm, type UseBookingFormArgs } from '@/hooks/useBookingForm';
 
-// «Сегодня» в локальном часовом поясе браузера, в формате YYYY-MM-DD.
-// Нужен для min у input[type=date]: раньше этой даты выбрать нельзя.
-function todayISO(): string {
-    const now = new Date();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    return `${now.getFullYear()}-${month}-${day}`;
-}
+import { BookingForm } from './BookingForm';
 
-// Прибавить N дней к дате вида YYYY-MM-DD и вернуть так же YYYY-MM-DD.
-// Нужен для min выезда: выезд не раньше, чем заезд + 1 день.
-function addDaysISO(iso: string, days: number): string {
-    const date = new Date(`${iso}T00:00:00`);
-    date.setDate(date.getDate() + days);
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${date.getFullYear()}-${month}-${day}`;
-}
-
-type BookingButtonProps = {
-    apartmentId: number;
-    apartmentTitle: string;
-    /** Сколько гостей выбрано в поиске — стартовое значение поля. */
-    initialGuests?: number;
-    /** Сколько детей выбрано в поиске — стартовое значение поля «Дети». */
-    initialChildren?: number;
-    /** Вместимость квартиры — верхняя граница поля. */
-    apartmentCapacity?: number;
-};
-type bookingFormErrors = {
-    name?: string;
-    phone?: string;
-    dates?: string;
-};
-export function BookingButton({
-    apartmentId,
-    apartmentTitle,
-    initialGuests = DEFAULT_BOOKING_GUESTS,
-    initialChildren = 0,
-    apartmentCapacity,
-}: BookingButtonProps) {
-    const { data: session } = useSession();
-    // Данные авторизованного пользователя из БД — чтобы подтянуть его телефон.
-    const userId = session?.user?.id ?? '';
-    const { data: user } = api.user.getById.useQuery({ id: userId }, { enabled: !!userId });
-    const [open, setOpen] = useState(false);
-    const [guestName, setGuestName] = useState('');
-    const [guestPhone, setGuestPhone] = useState('');
-    // Выбранная страна телефона (ISO2-код). Нужна, чтобы показывать формат
-    // номера под конкретным флагом (placeholder и подсказка меняются со страной).
-    const [country, setCountry] = useState('BY');
-    // Последний известный "+код" страны ("+375", "+7" и т.д.). Храним в ref,
-    // чтобы восстановить код, если пользователь его стёр. Работает для любой страны.
-    const lastPhonePrefixRef = useRef('+375');
-    // Не больше, чем вмещает квартира, но и не больше общего лимита площадки.
-    const maxGuests = Math.min(apartmentCapacity ?? MAX_BOOKING_GUESTS, MAX_BOOKING_GUESTS);
-    // Минимально допустимая дата заезда — сегодня (локально).
-    const today = todayISO();
-    // Стартовые значения гостей (приходят из поиска через URL ?guests&children).
-    const initialChildrenCount = Math.min(Math.max(initialChildren, 0), maxGuests - MIN_BOOKING_GUESTS);
-    const initialAdultsCount = Math.min(
-        Math.max(initialGuests - initialChildrenCount, MIN_BOOKING_GUESTS),
-        maxGuests - initialChildrenCount,
-    );
-    const [adults, setAdults] = useState(initialAdultsCount);
-    const [children, setChildren] = useState(initialChildrenCount);
-    const [checkInDate, setCheckInDate] = useState('');
-    const [checkOutDate, setCheckOutDate] = useState('');
-    // Выезд не раньше заезда+1 день; пока заезд не выбран — не раньше завтра.
-    const minCheckOut = checkInDate ? addDaysISO(checkInDate, 1) : addDaysISO(today, 1);
-    // Пример номера под выбранным флагом (для placeholder и сообщения об ошибке).
-    const exampleNumber = getExamplePhoneNumber(country);
-    const [message, setMessage] = useState('');
-    const [errors, setErrors] = useState<bookingFormErrors>({});
-
-    useEffect(() => {
-        // Подтягиваем имя авторизованного пользователя.
-        const name = session?.user?.name;
-        if (name) {
-            setGuestName((prev) => prev || name);
-        }
-        // Подтягиваем телефон из профиля (БД) — только если поле ещё пустое.
-        const phone = toE164(user?.phone);
-        if (phone) {
-            const prefix = getCountryCodePrefixFromNumber(phone);
-            if (prefix) {
-                lastPhonePrefixRef.current = prefix;
-            }
-            setGuestPhone((prev) => prev || phone);
-        }
-    }, [session, user]);
-
-    const createBooking = api.bookings.create.useMutation({
-        onSuccess: () => {
-            reportConversion();
-            // Модалку НЕ закрываем: гость должен увидеть подтверждение отправки.
-            // Состояние мутации сбросит handleClose (крестик / фон / Esc / «Хорошо»),
-            // поэтому следующий вызов модалки всегда начнётся с пустой формы.
-            setGuestName(session?.user?.name ?? '');
-            setGuestPhone('');
-            setAdults(initialAdultsCount);
-            setChildren(initialChildrenCount);
-            setCheckInDate('');
-            setCheckOutDate('');
-            setMessage('');
-            setErrors({});
-        },
-    });
-
-    // Единый путь закрытия окна: гасим его И сбрасываем isSuccess/isError/isPending.
-    // Без reset() после первой удачной заявки модалка навсегда показывала бы экран
-    // «Заявка отправлена!» вместо формы — гость решал, что бронировать больше нельзя.
-    const handleClose = () => {
-        setOpen(false);
-        createBooking.reset();
-    };
-    // Код страны стирать нельзя, причём для ЛЮБОЙ страны (не только BY/RU).
-    // Если код потерян — восстанавливаем последний известный "+код".
-    const handlePhoneChange = (value?: string) => {
-        // Обрезаем национальную часть до длины, допустимой для страны (для BY — 9 цифр),
-        // чтобы лишние цифры физически не вводились.
-        const next = limitNationalNumberLength(value ?? '');
-
-        // Начинается с «+» — запоминаем код страны (если удалось распознать)
-        // и просто сохраняем значение.
-        if (next.startsWith('+')) {
-            const prefix = getCountryCodePrefixFromNumber(next);
-            if (prefix) {
-                lastPhonePrefixRef.current = prefix;
-            }
-            setGuestPhone(next);
-            return;
-        }
-
-        // Код страны стёрли полностью. Восстанавливаем код + цифры номера.
-        const digits = next.replace(/\D/g, '');
-        const prefixDigits = lastPhonePrefixRef.current.slice(1);
-        const national = digits.startsWith(prefixDigits) ? digits.slice(prefixDigits.length) : digits;
-        setGuestPhone(lastPhonePrefixRef.current + national);
-    };
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        const newErrors: bookingFormErrors = {};
-        if (!guestName.trim()) {
-            newErrors.name = 'Укажите имя';
-        }
-        if (!isValidPhoneNumber(guestPhone)) {
-            newErrors.phone = `Введите корректный номер (например: ${exampleNumber ?? '+375 29 123-45-67'})`;
-        }
-        if (!checkInDate || !checkOutDate) {
-            newErrors.dates = 'Укажите даты заезда и выезда';
-        } else if (checkInDate < today) {
-            // Строки вида YYYY-MM-DD сравниваются лексикографически — это и есть сравнение дат.
-            newErrors.dates = 'Дата заезда не может быть в прошлом';
-        } else if (checkOutDate <= checkInDate) {
-            newErrors.dates = 'Дата выезда должна быть позже даты заезда';
-        }
-        setErrors(newErrors);
-        if (Object.keys(newErrors).length > 0) {
-            return;
-        }
-        createBooking.mutate({
-            apartmentId,
-            guestName: guestName.trim(),
-            guestPhone,
-            guests: adults + children,
-            children,
-            checkInDate: new Date(checkInDate),
-            checkOutDate: new Date(checkOutDate),
-            message: message.trim() || undefined,
-        });
-    };
+export function BookingButton(args: UseBookingFormArgs) {
+    const form = useBookingForm(args);
 
     return (
         <>
-            {session ? (
+            {form.session ? (
                 <button
                     type="button"
-                    // Перед открытием тоже сбрасываем мутацию: даже если окно закрыли
-                    // нестандартным путём, гость увидит форму, а не старый «успех».
-                    onClick={() => {
-                        createBooking.reset();
-                        setOpen(true);
-                    }}
+                    onClick={form.openForm}
                     className="mt-3 flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-center text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
                 >
                     Забронировать
@@ -218,13 +34,13 @@ export function BookingButton({
                 </Link>
             )}
             <Modal
-                open={open}
+                open={form.open}
                 // Любой способ закрытия (крестик, клик по фону, Esc) сбрасывает
                 // состояние мутации — форма снова будет доступна при следующем открытии.
-                onClose={handleClose}
+                onClose={form.handleClose}
                 title="Бронирование"
             >
-                {createBooking.isSuccess ? (
+                {form.isSuccess ? (
                     // role="status": скринридер объявляет результат отправки,
                     // а не только зримый текст (рекомендация гайда forms).
                     <div
@@ -239,178 +55,14 @@ export function BookingButton({
                         </p>
                         <button
                             type="button"
-                            onClick={handleClose}
+                            onClick={form.handleClose}
                             className="mt-2 rounded-xl border border-primary px-6 py-2 text-sm font-medium text-primary hover:bg-muted"
                         >
                             Хорошо
                         </button>
                     </div>
                 ) : (
-                    <form
-                        onSubmit={handleSubmit}
-                        className="flex flex-col gap-3"
-                    >
-                        <p className="text-sm text-muted-foreground">
-                            Квартира: <span className="font-medium text-foreground">{apartmentTitle}</span>
-                        </p>
-
-                        <label className="flex flex-col gap-1 text-sm font-medium text-foreground">
-                            Ваше имя
-                            <input
-                                type="text"
-                                value={guestName}
-                                onChange={(e) => setGuestName(e.target.value)}
-                                placeholder="Например, Иван"
-                                className="rounded-xl border border-border px-4 py-3 text-base text-foreground outline-none focus:border-primary"
-                            />
-                        </label>
-                        {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
-                        <label className="flex flex-col gap-1 text-sm font-medium text-foreground">
-                            Телефон
-                            <PhoneInput
-                                international
-                                country={country}
-                                onCountryChange={(c) => c && setCountry(c)}
-                                defaultCountry="BY"
-                                limitMaxLength
-                                maxLength={exampleNumber?.length}
-                                value={guestPhone}
-                                onChange={handlePhoneChange}
-                                placeholder={exampleNumber ?? '+375 29 123-45-67'}
-                                className="rounded-xl border border-border px-4 py-3 text-base text-foreground"
-                            />
-                            {exampleNumber && (
-                                <span className="text-xs font-normal text-muted-foreground">
-                                    Формат: {exampleNumber}
-                                </span>
-                            )}
-                        </label>
-                        {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
-                        {/* Гости: взрослые и дети — отдельными степперами */}
-                        <div className="flex flex-col gap-2 text-sm font-medium text-foreground">
-                            <div className="flex items-center justify-between gap-3">
-                                <span>Взрослые</span>
-                                <div className="flex items-center gap-3">
-                                    <button
-                                        type="button"
-                                        onClick={() => setAdults((a) => Math.max(MIN_BOOKING_GUESTS, a - 1))}
-                                        disabled={adults <= MIN_BOOKING_GUESTS}
-                                        aria-label="Уменьшить число взрослых"
-                                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-xl font-bold text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
-                                    >
-                                        <Minus className="h-5 w-5" />
-                                    </button>
-                                    <span className="min-w-8 text-center text-lg font-semibold text-foreground">
-                                        {adults}
-                                    </span>
-                                    <button
-                                        type="button"
-                                        onClick={() => setAdults((a) => Math.min(maxGuests - children, a + 1))}
-                                        disabled={adults + children >= maxGuests}
-                                        aria-label="Увеличить число взрослых"
-                                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-xl font-bold text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
-                                    >
-                                        <Plus className="h-5 w-5" />
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center justify-between gap-3">
-                                <span>Дети</span>
-                                <div className="flex items-center gap-3">
-                                    <button
-                                        type="button"
-                                        onClick={() => setChildren((c) => Math.max(0, c - 1))}
-                                        disabled={children <= 0}
-                                        aria-label="Уменьшить число детей"
-                                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-xl font-bold text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
-                                    >
-                                        <Minus className="h-5 w-5" />
-                                    </button>
-                                    <span className="min-w-8 text-center text-lg font-semibold text-foreground">
-                                        {children}
-                                    </span>
-                                    <button
-                                        type="button"
-                                        onClick={() => setChildren((c) => Math.min(maxGuests - adults, c + 1))}
-                                        disabled={adults + children >= maxGuests}
-                                        aria-label="Увеличить число детей"
-                                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-xl font-bold text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
-                                    >
-                                        <Plus className="h-5 w-5" />
-                                    </button>
-                                </div>
-                            </div>
-
-                            {apartmentCapacity !== undefined && (
-                                <span className="text-xs font-normal text-muted-foreground">
-                                    Квартира вмещает до {apartmentCapacity}{' '}
-                                    {plural(apartmentCapacity, 'гостя', 'гостей', 'гостей')} — больше указать нельзя.
-                                </span>
-                            )}
-                        </div>
-
-                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                            <label className="flex flex-col gap-1 text-sm font-medium text-foreground">
-                                Заезд
-                                <input
-                                    type="date"
-                                    value={checkInDate}
-                                    min={today}
-                                    onChange={(e) => {
-                                        const next = e.target.value;
-                                        setCheckInDate(next);
-                                        // Заезд сдвинули так, что выезд стал не позже него — сбрасываем выезд.
-                                        if (checkOutDate && checkOutDate <= next) {
-                                            setCheckOutDate('');
-                                        }
-                                    }}
-                                    className="rounded-xl border border-border px-3 py-3 text-base text-foreground outline-none focus:border-primary"
-                                />
-                            </label>
-
-                            <label className="flex flex-col gap-1 text-sm font-medium text-foreground">
-                                Выезд
-                                <input
-                                    type="date"
-                                    value={checkOutDate}
-                                    min={minCheckOut}
-                                    onChange={(e) => setCheckOutDate(e.target.value)}
-                                    className="rounded-xl border border-border px-3 py-3 text-base text-foreground outline-none focus:border-primary"
-                                />
-                            </label>
-                        </div>
-                        {errors.dates && <p className="text-sm text-destructive">{errors.dates}</p>}
-
-                        <label className="flex flex-col gap-1 text-sm font-medium text-foreground">
-                            Комментарий (необязательно)
-                            <textarea
-                                value={message}
-                                onChange={(e) => setMessage(e.target.value)}
-                                rows={3}
-                                placeholder="Например, время приезда, вопросы..."
-                                className="resize-none rounded-xl border border-border px-4 py-3 text-base text-foreground outline-none focus:border-primary"
-                            />
-                        </label>
-
-                        {createBooking.isError && (
-                            // role="alert": ошибка отправки озвучивается скринридером сразу.
-                            <p
-                                role="alert"
-                                className="text-sm text-destructive"
-                            >
-                                {createBooking.error.message ?? 'Не удалось отправить заявку'}
-                            </p>
-                        )}
-
-                        <button
-                            type="submit"
-                            disabled={createBooking.isPending}
-                            className="mt-1 cursor-pointer rounded-xl bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                            {createBooking.isPending ? 'Отправляем...' : 'Отправить заявку'}
-                        </button>
-                    </form>
+                    <BookingForm form={form} />
                 )}
             </Modal>
         </>

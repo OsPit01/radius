@@ -1,4 +1,4 @@
-import type { UpdateApartmentInput } from '@/lib/schemas/apartment';
+import type { UpdateApartmentInput } from '@/lib/validation/apartment';
 import type { apartments } from '@/server/db/schemas';
 
 type ApartmentRow = typeof apartments.$inferSelect;

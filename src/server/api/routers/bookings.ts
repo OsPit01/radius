@@ -1,17 +1,25 @@
 import { TRPCError } from '@trpc/server';
-import { and, desc, eq, inArray } from 'drizzle-orm';
+import { and, desc, eq, inArray, type SQL, sql } from 'drizzle-orm';
+import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { z } from 'zod';
 
-import { MAX_BOOKING_GUESTS, MIN_BOOKING_GUESTS, TRIP_PURPOSE_VALUES } from '@/lib/constants/booking';
 import { BOOKING_LINKS } from '@/lib/constants/notification';
 import { isAdminRole } from '@/lib/constants/roles';
-import { isValidPhoneNumber } from '@/lib/phone';
-import { idSchema } from '@/lib/schemas/common';
+import { createBookingSchema } from '@/lib/validation/booking';
+import { idSchema } from '@/lib/validation/common';
 import { hideTestApartments } from '@/server/apartment-selects';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
-import { expireStaleBookings } from '@/server/booking-expiry';
-import { apartments, booking, conversation, message, users } from '@/server/db/schemas';
-import { escapeHtml, notifyUser } from '@/server/notify';
+import {
+    BOOKING_DECISION_TEXTS,
+    buildBookingTelegramText,
+    buildGuestSummary,
+    buildOwnerSummary,
+    insertBookingSystemMessage,
+} from '@/server/booking-chat';
+import type * as schema from '@/server/db/schemas';
+import { apartments, booking, conversation, users } from '@/server/db/schemas';
+import { notifyUser } from '@/server/notify';
+import { isUniqueViolation } from '@/server/pg-errors';
 import { enforceRateLimit } from '@/server/rate-limit';
 import { plural } from '@/utils/plural';
 
@@ -20,38 +28,44 @@ import { plural } from '@/utils/plural';
 const BOOKING_RATE_LIMIT = 2;
 const BOOKING_RATE_WINDOW_MS = 60 * 60 * 1000;
 
-const createBookingSchema = z.object({
-    apartmentId: z.number().int().positive(),
-    guestName: z.string().trim().min(1, 'Укажите имя').max(255),
-    guestPhone: z
-        .string()
-        .trim()
-        .min(1, 'Укажите телефон')
-        .max(50)
-        .refine(isValidPhoneNumber, 'Неверный номер телефона'),
-    guests: z
-        .number({ message: 'Укажите количество гостей' })
-        .int()
-        .min(MIN_BOOKING_GUESTS, 'Укажите количество гостей')
-        .max(
-            MAX_BOOKING_GUESTS,
-            `Максимум ${MAX_BOOKING_GUESTS} ${plural(MAX_BOOKING_GUESTS, 'гость', 'гостя', 'гостей')}`,
-        ),
-    children: z
-        .number()
-        .int()
-        .min(0, 'Число детей не может быть отрицательным')
-        .max(
-            MAX_BOOKING_GUESTS,
-            `Максимум ${MAX_BOOKING_GUESTS} ${plural(MAX_BOOKING_GUESTS, 'ребёнок', 'ребёнка', 'детей')}`,
-        )
-        .optional()
-        .default(0),
-    checkInDate: z.coerce.date(),
-    checkOutDate: z.coerce.date(),
-    message: z.string().trim().max(1000).optional(),
-    tripPurpose: z.enum(TRIP_PURPOSE_VALUES).optional(),
-});
+// ============================================================
+// СПИСОК БРОНЕЙ С ДАННЫМИ КВАРТИРЫ И ВЛАДЕЛЬЦА
+//
+// listForOwner и listForUser отличаются ТОЛЬКО условием where
+// (чьи брони: на мои квартиры или мои как гостя). Чтобы не дублировать
+// 30 строк select/join в двух местах — общая функция с параметром-условием.
+// ============================================================
+function selectBookingRows(db: PostgresJsDatabase<typeof schema>, where: SQL) {
+    return (
+        db
+            .select({
+                booking: booking,
+                apartment: {
+                    title: apartments.title,
+                    city: apartments.city,
+                    street: apartments.street,
+                    numberHome: apartments.numberHome,
+                    images: apartments.images,
+                    price: apartments.price,
+                },
+                owner: {
+                    id: users.id,
+                    name: users.name,
+                    phone: users.phone,
+                    firstName: users.firstName,
+                    lastName: users.lastName,
+                },
+            })
+            .from(booking)
+            .innerJoin(apartments, eq(booking.apartmentId, apartments.id))
+            // leftJoin, а НЕ innerJoin: createdById nullable — при innerJoin строка
+            // с «битым» владельцем просто ИСЧЕЗАЛА бы из списков (гость не видел бы
+            // свою бронь, владелец — заявку). leftJoin вернёт owner = null.
+            .leftJoin(users, eq(apartments.createdById, users.id))
+            .where(where)
+            .orderBy(desc(booking.createdAt))
+    );
+}
 
 export const bookingsRouter = createTRPCRouter({
     create: protectedProcedure.input(createBookingSchema).mutation(async ({ ctx, input }) => {
@@ -128,6 +142,7 @@ export const bookingsRouter = createTRPCRouter({
             .select({
                 name: users.name,
                 id: users.id,
+                firstName: users.firstName,
             })
             .from(users)
             .where(eq(users.id, apartment.createdById ?? ''));
@@ -164,90 +179,109 @@ export const bookingsRouter = createTRPCRouter({
         // не должны «съедать» квоту гостя. Две валидные заявки в час — норма.
         await enforceRateLimit(ctx.db, `booking:${userId}`, BOOKING_RATE_LIMIT, BOOKING_RATE_WINDOW_MS);
 
-        const [created] = await ctx.db
-            .insert(booking)
-            .values({
-                apartmentId: input.apartmentId,
-                userId,
+        // ТРАНЗАКЦИЯ: бронь + диалог + счётчик пишутся вместе. Раньше вставки
+        // шли по очереди без транзакции — при сбое между ними оставалась
+        // «бронь без чата» (владелец не мог связаться с гостем), а гостю
+        // приходила ошибка, хотя запись уже лежала в БД.
+        // Уникальный индекс в БД (booking_active_dup_idx) гасит гонку дублей:
+        // два параллельных запроса на те же даты — второй получит 23505,
+        // мы переведём её в понятный CONFLICT.
+        let created: { id: number } | null = null;
+        try {
+            created = await ctx.db.transaction(async (tx) => {
+                const [createdBooking] = await tx
+                    .insert(booking)
+                    .values({
+                        apartmentId: input.apartmentId,
+                        userId,
+                        guestName: input.guestName,
+                        guestPhone: input.guestPhone,
+                        guests: input.guests,
+                        children: input.children ?? 0,
+                        checkInDate: input.checkInDate,
+                        checkOutDate: input.checkOutDate,
+                        message: input.message ?? null,
+                        tripPurpose: input.tripPurpose ?? null,
+                    })
+                    .returning({ id: booking.id });
+
+                if (!createdBooking) {
+                    throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+                }
+
+                const [createdConversation] = await tx
+                    .insert(conversation)
+                    .values({
+                        bookingId: createdBooking.id,
+                        guestId: userId,
+                        ownerId: owner.id,
+                    })
+                    .returning({ id: conversation.id });
+                if (!createdConversation) {
+                    throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+                }
+
+                // Денормализованный счётчик: +1 бронь у гостя (атомарно, без гонки).
+                await tx
+                    .update(users)
+                    .set({ totalBookings: sql`${users.totalBookings} + 1` })
+                    .where(eq(users.id, userId));
+
+                return createdBooking;
+            });
+        } catch (error) {
+            // Конфликт уникального индекса = заявка на эти даты уже существует.
+            // SELECT-проверка выше ловит обычный повторный клик, этот catch —
+            // именно гонку параллельных запросов.
+            if (isUniqueViolation(error)) {
+                throw new TRPCError({
+                    code: 'CONFLICT',
+                    message: 'Заявка на эти даты уже отправлена',
+                });
+            }
+            throw error;
+        }
+
+        // Теоретически недостижимо (транзакция либо вернула бронь, либо бросила
+        // исключение), но TS не знает про эту связь — страхуемся явно.
+        if (!created) {
+            throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+        }
+
+        const adults = input.guests - (input.children ?? 0);
+
+        // Системные сообщения в чат: владельцу — данные гостя, гостю — данные владельца.
+        // Тексты и вставка — в booking-chat.ts (роутер не размазывает сборку строк).
+        await insertBookingSystemMessage(ctx.db, created.id, {
+            senderId: userId,
+            targetUserId: owner.id,
+            text: buildOwnerSummary({
+                title: apartment.title,
                 guestName: input.guestName,
                 guestPhone: input.guestPhone,
                 guests: input.guests,
                 children: input.children ?? 0,
-                checkInDate: input.checkInDate,
-                checkOutDate: input.checkOutDate,
-                message: input.message ?? null,
-                tripPurpose: input.tripPurpose ?? null,
-            })
-            .returning({ id: booking.id });
-
-        if (!created) {
-            throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
-        }
-        const [createdConversation] = await ctx.db
-            .insert(conversation)
-            .values({
-                bookingId: created.id,
-                guestId: userId,
-                ownerId: owner.id,
-            })
-            .returning({ id: conversation.id });
-        if (!createdConversation) {
-            throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
-        }
-        const adults = input.guests - (input.children ?? 0);
-
-        // Системное сообщение ВЛАДЕЛЬЦУ: данные гостя.
-        const ownerSummary = [
-            '📋 Новая заявка на бронирование:',
-            `Квартира: ${apartment.title}`,
-            `Гость: ${input.guestName}`,
-            `Телефон: ${input.guestPhone}`,
-            `Взрослых: ${adults} · Детей: ${input.children ?? 0}`,
-            `Заезд: ${input.checkInDate.toLocaleDateString('ru-RU')} — Выезд: ${input.checkOutDate.toLocaleDateString('ru-RU')}`,
-        ].join('\n');
-        await ctx.db.insert(message).values({
-            conversationId: createdConversation.id,
-            senderId: userId,
-            text: ownerSummary,
-            type: 'system',
-            targetUserId: owner.id,
+                checkIn: input.checkInDate,
+                checkOut: input.checkOutDate,
+            }),
             link: `/profile/bookings/${created.id}`,
         });
-
-        // Системное сообщение ГОСТЮ: данные арендодателя.
-        const guestSummary = [
-            '📋 Вы забронировали:',
-            `Квартира: ${apartment.title}`,
-            `Арендодатель: ${owner.name ?? '—'}`,
-            `Заезд: ${input.checkInDate.toLocaleDateString('ru-RU')} — Выезд: ${input.checkOutDate.toLocaleDateString('ru-RU')}`,
-        ].join('\n');
-        await ctx.db.insert(message).values({
-            conversationId: createdConversation.id,
+        await insertBookingSystemMessage(ctx.db, created.id, {
             senderId: userId,
-            text: guestSummary,
-            type: 'system',
             targetUserId: userId,
+            text: buildGuestSummary({
+                title: apartment.title,
+                // Имя для гостя: предпочитаем firstName (основное в проекте),
+                // затем name, и только если пусто — «Арендодатель».
+                ownerName: owner.firstName ?? owner.name ?? 'Арендодатель',
+                checkIn: input.checkInDate,
+                checkOut: input.checkOutDate,
+            }),
             link: `/profile/bookings/${created.id}`,
         });
 
-        // notifyUser = единая точка: колокольчик в БД + телеграм владельцу.
-        // В telegramText собираем красивый формат с деталями (в БД он не идёт —
-        // там свой text выше). apartment.title экранируем: в нём может быть < или &.
-        const telegramLines = [
-            `<b>Новая заявка на бронирование</b>`,
-            ``,
-            `<b>Квартира:</b> ${escapeHtml(apartment.title)}`,
-            `<b>Гость:</b> ${escapeHtml(input.guestName)}`,
-            `<b>Телефон:</b> ${escapeHtml(input.guestPhone)}`,
-            `<b>Взрослых:</b> ${adults}`,
-            `<b>Детей:</b> ${input.children ?? 0}`,
-            `<b>Заезд:</b> ${input.checkInDate.toLocaleDateString('ru-RU')}`,
-            `<b>Выезд:</b> ${input.checkOutDate.toLocaleDateString('ru-RU')}`,
-        ];
-        if (input.message) {
-            telegramLines.push(``, `<b>Комментарий:</b> ${escapeHtml(input.message)}`);
-        }
-
+        // notifyUser = единая точка: колокольчик в БД + каналы владельцу.
+        // Красивый HTML-текст для Telegram собирает booking-chat.ts.
         await notifyUser(ctx.db, {
             userId: owner.id,
             type: 'booking_new',
@@ -257,65 +291,36 @@ export const bookingsRouter = createTRPCRouter({
             // Это уведомление ВЛАДЕЛЬЦУ: ведём его на страницу входящих заявок,
             // а не на «мои брони» (там список гостя и заявок владельца нет).
             link: BOOKING_LINKS.owner,
-            telegramText: telegramLines.join('\n'),
+            telegramText: buildBookingTelegramText('new', {
+                title: apartment.title,
+                address: apartment.formattedAddress ?? null,
+                guestName: input.guestName,
+                guestPhone: input.guestPhone,
+                guests: input.guests,
+                children: input.children ?? 0,
+                checkIn: input.checkInDate,
+                checkOut: input.checkOutDate,
+                checkInTime: apartment.checkInTime ?? null,
+                checkOutTime: apartment.checkOutTime ?? null,
+                tripPurpose: input.tripPurpose ?? null,
+                message: input.message ?? null,
+            }),
         });
+
+        // Мутация возвращает созданную бронь (канон «return {id}, а не rows»):
+        // клиент может сразу вести гостя на страницу деталей.
+        return created;
     }),
 
     listForOwner: protectedProcedure.query(async ({ ctx }) => {
         const userId = ctx.session.user.id;
         // Заявки на квартиры владельца + данные гостя (booking) и владельца (owner).
-        return ctx.db
-            .select({
-                booking: booking,
-                apartment: {
-                    title: apartments.title,
-                    city: apartments.city,
-                    street: apartments.street,
-                    numberHome: apartments.numberHome,
-                    images: apartments.images,
-                    price: apartments.price,
-                },
-                owner: {
-                    id: apartments.createdById,
-                    name: users.name,
-                    phone: users.phone,
-                    firstName: users.firstName,
-                    lastName: users.lastName,
-                },
-            })
-            .from(booking)
-            .innerJoin(apartments, eq(booking.apartmentId, apartments.id))
-            .innerJoin(users, eq(apartments.createdById, users.id))
-            .where(eq(apartments.createdById, userId))
-            .orderBy(desc(booking.createdAt));
+        return selectBookingRows(ctx.db, eq(apartments.createdById, userId));
     }),
     listForUser: protectedProcedure.query(async ({ ctx }) => {
         const userId = ctx.session.user.id;
         // Брони гостя + данные владельца квартиры (чтобы гость мог связаться).
-        return ctx.db
-            .select({
-                booking: booking,
-                apartment: {
-                    title: apartments.title,
-                    city: apartments.city,
-                    street: apartments.street,
-                    numberHome: apartments.numberHome,
-                    images: apartments.images,
-                    price: apartments.price,
-                },
-                owner: {
-                    id: apartments.createdById,
-                    name: users.name,
-                    phone: users.phone,
-                    firstName: users.firstName,
-                    lastName: users.lastName,
-                },
-            })
-            .from(booking)
-            .innerJoin(apartments, eq(booking.apartmentId, apartments.id))
-            .innerJoin(users, eq(apartments.createdById, users.id))
-            .where(eq(booking.userId, userId))
-            .orderBy(desc(booking.createdAt));
+        return selectBookingRows(ctx.db, eq(booking.userId, userId));
     }),
 
     // Детали одной брони для страницы /profile/bookings/[id].
@@ -337,9 +342,19 @@ export const bookingsRouter = createTRPCRouter({
                     price: apartments.price,
                     createdById: apartments.createdById,
                 },
+                // Владелец квартиры — гость видит, с кем имеет дело.
+                // leftJoin: createdById nullable — при битых данных бронь
+                // не должна пропадать из деталей, owner просто будет null.
+                owner: {
+                    id: users.id,
+                    name: users.name,
+                    phone: users.phone,
+                    firstName: users.firstName,
+                },
             })
             .from(booking)
             .innerJoin(apartments, eq(booking.apartmentId, apartments.id))
+            .leftJoin(users, eq(apartments.createdById, users.id))
             .where(eq(booking.id, input.bookingId));
 
         if (!row) {
@@ -377,11 +392,25 @@ export const bookingsRouter = createTRPCRouter({
                 throw new TRPCError({ code: 'FORBIDDEN' });
             }
 
+            // Отменять можно только ЖИВУЮ бронь. Иначе гость мог перезаписать
+            // уже завершённую заявку (отклонённую/истёкшую): терялась причина
+            // владельца, а ему уходил ложный спам «гость отменил».
+            if (targetBooking.status !== 'new' && targetBooking.status !== 'approved') {
+                throw new TRPCError({ code: 'BAD_REQUEST', message: 'Бронь уже завершена' });
+            }
+
+            // Условие статуса продублировано в WHERE — атомарная защита:
+            // даже при гонке двух запросов статус сменится ровно один раз.
             const [updated] = await ctx.db
                 .update(booking)
                 .set({ status: 'cancelled', cancelledBy: 'guest', cancelReason: input.reason ?? null })
-                .where(eq(booking.id, input.bookingId))
+                .where(and(eq(booking.id, input.bookingId), inArray(booking.status, ['new', 'approved'])))
                 .returning({ id: booking.id });
+
+            if (!updated) {
+                // Между проверкой и UPDATE бронь успела завершиться.
+                throw new TRPCError({ code: 'CONFLICT', message: 'Бронь уже завершена' });
+            }
 
             if (apartment?.createdById) {
                 // notifyUser = колокольчик + телеграм владельцу, если подключён
@@ -394,22 +423,33 @@ export const bookingsRouter = createTRPCRouter({
                     apartmentId: targetBooking.apartmentId,
                     // Отмена — событие по заявке владельца, ссылка ведёт в его «Мои заявки».
                     link: BOOKING_LINKS.owner,
+                    telegramText: buildBookingTelegramText('cancelled', {
+                        title: apartment.title,
+                        address: apartment.formattedAddress ?? null,
+                        guestName: targetBooking.guestName,
+                        guestPhone: targetBooking.guestPhone,
+                        guests: targetBooking.guests,
+                        children: targetBooking.children ?? 0,
+                        checkIn: targetBooking.checkInDate,
+                        checkOut: targetBooking.checkOutDate,
+                        checkInTime: apartment.checkInTime ?? null,
+                        checkOutTime: apartment.checkOutTime ?? null,
+                        tripPurpose: targetBooking.tripPurpose ?? null,
+                        message: targetBooking.message ?? null,
+                        reason: input.reason ?? null,
+                    }),
+                });
+
+                // Системное сообщение в чат владельцу: гость отменил.
+                await insertBookingSystemMessage(ctx.db, targetBooking.id, {
+                    senderId: userId, // действует гость
+                    targetUserId: apartment.createdById, // адресовано владельцу
+                    text: BOOKING_DECISION_TEXTS.cancelledByGuest,
                 });
             }
             return updated;
         }),
 
-    // Ленивая автоотмена просроченных заявок: вызывается со страницы «Мои брони»
-    // при загрузке, чтобы таймер работал без внешнего cron (Vercel cron платный).
-    expireBookings: protectedProcedure.mutation(async ({ ctx }) => {
-        // Тяжёлый запрос (сканирует все просроченные брони) — раньше его мог
-        // дёргать без счёта любой авторизованный. Лимит: 6 раз в минуту на
-        // пользователя — страница зовёт процедуру один раз при загрузке,
-        // шести вызовов хватает с запасом (переключение вкладок и т.п.).
-        await enforceRateLimit(ctx.db, `expire-bookings:${ctx.session.user.id}`, 6, 60_000);
-        const expired = await expireStaleBookings();
-        return { expired };
-    }),
     setStatus: protectedProcedure
         .input(
             z.object({
@@ -441,7 +481,17 @@ export const bookingsRouter = createTRPCRouter({
                 throw new TRPCError({ code: 'FORBIDDEN' });
             }
 
-            // обновить status у брони и вернуть
+            // Решение принимается ТОЛЬКО по заявке в статусе 'new'. Иначе
+            // владелец мог «одобрить» истёкшую/отменённую заявку или повторно
+            // одобрить уже одобренную — гость получал бы противоречивые
+            // уведомления о брони, которая уже завершилась.
+            if (targetBooking.status !== 'new') {
+                throw new TRPCError({ code: 'BAD_REQUEST', message: 'Заявка уже обработана' });
+            }
+
+            // обновить status у брони и вернуть.
+            // Условие статуса продублировано в WHERE — атомарная защита от гонки:
+            // два параллельных решения не проскочат оба.
             const [updated] = await ctx.db
                 .update(booking)
                 .set({
@@ -451,8 +501,23 @@ export const bookingsRouter = createTRPCRouter({
                         ? { cancelledBy: 'owner', cancelReason: input.reason ?? null }
                         : {}),
                 })
-                .where(eq(booking.id, input.bookingId))
+                .where(and(eq(booking.id, input.bookingId), eq(booking.status, 'new')))
                 .returning({ id: booking.id });
+
+            if (!updated) {
+                // Между проверкой и UPDATE заявку успели обработать/отменить.
+                throw new TRPCError({ code: 'CONFLICT', message: 'Заявка уже обработана' });
+            }
+
+            // Системное сообщение в чат гостю: решение владельца.
+            // Гость авторизован всегда в этой ветке (уведомление ниже шлём по userId),
+            // но колонка nullable — подстраховка: null = «не адресовано конкретному».
+            await insertBookingSystemMessage(ctx.db, targetBooking.id, {
+                senderId: userId, // действует владелец
+                targetUserId: targetBooking.userId ?? null, // адресовано гостю
+                text: input.status === 'approved' ? BOOKING_DECISION_TEXTS.approved : BOOKING_DECISION_TEXTS.rejected,
+            });
+
             //уведомляем гостя если он авторизован (колокольчик + телеграм)
             if (targetBooking.userId) {
                 await notifyUser(ctx.db, {
@@ -464,12 +529,22 @@ export const bookingsRouter = createTRPCRouter({
                     apartmentId: targetBooking.apartmentId,
                     // Решение принимает владелец, а уведомление получает гость.
                     link: BOOKING_LINKS.guest,
+                    telegramText: buildBookingTelegramText(input.status === 'approved' ? 'approved' : 'rejected', {
+                        title: apartment.title,
+                        address: apartment.formattedAddress ?? null,
+                        price: apartment.price ?? null,
+                        checkIn: targetBooking.checkInDate,
+                        checkOut: targetBooking.checkOutDate,
+                        checkInTime: apartment.checkInTime ?? null,
+                        checkOutTime: apartment.checkOutTime ?? null,
+                        reason: input.reason ?? null,
+                    }),
                 });
             }
             return updated;
         }),
 
-    // Удалить бронь из БД. Гость удаляет свою бронь, владелец — заявку на свою квартиру.
+    // Удалить бронь из БД (и каскадом — диалог и сообщения). Только админ.
     delete: protectedProcedure.input(z.object({ bookingId: idSchema })).mutation(async ({ ctx, input }) => {
         // Удалять может ТОЛЬКО админ и выше.
         if (!isAdminRole(ctx.session.user.role)) {
@@ -482,6 +557,15 @@ export const bookingsRouter = createTRPCRouter({
         }
 
         await ctx.db.delete(booking).where(eq(booking.id, input.bookingId));
+
+        // Денормализованный счётчик: -1 бронь у гостя (если он был авторизован).
+        if (targetBooking.userId) {
+            await ctx.db
+                .update(users)
+                .set({ totalBookings: sql`${users.totalBookings} - 1` })
+                .where(eq(users.id, targetBooking.userId));
+        }
+
         return { deleted: true };
     }),
 });

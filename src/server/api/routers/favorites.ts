@@ -1,9 +1,9 @@
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { apartmentCardColumns, hideTestApartments, listingRank } from '@/server/apartment-selects';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
-import { apartments, favorites } from '@/server/db/schemas';
+import { apartments, favorites, users } from '@/server/db/schemas';
 
 const apartmentIdInput = z.object({
     apartmentId: z.number().int().positive('Некорректный идентификатор объекта'),
@@ -31,10 +31,20 @@ export const favoritesRouter = createTRPCRouter({
             await ctx.db
                 .delete(favorites)
                 .where(and(eq(favorites.userId, userId), eq(favorites.apartmentId, input.apartmentId)));
+            // Денормализованный счётчик: -1 в избранном (атомарно, без гонки).
+            await ctx.db
+                .update(users)
+                .set({ totalFavorites: sql`${users.totalFavorites} - 1` })
+                .where(eq(users.id, userId));
             return { isFavorite: false };
         }
         // 3. Нет → добавляем (добавили в избранное)
         await ctx.db.insert(favorites).values({ userId, apartmentId: input.apartmentId });
+        // Денормализованный счётчик: +1 в избранном (атомарно, без гонки).
+        await ctx.db
+            .update(users)
+            .set({ totalFavorites: sql`${users.totalFavorites} + 1` })
+            .where(eq(users.id, userId));
         return { isFavorite: true };
     }),
     //4. эта квартира у пользователя в избранном или нет?

@@ -5,30 +5,19 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 
+import { GuestOwnerCard } from '@/components/bookings/GuestOwnerCard';
 import { CheckCircle, Hourglass } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
-import { statusColor } from '@/lib/booking-utils';
+import { nightsBetween, statusColor } from '@/lib/booking-utils';
 import { BOOKING_STATUS_LABELS, GUEST_BOOKING_STATUS_LABELS } from '@/lib/constants/booking';
 import { cancelledByLabel } from '@/lib/constants/cancel-reasons';
+import { formatByn } from '@/lib/constants/currencies';
+import { formatShortDateWithWeekday } from '@/lib/date';
 import { requireAuth } from '@/server/auth/require-auth';
 import { Layout } from '@/shared/ui/layout';
 import { api } from '@/trpc/react';
 import { plural } from '@/utils/plural';
 export const getServerSideProps = requireAuth;
-
-// «26 окт., пн» — дата + день недели.
-function formatDateWithWeekday(value: Date | string): string {
-    return new Date(value).toLocaleDateString('ru-RU', {
-        day: 'numeric',
-        month: 'short',
-        weekday: 'short',
-    });
-}
-
-// Сколько ночей между заездом и выездом.
-function nightsBetween(checkInDate: Date, checkOutDate: Date): number {
-    return Math.round((new Date(checkOutDate).getTime() - new Date(checkInDate).getTime()) / 86_400_000);
-}
 
 export default function BookingDetailPage() {
     const router = useRouter();
@@ -67,7 +56,7 @@ export default function BookingDetailPage() {
         );
     }
 
-    const { booking, apartment } = data ?? {};
+    const { booking, apartment, owner } = data ?? {};
     const isOwner = apartment?.createdById === userId;
     const nights = booking ? nightsBetween(booking.checkInDate, booking.checkOutDate) : 0;
 
@@ -91,9 +80,11 @@ export default function BookingDetailPage() {
                                     booking.status}
                             </h1>
                         )}
-
-                        {/* Оплата при заселении */}
-                        <p className="mt-1 text-sm text-muted-foreground">Оплата при заселении</p>
+                        {/* //проверить додедлать   цена*/}
+                        <p className="mt-1 text-sm text-muted-foreground">
+                            {formatByn(apartment.price)} / сутки · всего за {nights}{' '}
+                            {plural(nights, 'ночь', 'ночи', 'ночей')}: {formatByn(apartment.price * nights)}
+                        </p>
 
                         {/* Причина отмены */}
                         {booking.cancelReason && (
@@ -136,7 +127,7 @@ export default function BookingDetailPage() {
                             <div className="flex-1">
                                 <p className="text-sm text-muted-foreground">Заезд</p>
                                 <p className="font-medium text-foreground">
-                                    {formatDateWithWeekday(booking.checkInDate)}
+                                    {formatShortDateWithWeekday(booking.checkInDate)}
                                 </p>
                                 <p className="text-sm text-foreground">{apartment.checkInTime ?? '—'}</p>
                             </div>
@@ -148,7 +139,7 @@ export default function BookingDetailPage() {
                             <div className="flex-1 text-right">
                                 <p className="text-sm text-muted-foreground">Выезд</p>
                                 <p className="font-medium text-foreground">
-                                    {formatDateWithWeekday(booking.checkOutDate)}
+                                    {formatShortDateWithWeekday(booking.checkOutDate)}
                                 </p>
                                 <p className="text-sm text-foreground">{apartment.checkOutTime ?? '—'}</p>
                             </div>
@@ -176,7 +167,20 @@ export default function BookingDetailPage() {
                             <p className="mt-3 text-sm font-medium text-foreground">Правила отмены</p>
                             <p className="mt-1 text-sm text-muted-foreground">Правила отмены не настроены</p>
                         </div>
-
+                        {isOwner ? (
+                            <GuestOwnerCard
+                                side="guest"
+                                name={booking.guestName}
+                                phone={booking.guestPhone}
+                                extra={booking.message ? `Комментарий: ${booking.message}` : null}
+                            />
+                        ) : (
+                            <GuestOwnerCard
+                                side="owner"
+                                name={owner?.firstName ?? owner?.name ?? 'Арендодатель'}
+                                phone={owner?.phone ?? null}
+                            />
+                        )}
                         {/* Действия доступны только когда заявка ждёт решения (status === 'new') */}
                         {booking.status === 'new' && (
                             <div className="mt-5 flex flex-col gap-2">

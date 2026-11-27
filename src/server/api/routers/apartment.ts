@@ -7,8 +7,8 @@ import { getCanonicalMicrodistrict } from '@/lib/constants';
 import { APARTMENT_STATUS_VALUES } from '@/lib/constants/apartment-status';
 import { getRegion, getRegionByLocality } from '@/lib/constants/belarus-locations';
 import { isAdminRole, isStaffRole } from '@/lib/constants/roles';
-import { createApartmentInput, updateApartmentInput } from '@/lib/schemas/apartment';
-import { idSchema } from '@/lib/schemas/common';
+import { createApartmentInput, updateApartmentInput } from '@/lib/validation/apartment';
+import { idSchema } from '@/lib/validation/common';
 import { isAddressChanged } from '@/server/apartment-address';
 import { buildCatalogConditions, catalogFiltersSchema } from '@/server/apartment-filters';
 import { removeApartmentImages } from '@/server/apartment-images';
@@ -23,14 +23,14 @@ import {
     selectApartmentWithUser,
 } from '@/server/apartment-selects';
 import { createTRPCRouter, protectedProcedure, publicProcedure } from '@/server/api/trpc';
-import { apartments } from '@/server/db/schemas';
+import { apartments, users } from '@/server/db/schemas';
 
 // ===== ОБЩИЕ СХЕМЫ ВВОДА =====
 const apartmentIdInput = z.object({
     id: z.number().int().positive('Некорректный идентификатор объекта'),
 });
 
-// Схемы ввода объекта строятся из таблицы apartments — см. src/lib/schemas/apartment.ts
+// Схемы ввода объекта строятся из таблицы apartments — см. src/lib/validation/apartment.ts
 export const apartmentRouter = createTRPCRouter({
     // 1. Получить все квартиры (с фильтрами для SEO-страниц каталога)
     getAll: publicProcedure.input(catalogFiltersSchema.optional()).query(async ({ ctx, input }) => {
@@ -178,6 +178,12 @@ export const apartmentRouter = createTRPCRouter({
             })
             .returning(apartmentPrivateColumns);
 
+        // Денормализованный счётчик: +1 объект у владельца (атомарно, без гонки).
+        await ctx.db
+            .update(users)
+            .set({ totalApartments: sql`${users.totalApartments} + 1` })
+            .where(eq(users.id, userId));
+
         return newApartment;
     }),
 
@@ -262,6 +268,14 @@ export const apartmentRouter = createTRPCRouter({
         // если remove упадёт, максимум останется мусор в хранилище (объект уже
         // удалён) — а не живой объект с битыми фото.
         await removeApartmentImages(existing.images ?? []);
+
+        // Денормализованный счётчик: -1 объект у владельца.
+        if (existing.createdById) {
+            await ctx.db
+                .update(users)
+                .set({ totalApartments: sql`${users.totalApartments} - 1` })
+                .where(eq(users.id, existing.createdById));
+        }
 
         return { success: true };
     }),

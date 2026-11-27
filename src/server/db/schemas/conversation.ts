@@ -13,12 +13,13 @@ export const conversation = pgTable(
             .references(() => booking.id, { onDelete: 'cascade' }),
         guestId: d
             .varchar({ length: 255 })
-            .notNull()
-            .references(() => users.id, { onDelete: 'cascade' }),
+            // nullable + set null: удаление аккаунта гостя не удаляет диалог —
+            // владелец сохраняет переписку, имя гостя станет null.
+            .references(() => users.id, { onDelete: 'set null' }),
         ownerId: d
             .varchar({ length: 255 })
-            .notNull()
-            .references(() => users.id, { onDelete: 'cascade' }),
+            // То же для владельца: гость не теряет диалог при удалении аккаунта владельца.
+            .references(() => users.id, { onDelete: 'set null' }),
         isActive: d.boolean().notNull().default(true), // true = переписка активна; false = заблокирована администратором (участники видят беседу, но не могут отправлять сообщения).
         // Присутствие участников: когда гость/владелец последний раз читал диалог.
         // Анти-спам телеграма: кто читал недавно (окно PRESENCE_WINDOW_MS в chat.ts)

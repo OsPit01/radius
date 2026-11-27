@@ -1,7 +1,7 @@
 import { Controller, useFormContext } from 'react-hook-form';
 
 import { BASE_CURRENCY_SYMBOL } from '@/lib/constants';
-import { createApartmentInput } from '@/lib/schemas/apartment';
+import { createApartmentInput } from '@/lib/validation/apartment';
 import { Field, FieldError, FieldLabel, FieldLegend, FieldRequired, FieldSet } from '@/shared/ui/field';
 import { Input } from '@/shared/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';

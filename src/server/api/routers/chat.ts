@@ -6,7 +6,7 @@ import z from 'zod';
 import { MAX_MESSAGE_LENGTH } from '@/lib/chat';
 import { type NotificationChannel } from '@/lib/constants/notification-channels';
 import { isAdminRole } from '@/lib/constants/roles';
-import { idSchema } from '@/lib/schemas/common';
+import { idSchema } from '@/lib/validation/common';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import { apartments, booking, conversation, message, userChannel, users } from '@/server/db/schemas';
 import { CHANNEL_SENDERS } from '@/server/notification-channels';
@@ -90,6 +90,16 @@ export const chatRouter = createTRPCRouter({
             // Только мои диалоги (я гость ИЛИ владелец).
             .where(or(eq(conversation.guestId, userId), eq(conversation.ownerId, userId)));
 
+        // Диалогов нет — дальше считать нечего (и inArray по пустому списку не нужен).
+        if (chats.length === 0) {
+            return [];
+        }
+
+        // id моих диалогов — чтобы агрегаты ниже считались ТОЛЬКО по ним,
+        // а не по всем сообщениям сайта (раньше lastRows сканировал переписку
+        // ВСЕХ пользователей ради моих нескольких диалогов).
+        const myConversationIds = chats.map((c) => c.conversation.id);
+
         // Непрочитанные сообщения, сгруппированные по диалогу: сколько в КАЖДОМ диалоге
         // сообщений, написанных не мной и ещё не прочитанных.
         const unreadRows = await ctx.db
@@ -98,10 +108,9 @@ export const chatRouter = createTRPCRouter({
                 unread: count(),
             })
             .from(message)
-            .innerJoin(conversation, eq(message.conversationId, conversation.id))
             .where(
                 and(
-                    or(eq(conversation.guestId, userId), eq(conversation.ownerId, userId)),
+                    inArray(message.conversationId, myConversationIds),
                     ne(message.senderId, userId),
                     eq(message.isRead, false),
                 ),
@@ -110,11 +119,12 @@ export const chatRouter = createTRPCRouter({
 
         const unreadByConversation = new Map(unreadRows.map((r) => [r.conversationId, r.unread]));
 
-        // Когда было последнее сообщение в каждой беседе — для сортировки
+        // Когда было последнее сообщение в каждом ИЗ МОИХ диалогов — для сортировки
         // «свежие сверху», как в обычных мессенджерах.
         const lastRows = await ctx.db
             .select({ conversationId: message.conversationId, lastAt: max(message.createdAt) })
             .from(message)
+            .where(inArray(message.conversationId, myConversationIds))
             .groupBy(message.conversationId);
         const lastByConversation = new Map(lastRows.map((r) => [r.conversationId, r.lastAt]));
 

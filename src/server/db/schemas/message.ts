@@ -16,8 +16,9 @@ export const message = pgTable(
             .references(() => conversation.id, { onDelete: 'cascade' }),
         senderId: d
             .varchar({ length: 255 })
-            .notNull()
-            .references(() => users.id, { onDelete: 'cascade' }),
+            // nullable + set null: удаление аккаунта отправителя не стирает его
+            // сообщения из истории диалога (системные сообщения имеют null).
+            .references(() => users.id, { onDelete: 'set null' }),
         text: d.text().notNull(),
         type: messageTypeEnum('type').notNull().default('user'),
         // Ссылка на страницу (например, детали брони) — только у системных сообщений.
@@ -30,5 +31,9 @@ export const message = pgTable(
             .$defaultFn(() => new Date())
             .notNull(),
     }),
-    (t) => [index('message_conversation_idx').on(t.conversationId)],
+    (t) => [
+        index('message_conversation_idx').on(t.conversationId),
+        // Для unreadCount («не мои и непрочитанные»): фильтр по senderId + isRead.
+        index('message_sender_read_idx').on(t.senderId, t.isRead),
+    ],
 );

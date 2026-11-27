@@ -4,8 +4,8 @@ import { z } from 'zod';
 
 import { getNotificationLink } from '@/lib/constants/notification';
 import { isAdminRole } from '@/lib/constants/roles';
-import { idSchema } from '@/lib/schemas/common';
-import { apartments, notification } from '@/server/db/schemas';
+import { idSchema } from '@/lib/validation/common';
+import { apartments, notification, users } from '@/server/db/schemas';
 import { notifyUser } from '@/server/notify';
 
 import { createTRPCRouter, protectedProcedure } from '../trpc';
@@ -109,6 +109,14 @@ export const notificationRouter = createTRPCRouter({
                     code: 'FORBIDDEN',
                     message: 'Только администратор может уведомлять пользователей',
                 });
+            }
+
+            // Граница доверия: userId должен быть РЕАЛЬНЫМ пользователем —
+            // иначе INSERT упал бы с FK-violation и клиент получил бы 500
+            // вместо понятной ошибки.
+            const [target] = await ctx.db.select({ id: users.id }).from(users).where(eq(users.id, input.userId));
+            if (!target) {
+                throw new TRPCError({ code: 'BAD_REQUEST', message: 'Пользователь не найден' });
             }
 
             // notifyUser (хелпер) = колокольчик в БД + дублирование в телеграм.

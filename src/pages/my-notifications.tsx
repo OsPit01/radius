@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowRight, Bell, Calendar, Info } from '@/components/icons';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { NotificationCard } from '@/components/notifications/NotificationCard';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Modal } from '@/components/ui/Modal';
 import { requireAuth } from '@/server/auth/require-auth';
 import { Layout } from '@/shared/ui/layout';
@@ -16,6 +17,8 @@ export const getServerSideProps = requireAuth;
 export default function MyNotifications() {
     const { data: notifications } = api.notification.getMyNotifications.useQuery();
     const [selected, setSelected] = useState<NonNullable<typeof notifications>[number] | null>(null);
+    // Что ждёт подтверждения удаления: id одного уведомления или 'all' (все).
+    const [confirmDelete, setConfirmDelete] = useState<{ type: 'one'; id: number } | { type: 'all' } | null>(null);
     const utils = api.useUtils();
     const markAllAsRead = api.notification.markAllAsRead.useMutation({
         onSuccess: () => {
@@ -61,7 +64,7 @@ export default function MyNotifications() {
                         {notifications?.length ? (
                             <button
                                 type="button"
-                                onClick={() => deleteAllNotifications.mutate()}
+                                onClick={() => setConfirmDelete({ type: 'all' })}
                                 className="rounded-xl border border-border px-4 py-2 text-sm font-medium whitespace-nowrap text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
                             >
                                 Удалить все
@@ -81,7 +84,7 @@ export default function MyNotifications() {
                                 setSelected(item);
                                 markAsRead.mutate({ id: item.id });
                             }}
-                            onDelete={() => deleteNotification.mutate({ id: item.id })}
+                            onDelete={() => setConfirmDelete({ type: 'one', id: item.id })}
                         />
                     ))}
                     {notifications?.length === 0 && (
@@ -141,6 +144,27 @@ export default function MyNotifications() {
                         </div>
                     </Modal>
                 )}
+
+                {/* Подтверждение удаления: одно уведомление или все */}
+                <ConfirmDialog
+                    open={confirmDelete !== null}
+                    onClose={() => setConfirmDelete(null)}
+                    onConfirm={() => {
+                        if (confirmDelete?.type === 'one') {
+                            deleteNotification.mutate({ id: confirmDelete.id });
+                        } else if (confirmDelete?.type === 'all') {
+                            deleteAllNotifications.mutate();
+                        }
+                        setConfirmDelete(null);
+                    }}
+                    title={confirmDelete?.type === 'all' ? 'Удалить все уведомления?' : 'Удалить уведомление?'}
+                    text={
+                        confirmDelete?.type === 'all'
+                            ? 'Все ваши уведомления будут удалены. Действие необратимо.'
+                            : 'Уведомление будет удалено. Действие необратимо.'
+                    }
+                    isPending={deleteNotification.isPending || deleteAllNotifications.isPending}
+                />
             </Layout>
         </AuthGuard>
     );
